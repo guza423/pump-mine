@@ -31,7 +31,7 @@ Uygulama çevrimdışı önbelleğe alınır ve destekleyen mobil tarayıcılard
 
 <https://guza423.github.io/pump-mine/>
 
-İlk dağıtımdan önce depo ayarlarında **Settings → Pages → Source** alanı **GitHub Actions** olarak seçilmelidir.
+Workflow, ilk dağıtımda GitHub Pages'i etkinleştirir ve sonraki push'larda siteyi otomatik günceller.
 
 ## APK
 
