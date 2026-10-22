@@ -1,4 +1,7 @@
 import { useRef, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 import { readBackup, restoreBackup } from '../../lib/store/database';
 
 type Status = { tone: 'ok' | 'bad'; message: string } | null;
@@ -12,6 +15,22 @@ function downloadJson(contents: string, filename: string) {
   URL.revokeObjectURL(url);
 }
 
+async function shareJson(contents: string, filename: string) {
+  const { uri } = await Filesystem.writeFile({
+    path: filename,
+    data: contents,
+    directory: Directory.Cache,
+    encoding: Encoding.UTF8,
+  });
+
+  await Share.share({
+    title: 'PERFORMANCE yedeği',
+    text: 'Antrenman verilerimin PERFORMANCE yedeği',
+    url: uri,
+    dialogTitle: 'Yedeği kaydet veya paylaş',
+  });
+}
+
 export function BackupPanel() {
   const input = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<Status>(null);
@@ -22,8 +41,15 @@ export function BackupPanel() {
     try {
       const backup = await readBackup();
       const date = backup.exportedAt.slice(0, 10);
-      downloadJson(JSON.stringify(backup, null, 2), `performance-yedek-${date}.json`);
-      setStatus({ tone: 'ok', message: 'Yedek indirildi.' });
+      const contents = JSON.stringify(backup, null, 2);
+      const filename = `performance-yedek-${date}.json`;
+      if (Capacitor.isNativePlatform()) {
+        await shareJson(contents, filename);
+        setStatus({ tone: 'ok', message: 'Yedek paylaşıma hazır.' });
+      } else {
+        downloadJson(contents, filename);
+        setStatus({ tone: 'ok', message: 'Yedek indirildi.' });
+      }
     } catch {
       setStatus({ tone: 'bad', message: 'Yedek oluşturulamadı.' });
     } finally {
