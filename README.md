@@ -66,6 +66,8 @@ Uygulama çevrimdışı önbelleğe alınır ve destekleyen mobil tarayıcılard
 
 Workflow, ilk dağıtımda GitHub Pages'i etkinleştirir ve sonraki push'larda siteyi otomatik günceller.
 
+PR açıldığında otomatik test edilir, main'e birleşir ve APK üretilir.
+
 ## APK
 
 Her push ve elle tetiklenen çalıştırma, **Build Android debug APK** GitHub Actions workflow'unu başlatır. APK'yı indirmek için:
