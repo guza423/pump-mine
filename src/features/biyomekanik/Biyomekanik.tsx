@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Notes, Tile } from '../../app/ui';
 import { BIO } from '../../lib/models/biomech';
 import { clamp, fmt, Icon, Range, reducedMotion } from '../yorgunluk/Yorgunluk';
 /* ================= BIYOMEKANIK ================= */
@@ -400,16 +401,6 @@ function Segmented({ id, label, value, options, onChange }) {
           <button key={o.v} id={id + '-' + o.v} type="button" role="radio" aria-checked={value === o.v} className={value === o.v ? 'on' : ''} onClick={() => onChange(o.v)}>{o.t}</button>
         ))}
       </div>
-    </div>
-  );
-}
-
-function Tile({ k, v, unit, sub, tone }) {
-  return (
-    <div className={'tile ' + (tone || '')}>
-      <span className="tile-k">{k}</span>
-      <span className="tile-v mono">{v}<small>{unit}</small></span>
-      {sub ? <span className="tile-sub">{sub}</span> : null}
     </div>
   );
 }

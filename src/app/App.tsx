@@ -5,9 +5,10 @@ import { MOVES, BiomechTab } from '../features/biyomekanik/Biyomekanik';
 import { LogTab, TEMPLATES, programFromTemplate } from '../features/gunluk/Gunluk';
 import { Axon, Icon, setSimPrefill, STAGES, StageFatigue, StageRate, StageRecovery, StageRecruit, StageSignal } from '../features/yorgunluk/Yorgunluk';
 import { useLogStore } from '../lib/store/useLogStore';
-import '../styles/app.css';
 import '../styles/cns.css';
+import '../styles/app.css';
 import '../styles/log.css';
+import '../styles/mobile.css';
 /* ================= APP SHELL ================= */
 const TABS = [
   { id: 'merkez', label: 'Merkez', icon: 'home', ready: true, title: 'Merkez', sub: 'Hedef, modüller ve veri akışı' },
@@ -184,7 +185,7 @@ function FatigueTab({ step, setStep }) {
 }
 
 /* ---------- App ---------- */
-function App() {
+function AppContent() {
   const init = useMemo(parseHash, []);
   const [tab, setTab] = useState(init.tab);
   const [move, setMove] = useState(init.move);
@@ -244,7 +245,7 @@ function App() {
           <header className="app-head">
             <div className="brand-row">
               <span className="wordmark"><span className="wm-mark"><Icon name="zap" size={11} /></span>PERFORMANCE</span>
-              <span className="ver mono">prototip v0.3</span>
+              <span className="ver mono">prototip v0.4</span>
             </div>
             <h1 className="tab-title">{cur.title}</h1>
             <p className="tab-sub">{cur.sub}</p>
@@ -280,5 +281,43 @@ function App() {
   );
 }
 
+class AppErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { failed: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch(error, info) {
+    console.error('Uygulama ekranı oluşturulamadı.', error, info);
+  }
+
+  render() {
+    if (this.state.failed) {
+      return (
+        <div className="device-wrap">
+          <div className="device">
+            <main className="app-shell error-screen" role="alert">
+              <h1>Bir şeyler ters gitti</h1>
+              <button type="button" className="btn primary" onClick={() => window.location.reload()}>Yeniden yükle</button>
+            </main>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function App() {
+  return (
+    <AppErrorBoundary>
+      <AppContent />
+    </AppErrorBoundary>
+  );
+}
 
 export default App;

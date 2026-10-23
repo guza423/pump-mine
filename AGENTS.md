@@ -67,3 +67,11 @@ src/
 
 ## Teslim
 Her fazın sonunda README'yi güncelle: yerelde nasıl çalıştırılır, canlı adres, APK nereden indirilir ve telefona nasıl kurulur.
+
+## Her görevin sonunda (zorunlu, kullanıcıya sorma)
+1. `npm test` ve `npm run build` çalıştır.
+2. İkisi de geçerse: `git add -A`, kısa ve anlamlı bir mesajla commit, ardından `git push origin HEAD:main`.
+3. PR veya ayrı branch açma; her zaman doğrudan `main`'e push et.
+4. Bitince `git log -1 --oneline`, push çıktısını ve `git status` çıktısını göster.
+5. Derleme çıktılarını asla commit etme: `dist/`, `android/app/build/`, `android/app/src/main/assets/public/`, `android/app/src/main/assets/capacitor.config.json`, `android/app/src/main/assets/capacitor.plugins.json`, `android/app/src/main/res/xml/config.xml`, `android/capacitor-cordova-android-plugins/`.
+6. Testler veya build geçmezse hatayı düzelt ve tekrar dene; geçmeyen kodu push etme.

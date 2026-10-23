@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React from 'react';
+import { Notes } from '../../app/ui';
 const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
@@ -45,27 +46,6 @@ function Icon({ name, size = 16 }) {
 }
 
 /* ---------------- Shared ---------------- */
-function Notes({ what, tip, caveat }) {
-  return (
-    <aside className="notes">
-      <div className="note note-what">
-        <div className="note-label"><Icon name="pulse" size={14} /> Ne oluyor?</div>
-        <p>{what}</p>
-      </div>
-      <div className="note note-tip">
-        <div className="note-label"><Icon name="target" size={14} /> Pratik ipucu</div>
-        <p>{tip}</p>
-      </div>
-      {caveat ? (
-        <div className="note note-caveat">
-          <div className="note-label"><Icon name="flask" size={14} /> Bilimsel not</div>
-          <p>{caveat}</p>
-        </div>
-      ) : null}
-    </aside>
-  );
-}
-
 function StageShell({ index, title, lede, notes, children }) {
   return (
     <section className="stage" aria-labelledby={'h-' + index}>

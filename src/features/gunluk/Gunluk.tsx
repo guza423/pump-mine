@@ -1,6 +1,7 @@
 // @ts-nocheck
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as ReactDOM from 'react-dom';
+import { Notes, Tile } from '../../app/ui';
 import { clamp, Icon, reducedMotion } from '../yorgunluk/Yorgunluk';
 /* ================= GÜNLÜK: program yazma + antrenman kaydı ================= */
 const WD_LONG = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
