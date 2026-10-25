@@ -3,15 +3,16 @@ import { e1rm, repVelocities, rirFromSpeed } from './training';
 
 describe('hız / RIR modeli', () => {
   it.each([
-    [8, 3, 2.5],
-    [8, 4, 0.25],
-    [5, 2, 3.25],
+    [8, 0, 5],
+    [8, 3, 1],
+    [20, 4, 0],
+    [5, 2, 2],
   ])('%i tekrar ve %i hız seviyesi için RIR ≈ %s', (reps, level, expected) => {
     expect(rirFromSpeed(reps, level)).toBeCloseTo(expected, 5);
   });
 
   it('tek tekrarlı setlerde sabit RIR eşlemesini kullanır', () => {
-    expect([0, 1, 2, 3, 4].map((level) => rirFromSpeed(1, level))).toEqual([4, 3, 2, 1, 0]);
+    expect([0, 1, 2, 3, 4].map((level) => rirFromSpeed(1, level))).toEqual([5, 3, 2, 1, 0]);
   });
 
   it('tekrar hızlarını monoton olarak düşürür', () => {

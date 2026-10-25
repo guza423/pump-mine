@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, seedInitialProgram } from './database';
-import type { Exercise, Program, Session } from './types';
+import type { Checkin, Exercise, Program, Session, Setting } from './types';
 
-type Kind = 'programs' | 'sessions' | 'custom';
-type StoredValue = Program | Session | Exercise;
+type Kind = 'programs' | 'sessions' | 'custom' | 'checkins' | 'settings';
+type StoredValue = Program | Session | Exercise | Checkin | Setting;
 
 const tableFor = (kind: Kind) => (kind === 'custom' ? db.exercises : db[kind]);
 
@@ -29,6 +29,8 @@ export function useLogStore(initialProgram: () => Program) {
     () => db.exercises.orderBy('name').toArray(),
     [],
   );
+  const checkins = useLiveQuery(() => db.checkins.orderBy('at').reverse().limit(30).toArray(), []);
+  const settings = useLiveQuery(() => db.settings.toArray(), []);
 
   const apiRef = useRef({
     put: async (kind: Kind, value: StoredValue) => {
@@ -41,7 +43,7 @@ export function useLogStore(initialProgram: () => Program) {
     },
     del: async (kind: Kind, id: string) => {
       try {
-        await tableFor(kind).delete(id);
+        await tableFor(kind).delete(id as never);
         setError(null);
       } catch {
         setError('write');
@@ -54,16 +56,20 @@ export function useLogStore(initialProgram: () => Program) {
       programs: programs !== undefined,
       sessions: sessions !== undefined,
       custom: custom !== undefined,
+      checkins: checkins !== undefined,
+      settings: settings !== undefined,
     };
     return {
       status: Object.values(loaded).every(Boolean) ? 'db' : 'loading',
       programs: programs ?? [],
       sessions: sessions ?? [],
       custom: custom ?? [],
+      checkins: checkins ?? [],
+      settings: settings ?? [],
       loaded,
       error,
     };
-  }, [programs, sessions, custom, error]);
+  }, [programs, sessions, custom, checkins, settings, error]);
 
   return [state, apiRef] as const;
 }

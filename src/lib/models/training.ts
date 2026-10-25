@@ -1,9 +1,9 @@
 export const SPEED = [
-  { key: 'same', velocityLoss: 0.05 },
-  { key: 'slightly-slow', velocityLoss: 0.18 },
-  { key: 'clearly-slow', velocityLoss: 0.32 },
-  { key: 'very-slow', velocityLoss: 0.47 },
-  { key: 'grinding', velocityLoss: 0.62 },
+  { key: 'same', label: 'Aynı hız', rir: 5, rpe: 6, velocityLoss: 0.05 },
+  { key: 'slightly-slow', label: 'Biraz yavaş', rir: 3, rpe: 7, velocityLoss: 0.18 },
+  { key: 'clearly-slow', label: 'Belirgin yavaş', rir: 2, rpe: 8, velocityLoss: 0.32 },
+  { key: 'very-slow', label: 'Çok yavaş', rir: 1, rpe: 9, velocityLoss: 0.47 },
+  { key: 'grinding', label: 'Zar zor', rir: 0, rpe: 10, velocityLoss: 0.62 },
 ] as const;
 
 const V_MIN = 0.17;
@@ -32,22 +32,15 @@ export function velocityLossFor(reps: number, rir: number): number {
 
 export function rirFromSpeed(reps: number, level: number): number {
   if (level < 0 || level >= SPEED.length) throw new RangeError('Hız seviyesi 0–4 olmalı.');
-  if (reps <= 1) return [4, 3, 2, 1, 0][level];
-  const target = SPEED[level].velocityLoss;
-  let best = 0;
-  let error = Number.POSITIVE_INFINITY;
-  for (let rir = 0; rir <= 10.001; rir += 0.25) {
-    const candidateError = Math.abs(velocityLossFor(reps, rir) - target);
-    if (candidateError < error) {
-      error = candidateError;
-      best = rir;
-    }
-  }
-  return best;
+  void reps;
+  return SPEED[level].rir;
 }
 
 export const e1rm = (kg: number, reps: number, rir: number) =>
   Number(kg) * (1 + (reps + rir) / 30);
+
+export const isE1rmEligible = (reps: number, rir: number) =>
+  rir <= 4 && reps + rir <= 12;
 
 export function repVelocities(reps: number, rir: number, velocityLoss: number): number[] {
   const count = Math.max(1, reps);

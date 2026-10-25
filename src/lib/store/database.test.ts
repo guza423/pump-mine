@@ -39,13 +39,23 @@ describe('IndexedDB veri katmanı', () => {
     expect(() => parseBackup({ version: 1 })).toThrow(/desteklenen/);
   });
 
+  it('v1 yedeğini veri kaybetmeden v2 biçimine yükseltir', () => {
+    const migrated = parseBackup({
+      format: 'performance-backup', version: 1, exportedAt: new Date(0).toISOString(),
+      data: { programs: [program], sessions: [], exercises: [] },
+    });
+    expect(migrated.version).toBe(2);
+    expect(migrated.data.checkins).toEqual([]);
+    expect(migrated.data.programs[0].id).toBe(program.id);
+  });
+
   it('geri yüklerken mevcut kayıtları değiştirir', async () => {
     await db.programs.put({ ...program, id: 'old' });
     const backup: PerformanceBackup = {
       format: 'performance-backup',
-      version: 1,
+      version: 2,
       exportedAt: new Date(0).toISOString(),
-      data: { programs: [program], sessions: [], exercises: [] },
+      data: { programs: [program], sessions: [], exercises: [], checkins: [], settings: [] },
     };
     await restoreBackup(backup);
     expect(await db.programs.toArray()).toEqual([program]);

@@ -7,7 +7,7 @@ import '@fontsource/ibm-plex-sans/600.css';
 import '@fontsource/jetbrains-mono/400.css';
 import '@fontsource/jetbrains-mono/600.css';
 import { registerSW } from 'virtual:pwa-register';
-import App from './app/App';
+import App from './app/AppV7';
 
 registerSW({ immediate: true });
 

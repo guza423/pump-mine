@@ -37,6 +37,8 @@ export interface RecordedSet {
   rir: number;
   rirEst: number;
   at: number;
+  note?: string;
+  tags?: string[];
 }
 
 export interface SessionItem {
@@ -45,6 +47,8 @@ export interface SessionItem {
   name: string;
   muscle: string;
   note: string;
+  srcId?: string | null;
+  memo?: string;
   target: Omit<ProgramItem, 'id' | 'exId' | 'name' | 'muscle' | 'note'>;
   sets: RecordedSet[];
 }
@@ -58,6 +62,7 @@ export interface Session {
   startedAt: number;
   endedAt: number | null;
   status: 'active' | 'done';
+  fatigue?: { v: 2; pre: number; post: number | null };
   items: SessionItem[];
 }
 
@@ -67,17 +72,34 @@ export interface Exercise {
   muscle: string;
   createdAt: number;
   pending: true;
+  fat?: 1 | 2 | 3;
+  prof?: 'alt' | 'ust' | 'dengeli';
+  sec?: string[];
+  bio?: 'bench' | 'rdl' | 'yanaacis';
+}
+
+export interface Checkin {
+  id: `c_${string}`;
+  sleep: number;
+  at: number;
+}
+
+export interface Setting {
+  key: string;
+  value: unknown;
 }
 
 export interface BackupData {
   programs: Program[];
   sessions: Session[];
   exercises: Exercise[];
+  checkins: Checkin[];
+  settings: Setting[];
 }
 
 export interface PerformanceBackup {
   format: 'performance-backup';
-  version: 1;
+  version: 2;
   exportedAt: string;
   data: BackupData;
 }

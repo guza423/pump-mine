@@ -1,6 +1,11 @@
 # PERFORMANCE
 
-Android telefonları hedefleyen; sunucusuz, çevrimdışı çalışan kuvvet antrenmanı uygulaması. Merkez, Günlük, Biyomekanik ve Yorgunluk modülleri Vite + React + TypeScript ile geliştirilir; Capacitor ile Android uygulaması olarak paketlenir.
+Android telefonları hedefleyen; sunucusuz, çevrimdışı çalışan kuvvet antrenmanı uygulaması. Vite + React + TypeScript ile geliştirilen v0.7, Capacitor ile Android uygulaması olarak paketlenir ve dört ana sekmeye ayrılır:
+
+- **Bugün:** zaman damgalı zor setler ve uyku girişlerinden yorgunluk, toparlanma, haftalık plan ve hedef.
+- **Antrenman:** antrenman türleri, aktif set kaydı, dinlenme sayacı ve dönem filtreli geçmiş.
+- **Programlar:** program editörü, şablonlar ve üç haftalık seans başı/sonu yorgunluk analizi.
+- **Lab:** yorgunluk modelinin dört adımı, sinir sistemi dersleri, simülatör ve biyomekanik hareket kartları.
 
 ## Yerelde çalıştırma
 
@@ -54,9 +59,16 @@ Yerel APK `android/app/build/outputs/apk/debug/app-debug.apk` konumunda oluşur.
 
 ## Veri ve yedekleme
 
-Programlar, antrenmanlar ve özel hareketler tarayıcının IndexedDB alanında tutulur; bir sunucuya gönderilmez. İlk açılışta **Hipertrofi bloğu** örnek programı eklenir.
+Programlar, antrenmanlar, özel hareketler, uyku girişleri ve hedef tarayıcının IndexedDB alanında tutulur; bir sunucuya gönderilmez. İlk açılışta **Hipertrofi bloğu** örnek programı eklenir. Her set, uyku girişi ve antrenman başlangıç/bitişi zaman damgalıdır.
 
-Merkez ekranındaki **Yedekle** düğmesi bütün veriyi JSON olarak dışa aktarır. Web sürümü dosyayı indirir; Android sürümü Capacitor Filesystem ve Share ile sistem paylaşım menüsünü açar. **Geri yükle**, seçilen PERFORMANCE yedeğini doğrular ve mevcut yerel verinin yerine koyar. Tarayıcı verilerini temizlemeden veya telefon değiştirmeden önce yedek alın.
+**Programlar → Veri** ekranındaki **Yedekle** düğmesi bütün veriyi v2 JSON olarak dışa aktarır. Web sürümü dosyayı indirir; Android sürümü Capacitor Filesystem ve Share ile sistem paylaşım menüsünü açar. **Geri yükle**, seçilen PERFORMANCE yedeğini doğrular ve mevcut yerel verinin yerine koyar. Tarayıcı verilerini temizlemeden veya telefon değiştirmeden önce yedek alın.
+
+## Hesap modelleri
+
+- Hız seçici yükten ve tekrar sayısından bağımsız olarak `5+ / 3 / 2 / 1 / 0 RIR` eşlemesini kullanır. Bench hareketlerinde tahmini m/s, diğer hareketlerde ilk tekrara göre temsili yüzde gösterilir.
+- e1RM yalnızca `RIR ≤ 4` ve `tekrar + RIR ≤ 12` koşulunu sağlayan setlerde Epley ile hesaplanır.
+- Antrenman yorgunluğu son yedi gündeki zor setlere; tükeniş yakınlığı, hareket maliyeti ve 36 saatlik üstel azalma uygulanarak hesaplanır. Uyku puanı yalnızca bilinen geceleri kullanır.
+- Bütün yorgunluk, hız ve e1RM sonuçları tahmindir; arayüz dayanağı ve belirsizliği açıkça belirtir.
 
 ## PWA ve canlı adres
 

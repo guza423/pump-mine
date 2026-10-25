@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as ReactDOM from 'react-dom';
 import { Notes, Tile } from '../../app/ui';
 import { clamp, Icon, reducedMotion } from '../yorgunluk/Yorgunluk';
+import { BackupPanel } from '../merkez/BackupPanel';
 /* ================= GÜNLÜK: program yazma + antrenman kaydı ================= */
 const WD_LONG = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
 const WD_SHORT = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
@@ -55,11 +56,11 @@ const normTr = (s) => (s || '').toLocaleLowerCase('tr').replace(/ı/g, 'i').norm
 /* ---------- hız ve yük modeli ---------- */
 // Kullanıcı son tekrarın hızını ilk tekrara göre seçer; model hız kaybından RIR tahmin eder.
 const SPEED = [
-  { k: 'Aynı hız', d: 'Son tekrar ilkiyle neredeyse aynı', vl: 0.05, band: '%0–10' },
-  { k: 'Biraz yavaş', d: 'Fark ediliyor ama rahat', vl: 0.18, band: '%10–25' },
-  { k: 'Belirgin yavaş', d: 'Bar açıkça ağırlaştı', vl: 0.32, band: '%25–40' },
-  { k: 'Çok yavaş', d: 'Bar zorla kalktı', vl: 0.47, band: '%40–55' },
-  { k: 'Takılma sınırı', d: 'Grind, neredeyse kalkmadı', vl: 0.62, band: '%55+' },
+  { k: 'Aynı hız', d: '5+ tekrar kaldı', rir: 5, rpe: 6, vl: 0.05, band: 'RPE ≤6' },
+  { k: 'Biraz yavaş', d: '3 tekrar kaldı', rir: 3, rpe: 7, vl: 0.18, band: 'RPE 7' },
+  { k: 'Belirgin yavaş', d: '2 tekrar kaldı', rir: 2, rpe: 8, vl: 0.32, band: 'RPE 8' },
+  { k: 'Çok yavaş', d: '1 tekrar kaldı', rir: 1, rpe: 9, vl: 0.47, band: 'RPE 9' },
+  { k: 'Zar zor', d: 'Tekrar kalmadı', rir: 0, rpe: 10, vl: 0.62, band: 'RPE 10' },
 ];
 const V_MIN = 0.17;      // bench press'te 1RM / tükeniş tekrarı ortalama itiş hızı (m/s)
 const ROM_M = 0.4;       // animasyon için nominal hareket açıklığı (m)
@@ -77,14 +78,8 @@ function vlFor(reps, rir) {
   return clamp(1 - Math.min(v1, vLastFromRir(rir)) / v1, 0, 0.9);
 }
 function rirFromSpeed(reps, lvl) {
-  if (reps <= 1) return [4, 3, 2, 1, 0][lvl];
-  const target = SPEED[lvl].vl;
-  let best = 0, err = Infinity;
-  for (let r = 0; r <= 10.001; r += 0.25) {
-    const e = Math.abs(vlFor(reps, r) - target);
-    if (e < err) { err = e; best = r; }
-  }
-  return best;
+  void reps;
+  return SPEED[lvl].rir;
 }
 const rpeFromRir = (rir) => clamp(Math.round(10 - rir), 6, 10);
 function repVelocities(reps, rir, vl) {
@@ -96,7 +91,7 @@ function repVelocities(reps, rir, vl) {
 const e1rm = (kg, reps, rir) => Number(kg) * (1 + (reps + rir) / 30);
 const rpeLabel = (rpe, rir) => (rpe <= 6 && rir > 4 ? '≤6' : nf(Number(rpe)));
 // 1RM tahmini yalnızca tükenişe yakın setlerden (RIR ≤ 4): uzak setlerde Epley sapması büyür.
-const bestE1 = (sets) => sets.filter((z) => z.rir <= 4 && Number(z.kg) > 0).reduce((m, z) => Math.max(m, e1rm(z.kg, z.reps, z.rir)), 0);
+const bestE1 = (sets) => sets.filter((z) => z.rir <= 4 && z.reps + z.rir <= 12 && Number(z.kg) > 0).reduce((m, z) => Math.max(m, e1rm(z.kg, z.reps, z.rir)), 0);
 const vlColor = (vl) => (vl < 0.2 ? 'var(--neuro)' : vl < 0.35 ? 'var(--amber)' : vl < 0.5 ? 'var(--fire)' : 'var(--burn)');
 
 /* ---------- şablon ---------- */
@@ -656,7 +651,7 @@ function SpeedPicker({ lvl, setLvl, reps }) {
     <div className="speed">
       <div className="speed-h">
         <span className="st-k">Son tekrar nasıl kalktı?</span>
-        <span className="mono speed-band" style={{ color: vlColor(SPEED[lvl].vl) }}>hız kaybı ~{SPEED[lvl].band}</span>
+        <span className="mono speed-band" style={{ color: vlColor(SPEED[lvl].vl) }}>{rir >= 5 ? '5+ kaldı' : `${rir} kaldı`} · {SPEED[lvl].band}</span>
       </div>
       <div className="speed-body">
         <div className="lanes">
@@ -688,7 +683,7 @@ function RepBars({ set, h = 26, live = -1 }) {
   );
 }
 
-function SetReplay({ set }) {
+function SetReplay({ set, bench = false }) {
   const vels = useMemo(() => repVelocities(set.reps, set.rir, set.vl), [set.reps, set.rir, set.vl]);
   const barRef = useRef(null);
   const [rep, setRep] = useState(-1);
@@ -728,7 +723,7 @@ function SetReplay({ set }) {
       <div className="rp-info">
         <div className="rp-top">
           <span className="mono rp-rep">Tekrar {Math.max(0, rep + 1)}/{vels.length}</span>
-          <span className="mono rp-v" style={{ color: cur ? vlColor(1 - cur / vels[0]) : 'var(--muted)' }}>{cur ? nf(cur, 2) + ' m/s' : '–'}</span>
+          <span className="mono rp-v" style={{ color: cur ? vlColor(1 - cur / vels[0]) : 'var(--muted)' }}>{cur ? (bench ? nf(cur, 2) + ' m/s' : '%' + Math.round((1 - cur / vels[0]) * 100)) : '–'}</span>
         </div>
         <RepBars set={set} h={46} live={rep} />
         <div className="rp-foot">
@@ -753,6 +748,7 @@ function entryFor(item) {
     reps: last ? last.reps : hasNum(t.repMax) ? Number(t.repMax) : hasNum(t.repMin) ? Number(t.repMin) : 8,
     lvl: last ? last.lvl : 1,
     rpe: null,
+    note: '',
   };
 }
 
@@ -802,11 +798,11 @@ function SessionView({ session, onUpdate, onFinished, onDiscard, onBack, custom,
   const logSet = () => {
     if (!item) return;
     const ns = clone(s);
-    const set = { kg: Number(entry.kg) || 0, reps: Math.max(1, Math.round(entry.reps)), lvl: entry.lvl, vl: SPEED[entry.lvl].vl, rpe, rir: rirFinal, rirEst: Math.round(rirEst * 10) / 10, at: Date.now() };
+    const set = { kg: Number(entry.kg) || 0, reps: Math.max(1, Math.round(entry.reps)), lvl: entry.lvl, vl: SPEED[entry.lvl].vl, rpe, rir: rirFinal, rirEst: Math.round(rirEst * 10) / 10, note: entry.note || '', tags: [], at: Date.now() };
     ns.items[cur].sets.push(set);
     save(ns);
     setRest({ start: Date.now(), total: item.target.rest || 120 });
-    setEntry({ ...entry, rpe: null });
+    setEntry({ ...entry, rpe: null, note: '' });
     setOpenSet(null);
   };
   const removeSet = (j) => { const ns = clone(s); ns.items[cur].sets.splice(j, 1); save(ns); setOpenSet(null); };
@@ -890,29 +886,31 @@ function SessionView({ session, onUpdate, onFinished, onDiscard, onBack, custom,
           <div className="exc-target mono">Hedef <b>{targetTxt(item.target)}</b> · {restTxt(item.target.rest)}</div>
 
           {item.sets.length ? (
-            <ul className="setlist">
+            <React.Fragment><div className="set-table-head mono"><span>Set</span><span>Kilo</span><span>Tekrar</span><span>RPE</span><span>Son tekrar</span><span>Saat</span></div><ul className="setlist v7-setlist">
               {item.sets.map((x, j) => (
                 <li key={x.at + '-' + j} className={'setrow' + (openSet === j ? ' open' : '')}>
                   <button type="button" className="setrow-b" aria-expanded={openSet === j} onClick={() => setOpenSet(openSet === j ? null : j)}>
                     <span className="sr-i mono">{j + 1}</span>
-                    <span className="sr-main mono">{kgTxt(x.kg)} × {x.reps}</span>
-                    <span className="sr-rpe mono">RPE {rpeLabel(x.rpe, x.rir)}</span>
-                    <RepBars set={x} h={22} />
-                    <span className="sr-vl mono" style={{ color: vlColor(x.vl) }}>%{Math.round(x.vl * 100)}</span>
+                    <span className="sr-main mono">{nf(Number(x.kg))}</span>
+                    <span className="sr-reps mono">{x.reps}</span>
+                    <span className="sr-rpe mono">{rpeLabel(x.rpe, x.rir)}</span>
+                    <span className="sr-last">{SPEED[x.lvl]?.k || '—'}</span>
+                    <span className="sr-time mono">{new Date(x.at).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})}</span>
                   </button>
                   {openSet === j ? (
                     <div className="setrow-x">
-                      <SetReplay set={x} />
+                      <SetReplay set={x} bench={lib?.bio === 'bench'} />
                       <div className="sr-meta mono">
-                        <span>{x.rir <= 4 ? 'Tahmini 1RM ' + nf(Math.round(e1rm(x.kg, x.reps, x.rir) * 2) / 2) + ' kg' : '1RM tahmini için set hafif'}</span>
+                        <span>{x.rir <= 4 && x.reps + x.rir <= 12 ? 'Tahmini 1RM ' + nf(Math.round(e1rm(x.kg, x.reps, x.rir) * 2) / 2) + ' kg' : '1RM tahmini bu sette geçerli değil'}</span>
                         <span>RIR ~{x.rir}</span>
+                        {x.note ? <span>Not: {x.note}</span> : null}
                         <button type="button" className="btn ghost sm danger-t" onClick={() => removeSet(j)}>Seti sil</button>
                       </div>
                     </div>
                   ) : null}
                 </li>
               ))}
-            </ul>
+            </ul></React.Fragment>
           ) : null}
 
           {vlSeries.length > 1 ? (
@@ -948,6 +946,7 @@ function SessionView({ session, onUpdate, onFinished, onDiscard, onBack, custom,
                 ))}
               </div>
             </div>
+            <label className="entry-note"><span>Set notu</span><input value={entry.note} maxLength={120} placeholder="Opsiyonel: teknik, ağrı, tempo…" onChange={(e)=>setEntry({...entry,note:e.target.value})}/></label>
             <button type="button" id="log-set" className="btn fire full big" onClick={logSet}>Seti kaydet</button>
             {doneHere && cur < s.items.length - 1 ? (
               <button type="button" id="next-ex" className="btn primary full" onClick={() => goItem(cur + 1)}>Sonraki hareket: {s.items[cur + 1].name} <Icon name="right" /></button>
@@ -1123,4 +1122,126 @@ function LogTab({ store, nav, setNav, openBio, openSim }) {
   return <LogHome st={st} put={put} del={del} go={setNav} start={start} />;
 }
 
-export { TEMPLATES, programFromTemplate, LogTab };
+function useActions(store, nav, setNav, fatigueNow = 0) {
+  const [st, apiRef] = store;
+  const put = (kind, obj) => (apiRef.current ? apiRef.current.put(kind, obj) : null);
+  const del = (kind, id) => (apiRef.current ? apiRef.current.del(kind, id) : null);
+  const active = st.sessions.find((s) => s.status === 'active');
+  const addCustom = (name, muscle) => {
+    const doc = { id: newId('x'), name, muscle: muscle || 'Diğer', createdAt: Date.now(), pending: true, fat: 2, prof: 'dengeli', sec: [] };
+    put('custom', doc);
+    return doc;
+  };
+  const start = (program, day) => {
+    if (active) { setNav({ name: 'session', id: active.id }); return; }
+    if (day && !day.items.length) return;
+    const s = { ...sessionFromDay(program, day), fatigue: { v: 2, pre: fatigueNow, post: null } };
+    put('sessions', s);
+    setNav({ name: 'session', id: s.id, draft: s });
+  };
+  return { st, put, del, active, addCustom, start };
+}
+
+function HistoryView({ sessions, checkins, currentFatigue, go, back }) {
+  const [period, setPeriod] = useState(30);
+  const now = Date.now();
+  const done = sessions.filter((s) => s.status === 'done' && (period === 0 || s.startedAt >= now - period * 864e5));
+  const stats = done.reduce((a, s) => {
+    const x = sessionStats(s); a.sets += x.sets.length; a.hard += x.hard.length; a.tonnage += x.tonnage; a.duration += x.dur;
+    x.sets.forEach((z) => { a.rpe += Number(z.rpe) || 0; a.rpeN += 1; if (z.rir <= 0) a.failure += 1; });
+    if (s.fatigue) { a.pre += s.fatigue.pre || 0; a.post += s.fatigue.post ?? s.fatigue.pre; a.fatN += 1; }
+    return a;
+  }, { sets: 0, hard: 0, tonnage: 0, duration: 0, rpe: 0, rpeN: 0, failure: 0, pre: 0, post: 0, fatN: 0 });
+  const days = done.length > 1 ? Math.max(1, (done[0].startedAt - done[done.length - 1].startedAt) / 864e5) : period || 7;
+  const warnings = [];
+  if (stats.rpeN && stats.rpe / stats.rpeN >= 9) warnings.push('Ortalama RPE 9 veya üzeri');
+  if (stats.sets && stats.failure / stats.sets >= .3) warnings.push('Setlerin %30+ kadarı tükenişte');
+  const muscle = weeklyHard(done, now); muscle.filter(([, n]) => n >= 20).forEach(([m, n]) => warnings.push(`${m}: 7 günde ${n} zor set`));
+  if(currentFatigue>=70)warnings.push(`Şu an yorgunluk yüksek: ${Math.round(currentFatigue)}`);else if(currentFatigue>=40)warnings.push(`Şu an yorgunluk birikiyor: ${Math.round(currentFatigue)}`);
+  const sleepValues=(checkins||[]).filter(x=>period===0||x.at>=now-period*864e5).map(x=>x.sleep);
+  if(sleepValues.length&&sleepValues.reduce((a,b)=>a+b,0)/sleepValues.length<7)warnings.push('Uyku ortalaması 7 saatin altında');
+  if(done.length>=2){const main=['Göğüs','Sırt','Quadriceps','Hamstring'];const map=new Map(muscle);main.filter(m=>(map.get(m)||0)<4).forEach(m=>warnings.push(`${m}: son 7 günde az zor set`));}
+  if (done.length && now - done[0].startedAt >= 6 * 864e5) warnings.push('Son antrenmandan beri 6+ gün geçti');
+  const progressMap=new Map();
+  [...done].reverse().forEach(s=>s.items.forEach(it=>{const best=bestE1(it.sets);if(!best)return;const row=progressMap.get(it.exId||it.name)||{name:it.name,first:best,last:best};row.last=best;progressMap.set(it.exId||it.name,row);}));
+  const progress=[...progressMap.values()].map(row=>({...row,change:row.first?(row.last/row.first-1)*100:0})).sort((a,b)=>Math.abs(b.change)-Math.abs(a.change));
+  progress.filter(x=>x.change<=-5).forEach(x=>warnings.push(`${x.name}: e1RM ${Math.abs(Math.round(x.change))}% düştü`));
+  return <div className="v7-stack history-v7">
+    <div className="v7-topline"><button className="back-btn" onClick={back}><Icon name="left" /> Antrenman</button><strong>Geçmiş</strong></div>
+    <div className="segmented">{[[7, '7 gün'], [30, '30 gün'], [0, 'Tümü']].map(([n, label]) => <button key={n} className={period === n ? 'on' : ''} onClick={() => setPeriod(n)}>{label}</button>)}</div>
+    <div className="history-grid">
+      <Tile k="Antrenman" v={done.length} unit="" sub={`${(done.length / (days / 7)).toFixed(1)} / hafta`} />
+      <Tile k="Toplam süre" v={done.length ? durTxt(stats.duration) : '—'} unit="" sub={done.length ? `ort. ${durTxt(stats.duration / done.length)}` : ''} />
+      <Tile k="Set" v={stats.sets} unit="" sub={`${stats.hard} zor set`} />
+      <Tile k="Tonaj" v={nf(Math.round(stats.tonnage))} unit=" kg" sub={stats.rpeN ? `ort. RPE ${nf(stats.rpe / stats.rpeN, 1)}` : 'kayıt yok'} />
+    </div>
+    {stats.fatN ? <section className="card compact"><div className="card-h"><h3>Yorgunluk</h3><span className="card-hint">şu an ayrıca Bugün'de</span></div><div className="fat-pair"><span style={{width:`${stats.pre / stats.fatN}%`}}>başta {Math.round(stats.pre / stats.fatN)}</span><span style={{width:`${stats.post / stats.fatN}%`}}>sonda {Math.round(stats.post / stats.fatN)}</span></div></section> : null}
+    {warnings.length ? <div className="warning-list">{warnings.map((w) => <span key={w}>! {w}</span>)}</div> : null}
+    {progress.length?<section className="card compact"><div className="card-h"><h3>Hareket gelişimi</h3><span className="card-hint">e1RM · uygun setler</span></div><div className="progress-list">{progress.slice(0,6).map(x=><div key={x.name}><span>{x.name}</span><b className={`mono ${x.change>=0?'up':'down'}`}>{nf(x.last,1)} kg · {x.change>=0?'+':''}{nf(x.change,1)}%</b></div>)}</div></section>:null}
+    <ul className="hist">{done.map((s) => { const x = sessionStats(s); const note=s.items.map(i=>i.memo||i.note).find(Boolean); return <li key={s.id}><button className="hist-row" onClick={() => go({name:'summary', id:s.id})}><span className="hist-d mono">{dateTxt(s.startedAt)} · {new Date(s.startedAt).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})}–{new Date(s.endedAt||s.startedAt).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})}</span><span className="hist-n">{s.dayName}</span><span className="hist-k mono">{durTxt(x.dur)} · {x.sets.length} set · {nf(Math.round(x.tonnage))} kg{s.fatigue?` · yorg. ${Math.round(s.fatigue.pre)}→${Math.round(s.fatigue.post??s.fatigue.pre)}`:''}{note?` · ${note}`:''}</span><Icon name="right" /></button></li>})}</ul>
+  </div>;
+}
+
+function WorkoutHome({ st, active, start, go, del, put, editProgram }) {
+  const [menu, setMenu] = useState(null);
+  const types = st.programs.flatMap((program) => program.days.map((day) => ({program, day})));
+  return <div className="v7-stack workout-home">
+    <div className="v7-action-head"><span className="eyebrow">Antrenman türleri</span><button className="btn ghost sm" onClick={() => go({name:'history'})}>Geçmiş</button></div>
+    {active ? <section className="hero-card live compact"><div className="hc-top"><span className="live-dot"/><span className="eyebrow fire">Antrenman sürüyor</span></div><h3>{active.dayName}</h3><button className="btn fire full" onClick={() => go({name:'session',id:active.id})}>Devam et <Icon name="right"/></button></section> : null}
+    <div className="type-list">{types.map(({program,day}) => <article key={day.id} className={`type-card${day.items.length ? '' : ' empty-type'}`}>
+      <button className="type-main" disabled={!day.items.length || !!active} onClick={() => start(program,day)}><span className="type-day mono">{day.weekday == null ? '—' : WD_SHORT[day.weekday]}</span><span><strong>{day.name}</strong><small>{day.items.length ? `${day.items.length} hareket · ${day.items.reduce((a,i)=>a+Number(i.sets||0),0)} set` : 'Boş tür · sıradaki olmaz'}</small></span><Icon name="play"/></button>
+      <button className="type-menu" aria-label="Tür menüsü" onClick={() => setMenu(menu === day.id ? null : day.id)}>⋮</button>
+      {menu === day.id ? <div className="type-pop"><button disabled={!day.items.length || !!active} onClick={()=>start(program,day)}>Başlat</button><button onClick={()=>editProgram(program.id)}>Düzenle</button><button className="danger-t" onClick={()=>{ const np={...program,updatedAt:Date.now(),days:program.days.filter(d=>d.id!==day.id)}; if(np.days.length) put('programs',np); else del('programs',program.id); setMenu(null);}}>Sil</button></div> : null}
+    </article>)}</div>
+    {!types.length ? <div className="empty"><strong>Antrenman türü yok</strong><p>Programlar sekmesinden bir program veya şablon ekle.</p></div> : null}
+    <button className="btn ghost full" disabled={!!active} onClick={()=>start(null,null)}>+ Serbest antrenman</button>
+  </div>;
+}
+
+function WorkoutTab({ store, nav, setNav, openBio, fatigueNow, calculateFatigue, editProgram }) {
+  const { st, put, del, active, addCustom, start } = useActions(store, nav, setNav, fatigueNow);
+  const home = () => setNav({name:'home'});
+  if (nav.name === 'history') return <HistoryView sessions={st.sessions} checkins={st.checkins} currentFatigue={fatigueNow} go={setNav} back={home}/>;
+  if (nav.name === 'session') { const s=st.sessions.find(x=>x.id===nav.id)||nav.draft; if(s&&s.status==='active') return <SessionView key={s.id} session={s} onUpdate={ns=>put('sessions',ns)} onFinished={ns=>{const post=calculateFatigue?calculateFatigue(ns):fatigueNow;const done={...ns,fatigue:{v:2,pre:ns.fatigue?.pre??fatigueNow,post}};put('sessions',done);setNav({name:'summary',id:done.id,draft:done,fresh:true});}} onDiscard={id=>{del('sessions',id);home();}} onBack={home} custom={st.custom} addCustom={addCustom} openBio={openBio}/>; }
+  if(nav.name==='summary'){const s=(nav.draft&&nav.fresh?nav.draft:null)||st.sessions.find(x=>x.id===nav.id)||nav.draft;if(s)return <SessionSummary session={s} sessions={st.sessions} fresh={!!nav.fresh} onBack={()=>setNav({name:'history'})} onDelete={id=>{del('sessions',id);setNav({name:'history'});}} openSim={()=>{}}/>;}
+  return <WorkoutHome st={st} active={active} start={start} go={setNav} del={del} put={put} editProgram={editProgram}/>;
+}
+
+function programFatiguePreview(program) {
+  const fat3 = new Set(['rdl','squat','barfiks']);
+  const fat1 = new Set(['yana-acis','band-yana-acis','leg-curl','band-leg-curl','boyun','triceps-pushdown']);
+  const cost = (id) => fat3.has(id) ? 1.5 : fat1.has(id) ? .6 : 1;
+  const proximity = (rir) => rir <= 0 ? 1.6 : rir <= 1 ? 1.3 : rir <= 2 ? 1.1 : rir <= 3 ? 1 : .8;
+  const score = (load) => 100 * (1 - Math.exp(-load / 20));
+  const events = [];
+  for (let week=0;week<3;week++) program.days.forEach((day) => {
+    if(day.weekday==null)return;
+    const mondayIndex=(day.weekday+6)%7;
+    events.push({week,day,hour:(week*7+mondayIndex)*24+18});
+  });
+  events.sort((a,b)=>a.hour-b.hour);
+  let load=0,last=0; const rows=[];
+  events.forEach((event)=>{
+    load*=Math.exp(-(event.hour-last)/36); last=event.hour;
+    const pre=score(load);
+    load+=event.day.items.reduce((sum,it)=>{
+      const rir=Math.max(0,10-Number(it.rpeMax??it.rpeMin??6));
+      return rir<=4 ? sum+Number(it.sets||0)*proximity(rir)*cost(it.exId) : sum;
+    },0);
+    if(event.week===2)rows.push({day:event.day,pre:Math.round(pre),post:Math.round(score(load))});
+  });
+  return rows;
+}
+
+function ProgramsTab({ store, nav, setNav, fatigueNow = 0 }) {
+  const { st, put, del, active, addCustom, start }=useActions(store,nav,setNav,fatigueNow);
+  const home=()=>setNav({name:'home'});
+  if(nav.name==='editor'){const p=st.programs.find(x=>x.id===nav.id)||nav.draft;if(p)return <ProgramEditor key={p.id} program={p} onSave={np=>put('programs',np)} onDelete={id=>{del('programs',id);home();}} onBack={home} custom={st.custom} addCustom={addCustom} start={start} activeId={active?.id}/>;}
+  if(nav.name==='analysis'){const p=st.programs.find(x=>x.id===nav.id);if(p){const rows=programFatiguePreview(p);return <div className="v7-stack"><div className="v7-topline"><button className="back-btn" onClick={home}><Icon name="left"/> Programlar</button><strong>Program analizi</strong></div><section className="card"><h3>{p.name}</h3><p className="muted-p">Türler kendi gününde 18:00'de yapılmış gibi üç hafta işletilen tahmini denge.</p><div className="analysis-days">{rows.map(({day,pre,post})=><div key={day.id}><span><b>{day.name}</b><small>{day.weekday==null?'Gün yok':WD_LONG[day.weekday]} · 18:00</small></span><span className="mono">{pre} → <b>{post}</b></span></div>)}</div><p className="chart-note">Tahmindir: hedef RPE, set sayısı, dinlenme ve hareketin sistemik maliyetine dayanır.</p></section></div>;}}
+  if(nav.name==='data')return <div className="v7-stack"><div className="v7-topline"><button className="back-btn" onClick={home}><Icon name="left"/> Programlar</button><strong>Yerel veri</strong></div><BackupPanel/></div>;
+  const addTemplate=t=>{const p=programFromTemplate(t);put('programs',p);setNav({name:'editor',id:p.id,draft:p});};
+  const blank=()=>{const p=blankProgram();put('programs',p);setNav({name:'editor',id:p.id,draft:p});};
+  return <div className="v7-stack"><div className="v7-action-head"><span className="eyebrow">Programlarım</span><span className="head-actions"><button className="btn ghost sm" onClick={()=>setNav({name:'data'})}>Veri</button><button className="btn primary sm" onClick={blank}>+ Yeni</button></span></div><div className="program-v7-list">{st.programs.map(p=><article className="prog compact" key={p.id}><div className="prog-h"><div className="prog-t"><strong>{p.name||'Adsız program'}</strong><span className="mono">Güncelleme {new Date(p.updatedAt).toLocaleDateString('tr-TR')} · {p.days.length} gün</span></div><button className="btn ghost sm" onClick={()=>setNav({name:'editor',id:p.id})}>Düzenle</button></div><button className="analysis-link" onClick={()=>setNav({name:'analysis',id:p.id})}>Gün gün yorgunluk analizi <Icon name="right"/></button></article>)}</div><section className="log-sec"><div className="sec-h"><h3>Şablonlar</h3><span className="sec-k">düzenlenebilir</span></div><div className="tmpls">{TEMPLATES.map(t=><button className="tmpl" key={t.key} onClick={()=>addTemplate(t)}><strong>{t.name}</strong><span>{t.desc}</span><small className="mono">{t.days.map(d=>WD_SHORT[d.weekday]).join(' · ')}</small></button>)}</div></section></div>;
+}
+
+export { TEMPLATES, programFromTemplate, sessionFromDay, LogTab, WorkoutTab, ProgramsTab, nextPlanned, WeekStrip };

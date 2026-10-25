@@ -79,7 +79,7 @@ export function BackupPanel() {
         <h3 id="backup-title">Verilerim</h3>
         <span className="sec-k mono">yalnızca bu cihazda</span>
       </div>
-      <p>Programlarını, antrenmanlarını ve özel hareketlerini tek JSON dosyasında sakla.</p>
+      <p>Program, antrenman, uyku, hedef ve özel hareket kayıtlarını tek JSON dosyasında sakla.</p>
       <div className="backup-actions">
         <button type="button" className="btn primary" onClick={exportData} disabled={busy}>Yedekle</button>
         <button type="button" className="btn ghost" onClick={() => input.current?.click()} disabled={busy}>Geri yükle</button>
