@@ -49,10 +49,16 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug
 
+      - name: Verify signing certificate
+        run: |
+          APKSIGNER=$(ls $ANDROID_HOME/build-tools/*/apksigner | sort -V | tail -1)
+          $APKSIGNER verify --print-certs android/app/build/outputs/apk/debug/app-debug.apk | tee certs.txt
+          grep -q "ee7115421bbfbe4dddf8ee5ac35a36a9fcd7b0e2f5d24732a2dd4f21c6dc7bf6" certs.txt
+
       - name: Upload debug APK
         uses: actions/upload-artifact@v7
         with:
-          name: performance-debug-apk
+          name: performance-v0.7-${{ github.run_number }}
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
