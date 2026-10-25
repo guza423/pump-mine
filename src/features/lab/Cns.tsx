@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React from 'react';
-import { Notes } from '../../app/ui';
+
 const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
@@ -41,12 +41,69 @@ function Icon({ name, size = 16 }) {
     case 'pause': return <svg {...p}><path d="M8 5v14" /><path d="M16 5v14" /></svg>;
     case 'arrow': return <svg {...p}><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>;
     case 'clock': return <svg {...p}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>;
+    case 'edit': return <svg {...p}><path d="M4 20h4L19 9l-4-4L4 16v4z" /><path d="m13.5 6.5 4 4" /></svg>;
+    case 'info': return <svg {...p}><circle cx="12" cy="12" r="9" /><path d="M12 11v6" /><path d="M12 7.5v.5" /></svg>;
+    case 'plus': return <svg {...p}><path d="M12 5v14" /><path d="M5 12h14" /></svg>;
+    case 'list': return <svg {...p}><path d="M9 6h11" /><path d="M9 12h11" /><path d="M9 18h11" /><path d="M4 6h.01" /><path d="M4 12h.01" /><path d="M4 18h.01" /></svg>;
+    case 'check': return <svg {...p}><path d="m5 12 5 5L20 7" /></svg>;
+    case 'bolt': return <svg {...p}><path d="M6 10v4" /><path d="M18 10v4" /><path d="M3 11v2" /><path d="M21 11v2" /><path d="M6 12h12" /><rect x="7.5" y="7" width="2.5" height="10" rx="1" /><rect x="14" y="7" width="2.5" height="10" rx="1" /></svg>;
+    case 'more': return <svg {...p}><circle cx="12" cy="5.5" r="1.2" /><circle cx="12" cy="12" r="1.2" /><circle cx="12" cy="18.5" r="1.2" /></svg>;
+    case 'trash': return <svg {...p}><path d="M4 7h16" /><path d="M9 7V4.5h6V7" /><path d="M6.5 7 7.5 20h9l1-13" /><path d="M10 11v5" /><path d="M14 11v5" /></svg>;
+    case 'alert': return <svg {...p}><path d="M12 3.5 2.5 20h19L12 3.5z" /><path d="M12 10v4.5" /><path d="M12 17.5v.5" /></svg>;
+    case 'history': return <svg {...p}><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1" /><path d="M3.5 4v4.5H8" /><path d="M12 7.5V12l3 2" /></svg>;
     default: return null;
   }
 }
 
 /* ---------------- Shared ---------------- */
+const CompactCtx = React.createContext(false);
+function Notes({ what, tip, caveat }) {
+  const compact = React.useContext(CompactCtx);
+  if (compact) {
+    return (
+      <details className="info-fold">
+        <summary><Icon name="flask" size={13} /> Nasıl çalışır?</summary>
+        <div className="info-body">
+          <p>{what}</p>
+          <p className="info-tip"><b>İpucu:</b> {tip}</p>
+          {caveat ? <p className="info-cav">{caveat}</p> : null}
+        </div>
+      </details>
+    );
+  }
+  return (
+    <aside className="notes">
+      <div className="note note-what">
+        <div className="note-label"><Icon name="pulse" size={14} /> Ne oluyor?</div>
+        <p>{what}</p>
+      </div>
+      <div className="note note-tip">
+        <div className="note-label"><Icon name="target" size={14} /> Pratik ipucu</div>
+        <p>{tip}</p>
+      </div>
+      {caveat ? (
+        <div className="note note-caveat">
+          <div className="note-label"><Icon name="flask" size={14} /> Bilimsel not</div>
+          <p>{caveat}</p>
+        </div>
+      ) : null}
+    </aside>
+  );
+}
+
 function StageShell({ index, title, lede, notes, children }) {
+  const compact = React.useContext(CompactCtx);
+  if (compact) {
+    return (
+      <section className="stage cstage" aria-labelledby={'h-' + index}>
+        <div className="cstage-head">
+          <h2 id={'h-' + index}>{title}</h2>
+          {notes}
+        </div>
+        <div className="lab">{children}</div>
+      </section>
+    );
+  }
   return (
     <section className="stage" aria-labelledby={'h-' + index}>
       <div className="stage-head">
@@ -1015,6 +1072,4 @@ function StageRecovery() {
   );
 }
 
-
-export function setSimPrefill(value) { SIM_PREFILL = value; }
-export { clamp, reducedMotion, fmt, STAGES, Icon, Range, Axon, StageSignal, StageRecruit, StageRate, StageFatigue, StageRecovery };
+export { clamp, reducedMotion, fmt, STAGES, Icon, Notes, Range, Switch, CompactCtx, NeedleGauge, Axon, StageSignal, StageRecruit, StageRate, StageFatigue, StageRecovery };

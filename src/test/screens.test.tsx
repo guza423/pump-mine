@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // @ts-nocheck
 import React from 'react';
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from '../app/App';
 import { db } from '../lib/store/database';
@@ -72,53 +72,84 @@ describe('ana ekran akışları', () => {
     await db.delete();
   });
 
-  it('tüm sekmeleri, hareketleri, aşamaları ve antrenman özetini hatasız açar', async () => {
+  it('v0.7 ana akışlarını hatasız tamamlar', async () => {
     const { container } = render(<App />);
 
-    fireEvent.click(document.querySelector('#tab-merkez'));
-    expect(screen.getByRole('heading', { level: 1, name: 'Merkez' })).toBeTruthy();
-    expectHealthy();
+    const click = (selector: string) => {
+      const element = container.querySelector(selector);
+      expect(element, selector).toBeTruthy();
+      fireEvent.click(element!);
+    };
+    const closeTopSheet = () => {
+      const dialog = screen.getAllByRole('dialog').at(-1)!;
+      fireEvent.click(within(dialog).getAllByRole('button', { name: 'Kapat' }).at(-1)!);
+    };
 
-    fireEvent.click(document.querySelector('#tab-gunluk'));
-    expect(screen.getByRole('heading', { level: 1, name: 'Günlük' })).toBeTruthy();
-    await screen.findByText('Hipertrofi bloğu');
-    expectHealthy();
+    await screen.findByRole('heading', { level: 1, name: 'Bugün' });
+    await waitFor(async () => expect(await db.programs.count()).toBe(1));
+    fireEvent.click(screen.getByRole('radio', { name: '5' }));
+    await waitFor(() => expect(screen.getByRole('radio', { name: '5' }).getAttribute('aria-checked')).toBe('true'));
+    click('#ready-ring');
+    expect(await screen.findByRole('dialog', { name: 'Yorgunluk ölçer' })).toBeTruthy();
+    closeTopSheet();
 
-    fireEvent.click(document.querySelector('#tab-biyomekanik'));
-    expect(screen.getByRole('heading', { level: 1, name: 'Biyomekanik' })).toBeTruthy();
-    for (const id of ['bench', 'rdl', 'yanaacis']) {
-      fireEvent.click(container.querySelector(`#move-${id}`));
-      expect(container.querySelector(`#move-${id}`)?.getAttribute('aria-selected')).toBe('true');
-      expectHealthy();
-    }
-
-    fireEvent.click(document.querySelector('#tab-yorgunluk'));
-    expect(screen.getByRole('heading', { level: 1, name: 'Yorgunluk' })).toBeTruthy();
-    for (const id of ['sinyal', 'kazanim', 'atesleme', 'periferik', 'toparlanma']) {
-      fireEvent.click(container.querySelector(`#node-${id}`));
-      await waitFor(() => expect(container.querySelector(`#node-${id}`)?.getAttribute('aria-current')).toBe('step'));
-      expectHealthy();
-    }
-
-    fireEvent.click(document.querySelector('#tab-gunluk'));
-    await screen.findByText('Hipertrofi bloğu');
-    const startButton = container.querySelector('button[id^="start-"]:not([disabled])');
-    expect(startButton).toBeTruthy();
-    fireEvent.click(startButton);
-
-    const logSet = await waitFor(() => {
-      const button = container.querySelector('#log-set');
-      expect(button).toBeTruthy();
-      return button;
-    });
-    fireEvent.click(logSet);
-    expect(await screen.findByText(/1 set/)).toBeTruthy();
-
-    fireEvent.click(container.querySelector('#finish-btn'));
+    click('#tab-antrenman');
+    const heavy = await screen.findByText('Ağır gün', { selector: 'strong' });
+    fireEvent.click(heavy.closest('button')!);
+    await waitFor(() => expect(container.querySelector('#log-set')).toBeTruthy());
+    click('#log-set');
+    click('#log-set');
+    const firstSet = await screen.findByRole('button', { name: /Set 1:.*Ayrıntı/ });
+    fireEvent.click(firstSet);
+    expect(screen.getAllByRole('dialog').at(-1)).toBeTruthy();
+    expect(screen.getByText('Kalan tekrar')).toBeTruthy();
+    closeTopSheet();
+    click('#finish-btn');
     fireEvent.click(await screen.findByRole('button', { name: 'Bitir ve özetle' }));
+    expect(await screen.findByRole('dialog', { name: 'Antrenman özeti' })).toBeTruthy();
+    expect(screen.getByText('Tonaj')).toBeTruthy();
+    closeTopSheet();
+    await waitFor(() => expect(container.querySelector('#tab-antrenman')?.getAttribute('aria-current')).toBe('page'));
 
-    await waitFor(() => expect(container.querySelector('.summary')).toBeTruthy());
-    expect(screen.getByText('Antrenman tamamlandı')).toBeTruthy();
+    const menuButton = await screen.findByRole('button', { name: 'Ağır gün seçenekleri' });
+    fireEvent.click(menuButton);
+    const typeName = screen.getByLabelText('Tür adı');
+    fireEvent.change(typeName, { target: { value: 'Ağır güç' } });
+    fireEvent.blur(typeName);
+    click('#wtype-del');
+    expect(screen.getByRole('button', { name: 'Sil' })).toBeTruthy();
+    closeTopSheet();
+
+    click('#history-btn');
+    click('#per-7');
+    expect(container.querySelector('#per-7')?.getAttribute('aria-selected')).toBe('true');
+    click('#hist-back');
+
+    click('#free-session');
+    await waitFor(() => expect(container.querySelector('#finish-btn')).toBeTruthy());
+    click('#finish-btn');
+    fireEvent.click(await screen.findByRole('button', { name: 'Kaydetmeden çık' }));
+    await waitFor(() => expect(container.querySelector('#tab-antrenman')?.getAttribute('aria-current')).toBe('page'));
+
+    click('#tab-programlar');
+    await waitFor(() => expect(container.querySelector('button[id^="open-"]')).toBeTruthy());
+    fireEvent.click(container.querySelector('button[id^="open-"]')!);
+    click('#add-item');
+    const picker = await screen.findByRole('dialog', { name: 'Hareket ekle' });
+    fireEvent.click(picker.querySelector('.exr-main')!);
+    click('#plan-dock');
+    expect(await screen.findByRole('dialog', { name: 'Program analizi' })).toBeTruthy();
+    fireEvent.click(container.querySelector('.plan2-meter')!);
+    expect(await screen.findByRole('dialog', { name: 'Yorgunluk ölçer' })).toBeTruthy();
+    closeTopSheet();
+    closeTopSheet();
+
+    click('#tab-lab');
+    click('#lab-measure');
+    expect(await screen.findByRole('dialog', { name: 'Yorgunluk nasıl ölçülür?' })).toBeTruthy();
+    closeTopSheet();
+    click('#labex-egimli-bench');
+    expect(await screen.findByRole('dialog', { name: 'Eğimli bench press' })).toBeTruthy();
     expectHealthy();
 
     await act(async () => {

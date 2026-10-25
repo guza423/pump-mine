@@ -1,8 +1,3 @@
-// @ts-nocheck
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Notes, Tile } from '../../app/ui';
-import { BIO } from '../../lib/models/biomech';
-import { clamp, fmt, Icon, Range, reducedMotion } from '../yorgunluk/Yorgunluk';
 /* ================= BIYOMEKANIK ================= */
 const MOVES = [
   { id: 'bench', name: 'Eğimli bench', tag: 'İtiş · çok eklemli' },
@@ -405,6 +400,16 @@ function Segmented({ id, label, value, options, onChange }) {
   );
 }
 
+function Tile({ k, v, unit, sub, tone }) {
+  return (
+    <div className={'tile ' + (tone || '')}>
+      <span className="tile-k">{k}</span>
+      <span className="tile-v mono">{v}<small>{unit}</small></span>
+      {sub ? <span className="tile-sub">{sub}</span> : null}
+    </div>
+  );
+}
+
 /* ---------- rep cycle ---------- */
 // returns q in [0,1] for movement at time t (seconds)
 function cycleQ(move, t) {
@@ -424,12 +429,12 @@ function cycleQ(move, t) {
 }
 
 /* ---------- Biomech screen ---------- */
-function BiomechTab({ move, setMove }) {
+function BiomechTab({ move, setMove, latKind }) {
   const [playing, setPlaying] = useState(() => !reducedMotion());
   const [q, setQ] = useState(0.3);
   const [bench, setBench] = useState({ angle: 30, grip: 'orta', flare: 'orta', load: 80 });
   const [rdl, setRdl] = useState({ load: 80, offset: 0, knee: 20, depth: 70 });
-  const [lat, setLat] = useState({ mass: 10, bend: 15, kind: 'db', bandSide: 'ayni' });
+  const [lat, setLat] = useState({ mass: 10, bend: 15, kind: latKind || 'db', bandSide: 'ayni' });
   const tRef = useRef(0);
   const raf = useRef(0);
 
@@ -711,5 +716,3 @@ function LatPanel({ p, set, q, scrub, playing, setPlaying }) {
     </div>
   );
 }
-
-export { MOVES, BiomechTab };

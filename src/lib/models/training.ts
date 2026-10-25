@@ -50,3 +50,47 @@ export function repVelocities(reps: number, rir: number, velocityLoss: number): 
     count <= 1 ? first : first - (first - last) * Math.pow(index / (count - 1), 1.4),
   );
 }
+
+export const animVl = (reps: number, rir: number) => velocityLossFor(Math.max(1, reps), rir);
+
+export const e1Ok = (set: { kg: number; reps: number; rir: number }) =>
+  Number(set.kg) > 0 && isE1rmEligible(set.reps, set.rir);
+
+export const bestE1 = (sets: Array<{ kg: number; reps: number; rir: number }>) =>
+  sets.filter(e1Ok).reduce((best, set) => Math.max(best, e1rm(set.kg, set.reps, set.rir)), 0);
+
+export function e1Series(sessions: any[], exId?: string | null, name?: string) {
+  return sessions.filter((session) => session.status === 'done').map((session) => {
+    let best = 0;
+    session.items.forEach((item: any) => {
+      if ((exId && item.exId === exId) || (!exId && item.name === name)) best = Math.max(best, bestE1(item.sets));
+    });
+    return { t: session.startedAt, v: best };
+  }).filter((point) => point.v > 0).sort((a, b) => a.t - b.t);
+}
+
+export function prevPerf(sessions: any[], item: any, beforeTs: number) {
+  const session = sessions.filter((candidate) => candidate.status === 'done' && candidate.startedAt < beforeTs)
+    .sort((a, b) => b.startedAt - a.startedAt)
+    .find((candidate) => candidate.items.some((entry: any) => (item.exId && entry.exId === item.exId) || entry.name === item.name));
+  if (!session) return null;
+  const entry = session.items.find((candidate: any) => (item.exId && candidate.exId === item.exId) || candidate.name === item.name);
+  return entry?.sets.length ? entry.sets.map((set: any) => `${Number(set.kg).toLocaleString('tr-TR')}×${set.reps}`).join(', ') : null;
+}
+
+const sameDay = (left: number | Date, right: number | Date) => {
+  const a = new Date(left), b = new Date(right);
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+};
+
+export function nextPlanned(programs: any[], sessions: any[], now = Date.now()) {
+  const today = new Date(now);
+  const days = programs.flatMap((program) => program.days.map((day: any) => ({ program, day })));
+  for (let offset = 0; offset < 7; offset += 1) {
+    const weekday = (today.getDay() + offset) % 7;
+    const result = days.find(({ day }) => day.weekday === weekday
+      && !(offset === 0 && sessions.some((session) => session.dayId === day.id && sameDay(session.startedAt, today))));
+    if (result) return { ...result, off: offset };
+  }
+  return null;
+}

@@ -61,7 +61,7 @@ Yerel APK `android/app/build/outputs/apk/debug/app-debug.apk` konumunda oluşur.
 
 Programlar, antrenmanlar, özel hareketler, uyku girişleri ve hedef tarayıcının IndexedDB alanında tutulur; bir sunucuya gönderilmez. İlk açılışta **Hipertrofi bloğu** örnek programı eklenir. Her set, uyku girişi ve antrenman başlangıç/bitişi zaman damgalıdır.
 
-**Programlar → Veri** ekranındaki **Yedekle** düğmesi bütün veriyi v2 JSON olarak dışa aktarır. Web sürümü dosyayı indirir; Android sürümü Capacitor Filesystem ve Share ile sistem paylaşım menüsünü açar. **Geri yükle**, seçilen PERFORMANCE yedeğini doğrular ve mevcut yerel verinin yerine koyar. Tarayıcı verilerini temizlemeden veya telefon değiştirmeden önce yedek alın.
+**Programlar** listesinin altındaki **Yedekle** düğmesi bütün veriyi v2 JSON olarak dışa aktarır. Web sürümü dosyayı indirir; Android sürümü Capacitor Filesystem ve Share ile sistem paylaşım menüsünü açar. **Geri yükle**, seçilen PERFORMANCE yedeğini doğrular ve mevcut yerel verinin yerine koyar. Tarayıcı verilerini temizlemeden veya telefon değiştirmeden önce yedek alın.
 
 ## Hesap modelleri
 
@@ -86,7 +86,9 @@ Her push ve elle tetiklenen çalıştırma, **Build Android debug APK** GitHub A
 
 1. GitHub deposunda **Actions** sekmesini aç.
 2. Soldan **Build Android debug APK** workflow'unu, ardından başarılı bir çalıştırmayı seç.
-3. Sayfanın altındaki **Artifacts** bölümünden `performance-debug-apk` dosyasını indir.
+3. Sayfanın altındaki **Artifacts** bölümünden `performance-v0.7-<çalıştırma numarası>` dosyasını indir.
 4. İndirilen ZIP'i aç ve içindeki `app-debug.apk` dosyasını telefona aktar.
 
 Telefonda APK'ya dokun ve istendiğinde kullandığın tarayıcı/dosya yöneticisi için **Bilinmeyen uygulamaları yükle** iznini ver. Play Protect debug uygulama için uyarı gösterebilir. Bu APK geliştirme/test amaçlıdır ve Play Store için imzalanmış bir sürüm değildir.
+
+İmza sabitlendi. Bu sürümden önceki bir APK yüklüyse telefondan bir kez kaldır, sonra yenisini kur. Bundan sonraki sürümler üstüne kurulur, veriler kalır.

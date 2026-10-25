@@ -1,4 +1,4 @@
-/* Mobil sağlamlaştırma: 320–430 px, metin ölçeği %130'a kadar, çentik ve sistem çubukları */
+/* ---------- Mobil sağlamlaştırma: 320–430 px, metin ölçeği %130'a kadar, çentik/sistem çubukları ---------- */
 :root {
   --sat: env(safe-area-inset-top, 0px);
   --sab: env(safe-area-inset-bottom, 0px);
@@ -17,21 +17,32 @@ html, body, #root { height: 100%; overflow: hidden; }
 .sheet-body { padding-bottom: calc(18px + var(--sab)); }
 .app-main { overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; }
 
-/* Tek sütunlu grid'ler içerik genişliğine göre büyümesin */
+/* Tek sütunlu grid'ler içerik genişliğine göre büyümesin (taşmanın ana sebebi) */
 .hub, .hub-sec, .mods, .bio, .bio-panel, .fatigue, .stage, .stage-head, .stage-grid, .lab, .notes, .log, .log-sec, .editor, .session, .summary,
 .card, .ex-card, .entry, .day-card, .fig-card, .prog, .sim-grid, .sim-out, .sim-inputs, .controls, .mu-groups, .speed, .rpe-pick, .field, .stepper,
 .recs, .recov, .meter-card, .fpanel, .vel-box, .rpe-box, .setrow-x, .item-ed, .new-ex, .tmpls, .hist, .items, .setlist, .sum-ex, .wk { grid-template-columns: minmax(0, 1fr); min-width: 0; }
 
+/* Grid/flex çocukları taşmasın */
 .tile, .mod-body, .prog-t, .pday-t, .item-t, .hist-row, .ex-row, .sopt-t, .se-top, .rest-t, .entry-h, .ses-title, .card-h, .sec-h, .field-top, .tab, .node, .axon-nodes li { min-width: 0; }
 .tile-v, .sr-main, .exs-n, .hist-k, .fig-meta, .card-hint, .sec-k { white-space: nowrap; }
 .card-hint, .sec-k, .fig-meta { overflow: hidden; text-overflow: ellipsis; }
+
+/* Alt sekme çubuğu */
 .tab-l { max-width: 100%; overflow: hidden; text-overflow: ellipsis; font-size: 10px; letter-spacing: 0; }
+
+/* Başlık + yanında düğme olan satırlar alt satıra geçebilsin */
 .exc-h, .prog-h, .mod-top, .hc-top, .speed-h, .day-foot, .ed-top, .goal-top, .se-top, .rate-head { flex-wrap: wrap; row-gap: 6px; }
 .exc-name, .ses-title h3, .hero-card h3, .sum-hero h3, h2 { overflow-wrap: anywhere; }
+
+/* Hedef çubuğunun altındaki etiketler çakışmasın: kelimeleri gizle, sayılar kalsın */
 .goal-scale span:not(.start):not(.end) { font-size: 0; }
 .goal-scale span:not(.start):not(.end) b { font-size: 11px; }
+
+/* Aşama çubuğu (Yorgunluk): dar ekranda yalnızca seçili aşamanın adı */
 .axon-nodes { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .node-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Set satırı ve giriş paneli */
 .setrow-b { grid-template-columns: 20px minmax(0, 1fr) auto 52px 34px; gap: 6px; }
 .sr-rpe { white-space: nowrap; }
 .rpe-chips small { font-size: 9px; white-space: nowrap; }

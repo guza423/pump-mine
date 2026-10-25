@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { e1rm, repVelocities, rirFromSpeed } from './training';
+import { bestE1, e1rm, repVelocities, rirFromSpeed } from './training';
 
 describe('hız / RIR modeli', () => {
   it.each([
     [8, 0, 5],
     [8, 3, 1],
     [20, 4, 0],
+    [20, 2, 2],
+    [5, 0, 5],
     [5, 2, 2],
   ])('%i tekrar ve %i hız seviyesi için RIR ≈ %s', (reps, level, expected) => {
     expect(rirFromSpeed(reps, level)).toBeCloseTo(expected, 5);
@@ -25,5 +27,9 @@ describe('hız / RIR modeli', () => {
 describe('e1RM modeli', () => {
   it('75 kg × 8 @ 2 RIR için 100 kg hesaplar', () => {
     expect(e1rm(75, 8, 2)).toBe(100);
+  });
+
+  it('20 tekrarlı uzak seti e1RM hesabına almaz', () => {
+    expect(bestE1([{ kg: 40, reps: 20, rir: 1 }])).toBe(0);
   });
 });

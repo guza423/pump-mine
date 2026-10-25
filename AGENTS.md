@@ -3,14 +3,14 @@
 Android telefonda çalışan, sunucusuz, çevrimdışı bir antrenman uygulaması. Arayüz dili Türkçe.
 
 ## Referans prototip
-`reference/` klasörü, Claude'da yapılmış ve çalışan prototiptir. Bu projenin tasarım ve davranış kaynağıdır.
+`reference/v07/` klasörü, Claude'da yapılmış ve çalışan güncel prototiptir. Bu projenin tasarım ve davranış kaynağıdır. Önceki prototip `reference/v03/` altında yalnızca tarihçe için tutulur.
 
 - `performance.html`: tek dosyalık çalışan hali. Tarayıcıda açıp davranışı gör.
-- `shell.jsx`: uygulama kabuğu, alt sekme çubuğu (Merkez, Günlük, Biyomekanik, Yorgunluk, İlerleme), Merkez ekranı.
-- `log.jsx` + `log.css`: Günlük. Program yazma, antrenman modu, set kaydı, hız/RIR modeli, özet.
-- `bio-ui.jsx` + `biomech.js`: Biyomekanik. Eğimli bench, RDL, yana açış; moment kolu ve tork modelleri.
-- `cns.jsx` + `cns.css`: Yorgunluk. 5 aşamalı sinir sistemi dersi ve yorgunluk simülatörü.
-- `app.css`: tasarım token'ları ve kabuk stilleri.
+- `app.jsx`: dört sekmeli uygulama kabuğu (Bugün, Antrenman, Programlar, Lab), ekranlar ve sheet yığını.
+- `core.jsx`: sabitler, hareket kütüphanesi, şablonlar, hız/RIR modeli ve ortak antrenman bileşenleri.
+- `bio-ui.jsx` + `biomech.js`: biyomekanik hareket kartları ve tork modelleri.
+- `cns.jsx` + `cns.css`: sinir sistemi dersleri, göstergeler ve yorgunluk simülatörü.
+- CSS sırası: `cns.css → app.css → log.css → mobile.css → app5.css`.
 
 Görünüm, Türkçe metinler, animasyonlar, formüller ve modeller birebir korunacak. Kodu düzenleyip bölebilirsin, davranışı değiştirme.
 
@@ -33,17 +33,17 @@ Yerine cihazda IndexedDB (Dexie) kullan, veri modeli aynı kalsın:
 
 Store arayüzü prototiptekiyle aynı mantıkta olsun (`put`, `del`, canlı liste). İlk açılışta `TEMPLATES[0]` (Hipertrofi bloğu) örnek program olarak yüklensin.
 
-Veri yalnızca telefonda tutulduğu için Merkez'e "Yedekle / Geri yükle" ekle: tüm veriyi JSON olarak dışa aktar, JSON'dan içe aktar. Android'de Capacitor Filesystem + Share kullan.
+Veri yalnızca telefonda tutulduğu için Programlar listesinin sonuna "Yedekle / Geri yükle" ekle: tüm veriyi JSON olarak dışa aktar, JSON'dan içe aktar. Android'de Capacitor Filesystem + Share kullan.
 
 ## Klasör yapısı
 ```
 src/
   app/            kabuk, sekme çubuğu, yönlendirme
   features/
-    merkez/
-    gunluk/
-    biyomekanik/
-    yorgunluk/
+    bugun/
+    antrenman/
+    programlar/
+    lab/
   lib/
     models/       biomech, hız/RIR/e1RM modeli (saf fonksiyonlar)
     store/        IndexedDB katmanı
@@ -54,16 +54,17 @@ src/
 - Mobil öncelikli, 360–430 px genişlik. `env(safe-area-inset-*)` paylarını koru.
 - Animasyonlar `requestAnimationFrame` ile. `prefers-reduced-motion` desteklensin.
 - Modeller birim testleriyle korunsun. Prototipten alınan kontrol değerleri:
-  - `rirFromSpeed(8, 3)` ≈ 2,5 ve `rirFromSpeed(8, 4)` ≈ 0,25
-  - `rirFromSpeed(5, 2)` ≈ 3,25
+  - Uyku yok → 0; tek 5 saatlik gece → ≈23; üç 5 saatlik gece → 30
+  - `rirFromSpeed(20, 4)` = 0, `rirFromSpeed(20, 2)` = 2, `rirFromSpeed(5, 0)` = 5
   - `e1rm(75, 8, 2)` = 100
-  - Biyomekanik: 30° bench, orta tutuş, bar göğüsteyken omuz moment kolu ≈ 14,4 cm
+  - `bestE1([{ kg: 40, reps: 20, rir: 1 }])` = 0
+  - `simulatePlan(programFromTemplate(TEMPLATES[0]))`: seans başı ortalama ≈21, en yüksek tepe ≈76
 - Her PR'da `npm run build` ve `npm test` geçmeli.
 
 ## Fazlar
 1. **Web uygulaması.** Vite + React + TS iskeleti, prototipin birebir taşınması, IndexedDB store, yedekleme, PWA. Her push'ta GitHub Pages'e deploy eden workflow (Vite `base` ayarını repo adına göre yap).
 2. **Android APK.** Capacitor Android projesi. Her push'ta debug APK üreten GitHub Actions workflow'u; APK, Actions çalıştırmasının "Artifacts" bölümünden indirilebilsin. Uygulama adı: PERFORMANCE, paket adı: `app.performance.training`.
-3. **İlerleme sekmesi** (sonra tarif edilecek).
+3. **v0.7 arayüzü.** Bugün, Antrenman, Programlar ve Lab; hedef, geçmiş, program analizi ve yorgunluk simülatörü.
 
 ## Teslim
 Her fazın sonunda README'yi güncelle: yerelde nasıl çalıştırılır, canlı adres, APK nereden indirilir ve telefona nasıl kurulur.
