@@ -1721,6 +1721,83 @@ html, body, #root { height: 100%; overflow: hidden; }
 .fat2-simv { font-size: 11.5px; color: var(--muted); white-space: nowrap; }
 .fat2-simv b { font-size: 15px; font-weight: 600; }
 
+/* ================= HAREKET KÜTÜPHANESİ ================= */
+.exf { display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr); }
+.seg4 { grid-auto-columns: minmax(0, 1fr); }
+.seg4 button { padding-left: 2px; padding-right: 2px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.seg4 button small { font-size: 9.5px; color: var(--faint); }
+.seg4 button.on small { color: var(--neuro); }
+.exf-count { font-size: 10.5px; color: var(--faint); margin-top: -2px; }
+.pdot { width: 8px; height: 8px; flex: none; transform: rotate(45deg); border-radius: 2px; justify-self: center; }
+.pdot.i1 { background: var(--ok); }
+.pdot.i2 { background: var(--warn); }
+.pdot.i3 { background: var(--fire); }
+.pdot.i4 { background: var(--bad); box-shadow: 0 0 6px var(--bad); }
+.badge.kind { color: var(--amber); border-color: rgba(255, 189, 90, 0.45); }
+.fact.kind { color: var(--amber); border-color: rgba(255, 189, 90, 0.45); }
+.ex-en { margin: -4px 0 0; font-size: 11.5px; color: var(--faint); }
+.ex-tip { margin: 0; display: flex; gap: 6px; align-items: flex-start; font-size: 12.5px; line-height: 1.45; color: var(--amber); }
+.ex-tip svg { flex: none; margin-top: 2px; }
+.ex-plyo { display: grid; gap: 6px; padding: 10px 12px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); }
+.ex-plyo p { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+.ex-plyo .ex-src { font-size: 11px; color: var(--faint); }
+.exr-k .fatdot, .exr-k .pdot { margin-right: 2px; }
+/* pliometrik kayıt */
+.plyostage { width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line); background: rgba(3, 5, 11, 0.5); }
+.plyostage.warn { border-color: rgba(255, 67, 87, 0.5); }
+.ps-l, .ps-r { display: grid; gap: 1px; justify-items: center; }
+.ps-k { font-size: 9.5px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+.ps-l b { font-size: 14px; color: var(--amber); }
+.ps-r b { font-size: 18px; }
+.ps-r b.over { color: var(--bad); }
+.ps-m { font-size: 12px; line-height: 1.4; color: var(--muted); }
+.plyostage.warn .ps-m { color: #ff8f99; }
+.pq-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) 44px; gap: 4px; }
+.pq { appearance: none; cursor: pointer; padding: 10px 2px; border-radius: 10px; border: 1px solid var(--line); background: var(--deep); color: var(--muted); font: 500 12px var(--f-body); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pq.on { border-color: var(--c); color: var(--text); background: color-mix(in srgb, var(--c) 14%, var(--deep)); box-shadow: 0 0 12px -5px var(--c); }
+.pq:focus-visible { outline: 2px solid var(--neuro); outline-offset: 2px; }
+.tg-int { font-size: 14px; font-weight: 600; color: var(--amber); }
+.stable.plyo .srow { grid-template-columns: 32px minmax(0, 1fr) minmax(0, 1fr) 8px 96px 40px; }
+@container (max-height: 40px) { .plyostage { display: none; } }
+.setd-grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.labseg button b { font-size: 10.5px; color: var(--faint); margin-right: 3px; }
+.labseg button.on b { color: var(--neuro); }
+.labseg button small { font-size: 10px; color: var(--faint); margin-left: 2px; }
+
+/* ================= HESAP ================= */
+.acct-chip { appearance: none; cursor: pointer; position: relative; flex: none; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line-strong); background: var(--panel); color: var(--muted); }
+.acct-chip.ok, .acct-chip.pending { color: var(--neuro-hi); border-color: rgba(57, 213, 255, 0.5); }
+.acct-dot { position: absolute; right: 1px; bottom: 1px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--deep); background: var(--faint); }
+.acct-chip.ok .acct-dot { background: var(--ok); }
+.acct-chip.pending .acct-dot { background: var(--amber); animation: blink 1.2s ease-in-out infinite; }
+.acct-chip.guest .acct-dot { background: var(--amber); }
+.acct-chip:focus-visible { outline: 2px solid var(--neuro); outline-offset: 2px; }
+.guest-banner { appearance: none; cursor: pointer; display: grid; grid-template-columns: 16px minmax(0, 1fr) 14px; gap: 8px; align-items: center; padding: 6px 12px; white-space: nowrap; border-radius: 12px; border: 1px solid rgba(255, 189, 90, 0.4); background: rgba(255, 189, 90, 0.07); color: var(--amber); text-align: left; font: 12.5px var(--f-body); }
+.guest-banner b { color: var(--text); font-weight: 600; }
+.acct { display: grid; gap: 10px; grid-template-columns: minmax(0, 1fr); }
+.acct-hero { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; padding: 12px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); color: var(--neuro); }
+.acct-hero strong { color: var(--text); font-size: 15px; }
+.acct-hero p { margin: 4px 0 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
+.acct-move { margin: 0; font-size: 11.5px; color: var(--faint); }
+.btn.google { justify-content: center; background: #fff; color: #1f1f1f; border-color: #fff; font-weight: 600; }
+.g-mark { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: conic-gradient(#ea4335 0 25%, #fbbc05 0 50%, #34a853 0 75%, #4285f4 0); color: #fff; font: 700 12px var(--f-body); }
+.acct-form { display: grid; gap: 8px; }
+.acct-links { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.linkbtn { appearance: none; cursor: pointer; justify-self: start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 0; background: none; border: 0; color: var(--neuro); font: 12.5px var(--f-body); }
+.acct-user { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: center; }
+.acct-av { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: rgba(57, 213, 255, 0.15); border: 1px solid var(--neuro); color: var(--neuro-hi); font: 700 18px var(--f-body); }
+.acct-user strong { display: block; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acct-user small { font-size: 12px; color: var(--muted); }
+.acct-sync { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 10px 12px; border-radius: 12px; font-size: 13px; border: 1px solid rgba(62, 224, 164, 0.4); background: rgba(62, 224, 164, 0.07); color: var(--ok); }
+.acct-sync span { color: var(--text); }
+.acct-sync.pending { border-color: rgba(255, 189, 90, 0.45); background: rgba(255, 189, 90, 0.07); color: var(--amber); }
+.acct-sync small { font-size: 10.5px; color: var(--faint); }
+.acct-danger { display: flex; justify-content: space-between; gap: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+.consent-p, .privacy p { margin: 0; font-size: 13px; line-height: 1.55; color: var(--muted); }
+.privacy p b { color: var(--text); }
+
+.guest-banner span { overflow: hidden; text-overflow: ellipsis; }
+
 :root { --sat: 0px; --sab: 0px; }
 </style>
 <div id="root" lang="tr"></div>
@@ -2027,6 +2104,510 @@ var BIO = (function () {
 })();
 
 
+/* ================= HAREKET KÜTÜPHANESİ =================
+   Satır: [id, Türkçe ad, İngilizce ad (arama), ana kas, ikincil kaslar, ekipman, yorgunluk maliyeti 1–3, direnç profili, ek]
+   Yorgunluk maliyeti (fat): 3 = ağır, eksenel yüklü ya da çok büyük kas kütlesi çalıştıran serbest ağırlık;
+   2 = çok eklemli makine / dumbbell; 1 = tek eklem (izolasyon). Pliometrikte yorgunluk temas sayısı × yoğunluktan gelir.
+   Direnç profili (prof): a = kas uzunken en zor, u = kas kısalırken en zor, o = hareketin ortasında en zor, d = boyunca benzer.
+   Ek: k = 'o' olimpik, 'p' pliometrik · i = pliometrik yoğunluk 1–4 · r = dinlenme (sn) · bio = biyomekanik modeli · not = kısa not
+   Mevcut kayıtların id'leri korunur. */
+const MUS_CODE = { G: 'Göğüs', OO: 'Omuz (ön)', OY: 'Omuz (yan)', OA: 'Omuz (arka)', S: 'Sırt', T: 'Trapez', B: 'Bel', BI: 'Biceps', TR: 'Triceps', OK: 'Ön kol', K: 'Karın', Q: 'Quadriceps', H: 'Hamstring', KA: 'Kalça', AD: 'Adduktor', BA: 'Baldır', TI: 'Tibialis', BO: 'Boyun', TV: 'Tüm vücut' };
+const EQ = { bb: 'Barbell', db: 'Dumbbell', kb: 'Kettlebell', ez: 'EZ bar', tb: 'Trap bar', sm: 'Smith', cb: 'Kablo', mk: 'Makine', bw: 'Vücut ağırlığı', bd: 'Band', lm: 'Landmine', mb: 'Sağlık topu', pl: 'Plaka', sb: 'Özel bar', kz: 'Kızak', kt: 'Kutu / engel', sg: 'Strongman', dg: 'Diğer' };
+const KIND = { k: 'Kuvvet', o: 'Olimpik', p: 'Pliometrik' };
+const PLYO_INT = ['', 'Düşük', 'Orta', 'Yüksek', 'Şok (reaktif)'];
+const EX_ROWS = [
+  /* ---------- GÖĞÜS ---------- */
+  ['duz-bench', 'Düz bench press', 'Barbell bench press', 'G', 'OO,TR', 'bb', 3, 'a', { r: 180 }],
+  ['egimli-bench', 'Eğimli bench press', 'Incline barbell bench press', 'G', 'OO,TR', 'bb', 3, 'a', { r: 180, bio: 'bench' }],
+  ['asagi-egimli-bench', 'Aşağı eğimli bench press', 'Decline barbell bench press', 'G', 'TR,OO', 'bb', 3, 'a'],
+  ['genis-bench', 'Geniş tutuş bench press', 'Wide-grip bench press', 'G', 'OO', 'bb', 3, 'a'],
+  ['duraklamali-bench', 'Duraklamalı bench press', 'Paused bench press', 'G', 'OO,TR', 'bb', 3, 'a'],
+  ['spoto-press', 'Spoto press', 'Spoto press', 'G', 'OO,TR', 'bb', 3, 'a'],
+  ['larsen-press', 'Larsen press', 'Larsen press', 'G', 'OO,TR', 'bb', 3, 'a'],
+  ['ters-tutus-bench', 'Ters tutuş bench press', 'Reverse-grip bench press', 'G', 'OO,TR', 'bb', 3, 'a'],
+  ['guillotine-press', 'Boyna doğru bench press (guillotine)', 'Guillotine press', 'G', 'OO', 'bb', 2, 'a'],
+  ['floor-press', 'Yerde press (floor press)', 'Floor press', 'G', 'TR,OO', 'bb', 2, 'u'],
+  ['pin-press', 'Pimden bench press (pin press)', 'Pin press', 'G', 'TR,OO', 'bb', 3, 'u'],
+  ['board-press', 'Board press', 'Board press', 'TR', 'G,OO', 'bb', 3, 'u'],
+  ['bantli-bench', 'Bantlı bench press', 'Banded bench press', 'G', 'TR,OO', 'bb', 3, 'u'],
+  ['zincirli-bench', 'Zincirli bench press', 'Bench press with chains', 'G', 'TR,OO', 'bb', 3, 'u'],
+  ['smith-bench', 'Smith makinede bench press', 'Smith machine bench press', 'G', 'OO,TR', 'sm', 2, 'a'],
+  ['smith-egimli-bench', 'Smith makinede eğimli bench', 'Smith machine incline press', 'G', 'OO,TR', 'sm', 2, 'a'],
+  ['smith-asagi-bench', 'Smith makinede aşağı eğimli bench', 'Smith machine decline press', 'G', 'TR,OO', 'sm', 2, 'a'],
+  ['db-bench', 'Dumbbell bench press', 'Dumbbell bench press', 'G', 'OO,TR', 'db', 2, 'a'],
+  ['egimli-db-press', 'Eğimli dumbbell press', 'Incline dumbbell press', 'G', 'OO', 'db', 2, 'a', { r: 120 }],
+  ['asagi-egimli-db-press', 'Aşağı eğimli dumbbell press', 'Decline dumbbell press', 'G', 'TR,OO', 'db', 2, 'a'],
+  ['notr-db-press', 'Nötr tutuş dumbbell press', 'Neutral-grip dumbbell press', 'G', 'TR,OO', 'db', 2, 'a'],
+  ['tek-kol-db-bench', 'Tek kol dumbbell bench press', 'Single-arm dumbbell bench press', 'G', 'OO,TR,K', 'db', 2, 'a'],
+  ['db-floor-press', 'Dumbbell yerde press', 'Dumbbell floor press', 'G', 'TR,OO', 'db', 2, 'u'],
+  ['hex-press', 'Hex press (sıkıştırarak)', 'Squeeze press', 'G', 'TR', 'db', 1, 'o'],
+  ['db-fly', 'Dumbbell fly', 'Dumbbell fly', 'G', 'OO', 'db', 1, 'a'],
+  ['egimli-db-fly', 'Eğimli dumbbell fly', 'Incline dumbbell fly', 'G', 'OO', 'db', 1, 'a'],
+  ['asagi-egimli-db-fly', 'Aşağı eğimli dumbbell fly', 'Decline dumbbell fly', 'G', 'OO', 'db', 1, 'a'],
+  ['db-pullover', 'Dumbbell pullover', 'Dumbbell pullover', 'G', 'S,TR', 'db', 1, 'a'],
+  ['svend-press', 'Svend press (plaka sıkıştırarak)', 'Svend press', 'G', 'OO', 'pl', 1, 'o'],
+  ['gogus-press-mk', 'Göğüs press makinesi', 'Machine chest press', 'G', 'OO,TR', 'mk', 2, 'd'],
+  ['egimli-press-mk', 'Eğimli göğüs press makinesi', 'Incline machine chest press', 'G', 'OO,TR', 'mk', 2, 'd'],
+  ['asagi-press-mk', 'Aşağı eğimli göğüs press makinesi', 'Decline machine chest press', 'G', 'TR,OO', 'mk', 2, 'd'],
+  ['plaka-gogus-press', 'Plaka yüklemeli göğüs press (iso-lateral)', 'Plate-loaded chest press', 'G', 'OO,TR', 'mk', 2, 'd'],
+  ['pec-deck', 'Pec deck (kelebek)', 'Pec deck fly', 'G', 'OO', 'mk', 1, 'd'],
+  ['kablo-crossover', 'Kablo crossover (yukarıdan aşağı)', 'High-to-low cable fly', 'G', 'OO', 'cb', 1, 'd'],
+  ['kablo-fly', 'Aşağıdan yukarı kablo fly', 'Low-to-high cable fly', 'G', 'OO', 'cb', 1, 'd', { r: 90 }],
+  ['orta-kablo-fly', 'Orta makarada kablo fly', 'Mid-pulley cable fly', 'G', 'OO', 'cb', 1, 'd'],
+  ['tek-kol-kablo-fly', 'Tek kol kablo fly', 'Single-arm cable fly', 'G', 'OO', 'cb', 1, 'd'],
+  ['sehpada-kablo-fly', 'Sehpada yatarak kablo fly', 'Flat-bench cable fly', 'G', 'OO', 'cb', 1, 'a'],
+  ['egimli-kablo-fly', 'Eğimli sehpada kablo fly', 'Incline cable fly', 'G', 'OO', 'cb', 1, 'a'],
+  ['ayakta-kablo-press', 'Ayakta kablo göğüs press', 'Standing cable chest press', 'G', 'OO,TR', 'cb', 1, 'd'],
+  ['landmine-gogus-press', 'Landmine göğüs press (iki el)', 'Two-hand landmine press', 'G', 'OO,TR', 'lm', 2, 'd'],
+  ['sinav', 'Şınav', 'Push-up', 'G', 'TR,OO,K', 'bw', 1, 'a'],
+  ['agirlikli-sinav', 'Ağırlıklı şınav', 'Weighted push-up', 'G', 'TR,OO', 'pl', 2, 'a'],
+  ['ayak-yuksek-sinav', 'Ayaklar yüksekte şınav', 'Decline push-up', 'G', 'OO,TR', 'bw', 1, 'a'],
+  ['derin-sinav', 'Derin şınav (deficit)', 'Deficit push-up', 'G', 'TR,OO', 'bw', 1, 'a'],
+  ['halka-sinav', 'Halkada şınav', 'Ring push-up', 'G', 'TR,OO,K', 'bw', 1, 'a'],
+  ['gogus-dips', 'Göğüs dips (öne eğik)', 'Chest dip', 'G', 'TR,OO', 'bw', 2, 'a'],
+  ['agirlikli-dips', 'Ağırlıklı dips', 'Weighted dip', 'G', 'TR,OO', 'pl', 2, 'a'],
+
+  /* ---------- OMUZ (ÖN) ---------- */
+  ['ayakta-ohp', 'Ayakta barbell omuz press (OHP)', 'Standing overhead press', 'OO', 'OY,TR,K', 'bb', 3, 'a'],
+  ['oturarak-bb-press', 'Oturarak barbell omuz press', 'Seated barbell shoulder press', 'OO', 'OY,TR', 'bb', 2, 'a'],
+  ['ense-press', 'Enseden press', 'Behind-the-neck press', 'OO', 'OY,TR', 'bb', 2, 'a'],
+  ['z-press', 'Z press (yerde oturarak)', 'Z press', 'OO', 'OY,TR,K', 'bb', 2, 'a'],
+  ['bradford-press', 'Bradford press', 'Bradford press', 'OO', 'OY,TR', 'bb', 2, 'o'],
+  ['smith-omuz-press', 'Smith makinede omuz press', 'Smith machine shoulder press', 'OO', 'OY,TR', 'sm', 2, 'a'],
+  ['db-omuz-press', 'Oturarak dumbbell omuz press', 'Seated dumbbell shoulder press', 'OO', 'TR,OY', 'db', 2, 'a', { r: 120 }],
+  ['ayakta-db-press', 'Ayakta dumbbell omuz press', 'Standing dumbbell shoulder press', 'OO', 'TR,OY,K', 'db', 2, 'a'],
+  ['tek-kol-db-press', 'Tek kol ayakta dumbbell press', 'Single-arm dumbbell press', 'OO', 'TR,OY,K', 'db', 2, 'a'],
+  ['arnold-press', 'Arnold press', 'Arnold press', 'OO', 'OY,TR', 'db', 2, 'a'],
+  ['omuz-press-mk', 'Omuz press makinesi', 'Machine shoulder press', 'OO', 'OY,TR', 'mk', 2, 'd'],
+  ['landmine-press', 'Landmine press (tek kol)', 'Single-arm landmine press', 'OO', 'G,TR,K', 'lm', 2, 'd'],
+  ['kb-press', 'Kettlebell omuz press', 'Kettlebell overhead press', 'OO', 'TR,OY', 'kb', 2, 'a'],
+  ['bottoms-up-press', 'Ters kettlebell press (bottoms-up)', 'Bottoms-up kettlebell press', 'OO', 'OK,TR', 'kb', 1, 'a'],
+  ['pike-sinav', 'Pike şınav', 'Pike push-up', 'OO', 'TR', 'bw', 1, 'a'],
+  ['amut-sinav', 'Amutta şınav', 'Handstand push-up', 'OO', 'TR,T', 'bw', 2, 'a'],
+  ['on-omuz-kaldiris', 'Ön omuz kaldırış', 'Dumbbell front raise', 'OO', '', 'db', 1, 'u', { r: 75 }],
+  ['bb-on-kaldiris', 'Barbell ön kaldırış', 'Barbell front raise', 'OO', '', 'bb', 1, 'u'],
+  ['plaka-on-kaldiris', 'Plaka ile ön kaldırış', 'Plate front raise', 'OO', '', 'pl', 1, 'u'],
+  ['kablo-on-kaldiris', 'Kablo ön kaldırış', 'Cable front raise', 'OO', '', 'cb', 1, 'd'],
+  ['kablo-ice-rotasyon', 'Kablo içe rotasyon', 'Cable internal rotation', 'OO', '', 'cb', 1, 'd'],
+
+  /* ---------- OMUZ (YAN) ---------- */
+  ['yana-acis', 'Yana açış', 'Dumbbell lateral raise', 'OY', 'T', 'db', 1, 'u', { r: 75, bio: 'yanaacis' }],
+  ['oturarak-yana-acis', 'Oturarak yana açış', 'Seated lateral raise', 'OY', 'T', 'db', 1, 'u'],
+  ['yan-yatarak-yana-acis', 'Yan yatarak yana açış', 'Side-lying lateral raise', 'OY', '', 'db', 1, 'a'],
+  ['tutunarak-yana-acis', 'Tutunarak eğik yana açış', 'Lean-away lateral raise', 'OY', '', 'db', 1, 'o'],
+  ['kablo-yana-acis', 'Kablo yana açış', 'Cable lateral raise', 'OY', 'T', 'cb', 1, 'd', { r: 75, bio: 'yanaacis' }],
+  ['arkadan-kablo-yana-acis', 'Arkadan çapraz kablo yana açış', 'Behind-the-back cable lateral raise', 'OY', '', 'cb', 1, 'a'],
+  ['band-yana-acis', 'Band yana açış', 'Band lateral raise', 'OY', 'T', 'bd', 1, 'u', { r: 60, bio: 'yanaacis' }],
+  ['yana-acis-mk', 'Yana açış makinesi', 'Machine lateral raise', 'OY', '', 'mk', 1, 'd'],
+  ['landmine-yana-acis', 'Landmine yana açış', 'Landmine lateral raise', 'OY', '', 'lm', 1, 'd'],
+  ['y-kaldiris', 'Eğimli sehpada Y kaldırış', 'Incline Y-raise', 'OY', 'T,OA', 'db', 1, 'u'],
+  ['bb-dik-cekis', 'Barbell dik çekiş (upright row)', 'Barbell upright row', 'OY', 'T,OO', 'bb', 2, 'u'],
+  ['db-dik-cekis', 'Dumbbell dik çekiş', 'Dumbbell upright row', 'OY', 'T,OO', 'db', 1, 'u'],
+  ['kablo-dik-cekis', 'Kablo dik çekiş', 'Cable upright row', 'OY', 'T,OO', 'cb', 1, 'd'],
+
+  /* ---------- OMUZ (ARKA) ---------- */
+  ['egilerek-arka-omuz', 'Eğilerek arka omuz açış', 'Bent-over rear delt fly', 'OA', 'T', 'db', 1, 'u'],
+  ['sehpada-arka-omuz', 'Eğimli sehpada yüzüstü arka omuz açış', 'Chest-supported rear delt fly', 'OA', 'T', 'db', 1, 'u'],
+  ['ters-pec-deck', 'Ters pec deck', 'Reverse pec deck', 'OA', 'T', 'mk', 1, 'd'],
+  ['face-pull', 'Face pull', 'Face pull', 'OA', 'T', 'cb', 1, 'u'],
+  ['kablo-arka-omuz', 'Çapraz kablo arka omuz açış', 'Cable rear delt fly', 'OA', 'T', 'cb', 1, 'd'],
+  ['tek-kol-kablo-arka', 'Tek kol kablo arka omuz', 'Single-arm cable reverse fly', 'OA', '', 'cb', 1, 'd'],
+  ['band-pull-apart', 'Band pull-apart', 'Band pull-apart', 'OA', 'T', 'bd', 1, 'u'],
+  ['arka-omuz-row', 'Arka omuz row (dirsek açık)', 'Rear delt row', 'OA', 'T,S', 'db', 1, 'u'],
+  ['yuzustu-t-kaldiris', 'Yüzüstü T kaldırış', 'Prone T-raise', 'OA', 'T', 'db', 1, 'u'],
+  ['kablo-disa-rotasyon', 'Kablo dışa rotasyon', 'Cable external rotation', 'OA', '', 'cb', 1, 'd'],
+  ['yan-yatarak-disa-rotasyon', 'Yan yatarak dumbbell dışa rotasyon', 'Side-lying external rotation', 'OA', '', 'db', 1, 'o'],
+  ['cuban-press', 'Cuban press', 'Cuban press', 'OA', 'OY,T', 'db', 1, 'd'],
+
+  /* ---------- SIRT ---------- */
+  ['barfiks', 'Barfiks', 'Pull-up', 'S', 'BI,OA', 'bw', 2, 'd', { r: 150 }],
+  ['agirlikli-barfiks', 'Ağırlıklı barfiks', 'Weighted pull-up', 'S', 'BI,OA', 'pl', 2, 'd'],
+  ['chin-up', 'Chin-up (ters tutuş barfiks)', 'Chin-up', 'S', 'BI', 'bw', 2, 'd'],
+  ['notr-barfiks', 'Nötr tutuş barfiks', 'Neutral-grip pull-up', 'S', 'BI,OA', 'bw', 2, 'd'],
+  ['genis-barfiks', 'Geniş tutuş barfiks', 'Wide-grip pull-up', 'S', 'BI,OA', 'bw', 2, 'd'],
+  ['negatif-barfiks', 'Negatif barfiks', 'Negative pull-up', 'S', 'BI', 'bw', 2, 'd'],
+  ['destekli-barfiks-mk', 'Destekli barfiks makinesi', 'Assisted pull-up machine', 'S', 'BI', 'mk', 1, 'd'],
+  ['muscle-up', 'Muscle-up', 'Muscle-up', 'S', 'TR,G', 'bw', 2, 'd'],
+  ['lat-pulldown', 'Lat pulldown (geniş tutuş)', 'Wide-grip lat pulldown', 'S', 'BI,OA', 'cb', 2, 'd'],
+  ['dar-pulldown', 'Dar tutuş (V tutamak) pulldown', 'Close-grip lat pulldown', 'S', 'BI', 'cb', 2, 'd'],
+  ['ters-pulldown', 'Ters tutuş pulldown', 'Underhand lat pulldown', 'S', 'BI', 'cb', 2, 'd'],
+  ['tek-kol-pulldown', 'Tek kol pulldown', 'Single-arm lat pulldown', 'S', 'BI', 'cb', 1, 'd'],
+  ['diz-cokerek-pulldown', 'Diz çökerek tek kol kablo pulldown', 'Kneeling single-arm cable pulldown', 'S', 'BI', 'cb', 1, 'a'],
+  ['ense-pulldown', 'Enseden pulldown', 'Behind-the-neck pulldown', 'S', 'BI,OA', 'cb', 2, 'd'],
+  ['pulldown-mk', 'Pulldown makinesi (plaka yüklemeli)', 'Machine pulldown', 'S', 'BI', 'mk', 2, 'd'],
+  ['duz-kol-pulldown', 'Düz kol pulldown', 'Straight-arm pulldown', 'S', 'TR', 'cb', 1, 'a'],
+  ['kablo-pullover', 'Kablo pullover (halat)', 'Cable pullover', 'S', 'TR', 'cb', 1, 'a'],
+  ['pullover-mk', 'Pullover makinesi', 'Pullover machine', 'S', 'TR', 'mk', 1, 'a'],
+  ['bb-row', 'Barbell row', 'Barbell bent-over row', 'S', 'OA,BI,B', 'bb', 3, 'u'],
+  ['pendlay-row', 'Pendlay row', 'Pendlay row', 'S', 'OA,BI,B', 'bb', 3, 'u'],
+  ['yates-row', 'Yates row (ters tutuş)', 'Yates row', 'S', 'BI,OA,B', 'bb', 3, 'u'],
+  ['seal-row', 'Seal row (sehpada yüzüstü)', 'Seal row', 'S', 'OA,BI', 'bb', 2, 'u'],
+  ['t-bar-row', 'T-bar row', 'T-bar row', 'S', 'OA,BI,B', 'lm', 2, 'u'],
+  ['destekli-t-bar-row', 'Göğüs destekli T-bar row', 'Chest-supported T-bar row', 'S', 'OA,BI', 'mk', 2, 'u'],
+  ['meadows-row', 'Meadows row', 'Meadows row', 'S', 'OA,BI', 'lm', 2, 'u'],
+  ['tek-kol-landmine-row', 'Tek kol landmine row', 'Single-arm landmine row', 'S', 'OA,BI', 'lm', 2, 'u'],
+  ['smith-row', 'Smith makinede row', 'Smith machine row', 'S', 'OA,BI', 'sm', 2, 'u'],
+  ['db-row', 'Tek kol dumbbell row', 'One-arm dumbbell row', 'S', 'OA,BI', 'db', 2, 'u'],
+  ['kroc-row', 'Kroc row', 'Kroc row', 'S', 'OA,BI,OK', 'db', 2, 'u'],
+  ['destekli-db-row', 'Eğimli sehpada dumbbell row (göğüs destekli)', 'Chest-supported dumbbell row', 'S', 'OA,BI', 'db', 2, 'u'],
+  ['iki-kol-db-row', 'Eğilerek iki kol dumbbell row', 'Bent-over dumbbell row', 'S', 'OA,BI,B', 'db', 2, 'u'],
+  ['renegade-row', 'Renegade row', 'Renegade row', 'S', 'K,OA', 'db', 2, 'u'],
+  ['kb-row', 'Kettlebell row', 'Kettlebell row', 'S', 'OA,BI', 'kb', 1, 'u'],
+  ['kablo-row', 'Oturarak kablo row (dar tutamak)', 'Seated cable row', 'S', 'OA,BI', 'cb', 2, 'd'],
+  ['genis-kablo-row', 'Geniş tutuş oturarak kablo row', 'Wide-grip seated cable row', 'S', 'OA,T', 'cb', 2, 'd'],
+  ['tek-kol-kablo-row', 'Tek kol kablo row', 'Single-arm cable row', 'S', 'OA,BI', 'cb', 1, 'd'],
+  ['row-mk', 'Göğüs destekli row makinesi', 'Chest-supported machine row', 'S', 'OA,BI', 'mk', 2, 'd'],
+  ['iso-row-mk', 'Plaka yüklemeli row makinesi (iso-lateral)', 'Iso-lateral row', 'S', 'OA,BI', 'mk', 2, 'd'],
+  ['low-row-mk', 'Low row makinesi', 'Machine low row', 'S', 'BI,OA', 'mk', 2, 'd'],
+  ['inverted-row', 'Ters barfiks (inverted row)', 'Inverted row', 'S', 'OA,BI', 'bw', 1, 'u'],
+  ['halka-row', 'Halkada row', 'Ring row', 'S', 'OA,BI', 'bw', 1, 'u'],
+
+  /* ---------- TRAPEZ ---------- */
+  ['shrug', 'Shrug', 'Dumbbell shrug', 'T', '', 'db', 1, 'u', { r: 90 }],
+  ['bb-shrug', 'Barbell shrug', 'Barbell shrug', 'T', 'OK', 'bb', 2, 'u'],
+  ['arkadan-shrug', 'Arkadan barbell shrug', 'Behind-the-back shrug', 'T', 'OK', 'bb', 1, 'u'],
+  ['trap-bar-shrug', 'Trap bar shrug', 'Trap bar shrug', 'T', 'OK', 'tb', 2, 'u'],
+  ['smith-shrug', 'Smith makinede shrug', 'Smith machine shrug', 'T', '', 'sm', 1, 'u'],
+  ['kablo-shrug', 'Kablo shrug', 'Cable shrug', 'T', '', 'cb', 1, 'd'],
+  ['shrug-mk', 'Shrug makinesi', 'Shrug machine', 'T', '', 'mk', 1, 'u'],
+  ['egimli-shrug', 'Eğimli sehpada dumbbell shrug', 'Incline dumbbell shrug', 'T', '', 'db', 1, 'u'],
+  ['kelso-shrug', 'Kelso shrug (göğüs destekli)', 'Kelso shrug', 'T', 'OA', 'db', 1, 'u'],
+  ['ciftci-yuruyusu', 'Çiftçi yürüyüşü (farmer’s walk)', "Farmer's walk", 'T', 'OK,K,Q', 'db', 2, 'd', { not: 'Tekrar = tur (ör. 20 m)' }],
+
+  /* ---------- BEL / ARKA ZİNCİR ---------- */
+  ['deadlift', 'Deadlift (klasik)', 'Conventional deadlift', 'KA', 'H,B,Q,T,OK', 'bb', 3, 'a', { r: 210 }],
+  ['sumo-deadlift', 'Sumo deadlift', 'Sumo deadlift', 'KA', 'Q,AD,B', 'bb', 3, 'a', { r: 210 }],
+  ['deficit-deadlift', 'Yükseltiden deadlift (deficit)', 'Deficit deadlift', 'KA', 'H,B,Q', 'bb', 3, 'a', { r: 210 }],
+  ['duraklamali-deadlift', 'Duraklamalı deadlift', 'Paused deadlift', 'KA', 'H,B,Q', 'bb', 3, 'a', { r: 210 }],
+  ['snatch-tutus-deadlift', 'Snatch tutuş deadlift', 'Snatch-grip deadlift', 'KA', 'H,B,T,S', 'bb', 3, 'a', { r: 210 }],
+  ['bantli-deadlift', 'Bantlı deadlift', 'Banded deadlift', 'KA', 'H,B', 'bb', 3, 'u', { r: 210 }],
+  ['trap-bar-deadlift', 'Trap bar deadlift', 'Trap bar deadlift', 'KA', 'Q,H,B,T', 'tb', 3, 'a', { r: 180 }],
+  ['rack-pull', 'Rack pull', 'Rack pull', 'B', 'KA,T,H,OK', 'bb', 3, 'u'],
+  ['good-morning', 'Good morning', 'Good morning', 'H', 'B,KA', 'bb', 3, 'a'],
+  ['oturarak-good-morning', 'Oturarak good morning', 'Seated good morning', 'B', 'KA', 'bb', 2, 'a'],
+  ['back-extension', 'Back extension (45°)', '45-degree back extension', 'B', 'KA,H', 'bw', 1, 'u'],
+  ['agirlikli-back-extension', 'Ağırlıklı back extension', 'Weighted back extension', 'B', 'KA,H', 'pl', 1, 'u'],
+  ['reverse-hyper', 'Reverse hyper', 'Reverse hyperextension', 'B', 'KA,H', 'mk', 1, 'u'],
+  ['jefferson-curl', 'Jefferson curl', 'Jefferson curl', 'B', 'H', 'bb', 1, 'a'],
+  ['superman', 'Superman', 'Superman', 'B', 'KA', 'bw', 1, 'u'],
+  ['bird-dog', 'Bird dog', 'Bird dog', 'B', 'K,KA', 'bw', 1, 'd'],
+
+  /* ---------- KALÇA ---------- */
+  ['hip-thrust', 'Barbell hip thrust', 'Barbell hip thrust', 'KA', 'H,Q', 'bb', 2, 'u'],
+  ['hip-thrust-mk', 'Hip thrust makinesi', 'Hip thrust machine', 'KA', 'H', 'mk', 2, 'u'],
+  ['smith-hip-thrust', 'Smith makinede hip thrust', 'Smith machine hip thrust', 'KA', 'H', 'sm', 2, 'u'],
+  ['tek-bacak-hip-thrust', 'Tek bacak hip thrust', 'Single-leg hip thrust', 'KA', 'H', 'bw', 1, 'u'],
+  ['glute-bridge', 'Barbell glute bridge', 'Barbell glute bridge', 'KA', 'H', 'bb', 2, 'u'],
+  ['glute-bridge-bw', 'Glute bridge', 'Bodyweight glute bridge', 'KA', 'H', 'bw', 1, 'u'],
+  ['frog-pump', 'Frog pump', 'Frog pump', 'KA', 'AD', 'bw', 1, 'u'],
+  ['kablo-pull-through', 'Kablo pull-through', 'Cable pull-through', 'KA', 'H', 'cb', 1, 'u'],
+  ['kablo-glute-kickback', 'Kablo glute kickback', 'Cable glute kickback', 'KA', 'H', 'cb', 1, 'd'],
+  ['glute-kickback-mk', 'Glute kickback makinesi', 'Glute kickback machine', 'KA', 'H', 'mk', 1, 'd'],
+  ['dort-ayak-kickback', 'Dört ayak üzerinde kickback', 'Quadruped kickback', 'KA', 'H', 'bw', 1, 'u'],
+  ['kalca-odakli-hiper', 'Kalça odaklı back extension', 'Glute-focused back extension', 'KA', 'H,B', 'bw', 1, 'u'],
+  ['abduksiyon-mk', 'Kalça abduksiyon makinesi (dışa açma)', 'Hip abduction machine', 'KA', '', 'mk', 1, 'd'],
+  ['kablo-abduksiyon', 'Kablo ayakta dışa açma', 'Cable hip abduction', 'KA', '', 'cb', 1, 'd'],
+  ['yan-yatarak-bacak', 'Yan yatarak bacak kaldırma', 'Side-lying leg raise', 'KA', '', 'bw', 1, 'u'],
+  ['band-yanal-yuruyus', 'Band yanal yürüyüş', 'Lateral band walk', 'KA', '', 'bd', 1, 'd'],
+  ['clamshell', 'Clamshell', 'Clamshell', 'KA', '', 'bd', 1, 'u'],
+  ['fire-hydrant', 'Fire hydrant', 'Fire hydrant', 'KA', '', 'bw', 1, 'u'],
+  ['kb-swing', 'Kettlebell swing', 'Kettlebell swing', 'KA', 'H,B,K', 'kb', 2, 'd', { not: 'Balistik: tekrarları patlayıcı yap, tükenişe gitme' }],
+  ['tek-kol-kb-swing', 'Tek kol kettlebell swing', 'Single-arm kettlebell swing', 'KA', 'H,B,K,OK', 'kb', 2, 'd'],
+  ['curtsy-lunge', 'Çapraz geri lunge (curtsy)', 'Curtsy lunge', 'KA', 'Q,AD', 'db', 1, 'a'],
+
+  /* ---------- QUADRICEPS ---------- */
+  ['squat', 'Squat', 'Back squat (high bar)', 'Q', 'KA,AD,B', 'bb', 3, 'a', { r: 180 }],
+  ['low-bar-squat', 'Low-bar squat', 'Low-bar back squat', 'Q', 'KA,H,B', 'bb', 3, 'a', { r: 180 }],
+  ['front-squat', 'Front squat', 'Front squat', 'Q', 'KA,B,K', 'bb', 3, 'a', { r: 180 }],
+  ['duraklamali-squat', 'Duraklamalı squat', 'Paused squat', 'Q', 'KA,B', 'bb', 3, 'a', { r: 180 }],
+  ['box-squat', 'Box squat', 'Box squat', 'Q', 'KA,H', 'bb', 3, 'a'],
+  ['pin-squat', 'Pimden squat (Anderson)', 'Anderson squat', 'Q', 'KA,B', 'bb', 3, 'o'],
+  ['safety-bar-squat', 'Safety bar squat (SSB)', 'Safety squat bar squat', 'Q', 'KA,B,T', 'sb', 3, 'a', { r: 180 }],
+  ['zercher-squat', 'Zercher squat', 'Zercher squat', 'Q', 'KA,B,BI,K', 'bb', 3, 'a'],
+  ['bantli-squat', 'Bantlı squat', 'Banded squat', 'Q', 'KA', 'bb', 3, 'u'],
+  ['arkadan-hack-squat', 'Arkadan barbell hack squat', 'Barbell hack squat', 'Q', 'KA', 'bb', 2, 'a'],
+  ['landmine-squat', 'Landmine squat', 'Landmine squat', 'Q', 'KA', 'lm', 2, 'a'],
+  ['smith-squat', 'Smith makinede squat', 'Smith machine squat', 'Q', 'KA', 'sm', 2, 'a'],
+  ['hack-squat', 'Hack squat makinesi', 'Machine hack squat', 'Q', 'KA', 'mk', 2, 'a'],
+  ['ters-hack-squat', 'Ters hack squat', 'Reverse hack squat', 'KA', 'Q,H', 'mk', 2, 'a'],
+  ['pendulum-squat', 'Pendulum squat', 'Pendulum squat', 'Q', 'KA', 'mk', 2, 'a'],
+  ['belt-squat', 'Belt squat', 'Belt squat', 'Q', 'KA,AD', 'mk', 2, 'a'],
+  ['v-squat', 'V-squat makinesi', 'V-squat machine', 'Q', 'KA', 'mk', 2, 'a'],
+  ['leg-press', 'Leg press (45°)', '45-degree leg press', 'Q', 'KA,AD', 'mk', 2, 'a'],
+  ['yatay-leg-press', 'Yatay leg press', 'Horizontal leg press', 'Q', 'KA', 'mk', 2, 'a'],
+  ['tek-bacak-leg-press', 'Tek bacak leg press', 'Single-leg leg press', 'Q', 'KA', 'mk', 1, 'a'],
+  ['goblet-squat', 'Goblet squat', 'Goblet squat', 'Q', 'KA,AD', 'db', 2, 'a'],
+  ['topuk-yuksek-goblet', 'Topuklar yüksekte goblet squat', 'Heels-elevated goblet squat', 'Q', 'KA', 'db', 2, 'a'],
+  ['db-squat', 'Dumbbell squat', 'Dumbbell squat', 'Q', 'KA', 'db', 2, 'a'],
+  ['kb-on-squat', 'Çift kettlebell ön squat', 'Double kettlebell front squat', 'Q', 'KA,K', 'kb', 2, 'a'],
+  ['bulgarian-split-squat', 'Bulgarian split squat', 'Bulgarian split squat', 'Q', 'KA,AD', 'db', 2, 'a'],
+  ['bb-bulgarian', 'Barbell Bulgarian split squat', 'Barbell Bulgarian split squat', 'Q', 'KA,AD', 'bb', 2, 'a'],
+  ['smith-split-squat', 'Smith makinede split squat', 'Smith machine split squat', 'Q', 'KA', 'sm', 2, 'a'],
+  ['split-squat', 'Split squat', 'Split squat', 'Q', 'KA', 'db', 2, 'a'],
+  ['one-lunge', 'Öne lunge', 'Forward lunge', 'Q', 'KA,AD', 'db', 2, 'a'],
+  ['geri-lunge', 'Geri lunge', 'Reverse lunge', 'Q', 'KA', 'db', 2, 'a'],
+  ['deficit-geri-lunge', 'Yükseltiden geri lunge', 'Deficit reverse lunge', 'Q', 'KA', 'db', 2, 'a'],
+  ['yuruyen-lunge', 'Yürüyen lunge', 'Walking lunge', 'Q', 'KA,AD', 'db', 2, 'a'],
+  ['bb-lunge', 'Barbell lunge', 'Barbell lunge', 'Q', 'KA', 'bb', 2, 'a'],
+  ['yan-lunge', 'Yan lunge', 'Lateral lunge', 'Q', 'AD,KA', 'db', 1, 'a'],
+  ['step-up', 'Step-up (dumbbell)', 'Dumbbell step-up', 'Q', 'KA', 'db', 2, 'a'],
+  ['bb-step-up', 'Barbell step-up', 'Barbell step-up', 'Q', 'KA', 'bb', 2, 'a'],
+  ['yan-step-up', 'Yan step-up', 'Lateral step-up', 'Q', 'KA', 'db', 1, 'a'],
+  ['pistol-squat', 'Pistol squat', 'Pistol squat', 'Q', 'KA', 'bw', 1, 'a'],
+  ['shrimp-squat', 'Shrimp squat', 'Shrimp squat', 'Q', 'KA', 'bw', 1, 'a'],
+  ['sissy-squat', 'Sissy squat', 'Sissy squat', 'Q', '', 'bw', 1, 'a'],
+  ['bisikletci-squat', 'Bisikletçi squat (dar, topuk yüksek)', 'Cyclist squat', 'Q', '', 'db', 2, 'a'],
+  ['leg-extension', 'Leg extension', 'Leg extension', 'Q', '', 'mk', 1, 'u'],
+  ['tek-bacak-leg-extension', 'Tek bacak leg extension', 'Single-leg leg extension', 'Q', '', 'mk', 1, 'u'],
+  ['ters-nordic', 'Ters nordic (reverse nordic)', 'Reverse Nordic', 'Q', '', 'bw', 1, 'a'],
+  ['ispanyol-squat', 'İspanyol squat (bantlı)', 'Spanish squat', 'Q', '', 'bd', 1, 'o'],
+  ['duvar-oturusu', 'Duvar oturuşu (wall sit)', 'Wall sit', 'Q', '', 'bw', 1, 'd'],
+  ['kizak-itme', 'Kızak itme (sled push)', 'Sled push', 'Q', 'KA,BA', 'kz', 2, 'd', { not: 'Tekrar = tur (ör. 20 m)' }],
+  ['kizak-geri-cekme', 'Geri yürüyerek kızak çekme', 'Backward sled drag', 'Q', '', 'kz', 2, 'd', { not: 'Tekrar = tur (ör. 20 m)' }],
+
+  /* ---------- HAMSTRING ---------- */
+  ['rdl', 'Romanian deadlift', 'Romanian deadlift', 'H', 'KA,B', 'bb', 3, 'a', { r: 150, bio: 'rdl' }],
+  ['db-rdl', 'Dumbbell Romanian deadlift', 'Dumbbell Romanian deadlift', 'H', 'KA,B', 'db', 2, 'a'],
+  ['tek-bacak-rdl', 'Tek bacak Romanian deadlift', 'Single-leg Romanian deadlift', 'H', 'KA', 'db', 2, 'a'],
+  ['b-stance-rdl', 'B-stance RDL', 'B-stance Romanian deadlift', 'H', 'KA', 'db', 2, 'a'],
+  ['smith-rdl', 'Smith makinede RDL', 'Smith machine Romanian deadlift', 'H', 'KA,B', 'sm', 2, 'a'],
+  ['kb-rdl', 'Kettlebell RDL', 'Kettlebell Romanian deadlift', 'H', 'KA', 'kb', 2, 'a'],
+  ['sldl', 'Düz bacak deadlift (stiff-leg)', 'Stiff-leg deadlift', 'H', 'KA,B', 'bb', 3, 'a'],
+  ['leg-curl', 'Yatarak leg curl', 'Lying leg curl', 'H', 'BA', 'mk', 1, 'd', { r: 90 }],
+  ['oturarak-leg-curl', 'Oturarak leg curl', 'Seated leg curl', 'H', '', 'mk', 1, 'a'],
+  ['ayakta-leg-curl', 'Ayakta tek bacak leg curl', 'Standing leg curl', 'H', '', 'mk', 1, 'd'],
+  ['kablo-leg-curl', 'Kablo ayakta leg curl', 'Cable leg curl', 'H', '', 'cb', 1, 'd'],
+  ['db-leg-curl', 'Dumbbell leg curl (yüzüstü)', 'Dumbbell lying leg curl', 'H', '', 'db', 1, 'a'],
+  ['band-leg-curl', 'Band leg curl', 'Band leg curl', 'H', '', 'bd', 1, 'u', { r: 60 }],
+  ['nordic-curl', 'Nordic hamstring curl', 'Nordic hamstring curl', 'H', '', 'bw', 2, 'a'],
+  ['glute-ham-raise', 'Glute-ham raise (GHR)', 'Glute-ham raise', 'H', 'KA,BA', 'mk', 2, 'a'],
+  ['slider-leg-curl', 'Kaydırak leg curl', 'Slider leg curl', 'H', 'KA', 'bw', 1, 'o'],
+  ['top-leg-curl', 'Pilates topuyla leg curl', 'Swiss ball leg curl', 'H', 'KA', 'dg', 1, 'o'],
+
+  /* ---------- ADDUKTOR ---------- */
+  ['adduksiyon-mk', 'Kalça adduksiyon makinesi (içe kapama)', 'Hip adduction machine', 'AD', '', 'mk', 1, 'd'],
+  ['kablo-adduksiyon', 'Kablo içe kapama', 'Cable hip adduction', 'AD', '', 'cb', 1, 'd'],
+  ['copenhagen-plank', 'Copenhagen plank', 'Copenhagen plank', 'AD', 'K', 'bw', 1, 'd'],
+  ['sumo-db-squat', 'Sumo squat (dumbbell)', 'Dumbbell sumo squat', 'AD', 'Q,KA', 'db', 2, 'a'],
+  ['kazak-squat', 'Kazak squat (cossack)', 'Cossack squat', 'AD', 'Q,KA', 'kb', 1, 'a'],
+
+  /* ---------- BALDIR / TİBİALİS ---------- */
+  ['ayakta-calf-raise', 'Ayakta calf raise (makine)', 'Standing calf raise machine', 'BA', '', 'mk', 1, 'd'],
+  ['oturarak-calf-raise', 'Oturarak calf raise', 'Seated calf raise', 'BA', '', 'mk', 1, 'd'],
+  ['leg-press-calf', 'Leg press’te calf raise', 'Leg press calf raise', 'BA', '', 'mk', 1, 'd'],
+  ['hack-calf', 'Hack squat makinesinde calf raise', 'Hack squat calf raise', 'BA', '', 'mk', 1, 'd'],
+  ['smith-calf', 'Smith makinede calf raise', 'Smith machine calf raise', 'BA', '', 'sm', 1, 'd'],
+  ['bb-calf', 'Barbell calf raise', 'Barbell calf raise', 'BA', '', 'bb', 1, 'd'],
+  ['tek-bacak-calf', 'Tek bacak dumbbell calf raise', 'Single-leg dumbbell calf raise', 'BA', '', 'db', 1, 'd'],
+  ['donkey-calf', 'Donkey calf raise', 'Donkey calf raise', 'BA', '', 'mk', 1, 'a'],
+  ['tibialis-raise', 'Tibialis raise (ayak ucu kaldırma)', 'Tibialis raise', 'TI', '', 'bw', 1, 'd'],
+  ['tib-bar', 'Tib bar ile ayak ucu kaldırma', 'Tib bar raise', 'TI', '', 'dg', 1, 'd'],
+
+  /* ---------- BICEPS ---------- */
+  ['bb-curl', 'Barbell curl', 'Barbell curl', 'BI', 'OK', 'bb', 1, 'o'],
+  ['ez-curl', 'EZ bar curl', 'EZ bar curl', 'BI', 'OK', 'ez', 1, 'o'],
+  ['db-curl', 'Dumbbell curl', 'Dumbbell curl', 'BI', 'OK', 'db', 1, 'o'],
+  ['sirayla-db-curl', 'Sırayla dumbbell curl', 'Alternating dumbbell curl', 'BI', 'OK', 'db', 1, 'o'],
+  ['hammer-curl', 'Hammer curl', 'Hammer curl', 'BI', 'OK', 'db', 1, 'o'],
+  ['capraz-hammer-curl', 'Çapraz hammer curl', 'Cross-body hammer curl', 'BI', 'OK', 'db', 1, 'o'],
+  ['egimli-db-curl', 'Eğimli sehpada dumbbell curl', 'Incline dumbbell curl', 'BI', '', 'db', 1, 'a'],
+  ['ez-preacher-curl', 'EZ bar preacher curl', 'EZ bar preacher curl', 'BI', '', 'ez', 1, 'a'],
+  ['db-preacher-curl', 'Tek kol dumbbell preacher curl', 'Single-arm dumbbell preacher curl', 'BI', '', 'db', 1, 'a'],
+  ['preacher-mk', 'Preacher curl makinesi', 'Machine preacher curl', 'BI', '', 'mk', 1, 'd'],
+  ['spider-curl', 'Spider curl', 'Spider curl', 'BI', '', 'db', 1, 'u'],
+  ['konsantrasyon-curl', 'Konsantrasyon curl', 'Concentration curl', 'BI', '', 'db', 1, 'o'],
+  ['drag-curl', 'Drag curl', 'Drag curl', 'BI', '', 'bb', 1, 'u'],
+  ['21-curl', '21’ler (barbell curl)', '21s barbell curl', 'BI', 'OK', 'bb', 1, 'o'],
+  ['kablo-curl', 'Kablo curl (düz bar)', 'Cable curl', 'BI', 'OK', 'cb', 1, 'd'],
+  ['tek-kol-kablo-curl', 'Tek kol kablo curl', 'Single-arm cable curl', 'BI', '', 'cb', 1, 'd'],
+  ['bayesian-curl', 'Bayesian kablo curl (arkadan)', 'Bayesian cable curl', 'BI', '', 'cb', 1, 'a'],
+  ['yuksek-makara-curl', 'Yüksek makarada kablo curl', 'Overhead cable curl', 'BI', '', 'cb', 1, 'u'],
+  ['halat-hammer-curl', 'Halatla kablo hammer curl', 'Rope hammer curl', 'BI', 'OK', 'cb', 1, 'd'],
+  ['curl-mk', 'Biceps curl makinesi', 'Machine biceps curl', 'BI', '', 'mk', 1, 'd'],
+  ['zottman-curl', 'Zottman curl', 'Zottman curl', 'BI', 'OK', 'db', 1, 'o'],
+
+  /* ---------- TRICEPS ---------- */
+  ['dar-bench', 'Dar tutuş bench press', 'Close-grip bench press', 'TR', 'G,OO', 'bb', 3, 'a'],
+  ['jm-press', 'JM press', 'JM press', 'TR', 'G', 'bb', 2, 'o'],
+  ['triceps-pushdown', 'Triceps pushdown', 'Straight-bar pushdown', 'TR', '', 'cb', 1, 'd', { r: 75 }],
+  ['halat-pushdown', 'Halatla triceps pushdown', 'Rope pushdown', 'TR', '', 'cb', 1, 'd'],
+  ['ters-pushdown', 'Ters tutuş pushdown', 'Reverse-grip pushdown', 'TR', '', 'cb', 1, 'd'],
+  ['tek-kol-pushdown', 'Tek kol pushdown', 'Single-arm pushdown', 'TR', '', 'cb', 1, 'd'],
+  ['halat-bas-ustu', 'Halatla baş üstü triceps extension', 'Overhead rope triceps extension', 'TR', '', 'cb', 1, 'a'],
+  ['tek-kol-kablo-bas-ustu', 'Tek kol kablo baş üstü extension', 'Single-arm overhead cable extension', 'TR', '', 'cb', 1, 'a'],
+  ['capraz-kablo-ext', 'Çapraz kablo triceps extension', 'Cross-body cable extension', 'TR', '', 'cb', 1, 'a'],
+  ['db-bas-ustu', 'Dumbbell baş üstü extension (iki el)', 'Two-hand overhead dumbbell extension', 'TR', '', 'db', 1, 'a'],
+  ['tek-kol-db-bas-ustu', 'Tek kol dumbbell baş üstü extension', 'Single-arm overhead dumbbell extension', 'TR', '', 'db', 1, 'a'],
+  ['ez-skull-crusher', 'EZ bar skull crusher', 'EZ bar skull crusher', 'TR', '', 'ez', 1, 'a'],
+  ['db-skull-crusher', 'Dumbbell skull crusher', 'Dumbbell lying triceps extension', 'TR', '', 'db', 1, 'a'],
+  ['tate-press', 'Tate press', 'Tate press', 'TR', '', 'db', 1, 'o'],
+  ['db-kickback', 'Dumbbell triceps kickback', 'Dumbbell kickback', 'TR', '', 'db', 1, 'u'],
+  ['kablo-kickback', 'Kablo triceps kickback', 'Cable kickback', 'TR', '', 'cb', 1, 'd'],
+  ['dips', 'Dips (paralel bar, dik)', 'Triceps dip', 'TR', 'G,OO', 'bw', 2, 'a'],
+  ['sehpa-dips', 'Sehpa dips', 'Bench dip', 'TR', 'OO', 'bw', 1, 'a'],
+  ['dips-mk', 'Dips makinesi', 'Machine dip', 'TR', 'G', 'mk', 1, 'd'],
+  ['triceps-ext-mk', 'Triceps extension makinesi', 'Machine triceps extension', 'TR', '', 'mk', 1, 'd'],
+  ['elmas-sinav', 'Elmas şınav', 'Diamond push-up', 'TR', 'G', 'bw', 1, 'a'],
+
+  /* ---------- ÖN KOL / KAVRAMA ---------- */
+  ['ters-curl', 'Ters tutuş curl', 'Reverse curl', 'OK', 'BI', 'ez', 1, 'o'],
+  ['bb-bilek-curl', 'Barbell bilek curl', 'Barbell wrist curl', 'OK', '', 'bb', 1, 'd'],
+  ['db-bilek-curl', 'Dumbbell bilek curl', 'Dumbbell wrist curl', 'OK', '', 'db', 1, 'd'],
+  ['ters-bilek-curl', 'Ters bilek curl', 'Reverse wrist curl', 'OK', '', 'bb', 1, 'd'],
+  ['arkadan-bilek-curl', 'Arkadan barbell bilek curl', 'Behind-the-back wrist curl', 'OK', '', 'bb', 1, 'd'],
+  ['bilek-cevirme', 'Bilek çevirme (wrist roller)', 'Wrist roller', 'OK', '', 'dg', 1, 'd'],
+  ['dead-hang', 'Barda asılı durma (dead hang)', 'Dead hang', 'OK', 'S', 'bw', 1, 'd'],
+  ['plaka-sikistirma', 'Plaka sıkıştırma (pinch)', 'Plate pinch', 'OK', '', 'pl', 1, 'd'],
+  ['tek-kol-tasima', 'Tek kol taşıma (suitcase carry)', 'Suitcase carry', 'K', 'OK,T', 'kb', 1, 'd', { not: 'Tekrar = tur (ör. 20 m)' }],
+
+  /* ---------- KARIN ---------- */
+  ['mekik', 'Mekik (crunch)', 'Crunch', 'K', '', 'bw', 1, 'u'],
+  ['kablo-crunch', 'Diz çökerek kablo crunch', 'Kneeling cable crunch', 'K', '', 'cb', 1, 'd'],
+  ['crunch-mk', 'Karın crunch makinesi', 'Ab crunch machine', 'K', '', 'mk', 1, 'd'],
+  ['sit-up', 'Sit-up', 'Sit-up', 'K', '', 'bw', 1, 'a'],
+  ['asagi-egimli-situp', 'Aşağı eğimli sit-up (ağırlıklı)', 'Weighted decline sit-up', 'K', '', 'pl', 1, 'a'],
+  ['asili-bacak-kaldirma', 'Asılı bacak kaldırma', 'Hanging leg raise', 'K', 'OK', 'bw', 1, 'u'],
+  ['asili-diz-cekme', 'Asılı diz çekme', 'Hanging knee raise', 'K', '', 'bw', 1, 'u'],
+  ['kaptan-sandalyesi', 'Kaptan sandalyesinde diz çekme', "Captain's chair knee raise", 'K', '', 'mk', 1, 'u'],
+  ['toes-to-bar', 'Toes to bar', 'Toes to bar', 'K', 'S,OK', 'bw', 1, 'u'],
+  ['yerde-bacak-kaldirma', 'Yerde bacak kaldırma', 'Lying leg raise', 'K', '', 'bw', 1, 'a'],
+  ['ters-mekik', 'Ters mekik (reverse crunch)', 'Reverse crunch', 'K', '', 'bw', 1, 'u'],
+  ['v-up', 'V-up', 'V-up', 'K', '', 'bw', 1, 'o'],
+  ['bisiklet-mekik', 'Bisiklet mekik', 'Bicycle crunch', 'K', '', 'bw', 1, 'o'],
+  ['ab-wheel', 'Ab wheel (tekerlek)', 'Ab wheel rollout', 'K', 'S', 'dg', 1, 'a'],
+  ['bb-rollout', 'Barbell rollout', 'Barbell rollout', 'K', 'S', 'bb', 1, 'a'],
+  ['dragon-flag', 'Dragon flag', 'Dragon flag', 'K', '', 'bw', 1, 'a'],
+  ['plank', 'Plank', 'Plank', 'K', '', 'bw', 1, 'd'],
+  ['agirlikli-plank', 'Ağırlıklı plank', 'Weighted plank', 'K', '', 'pl', 1, 'd'],
+  ['yan-plank', 'Yan plank', 'Side plank', 'K', 'KA', 'bw', 1, 'd'],
+  ['hollow-hold', 'Hollow hold', 'Hollow body hold', 'K', '', 'bw', 1, 'd'],
+  ['l-sit', 'L-sit', 'L-sit', 'K', 'TR', 'bw', 1, 'd'],
+  ['dead-bug', 'Dead bug', 'Dead bug', 'K', '', 'bw', 1, 'd'],
+  ['pallof-press', 'Pallof press', 'Pallof press', 'K', '', 'cb', 1, 'd'],
+  ['kablo-woodchop', 'Kablo woodchopper', 'Cable woodchopper', 'K', 'OO', 'cb', 1, 'd'],
+  ['landmine-rotasyon', 'Landmine rotasyon', 'Landmine rotation', 'K', 'OO', 'lm', 1, 'd'],
+  ['russian-twist', 'Russian twist', 'Russian twist', 'K', '', 'pl', 1, 'd'],
+  ['silecek', 'Silecek (windshield wiper)', 'Windshield wiper', 'K', '', 'bw', 1, 'd'],
+  ['db-yana-egilme', 'Dumbbell yana eğilme', 'Dumbbell side bend', 'K', '', 'db', 1, 'd'],
+  ['hiper-yana-egilme', '45° sehpada yana eğilme', 'Side bend on hyperextension bench', 'K', '', 'bw', 1, 'u'],
+
+  /* ---------- BOYUN ---------- */
+  ['boyun', 'Boyun çalışması', 'Neck training', 'BO', '', 'bw', 1, 'd', { r: 60 }],
+  ['plaka-boyun-fleksiyon', 'Plaka ile boyun fleksiyonu (sırtüstü)', 'Plate neck flexion', 'BO', '', 'pl', 1, 'd'],
+  ['plaka-boyun-ekstansiyon', 'Plaka ile boyun ekstansiyonu (yüzüstü)', 'Plate neck extension', 'BO', 'T', 'pl', 1, 'd'],
+  ['kayisla-boyun', 'Kafa kayışıyla boyun ekstansiyonu', 'Neck harness extension', 'BO', 'T', 'dg', 1, 'd'],
+  ['yana-boyun', 'Yana boyun fleksiyonu', 'Lateral neck flexion', 'BO', '', 'pl', 1, 'd'],
+  ['boyun-mk', 'Boyun makinesi (4 yön)', '4-way neck machine', 'BO', '', 'mk', 1, 'd'],
+  ['bantli-boyun', 'Bantla boyun çalışması', 'Banded neck training', 'BO', '', 'bd', 1, 'd'],
+
+  /* ---------- TÜM VÜCUT / STRONGMAN ---------- */
+  ['thruster', 'Thruster', 'Barbell thruster', 'TV', 'Q,OO,KA,TR', 'bb', 3, 'd'],
+  ['db-thruster', 'Dumbbell thruster', 'Dumbbell thruster', 'TV', 'Q,OO', 'db', 2, 'd'],
+  ['db-clean-press', 'Dumbbell clean & press', 'Dumbbell clean and press', 'TV', 'OO,KA,Q,T', 'db', 2, 'd'],
+  ['turk-kalkisi', 'Türk kalkışı (Turkish get-up)', 'Turkish get-up', 'TV', 'OO,K,KA', 'kb', 2, 'd'],
+  ['log-press', 'Log press', 'Log press', 'OO', 'TR,Q,K', 'sg', 3, 'a'],
+  ['atlas-tasi', 'Atlas taşı', 'Atlas stone', 'TV', 'KA,B,BI', 'sg', 3, 'd'],
+  ['lastik-cevirme', 'Lastik çevirme', 'Tire flip', 'TV', 'KA,Q,B', 'sg', 3, 'd'],
+  ['yoke-yuruyusu', 'Yoke yürüyüşü', 'Yoke walk', 'TV', 'Q,K,T', 'sg', 3, 'd', { not: 'Tekrar = tur (ör. 20 m)' }],
+  ['kum-torbasi-omuz', 'Kum torbası omuza alma', 'Sandbag to shoulder', 'TV', 'KA,B,BI', 'sg', 2, 'd'],
+
+  /* ---------- OLİMPİK KALDIRIŞLAR VE TÜREVLERİ ---------- */
+  ['power-clean', 'Power clean', 'Power clean', 'TV', 'KA,Q,H,T', 'bb', 3, 'd', { k: 'o' }],
+  ['clean', 'Clean (tam squat)', 'Squat clean', 'TV', 'Q,KA,T', 'bb', 3, 'd', { k: 'o' }],
+  ['hang-clean', 'Hang clean', 'Hang clean', 'TV', 'Q,KA,T', 'bb', 3, 'd', { k: 'o' }],
+  ['hang-power-clean', 'Hang power clean', 'Hang power clean', 'TV', 'KA,T,H', 'bb', 3, 'd', { k: 'o' }],
+  ['bloktan-clean', 'Bloktan clean', 'Clean from blocks', 'TV', 'Q,KA,T', 'bb', 3, 'd', { k: 'o' }],
+  ['muscle-clean', 'Muscle clean', 'Muscle clean', 'TV', 'T,KA,OO', 'bb', 2, 'd', { k: 'o' }],
+  ['clean-pull', 'Clean pull', 'Clean pull', 'KA', 'H,T,Q', 'bb', 2, 'd', { k: 'o' }],
+  ['clean-high-pull', 'Clean high pull', 'Clean high pull', 'T', 'KA,H,OY', 'bb', 2, 'd', { k: 'o' }],
+  ['clean-deadlift', 'Clean deadlift', 'Clean deadlift', 'KA', 'Q,H,B', 'bb', 3, 'a', { k: 'o' }],
+  ['snatch', 'Snatch (koparma)', 'Squat snatch', 'TV', 'Q,KA,OO,T', 'bb', 3, 'd', { k: 'o' }],
+  ['power-snatch', 'Power snatch', 'Power snatch', 'TV', 'KA,T,OO', 'bb', 3, 'd', { k: 'o' }],
+  ['hang-snatch', 'Hang snatch', 'Hang snatch', 'TV', 'Q,KA,OO,T', 'bb', 3, 'd', { k: 'o' }],
+  ['hang-power-snatch', 'Hang power snatch', 'Hang power snatch', 'TV', 'KA,T,OO', 'bb', 3, 'd', { k: 'o' }],
+  ['muscle-snatch', 'Muscle snatch', 'Muscle snatch', 'OO', 'T,KA', 'bb', 2, 'd', { k: 'o' }],
+  ['snatch-pull', 'Snatch pull', 'Snatch pull', 'KA', 'H,T,Q', 'bb', 2, 'd', { k: 'o' }],
+  ['snatch-high-pull', 'Snatch high pull', 'Snatch high pull', 'T', 'KA,H,OY', 'bb', 2, 'd', { k: 'o' }],
+  ['snatch-balance', 'Snatch balance', 'Snatch balance', 'Q', 'OO,T,K', 'bb', 2, 'd', { k: 'o' }],
+  ['overhead-squat', 'Overhead squat', 'Overhead squat', 'Q', 'KA,OO,T,K', 'bb', 3, 'a', { k: 'o' }],
+  ['clean-jerk', 'Silkme (clean & jerk)', 'Clean and jerk', 'TV', 'Q,KA,OO,TR', 'bb', 3, 'd', { k: 'o' }],
+  ['split-jerk', 'Split jerk', 'Split jerk', 'OO', 'Q,TR,K', 'bb', 3, 'd', { k: 'o' }],
+  ['power-jerk', 'Power jerk', 'Power jerk', 'OO', 'Q,TR', 'bb', 3, 'd', { k: 'o' }],
+  ['push-jerk', 'Push jerk', 'Push jerk', 'OO', 'Q,TR', 'bb', 3, 'd', { k: 'o' }],
+  ['push-press', 'Push press', 'Push press', 'OO', 'Q,TR,OY', 'bb', 3, 'a', { k: 'o' }],
+  ['sicramali-shrug', 'Sıçramalı shrug (jump shrug)', 'Jump shrug', 'T', 'KA,BA', 'bb', 2, 'd', { k: 'o' }],
+  ['db-snatch', 'Tek kol dumbbell snatch', 'Single-arm dumbbell snatch', 'TV', 'KA,OO,T', 'db', 2, 'd', { k: 'o' }],
+  ['db-hang-clean', 'Dumbbell hang clean', 'Dumbbell hang clean', 'TV', 'KA,T,BI', 'db', 2, 'd', { k: 'o' }],
+  ['kb-clean', 'Kettlebell clean', 'Kettlebell clean', 'TV', 'KA,T', 'kb', 2, 'd', { k: 'o' }],
+  ['kb-snatch', 'Kettlebell snatch', 'Kettlebell snatch', 'TV', 'KA,OO,T', 'kb', 2, 'd', { k: 'o' }],
+
+  /* ---------- PLİOMETRİK: ALT VÜCUT ----------
+     Yoğunluk: 1 düşük (yerinde, kısa sıçramalar) · 2 orta (tek tekrar sıçramalar, kutu) · 3 yüksek (ardışık, tek bacak) · 4 şok (derinlikten reaktif) */
+  ['pogo', 'Pogo sıçrama', 'Pogo hops', 'BA', 'Q', 'bw', 1, 'd', { k: 'p', i: 1 }],
+  ['tek-bacak-pogo', 'Tek bacak pogo', 'Single-leg pogo hops', 'BA', 'Q', 'bw', 1, 'd', { k: 'p', i: 2 }],
+  ['yanal-cizgi-sicrama', 'Yanal çizgi sıçrama (iki ayak)', 'Lateral line hops', 'BA', 'Q,AD', 'bw', 1, 'd', { k: 'p', i: 1 }],
+  ['squat-jump', 'Squat jump (yerinde)', 'Squat jump', 'Q', 'KA,BA', 'bw', 1, 'd', { k: 'p', i: 2 }],
+  ['cmj', 'Dikey sıçrama (CMJ)', 'Countermovement jump', 'Q', 'KA,BA', 'bw', 1, 'd', { k: 'p', i: 2 }],
+  ['tuck-jump', 'Diz çekerek sıçrama (tuck jump)', 'Tuck jump', 'Q', 'KA,K', 'bw', 1, 'd', { k: 'p', i: 3 }],
+  ['yildiz-sicrama', 'Yıldız sıçrama', 'Star jump', 'Q', 'KA,AD', 'bw', 1, 'd', { k: 'p', i: 2 }],
+  ['makas-sicrama', 'Makas sıçrama (split jump)', 'Split squat jump', 'Q', 'KA', 'bw', 1, 'd', { k: 'p', i: 2 }],
+  ['ardisik-makas', 'Ardışık makas sıçrama', 'Cycled split squat jump', 'Q', 'KA', 'bw', 1, 'd', { k: 'p', i: 3 }],
+  ['kurbaga-sicrama', 'Kurbağa sıçrama', 'Frog jump', 'Q', 'KA,AD', 'bw', 1, 'd', { k: 'p', i: 2 }],
+  ['dizden-sicrama', 'Dizden ayağa sıçrama', 'Kneeling jump', 'KA', 'Q', 'bw', 1, 'd', { k: 'p', i: 2 }],
+  ['box-jump', 'Kutuya sıçrama (box jump)', 'Box jump', 'Q', 'KA,BA', 'kt', 1, 'd', { k: 'p', i: 2 }],
+  ['oturarak-box-jump', 'Oturarak kutuya sıçrama', 'Seated box jump', 'KA', 'Q', 'kt', 1, 'd', { k: 'p', i: 2 }],
+  ['yanal-box-jump', 'Yanal kutu sıçrama', 'Lateral box jump', 'Q', 'KA,AD', 'kt', 1, 'd', { k: 'p', i: 2 }],
+  ['tek-bacak-box-jump', 'Tek bacak kutuya sıçrama', 'Single-leg box jump', 'Q', 'KA,BA', 'kt', 1, 'd', { k: 'p', i: 3 }],
+  ['dusus-inisi', 'Düşüş inişi (drop landing)', 'Drop landing', 'Q', 'KA', 'kt', 1, 'd', { k: 'p', i: 2, not: 'Sıçrama yok: yumuşak ve dengeli iniş çalışması' }],
+  ['koni-sicrama', 'Öne koni / engel sıçrama', 'Front cone hops', 'Q', 'BA,KA', 'kt', 1, 'd', { k: 'p', i: 2 }],
+  ['yanal-koni-sicrama', 'Yanal koni sıçrama', 'Lateral cone hops', 'Q', 'BA,AD', 'kt', 1, 'd', { k: 'p', i: 2 }],
+  ['engel-sicrama', 'Ardışık engel sıçrama (hurdle hops)', 'Hurdle hops', 'Q', 'BA,KA', 'kt', 1, 'd', { k: 'p', i: 3 }],
+  ['uzun-atlama', 'Durarak uzun atlama', 'Standing broad jump', 'KA', 'Q,H', 'bw', 1, 'd', { k: 'p', i: 2 }],
+  ['ardisik-uzun-atlama', 'Ardışık uzun atlama', 'Consecutive broad jumps', 'KA', 'Q,H', 'bw', 1, 'd', { k: 'p', i: 3 }],
+  ['uc-adim-atlama', 'Durarak üç adım atlama', 'Standing triple jump', 'KA', 'Q,BA', 'bw', 1, 'd', { k: 'p', i: 3 }],
+  ['bounding', 'Sıçrayarak koşu (bounding)', 'Alternate-leg bounding', 'KA', 'Q,H,BA', 'bw', 1, 'd', { k: 'p', i: 3 }],
+  ['tek-bacak-bounding', 'Tek bacak bounding', 'Single-leg bounding', 'KA', 'Q,BA', 'bw', 1, 'd', { k: 'p', i: 4 }],
+  ['yanal-bound', 'Yanal bound (paten sıçrama)', 'Lateral bound', 'KA', 'Q,AD', 'bw', 1, 'd', { k: 'p', i: 2 }],
+  ['tek-bacak-hop', 'Tek bacak öne sıçrama', 'Single-leg forward hop', 'Q', 'KA,BA', 'bw', 1, 'd', { k: 'p', i: 3 }],
+  ['tek-bacak-yanal-hop', 'Tek bacak yanal sıçrama', 'Single-leg lateral hop', 'Q', 'KA,AD,BA', 'bw', 1, 'd', { k: 'p', i: 3 }],
+  ['tek-bacak-dikey', 'Tek bacak dikey sıçrama', 'Single-leg vertical jump', 'Q', 'KA,BA', 'bw', 1, 'd', { k: 'p', i: 3 }],
+  ['sicra-dur', 'Tek bacak sıçra ve dur (hop and stick)', 'Hop and stick', 'Q', 'KA', 'bw', 1, 'd', { k: 'p', i: 2 }],
+  ['power-skip', 'Yükseklik için skip (power skip)', 'Power skip', 'KA', 'BA,Q', 'bw', 1, 'd', { k: 'p', i: 2 }],
+  ['mesafe-skip', 'Mesafe için skip', 'Skip for distance', 'KA', 'BA,Q', 'bw', 1, 'd', { k: 'p', i: 2 }],
+  ['derinlik-sicrama', 'Derinlik sıçraması (depth jump)', 'Depth jump', 'Q', 'KA,BA', 'kt', 1, 'd', { k: 'p', i: 4, r: 180, not: 'Kutudan düş, yere değer değmez en yükseğe sıçra. 100 kg üstünde kutu 45 cm’yi geçmesin (NSCA)' }],
+  ['drop-jump', 'Drop jump (kısa temas)', 'Drop jump', 'BA', 'Q,KA', 'kt', 1, 'd', { k: 'p', i: 4, r: 180, not: 'Temas süresi olabildiğince kısa; 100 kg üstünde kutu 45 cm’yi geçmesin' }],
+  ['derinlikten-kutuya', 'Derinlikten kutuya sıçrama', 'Depth jump to box', 'Q', 'KA,BA', 'kt', 1, 'd', { k: 'p', i: 4, r: 180 }],
+  ['derinlikten-uzun', 'Derinlikten uzun atlama', 'Depth jump to broad jump', 'KA', 'Q,H', 'kt', 1, 'd', { k: 'p', i: 4, r: 180 }],
+  ['db-squat-jump', 'Dumbbell squat jump', 'Dumbbell squat jump', 'Q', 'KA,BA', 'db', 1, 'd', { k: 'p', i: 3 }],
+  ['trap-bar-sicrama', 'Trap bar sıçrama', 'Trap bar jump', 'Q', 'KA,BA', 'tb', 2, 'd', { k: 'p', i: 3 }],
+  ['bb-jump-squat', 'Barbell jump squat', 'Barbell jump squat', 'Q', 'KA,BA', 'bb', 2, 'd', { k: 'p', i: 3 }],
+
+  /* ---------- PLİOMETRİK: ÜST VÜCUT VE SAĞLIK TOPU ---------- */
+  ['egimli-plyo-sinav', 'Eğimli patlayıcı şınav', 'Incline plyo push-up', 'G', 'TR,OO', 'bw', 1, 'd', { k: 'p', i: 1 }],
+  ['plyo-sinav', 'Patlayıcı şınav (plyo push-up)', 'Plyo push-up', 'G', 'TR,OO', 'bw', 1, 'd', { k: 'p', i: 2 }],
+  ['alkisli-sinav', 'Alkışlı şınav', 'Clap push-up', 'G', 'TR,OO', 'bw', 1, 'd', { k: 'p', i: 3 }],
+  ['derinlik-sinav', 'Derinlik şınavı (kutulardan)', 'Depth push-up', 'G', 'TR,OO', 'kt', 1, 'd', { k: 'p', i: 4, r: 180 }],
+  ['mb-gogus-pasi', 'Sağlık topu göğüs pası', 'Medicine ball chest pass', 'G', 'TR,OO', 'mb', 1, 'd', { k: 'p', i: 2 }],
+  ['mb-sirtustu-atis', 'Sırtüstü sağlık topu göğüs atışı', 'Supine medicine ball chest throw', 'G', 'TR,OO', 'mb', 1, 'd', { k: 'p', i: 2 }],
+  ['mb-tek-kol-itme', 'Tek kol sağlık topu itme (shot put)', 'Medicine ball shot put', 'G', 'TR,OO,K', 'mb', 1, 'd', { k: 'p', i: 2 }],
+  ['mb-bas-ustu-atis', 'Baş üstünden öne sağlık topu atışı', 'Overhead medicine ball throw', 'K', 'S,TR', 'mb', 1, 'd', { k: 'p', i: 2 }],
+  ['mb-geri-atis', 'Geriye sağlık topu atışı (baş üstünden)', 'Backward overhead medicine ball throw', 'TV', 'KA,H,Q', 'mb', 1, 'd', { k: 'p', i: 2 }],
+  ['mb-slam', 'Sağlık topu slam', 'Medicine ball slam', 'K', 'S,TR', 'mb', 1, 'd', { k: 'p', i: 2 }],
+  ['mb-rotasyon', 'Rotasyonel sağlık topu atışı (duvara)', 'Rotational medicine ball throw', 'K', 'KA,OO', 'mb', 1, 'd', { k: 'p', i: 2 }],
+  ['mb-kepce', 'Sağlık topu kepçe atışı (scoop toss)', 'Medicine ball scoop toss', 'TV', 'KA,H,Q', 'mb', 1, 'd', { k: 'p', i: 2 }],
+  ['mb-squat-atis', 'Squat’tan yukarı sağlık topu atışı', 'Squat to overhead medicine ball throw', 'TV', 'Q,KA,OO', 'mb', 1, 'd', { k: 'p', i: 2 }],
+];
+const EX_LIB = EX_ROWS.map(([id, name, en, mus, sec, eq, fat, prof, x]) => {
+  const o = x || {};
+  const kind = o.k === 'o' ? 'olimpik' : o.k === 'p' ? 'plyo' : 'kuvvet';
+  const rest = o.r || (kind === 'plyo' ? (o.i >= 4 ? 180 : 120) : kind === 'olimpik' ? 150 : fat === 3 ? 180 : fat === 2 ? 120 : 75);
+  const e = { id, name, en, muscle: MUS_CODE[mus], sec: sec ? sec.split(',').map((c) => MUS_CODE[c]) : [], eq, kind, fat, prof, rest };
+  if (o.i) e.int = o.i;
+  if (o.bio) e.bio = o.bio;
+  if (o.not) e.not = o.not;
+  return e;
+});
+
 const { useState, useEffect, useRef, useMemo, useCallback } = React;
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 let SIM_PREFILL = null;
@@ -2132,6 +2713,16 @@ function Icon({ name, size = 16 }) {
             React.createElement("path", { d: "M6 12h12" }),
             React.createElement("rect", { x: "7.5", y: "7", width: "2.5", height: "10", rx: "1" }),
             React.createElement("rect", { x: "14", y: "7", width: "2.5", height: "10", rx: "1" }));
+        case 'user': return React.createElement("svg", { ...p },
+            React.createElement("circle", { cx: "12", cy: "8.5", r: "3.6" }),
+            React.createElement("path", { d: "M5 20a7 7 0 0 1 14 0" }));
+        case 'cloud': return React.createElement("svg", { ...p },
+            React.createElement("path", { d: "M7 18.5h10a4 4 0 0 0 .6-7.96A6 6 0 0 0 6.1 9.6 4.5 4.5 0 0 0 7 18.5z" }));
+        case 'mail': return React.createElement("svg", { ...p },
+            React.createElement("rect", { x: "3.5", y: "5.5", width: "17", height: "13", rx: "2" }),
+            React.createElement("path", { d: "m4 7 8 6 8-6" }));
+        case 'shield': return React.createElement("svg", { ...p },
+            React.createElement("path", { d: "M12 3.5 5 6v5.5c0 4.4 3 7.6 7 9 4-1.4 7-4.6 7-9V6l-7-2.5z" }));
         case 'more': return React.createElement("svg", { ...p },
             React.createElement("circle", { cx: "12", cy: "5.5", r: "1.2" }),
             React.createElement("circle", { cx: "12", cy: "12", r: "1.2" }),
@@ -3559,34 +4150,27 @@ const WD_LONG = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma
 const WD_SHORT = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
 const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
 const MONTHS = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
-const MUSCLES = ['Göğüs', 'Omuz (ön)', 'Omuz (yan)', 'Sırt', 'Trapez', 'Triceps', 'Biceps', 'Hamstring', 'Quadriceps', 'Kalça', 'Boyun', 'Karın'];
-const REST_OPTS = [60, 90, 120, 150, 180, 240, 300];
-const EX_LIB = [
-    { id: 'egimli-bench', name: 'Eğimli bench press', muscle: 'Göğüs', sec: ['Omuz (ön)', 'Triceps'], bio: 'bench', rest: 180, fat: 3, prof: 'alt' },
-    { id: 'duz-bench', name: 'Düz bench press', muscle: 'Göğüs', sec: ['Omuz (ön)', 'Triceps'], rest: 180, fat: 3, prof: 'alt' },
-    { id: 'egimli-db-press', name: 'Eğimli dumbbell press', muscle: 'Göğüs', sec: ['Omuz (ön)'], rest: 120, fat: 2, prof: 'alt' },
-    { id: 'kablo-fly', name: 'Aşağıdan yukarı kablo fly', muscle: 'Göğüs', sec: [], rest: 90, fat: 1, prof: 'dengeli' },
-    { id: 'db-omuz-press', name: 'Oturarak dumbbell omuz press', muscle: 'Omuz (ön)', sec: ['Triceps'], rest: 120, fat: 2, prof: 'alt' },
-    { id: 'on-omuz-kaldiris', name: 'Ön omuz kaldırış', muscle: 'Omuz (ön)', sec: [], rest: 75, fat: 1, prof: 'ust' },
-    { id: 'yana-acis', name: 'Yana açış', muscle: 'Omuz (yan)', sec: [], bio: 'yanaacis', rest: 75, fat: 1, prof: 'ust' },
-    { id: 'band-yana-acis', name: 'Band yana açış', muscle: 'Omuz (yan)', sec: [], bio: 'yanaacis', rest: 60, fat: 1, prof: 'ust' },
-    { id: 'kablo-yana-acis', name: 'Kablo yana açış', muscle: 'Omuz (yan)', sec: [], bio: 'yanaacis', rest: 75, fat: 1, prof: 'dengeli' },
-    { id: 'barfiks', name: 'Barfiks', muscle: 'Sırt', sec: ['Biceps'], rest: 150, fat: 2, prof: 'dengeli' },
-    { id: 'shrug', name: 'Shrug', muscle: 'Trapez', sec: [], rest: 90, fat: 1, prof: 'ust' },
-    { id: 'triceps-pushdown', name: 'Triceps pushdown', muscle: 'Triceps', sec: [], rest: 75, fat: 1, prof: 'dengeli' },
-    { id: 'rdl', name: 'Romanian deadlift', muscle: 'Hamstring', sec: ['Kalça'], bio: 'rdl', rest: 150, fat: 3, prof: 'alt' },
-    { id: 'leg-curl', name: 'Leg curl', muscle: 'Hamstring', sec: [], rest: 90, fat: 1, prof: 'dengeli' },
-    { id: 'band-leg-curl', name: 'Band leg curl', muscle: 'Hamstring', sec: [], rest: 60, fat: 1, prof: 'ust' },
-    { id: 'squat', name: 'Squat', muscle: 'Quadriceps', sec: ['Kalça'], rest: 180, fat: 3, prof: 'alt' },
-    { id: 'boyun', name: 'Boyun çalışması', muscle: 'Boyun', sec: [], rest: 60, fat: 1, prof: 'dengeli' },
-];
+const MUSCLES = Object.values(MUS_CODE);
+const REST_OPTS = [60, 75, 90, 120, 150, 180, 240, 300];
 const PROF = {
-    alt: { k: 'Altta ağır', d: 'Kas uzunken en zor; gerilmiş pozisyonda yükler' },
-    ust: { k: 'Üstte ağır', d: 'Kas kısalırken en zor; alt aralık hafif kalır' },
-    dengeli: { k: 'Dengeli', d: 'Direnç hareket boyunca benzer' },
+    a: { k: 'Altta ağır', d: 'Kas uzunken en zor; gerilmiş pozisyonda yükler' },
+    u: { k: 'Üstte ağır', d: 'Kas kısalırken en zor; alt aralık hafif kalır' },
+    o: { k: 'Ortada ağır', d: 'En zor nokta hareketin ortası; iki uç daha hafif' },
+    d: { k: 'Dengeli', d: 'Direnç hareket boyunca benzer' },
 };
+PROF.alt = PROF.a;
+PROF.ust = PROF.u;
+PROF.dengeli = PROF.d;
 const FAT = ['', 'Düşük', 'Orta', 'Yüksek'];
-const libById = (id) => EX_LIB.find((e) => e.id === id);
+const LIB_MAP = new Map(EX_LIB.map((e) => [e.id, e]));
+const libById = (id) => (id ? LIB_MAP.get(id) : undefined);
+const isPlyo = (exId) => { const e = libById(exId); return !!(e && e.kind === 'plyo'); };
+const PLYO_W = [0, 0.03, 0.05, 0.08, 0.12];
+const PLYO_Q = [
+    { k: 'Korundu', d: 'Yükseklik ve hız korundu', c: 'var(--neuro)' },
+    { k: 'Biraz düştü', d: 'Son tekrarlar biraz alçaldı', c: 'var(--amber)' },
+    { k: 'Belirgin düştü', d: 'Kalite bozuldu; seti bitir', c: 'var(--burn)' },
+];
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const rid = () => Math.random().toString(36).slice(2, 8);
 const newId = (p) => p + '_' + Date.now().toString(36) + rid();
@@ -3692,13 +4276,21 @@ function sessionFromDay(program, day) {
     };
 }
 function itemFromEx(ex) {
-    return { id: newId('i'), exId: ex.exId || ex.id || null, name: ex.name, muscle: ex.muscle, sets: 3, repMin: 8, repMax: 12, kg: null, rpeMin: 7, rpeMax: 9, rest: ex.rest || 120, note: '' };
+    const exId = ex.exId || ex.id || null;
+    const lib = libById(exId);
+    const base = { id: newId('i'), exId, name: ex.name, muscle: ex.muscle, kg: null, rest: ex.rest || (lib && lib.rest) || 120, note: '' };
+    if (lib && lib.kind === 'plyo')
+        return { ...base, sets: 3, repMin: 5, repMax: 5, rpeMin: null, rpeMax: null };
+    if (lib && lib.kind === 'olimpik')
+        return { ...base, sets: 4, repMin: 2, repMax: 3, rpeMin: 7, rpeMax: 8 };
+    return { ...base, sets: 3, repMin: 8, repMax: 12, rpeMin: 7, rpeMax: 9 };
 }
 function repTxt(a, b) { return !hasNum(b) || Number(a) === Number(b) ? String(a) : a + '–' + b; }
 function rpeTxt(a, b) { if (!hasNum(a))
     return null; return 'RPE ' + (!hasNum(b) || Number(a) === Number(b) ? nf(Number(a)) : nf(Number(a)) + '–' + nf(Number(b))); }
-function targetTxt(t) {
-    const parts = [t.sets + ' × ' + repTxt(t.repMin, t.repMax)];
+function targetTxt(t, exId) {
+    const plyo = isPlyo(exId);
+    const parts = [t.sets + ' × ' + repTxt(t.repMin, t.repMax) + (plyo ? ' temas' : '')];
     if (hasNum(t.kg))
         parts.push(kgTxt(t.kg));
     const r = rpeTxt(t.rpeMin, t.rpeMax);
@@ -3709,9 +4301,10 @@ function targetTxt(t) {
 function sessionStats(s) {
     const sets = [];
     s.items.forEach((it) => it.sets.forEach((x) => sets.push({ ...x, muscle: it.muscle, rest: it.target.rest })));
-    const hard = sets.filter((x) => x.rir <= 4);
-    const tonnage = sets.reduce((a, x) => a + (Number(x.kg) || 0) * x.reps, 0);
-    return { sets, hard, tonnage, dur: (s.endedAt || Date.now()) - s.startedAt };
+    const hard = sets.filter((x) => !x.plyo && x.rir <= 4);
+    const tonnage = sets.reduce((a, x) => a + (x.plyo ? 0 : (Number(x.kg) || 0) * x.reps), 0);
+    const contacts = sets.reduce((a, x) => a + (x.plyo ? x.reps : 0), 0);
+    return { sets, hard, tonnage, contacts, dur: (s.endedAt || Date.now()) - s.startedAt };
 }
 function weeklyHard(sessions, endTs) {
     const from = endTs - 7 * 864e5;
@@ -3854,6 +4447,7 @@ function Stepper({ id, value, onChange, step, min, max, unit, label, decimals })
 }
 function ItemEditor({ it, idx, n, onChange, onMove, onRemove }) {
     const [confirm, setConfirm] = useState(false);
+    const plyo = isPlyo(it.exId);
     const set = (k) => (v) => onChange({ ...it, [k]: v });
     const num = (k) => (e) => { const v = e.target.value.replace(',', '.'); onChange({ ...it, [k]: v === '' ? null : Number(v) }); };
     const pid = 'it-' + it.id;
@@ -3861,16 +4455,16 @@ function ItemEditor({ it, idx, n, onChange, onMove, onRemove }) {
         React.createElement("div", { className: "ied-grid" },
             React.createElement(Stepper, { id: pid + '-sets', label: "Set", value: it.sets, step: 1, min: 1, max: 12, onChange: set('sets'), decimals: 0 }),
             React.createElement("div", { className: "field-pair" },
-                React.createElement("span", { className: "st-k" }, "Tekrar"),
+                React.createElement("span", { className: "st-k" }, plyo ? 'Temas' : 'Tekrar'),
                 React.createElement("div", { className: "pair" },
                     React.createElement("input", { id: pid + '-rmin', className: "mini-in mono", inputMode: "numeric", value: hasNum(it.repMin) ? it.repMin : '', onChange: num('repMin'), "aria-label": "En az tekrar" }),
                     React.createElement("span", null, "\u2013"),
                     React.createElement("input", { id: pid + '-rmax', className: "mini-in mono", inputMode: "numeric", value: hasNum(it.repMax) ? it.repMax : '', onChange: num('repMax'), "aria-label": "En \u00E7ok tekrar" }))),
             React.createElement("div", { className: "field-pair" },
-                React.createElement("span", { className: "st-k" }, "Kg"),
+                React.createElement("span", { className: "st-k" }, plyo ? 'Ek yük (kg)' : 'Kg'),
                 React.createElement("div", { className: "pair" },
                     React.createElement("input", { id: pid + '-kg', className: "mini-in mono wide", inputMode: "decimal", placeholder: "iste\u011Fe ba\u011Fl\u0131", value: hasNum(it.kg) ? String(it.kg).replace('.', ',') : '', onChange: num('kg'), "aria-label": "Hedef kilo" }))),
-            React.createElement("div", { className: "field-pair" },
+            plyo ? null : React.createElement("div", { className: "field-pair" },
                 React.createElement("span", { className: "st-k" }, "RPE"),
                 React.createElement("div", { className: "pair" },
                     React.createElement("input", { id: pid + '-pmin', className: "mini-in mono", inputMode: "decimal", value: hasNum(it.rpeMin) ? String(it.rpeMin).replace('.', ',') : '', onChange: num('rpeMin'), "aria-label": "En d\u00FC\u015F\u00FCk RPE" }),
@@ -4024,10 +4618,12 @@ function firstOpen(s) {
 function entryFor(item) {
     const last = item && item.sets[item.sets.length - 1];
     const t = item ? item.target : {};
+    const plyo = item && isPlyo(item.exId);
     return {
-        kg: last ? Number(last.kg) || 0 : hasNum(t.kg) ? Number(t.kg) : 20,
-        reps: last ? last.reps : hasNum(t.repMax) ? Number(t.repMax) : hasNum(t.repMin) ? Number(t.repMin) : 8,
-        lvl: last ? last.lvl : 1,
+        kg: last ? Number(last.kg) || 0 : hasNum(t.kg) ? Number(t.kg) : plyo ? 0 : 20,
+        reps: last ? last.reps : hasNum(t.repMax) ? Number(t.repMax) : hasNum(t.repMin) ? Number(t.repMin) : plyo ? 5 : 8,
+        lvl: last && last.lvl != null ? last.lvl : 1,
+        q: 0,
         rpe: null,
     };
 }
@@ -4080,7 +4676,7 @@ const sessionNotes = (s) => s.items.reduce((a, it) => a + (it.memo ? 1 : 0) + it
 function planStats(program) {
     const muscles = {};
     (program ? program.days : []).forEach((d) => d.items.forEach((it) => {
-        if (10 - rpeMid(it.rpeMin, it.rpeMax) > 4)
+        if (isPlyo(it.exId) || 10 - rpeMid(it.rpeMin, it.rpeMax) > 4)
             return;
         muscles[it.muscle] = (muscles[it.muscle] || 0) + Number(it.sets || 0);
     }));
@@ -4109,8 +4705,17 @@ function setLoads(sessions, t) {
             return;
         s.items.forEach((it) => {
             const c = costW(it.exId, it.name);
-            it.sets.forEach((x) => { if (x.rir <= 4 && x.at && x.at <= t && t - x.at < 7 * DAY_MS)
-                out.push({ at: x.at, w: proxW(x.rir) * c, rir: x.rir, heavy: c >= 1.5 }); });
+            const lib = exMeta(it.exId, it.name);
+            it.sets.forEach((x) => {
+                if (!x.at || x.at > t || t - x.at >= 7 * DAY_MS)
+                    return;
+                if (x.plyo) {
+                    out.push({ at: x.at, w: x.reps * PLYO_W[(lib && lib.int) || 2], plyo: true, contacts: x.reps });
+                    return;
+                }
+                if (x.rir <= 4)
+                    out.push({ at: x.at, w: proxW(x.rir) * c, rir: x.rir, heavy: c >= 1.5 });
+            });
         });
     });
     return out;
@@ -4133,7 +4738,7 @@ function fatigueAt(st, t, sessions) {
     const score = clamp(train + sp, 0, 100);
     return {
         sum, train, sleep: sl, sleepPts: sp, score, zone: zoneOf(score), hrs: hoursToFresh(sum),
-        hard: loads.length, fail: loads.filter((x) => x.rir <= 0.5).length,
+        hard: loads.filter((x) => !x.plyo).length, fail: loads.filter((x) => !x.plyo && x.rir <= 0.5).length, contacts: loads.reduce((a, x) => a + (x.contacts || 0), 0),
     };
 }
 function steadyWeek(v) {
@@ -4150,7 +4755,7 @@ function steadyWeek(v) {
 }
 function simFromLogs(st) {
     const t = Date.now();
-    const loads = setLoads(st.sessions, t);
+    const loads = setLoads(st.sessions, t).filter((x) => !x.plyo);
     const sl = sleepInfo(st, t);
     const n = st.sessions.filter((s) => s.status === 'done' && t - s.startedAt < 7 * DAY_MS).length;
     const avg3 = sl.n ? (sl.avg3 * sl.n + 7.5 * (3 - sl.n)) / 3 : 7.5;
@@ -4168,7 +4773,7 @@ function simFromPlan(p) {
     const days = p.days.filter((d) => d.items.length);
     days.forEach((d) => d.items.forEach((it) => {
         const r = 10 - rpeMid(it.rpeMin, it.rpeMax);
-        if (r > 4)
+        if (isPlyo(it.exId) || r > 4)
             return;
         const n = Number(it.sets || 0);
         sets += n;
@@ -4183,7 +4788,13 @@ function simulatePlan(p) {
     const days = p.days.filter((d) => d.items.length);
     if (!days.length)
         return null;
-    const dayLoad = (d) => d.items.reduce((a, it) => { const r = 10 - rpeMid(it.rpeMin, it.rpeMax); return r > 4 ? a : a + Number(it.sets || 0) * proxW(r) * costW(it.exId, it.name); }, 0);
+    const dayLoad = (d) => d.items.reduce((a, it) => {
+        const lib = exMeta(it.exId, it.name);
+        if (lib && lib.kind === 'plyo')
+            return a + Number(it.sets || 0) * repMid(it.repMin, it.repMax) * PLYO_W[lib.int || 2];
+        const r = 10 - rpeMid(it.rpeMin, it.rpeMax);
+        return r > 4 ? a : a + Number(it.sets || 0) * proxW(r) * costW(it.exId, it.name);
+    }, 0);
     const fixed = days.filter((d) => d.weekday != null);
     const slots = days.map((d, i) => {
         const wd = d.weekday != null ? (d.weekday + 6) % 7 : fixed.length ? null : Math.round((i * 7) / days.length);
@@ -4244,18 +4855,20 @@ function sessionFatigue(s, st) {
     return { v: 2, pre, post };
 }
 function periodMetrics(list, days) {
-    let dur = 0, sets = 0, hard = 0, ton = 0, rpe = 0;
+    let dur = 0, sets = 0, hard = 0, ton = 0, rpe = 0, rset = 0, contacts = 0;
     list.forEach((s) => {
         const ss = sessionStats(s);
         dur += ss.dur;
         sets += ss.sets.length;
         hard += ss.hard.length;
         ton += ss.tonnage;
-        rpe += ss.sets.reduce((a, x) => a + Number(x.rpe || 0), 0);
+        rpe += ss.sets.reduce((a, x) => a + (x.plyo ? 0 : Number(x.rpe || 0)), 0);
+        rset += ss.sets.filter((x) => !x.plyo).length;
+        contacts += ss.contacts;
     });
     const n = list.length;
     const span = days || Math.max(7, n ? (Date.now() - list[n - 1].startedAt) / DAY_MS : 7);
-    return { n, dur, avgDur: n ? dur / n : 0, sets, hard, ton, avgRpe: sets ? rpe / sets : 0, perWeek: n / (span / 7) };
+    return { n, dur, avgDur: n ? dur / n : 0, sets, hard, ton, contacts, avgRpe: rset ? rpe / rset : 0, perWeek: n / (span / 7) };
 }
 function historyWarnings(st, list) {
     const w = [];
@@ -4272,7 +4885,8 @@ function historyWarnings(st, list) {
     const ls = logStats(st.sessions, now);
     Object.entries(ls.muscles).filter(([, n]) => n > 20).sort((a, b) => b[1] - a[1]).forEach(([m, n]) => w.push({ lv: 'bad', t: m + ' · 7 günde ' + n + ' zor set', d: '20 setin üstünde toparlanma uzar. Hacmi azalt ya da 2–3 güne böl.' }));
     const sets = [];
-    list.forEach((s) => s.items.forEach((it) => it.sets.forEach((x) => sets.push(x))));
+    list.forEach((s) => s.items.forEach((it) => it.sets.forEach((x) => { if (!x.plyo)
+        sets.push(x); })));
     if (sets.length >= 6) {
         const avgRpe = sets.reduce((a, x) => a + Number(x.rpe || 0), 0) / sets.length;
         if (avgRpe >= 9)
@@ -4309,6 +4923,9 @@ function historyWarnings(st, list) {
         if (low.length)
             w.push({ lv: 'info', t: 'Az çalışan: ' + low.map((m) => m + ' ' + (ls.muscles[m] || 0)).join(', '), d: 'Son 7 gün zor set. Kas başına haftada 10–20 sık önerilir.' });
     }
+    const bigPlyo = list.map((s) => sessionStats(s).contacts).filter((c) => c > 140);
+    if (bigPlyo.length)
+        w.push({ lv: 'warn', t: 'Seans başına ' + Math.max(...bigPlyo) + ' sıçrama teması', d: 'Pliometrikte ileri seviye için bile 120–140 temas önerilir; fazlası kaliteyi düşürür, sakatlık riskini artırır.' });
     if (done.length) {
         const gap = Math.floor((now - done[0].startedAt) / DAY_MS);
         if (gap >= 6)
@@ -4356,6 +4973,16 @@ function MuscleBars({ muscles, list, max = 24, compact }) {
             React.createElement("span", { className: "mbar-n mono" }, nf(n))));
     })));
 }
+function exDot(e) {
+    if (!e)
+        return null;
+    return e.kind === 'plyo' ? React.createElement("span", { className: 'pdot i' + (e.int || 2), title: 'Yoğunluk: ' + PLYO_INT[e.int || 2] }) : e.fat ? React.createElement("span", { className: 'fatdot f' + e.fat, title: 'Yorgunluk: ' + FAT[e.fat] }) : null;
+}
+function exLine(e) {
+    if (!e.eq)
+        return e.muscle;
+    return e.muscle + ' · ' + EQ[e.eq] + ' · ' + (e.kind === 'plyo' ? 'yoğunluk ' + PLYO_INT[e.int || 2].split(' ')[0].toLocaleLowerCase('tr') : PROF[e.prof].k);
+}
 function FactChips({ ex }) {
     if (!ex)
         return null;
@@ -4363,10 +4990,51 @@ function FactChips({ ex }) {
         React.createElement("span", { className: "fact" },
             React.createElement("b", null, ex.muscle),
             ex.sec && ex.sec.length ? ' + ' + ex.sec.join(', ') : ''),
-        React.createElement("span", { className: 'fact fat' + ex.fat },
-            "Yorgunluk: ",
-            FAT[ex.fat]),
-        React.createElement("span", { className: "fact prof", title: PROF[ex.prof].d }, PROF[ex.prof].k)));
+        ex.eq ? React.createElement("span", { className: "fact" }, EQ[ex.eq]) : null,
+        ex.kind && ex.kind !== 'kuvvet' ? React.createElement("span", { className: "fact kind" }, ex.kind === 'plyo' ? 'Pliometrik' : 'Olimpik') : null,
+        ex.kind === 'plyo'
+            ? React.createElement("span", { className: 'fact fat' + Math.min(3, ex.int || 2) },
+                "Yo\u011Funluk: ",
+                PLYO_INT[ex.int || 2])
+            : React.createElement("span", { className: 'fact fat' + ex.fat },
+                "Yorgunluk: ",
+                FAT[ex.fat]),
+        ex.kind !== 'plyo' && ex.prof ? React.createElement("span", { className: "fact prof", title: PROF[ex.prof].d }, PROF[ex.prof].k) : null));
+}
+const EX_KINDS = [['all', 'Tümü'], ['kuvvet', 'Kuvvet'], ['olimpik', 'Olimpik'], ['plyo', 'Pliometrik']];
+function useExFilter(all, initGrp) {
+    const [q, setQ0] = useState('');
+    const [kind, setKind0] = useState('all');
+    const [grp, setGrp0] = useState(initGrp || null);
+    const [eq, setEq0] = useState(null);
+    const [lim, setLim] = useState(40);
+    const wrap = (f) => (v) => { f(v); setLim(40); };
+    const toks = normTr(q).split(/\s+/).filter(Boolean);
+    const hay = useMemo(() => new Map(all.map((e) => [e, normTr(e.name + ' ' + (e.en || '') + ' ' + e.muscle + ' ' + (EQ[e.eq] || ''))])), [all]);
+    const base = toks.length ? all.filter((e) => toks.every((t) => hay.get(e).includes(t))) : all;
+    const byKind = base.filter((e) => kind === 'all' || (e.kind || 'kuvvet') === kind);
+    const list = byKind.filter((e) => (!grp || e.muscle === grp) && (!eq || e.eq === eq));
+    const groups = MUSCLES.map((m) => [m, byKind.filter((e) => e.muscle === m && (!eq || e.eq === eq)).length]).filter((x) => x[1]);
+    const eqs = Object.keys(EQ).map((k) => [k, byKind.filter((e) => e.eq === k && (!grp || e.muscle === grp)).length]).filter((x) => x[1]);
+    const kinds = EX_KINDS.map(([k, t]) => [k, t, k === 'all' ? base.length : base.filter((e) => (e.kind || 'kuvvet') === k).length]);
+    return { q, setQ: wrap(setQ0), kind, setKind: wrap(setKind0), grp, setGrp: wrap(setGrp0), eq, setEq: wrap(setEq0), lim, more: () => setLim(lim + 60), list, groups, eqs, kinds };
+}
+function ExFilterBar({ f, idp, placeholder }) {
+    return (React.createElement("div", { className: "exf" },
+        React.createElement("input", { id: idp + '-search', className: "search", type: "search", placeholder: placeholder || 'Hareket ara (Türkçe ya da İngilizce)', value: f.q, onChange: (e) => f.setQ(e.target.value), autoComplete: "off" }),
+        React.createElement("div", { className: "segmented seg4", role: "tablist", "aria-label": "Hareket t\u00FCr\u00FC" }, f.kinds.map(([k, t]) => React.createElement("button", { key: k, type: "button", role: "tab", id: idp + '-kind-' + k, "aria-selected": f.kind === k, className: f.kind === k ? 'on' : '', onClick: () => f.setKind(k) }, t))),
+        React.createElement("div", { className: "chips-scroll", role: "group", "aria-label": "Kas grubu" },
+            React.createElement("button", { type: "button", className: 'fchip' + (!f.grp ? ' on' : ''), onClick: () => f.setGrp(null) }, "T\u00FCm kaslar"),
+            f.groups.map(([m, n]) => React.createElement("button", { key: m, type: "button", id: idp + '-g-' + normTr(m).replace(/[^a-z]/g, ''), className: 'fchip' + (f.grp === m ? ' on' : ''), onClick: () => f.setGrp(f.grp === m ? null : m) },
+                m,
+                " ",
+                React.createElement("span", { className: "mono fchip-n" }, n)))),
+        React.createElement("div", { className: "chips-scroll", role: "group", "aria-label": "Ekipman" },
+            React.createElement("button", { type: "button", className: 'fchip sm' + (!f.eq ? ' on' : ''), onClick: () => f.setEq(null) }, "T\u00FCm ekipman"),
+            f.eqs.map(([k, n]) => React.createElement("button", { key: k, type: "button", id: idp + '-eq-' + k, className: 'fchip sm' + (f.eq === k ? ' on' : ''), onClick: () => f.setEq(f.eq === k ? null : k) },
+                EQ[k],
+                " ",
+                React.createElement("span", { className: "mono fchip-n" }, n))))));
 }
 function WeekRow({ programs, sessions }) {
     const today = new Date();
@@ -4396,7 +5064,14 @@ function Spark({ pts, goal, w = 120, h = 34 }) {
         React.createElement("polyline", { points: pts.map((p, i) => X(i) + ',' + Y(p.v)).join(' '), className: "spark-l" }),
         React.createElement("circle", { cx: X(pts.length - 1), cy: Y(pts[pts.length - 1].v), r: "3", className: "spark-d" })));
 }
-function TodayScreen({ st, put, openSheet, startSession, goTab }) {
+function AccountChip({ acct, onClick }) {
+    const state = acct.mode === 'guest' ? 'guest' : acct.pending ? 'pending' : 'ok';
+    const label = acct.mode === 'guest' ? 'Misafir: kayıtlar yalnızca bu telefonda' : acct.pending ? acct.pending + ' kayıt buluta gönderilmeyi bekliyor' : 'Tüm kayıtlar bulutta';
+    return (React.createElement("button", { type: "button", id: "account-btn", className: 'acct-chip ' + state, onClick: onClick, "aria-label": 'Hesap. ' + label, title: label },
+        React.createElement(Icon, { name: acct.mode === 'guest' ? 'user' : 'cloud', size: 17 }),
+        React.createElement("i", { className: "acct-dot" })));
+}
+function TodayScreen({ st, put, openSheet, startSession, goTab, acct }) {
     const fz = fatigueAt(st, Date.now());
     const sl = fz.sleep;
     const active = st.sessions.find((s) => s.status === 'active');
@@ -4409,8 +5084,14 @@ function TodayScreen({ st, put, openSheet, startSession, goTab }) {
     const loading = st.status === 'loading' || !st.loaded.programs || !st.loaded.sessions;
     const short = sl.known && sl.last < 6.5;
     return (React.createElement("div", { className: "screen" },
-        React.createElement(ScreenHead, { title: "Bug\u00FCn", sub: fullDate(Date.now()), right: React.createElement("span", { className: 'sync-dot ' + (st.status === 'db' && !st.error ? 'ok' : st.status === 'loading' ? 'wait' : 'warn'), title: st.status === 'local' ? 'Önizleme: kayıtlar saklanmıyor' : 'Hesabına kaydediliyor' }) }),
+        React.createElement(ScreenHead, { title: "Bug\u00FCn", sub: fullDate(Date.now()), right: React.createElement(AccountChip, { acct: acct, onClick: () => openSheet('account', {}) }) }),
         React.createElement("div", { className: "scr fit" },
+            acct.mode === 'guest' && st.sessions.length ? (React.createElement("button", { type: "button", id: "guest-banner", className: "guest-banner", onClick: () => openSheet('account', {}) },
+                React.createElement(Icon, { name: "cloud", size: 16 }),
+                React.createElement("span", null,
+                    "Kay\u0131tlar yaln\u0131zca bu telefonda \u00B7 ",
+                    React.createElement("b", null, "Yedekle")),
+                React.createElement(Icon, { name: "right", size: 14 }))) : null,
             React.createElement("section", { className: "ready" },
                 React.createElement("button", { type: "button", id: "ready-ring", className: "ready-ring", onClick: () => openSheet('fatigue', {}), "aria-label": "Yorgunluk ayr\u0131nt\u0131s\u0131" },
                     React.createElement(Ring, { score: fz.score, zone: fz.zone, label: 'Yorgunluk ' + Math.round(fz.score) })),
@@ -4626,6 +5307,8 @@ function SpeedStage({ reps, lvl, exId }) {
                     bench ? ' · m/s' : '')))));
 }
 function SetTable({ item, entry, rpe, onOpen, bodyRef }) {
+    if (isPlyo(item.exId))
+        return React.createElement(PlyoTable, { item: item, entry: entry, onOpen: onOpen, bodyRef: bodyRef });
     const t = item.target;
     const done = item.sets;
     const extra = done.length >= t.sets;
@@ -4676,6 +5359,68 @@ function SetTable({ item, entry, rpe, onOpen, bodyRef }) {
                 React.createElement(Icon, { name: "check", size: 13 }),
                 " Hedef tamam \u00B7 istersen ek set kaydet") : null)));
 }
+function PlyoTable({ item, entry, onOpen, bodyRef }) {
+    const t = item.target;
+    const done = item.sets;
+    const extra = done.length >= t.sets;
+    const plan = [];
+    for (let j = done.length + 1; j < t.sets; j++)
+        plan.push(j);
+    const q = (i) => PLYO_Q[i || 0];
+    return (React.createElement("div", { className: "stable plyo" },
+        React.createElement("div", { className: "srow sh", "aria-hidden": "true" },
+            React.createElement("span", null, "Set"),
+            React.createElement("span", null, "Ek y\u00FCk"),
+            React.createElement("span", null, "Temas"),
+            React.createElement("span", null),
+            React.createElement("span", null, "Kalite"),
+            React.createElement("span", null, "Saat")),
+        React.createElement("div", { className: "sbody", ref: bodyRef },
+            done.map((x, j) => (React.createElement("button", { key: x.at + '-' + j, type: "button", className: "srow done", onClick: () => onOpen(j), "aria-label": 'Set ' + (j + 1) + ': ' + x.reps + ' temas. Ayrıntı' },
+                React.createElement("span", { className: "s-i mono" },
+                    React.createElement(Icon, { name: "check", size: 12 }),
+                    j + 1),
+                React.createElement("span", { className: "s-v mono" }, Number(x.kg) ? nf(Number(x.kg)) : '–'),
+                React.createElement("span", { className: "s-v mono" }, x.reps),
+                React.createElement("span", null),
+                React.createElement("span", { className: "s-sp", style: { '--c': q(x.q).c } },
+                    React.createElement("i", null),
+                    q(x.q).k),
+                React.createElement("span", { className: "s-t mono" },
+                    hm(x.at),
+                    x.note || (x.tags && x.tags.length) ? React.createElement("em", null, "\u270E") : null)))),
+            !extra ? (React.createElement("div", { className: "srow now" },
+                React.createElement("span", { className: "s-i mono" }, done.length + 1),
+                React.createElement("span", { className: "s-v mono" }, Number(entry.kg) ? nf(Number(entry.kg)) : '–'),
+                React.createElement("span", { className: "s-v mono" }, entry.reps),
+                React.createElement("span", null),
+                React.createElement("span", { className: "s-sp", style: { '--c': q(entry.q).c } },
+                    React.createElement("i", null),
+                    q(entry.q).k),
+                React.createElement("span", { className: "s-t now-t" }, "s\u0131rada"))) : null,
+            plan.map((j) => (React.createElement("div", { key: 'p' + j, className: "srow plan" },
+                React.createElement("span", { className: "s-i mono" }, j + 1),
+                React.createElement("span", { className: "s-v mono" }, hasNum(t.kg) && Number(t.kg) ? nf(Number(t.kg)) : '–'),
+                React.createElement("span", { className: "s-v mono" }, repTxt(t.repMin, t.repMax)),
+                React.createElement("span", null),
+                React.createElement("span", { className: "s-sp none" }, "\u2013"),
+                React.createElement("span", { className: "s-t" })))),
+            extra ? React.createElement("div", { className: "srow fin" },
+                React.createElement(Icon, { name: "check", size: 13 }),
+                " Hedef tamam \u00B7 kalite d\u00FC\u015Fmeden bitir") : null)));
+}
+function PlyoStage({ lib, item, session }) {
+    const total = sessionStats(session).contacts;
+    const lastQ = item.sets.length ? item.sets[item.sets.length - 1].q || 0 : 0;
+    return (React.createElement("div", { className: 'plyostage' + (lastQ === 2 ? ' warn' : '') },
+        React.createElement("div", { className: "ps-l" },
+            React.createElement("span", { className: "ps-k" }, "Yo\u011Funluk"),
+            React.createElement("b", null, PLYO_INT[(lib && lib.int) || 2])),
+        React.createElement("div", { className: "ps-m" }, lastQ === 2 ? React.createElement("span", null, "Kalite d\u00FC\u015Ft\u00FC: bu hareketi bitir ya da dinlenmeyi uzat.") : React.createElement("span", null, "Her tekrarda en y\u00FCkse\u011Fe, en h\u0131zl\u0131ya. Kalite d\u00FC\u015F\u00FCnce dur; t\u00FCkeni\u015Fe gitme.")),
+        React.createElement("div", { className: "ps-r" },
+            React.createElement("span", { className: "ps-k" }, "Seans temas\u0131"),
+            React.createElement("b", { className: 'mono' + (total > 140 ? ' over' : '') }, total))));
+}
 function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarded }) {
     const sRef = useRef(clone(session));
     const [s, setS] = useState(sRef.current);
@@ -4697,6 +5442,8 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
     const rirFinal = entry.rpe != null ? (entry.rpe === 6 ? Math.max(4, rirInt) : 10 - entry.rpe) : rirInt;
     const prev = item ? prevPerf(st.sessions, item, s.startedAt) : null;
     const t = item ? item.target : null;
+    const lib = item ? exMeta(item.exId, item.name) : null;
+    const plyo = !!(lib && lib.kind === 'plyo');
     useEffect(() => {
         const b = bodyRef.current;
         if (!b)
@@ -4708,17 +5455,20 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
     const logSet = () => {
         if (!item)
             return;
-        const set = { kg: Number(entry.kg) || 0, reps: Math.max(1, Math.round(entry.reps)), lvl: entry.lvl, vl: SPEED[entry.lvl].vl, rpe, rir: rirFinal, rirEst: Math.round(rirEst * 10) / 10, at: Date.now() };
+        const set = plyo
+            ? { kg: Number(entry.kg) || 0, reps: Math.max(1, Math.round(entry.reps)), plyo: true, q: entry.q || 0, lvl: null, vl: 0, rpe: null, rir: 9, at: Date.now() }
+            : { kg: Number(entry.kg) || 0, reps: Math.max(1, Math.round(entry.reps)), lvl: entry.lvl, vl: SPEED[entry.lvl].vl, rpe, rir: rirFinal, rirEst: Math.round(rirEst * 10) / 10, at: Date.now() };
         if (entry.note)
             set.note = entry.note;
         if (entry.tags.length)
             set.tags = entry.tags;
         mutate((ns) => { ns.items[cur].sets.push(set); });
         setRest({ start: Date.now(), total: item.target.rest || 120 });
-        setEntry({ ...entry, rpe: null, note: '', tags: [] });
+        setEntry({ ...entry, rpe: null, q: 0, note: '', tags: [] });
     };
     const addItem = (ex) => {
-        const ns = mutate((x) => { x.items.push({ id: newId('e'), srcId: null, exId: ex.exId || null, name: ex.name, muscle: ex.muscle, note: '', memo: '', target: { sets: 3, repMin: 8, repMax: 12, kg: null, rpeMin: null, rpeMax: null, rest: ex.rest || 120 }, sets: [] }); });
+        const d = itemFromEx(ex);
+        const ns = mutate((x) => { x.items.push({ id: newId('e'), srcId: null, exId: d.exId, name: d.name, muscle: d.muscle, note: '', memo: '', target: { sets: d.sets, repMin: d.repMin, repMax: d.repMax, kg: null, rpeMin: null, rpeMax: null, rest: d.rest }, sets: [] }); });
         go(ns.items.length - 1);
     };
     const openNote = () => openSheet('note', {
@@ -4812,13 +5562,17 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
                         t.sets,
                         React.createElement("i", null, "\u00D7"),
                         repTxt(t.repMin, t.repMax)),
-                    React.createElement("span", { className: "tg-u" }, "set \u00D7 tekrar")),
+                    React.createElement("span", { className: "tg-u" }, plyo ? 'set × temas' : 'set × tekrar')),
                 React.createElement("div", { className: "tg-cell" },
-                    React.createElement("b", { className: "mono" }, hasNum(t.kg) ? nf(Number(t.kg)) : '–'),
-                    React.createElement("small", null, "kg")),
-                React.createElement("div", { className: "tg-cell" },
-                    React.createElement("b", { className: "mono" }, hasNum(t.rpeMin) ? rpeTxt(t.rpeMin, t.rpeMax).replace('RPE ', '') : '–'),
-                    React.createElement("small", null, "RPE")),
+                    React.createElement("b", { className: "mono" }, hasNum(t.kg) && (Number(t.kg) || !plyo) ? nf(Number(t.kg)) : '–'),
+                    React.createElement("small", null, plyo ? 'ek kg' : 'kg')),
+                plyo
+                    ? React.createElement("div", { className: "tg-cell" },
+                        React.createElement("b", { className: "tg-int" }, PLYO_INT[lib.int || 2].split(' ')[0]),
+                        React.createElement("small", null, "yo\u011Funluk"))
+                    : React.createElement("div", { className: "tg-cell" },
+                        React.createElement("b", { className: "mono" }, hasNum(t.rpeMin) ? rpeTxt(t.rpeMin, t.rpeMax).replace('RPE ', '') : '–'),
+                        React.createElement("small", null, "RPE")),
                 React.createElement("div", { className: "tg-cell" },
                     React.createElement("b", { className: "mono" }, restTxt(t.rest || 120).replace(' dk', '')),
                     React.createElement("small", null, "dk ara")),
@@ -4831,25 +5585,32 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
                         "Son sefer ",
                         prev) : null)) : null),
             React.createElement(SetTable, { item: item, entry: entry, rpe: rpe, onOpen: openSet, bodyRef: bodyRef }),
-            React.createElement("div", { className: "ses2-mid" },
-                React.createElement(SpeedStage, { reps: entry.reps, lvl: entry.lvl, exId: item.exId })),
+            React.createElement("div", { className: "ses2-mid" }, plyo ? React.createElement(PlyoStage, { lib: lib, item: item, session: s }) : React.createElement(SpeedStage, { reps: entry.reps, lvl: entry.lvl, exId: item.exId })),
             React.createElement("div", { className: "dock" },
                 React.createElement("div", { className: "dock-steps" },
-                    React.createElement(Stepper, { id: 'kg-' + item.id, label: "Kilo", value: entry.kg, step: 2.5, min: 0, max: 500, onChange: (v) => setEntry({ ...entry, kg: v, rpe: null }) }),
-                    React.createElement(Stepper, { id: 'reps-' + item.id, label: "Tekrar", value: entry.reps, step: 1, min: 1, max: 60, decimals: 0, onChange: (v) => setEntry({ ...entry, reps: Math.round(v), rpe: null }) })),
-                React.createElement("div", { className: "spd" },
+                    React.createElement(Stepper, { id: 'kg-' + item.id, label: plyo ? 'Ek yük (kg)' : 'Kilo', value: entry.kg, step: 2.5, min: 0, max: 500, onChange: (v) => setEntry({ ...entry, kg: v, rpe: null }) }),
+                    React.createElement(Stepper, { id: 'reps-' + item.id, label: plyo ? 'Temas' : 'Tekrar', value: entry.reps, step: 1, min: 1, max: 60, decimals: 0, onChange: (v) => setEntry({ ...entry, reps: Math.round(v), rpe: null }) })),
+                plyo ? (React.createElement("div", { className: "spd" },
                     React.createElement("div", { className: "spd-h" },
-                        React.createElement("span", { className: "st-k" }, "Son tekrar\u0131n h\u0131z\u0131"),
-                        React.createElement("span", { className: "spd-v", style: { color: vlColor(SPEED[entry.lvl].vl) } }, SPEED[entry.lvl].d)),
-                    React.createElement("div", { className: "seg5s", role: "radiogroup", "aria-label": "Son tekrar\u0131n h\u0131z\u0131" }, SPEED.map((sp, i) => (React.createElement("button", { key: i, type: "button", id: 'speed-' + i, role: "radio", "aria-checked": entry.lvl === i, className: 'seg5' + (entry.lvl === i ? ' on' : ''), style: { '--c': vlColor(sp.vl) }, onClick: () => setEntry({ ...entry, lvl: i, rpe: null }) },
-                        React.createElement("i", null,
-                            React.createElement("b", { style: { height: Math.round((1 - sp.vl) * 100) + '%' } })),
-                        React.createElement("span", null, SPEED_SHORT[i])))))),
-                React.createElement("div", { className: "dock-rpe" },
-                    React.createElement("div", { className: "rpe-chips", role: "radiogroup", "aria-label": "RPE" }, [6, 7, 8, 9, 10].map((v) => (React.createElement("button", { key: v, type: "button", role: "radio", "aria-checked": rpe === v, className: 'rchip' + (rpe === v ? ' on' : '') + (rpeEst === v ? ' est' : ''), onClick: () => setEntry({ ...entry, rpe: v }) },
-                        React.createElement("span", { className: "mono" }, v === 6 ? '≤6' : v))))),
-                    React.createElement("button", { type: "button", id: "note-btn", className: 'note-btn' + (entry.note || entry.tags.length || item.memo ? ' has' : ''), onClick: openNote, "aria-label": "Not ekle" },
-                        React.createElement(Icon, { name: "edit", size: 17 }))),
+                        React.createElement("span", { className: "st-k" }, "Son tekrarlar\u0131n kalitesi"),
+                        React.createElement("span", { className: "spd-v", style: { color: PLYO_Q[entry.q || 0].c } }, PLYO_Q[entry.q || 0].d)),
+                    React.createElement("div", { className: "pq-row", role: "radiogroup", "aria-label": "S\u0131\u00E7rama kalitesi" },
+                        PLYO_Q.map((pq, i) => (React.createElement("button", { key: i, type: "button", id: 'pq-' + i, role: "radio", "aria-checked": (entry.q || 0) === i, className: 'pq' + ((entry.q || 0) === i ? ' on' : ''), style: { '--c': pq.c }, onClick: () => setEntry({ ...entry, q: i }) }, pq.k))),
+                        React.createElement("button", { type: "button", id: "note-btn", className: 'note-btn' + (entry.note || entry.tags.length || item.memo ? ' has' : ''), onClick: openNote, "aria-label": "Not ekle" },
+                            React.createElement(Icon, { name: "edit", size: 17 }))))) : React.createElement(React.Fragment, null,
+                    React.createElement("div", { className: "spd" },
+                        React.createElement("div", { className: "spd-h" },
+                            React.createElement("span", { className: "st-k" }, "Son tekrar\u0131n h\u0131z\u0131"),
+                            React.createElement("span", { className: "spd-v", style: { color: vlColor(SPEED[entry.lvl].vl) } }, SPEED[entry.lvl].d)),
+                        React.createElement("div", { className: "seg5s", role: "radiogroup", "aria-label": "Son tekrar\u0131n h\u0131z\u0131" }, SPEED.map((sp, i) => (React.createElement("button", { key: i, type: "button", id: 'speed-' + i, role: "radio", "aria-checked": entry.lvl === i, className: 'seg5' + (entry.lvl === i ? ' on' : ''), style: { '--c': vlColor(sp.vl) }, onClick: () => setEntry({ ...entry, lvl: i, rpe: null }) },
+                            React.createElement("i", null,
+                                React.createElement("b", { style: { height: Math.round((1 - sp.vl) * 100) + '%' } })),
+                            React.createElement("span", null, SPEED_SHORT[i])))))),
+                    React.createElement("div", { className: "dock-rpe" },
+                        React.createElement("div", { className: "rpe-chips", role: "radiogroup", "aria-label": "RPE" }, [6, 7, 8, 9, 10].map((v) => (React.createElement("button", { key: v, type: "button", role: "radio", "aria-checked": rpe === v, className: 'rchip' + (rpe === v ? ' on' : '') + (rpeEst === v ? ' est' : ''), onClick: () => setEntry({ ...entry, rpe: v }) },
+                            React.createElement("span", { className: "mono" }, v === 6 ? '≤6' : v))))),
+                        React.createElement("button", { type: "button", id: "note-btn", className: 'note-btn' + (entry.note || entry.tags.length || item.memo ? ' has' : ''), onClick: openNote, "aria-label": "Not ekle" },
+                            React.createElement(Icon, { name: "edit", size: 17 })))),
                 (() => {
                     const two = item.sets.length >= item.target.sets && cur < n - 1;
                     return (React.createElement("div", { className: 'dock-go' + (two ? ' two' : '') + (rest ? ' r' : '') },
@@ -4869,6 +5630,40 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
 }
 function SetDetailBody({ set, idx, exId, onDelete, onClose }) {
     const [confirm, setConfirm] = useState(false);
+    if (set.plyo) {
+        const lib = libById(exId);
+        const q = PLYO_Q[set.q || 0];
+        return (React.createElement("div", { className: "setd" },
+            React.createElement("div", { className: "setd-top" },
+                React.createElement("span", { className: "setd-n mono" },
+                    "Set ",
+                    idx + 1),
+                React.createElement("span", { className: "setd-v mono" },
+                    set.reps,
+                    " temas",
+                    Number(set.kg) ? ' · +' + nf(Number(set.kg)) + ' kg' : ''),
+                React.createElement("span", { className: "setd-t mono" }, hm(set.at))),
+            React.createElement("div", { className: "setd-grid two" },
+                React.createElement("div", null,
+                    React.createElement("small", null, "Kalite"),
+                    React.createElement("b", { style: { color: q.c } }, q.k)),
+                React.createElement("div", null,
+                    React.createElement("small", null, "Yo\u011Funluk"),
+                    React.createElement("b", null, PLYO_INT[(lib && lib.int) || 2].split(' ')[0])),
+                React.createElement("div", null,
+                    React.createElement("small", null, "Yorgunluk pay\u0131"),
+                    React.createElement("b", { className: "mono" }, nf(Math.round(set.reps * PLYO_W[(lib && lib.int) || 2] * 100) / 100))),
+                React.createElement("div", null,
+                    React.createElement("small", null, "Zor set"),
+                    React.createElement("b", { className: "mono", style: { color: 'var(--faint)' } }, "hay\u0131r"))),
+            set.tags && set.tags.length ? React.createElement("div", { className: "chips-wrap" }, set.tags.map((x) => React.createElement("span", { key: x, className: "fchip on" }, x))) : null,
+            set.note ? React.createElement("p", { className: "sd-note" }, set.note) : null,
+            confirm ? (React.createElement("span", { className: "confirm-inline" },
+                React.createElement("button", { type: "button", id: "set-del-yes", className: "btn danger sm", onClick: () => { onDelete(); onClose(); } }, "Seti sil"),
+                React.createElement("button", { type: "button", className: "btn ghost sm", onClick: () => setConfirm(false) }, "Vazge\u00E7"))) : React.createElement("button", { type: "button", id: "set-del", className: "btn ghost sm danger-t setd-del", onClick: () => setConfirm(true) },
+                React.createElement(Icon, { name: "trash", size: 13 }),
+                " Seti sil")));
+    }
     const e1 = e1Ok(set) ? Math.round(e1rm(set.kg, set.reps, set.rir) * 2) / 2 : null;
     return (React.createElement("div", { className: "setd" },
         React.createElement("div", { className: "setd-top" },
@@ -4965,7 +5760,7 @@ function ExListBody({ getSession, onGo, onAdd, onClose, openSheet }) {
                         "/",
                         it.target.sets,
                         " set \u00B7 ",
-                        targetTxt(it.target))),
+                        targetTxt(it.target, it.exId))),
                 it.sets.length >= it.target.sets ? React.createElement(Icon, { name: "check", size: 15 }) : React.createElement(Icon, { name: "right", size: 14 })))))),
         React.createElement("button", { type: "button", id: "exlist-add", className: "add-item", onClick: () => openSheet('picker', { onPick: (ex) => { onAdd(ex); onClose(); } }) }, "+ Hareket ekle")));
 }
@@ -5021,13 +5816,10 @@ function SummaryBody({ session, st, openSheet, onDelete, onClose }) {
                         pb ? React.createElement("em", { className: d >= 0 ? 'up' : 'down' },
                             " ",
                             d >= 0 ? '+' : '−',
-                            nf(Math.abs(Math.round(d * 2) / 2))) : null) : 'hafif')),
+                            nf(Math.abs(Math.round(d * 2) / 2))) : null) : isPlyo(it.exId) ? it.sets.reduce((a, z) => a + z.reps, 0) + ' temas' : 'e1RM –')),
                 React.createElement("div", { className: "se-sets" }, it.sets.map((z, j) => React.createElement("span", { key: j, className: "se-set" },
-                    React.createElement("span", { className: "mono" },
-                        nf(Number(z.kg)),
-                        "\u00D7",
-                        z.reps),
-                    React.createElement("i", { style: { background: vlColor(z.vl), width: Math.max(10, z.vl * 100) + '%' } }),
+                    React.createElement("span", { className: "mono" }, z.plyo ? (Number(z.kg) ? '+' + nf(Number(z.kg)) + '×' : '') + z.reps + (Number(z.kg) ? '' : ' temas') : nf(Number(z.kg)) + '×' + z.reps),
+                    React.createElement("i", { style: z.plyo ? { background: PLYO_Q[z.q || 0].c, width: '100%' } : { background: vlColor(z.vl), width: Math.max(10, z.vl * 100) + '%' } }),
                     React.createElement("small", { className: "mono" }, hm(z.at)))))));
         })),
         notes.length ? React.createElement("div", { className: "sum-notes" },
@@ -5184,11 +5976,11 @@ function ProgramEditor2({ program, startDay, st, put, del, onBack, openSheet, st
                             React.createElement("span", { className: "item-t" },
                                 React.createElement("strong", null, it.name),
                                 React.createElement("small", { className: "mono" },
-                                    targetTxt(it),
+                                    targetTxt(it, it.exId),
                                     " \u00B7 ",
                                     restTxt(it.rest)),
                                 it.note ? React.createElement("em", null, it.note) : null),
-                            m ? React.createElement("span", { className: 'fatdot f' + m.fat, title: 'Yorgunluk: ' + FAT[m.fat] }) : null)));
+                            exDot(m))));
                 }))) : React.createElement("div", { className: "empty sm" },
                     React.createElement("strong", null, "Bo\u015F sayfa"),
                     React.createElement("p", null, "Hareketleri tek tek ekle. Listede olmayan\u0131 ad\u0131n\u0131 yazarak ekleyebilirsin.")),
@@ -5226,42 +6018,46 @@ function ItemSheetBody({ it: it0, idx, n, onChange, onMove, onRemove, onClose, o
         React.createElement(ItemEditor, { it: it, idx: idx, n: n, onChange: (nit) => { setIt(nit); onChange(nit); }, onMove: (d) => { onMove(d); onClose(); }, onRemove: () => { onRemove(); onClose(); } })));
 }
 function PickerBody({ custom, addCustom, onPick, onClose, low, openSheet }) {
-    const [q, setQ] = useState('');
-    const [grp, setGrp] = useState(null);
     const [newMuscle, setNewMuscle] = useState(null);
+    const [showNew, setShowNew] = useState(false);
     const all = useMemo(() => [
         ...EX_LIB.map((e) => ({ ...e, exId: e.id, src: 'lib' })),
-        ...custom.map((c) => ({ id: c.id, exId: c.id, name: c.name, muscle: c.muscle, rest: 90, src: 'custom' })),
+        ...custom.map((c) => ({ id: c.id, exId: c.id, name: c.name, muscle: c.muscle, rest: 90, kind: 'kuvvet', src: 'custom' })),
     ], [custom]);
-    const nq = normTr(q);
-    const list = all.filter((e) => (!grp || e.muscle === grp) && (!nq || normTr(e.name).includes(nq)));
-    const exact = all.some((e) => normTr(e.name) === nq);
-    const groups = MUSCLES.filter((m) => all.some((e) => e.muscle === m));
+    const f = useExFilter(all);
+    const exact = all.some((e) => normTr(e.name) === normTr(f.q));
     const pick = (e) => { onPick(e); onClose(); };
     return (React.createElement("div", { className: "picker2" },
-        React.createElement("input", { id: "ex-search", className: "search", type: "search", placeholder: "Ara ya da yeni hareket yaz", value: q, onChange: (e) => setQ(e.target.value), autoComplete: "off" }),
-        low && low.length && !q ? (React.createElement("div", { className: "lowrow" },
+        React.createElement(ExFilterBar, { f: f, idp: "ex", placeholder: "Ara ya da yeni hareket yaz" }),
+        low && low.length && !f.q ? (React.createElement("div", { className: "lowrow" },
             React.createElement("span", { className: "st-k" }, "Haftada 10 setin alt\u0131nda"),
-            React.createElement("div", { className: "chips-scroll" }, low.map((m) => React.createElement("button", { key: m, type: "button", className: 'fchip warn' + (grp === m ? ' on' : ''), onClick: () => setGrp(grp === m ? null : m) }, m))))) : null,
-        React.createElement("div", { className: "chips-scroll", role: "group", "aria-label": "Kas grubu" },
-            React.createElement("button", { type: "button", className: 'fchip' + (!grp ? ' on' : ''), onClick: () => setGrp(null) }, "T\u00FCm\u00FC"),
-            groups.map((m) => React.createElement("button", { key: m, type: "button", className: 'fchip' + (grp === m ? ' on' : ''), onClick: () => setGrp(grp === m ? null : m) }, m))),
-        q.trim() && !exact ? (React.createElement("div", { className: "new-ex" },
+            React.createElement("div", { className: "chips-scroll" }, low.map((m) => React.createElement("button", { key: m, type: "button", className: 'fchip warn' + (f.grp === m ? ' on' : ''), onClick: () => f.setGrp(f.grp === m ? null : m) }, m))))) : null,
+        f.q.trim() && !exact && (showNew || !f.list.length) ? (React.createElement("div", { className: "new-ex" },
             React.createElement("div", { className: "new-ex-top" },
                 React.createElement("span", { className: "badge new" }, "Yeni"),
-                React.createElement("strong", null, q.trim())),
+                React.createElement("strong", null, f.q.trim())),
             React.createElement("div", { className: "chips-wrap" }, MUSCLES.map((m) => React.createElement("button", { key: m, type: "button", className: 'fchip sm' + (newMuscle === m ? ' on' : ''), onClick: () => setNewMuscle(m) }, m))),
-            React.createElement("button", { type: "button", id: "ex-add-new", className: "btn fire full", onClick: () => { const d = addCustom(q.trim(), newMuscle); pick({ exId: d.id, name: d.name, muscle: d.muscle, rest: 90 }); } }, "Ekle"))) : null,
-        React.createElement("ul", { className: "ex-list2" }, list.map((e) => (React.createElement("li", { key: e.src + e.id, className: "exr" },
+            React.createElement("button", { type: "button", id: "ex-add-new", className: "btn fire full", onClick: () => { const d = addCustom(f.q.trim(), newMuscle); pick({ exId: d.id, name: d.name, muscle: d.muscle, rest: 90 }); } }, "Ekle"))) : null,
+        React.createElement("span", { className: "exf-count mono" },
+            f.list.length,
+            " hareket"),
+        React.createElement("ul", { className: "ex-list2" }, f.list.slice(0, f.lim).map((e) => (React.createElement("li", { key: e.src + e.id, className: "exr" },
             React.createElement("button", { type: "button", className: "exr-main", onClick: () => pick(e) },
                 React.createElement("span", { className: "exr-n" }, e.name),
                 React.createElement("span", { className: "exr-k" },
-                    React.createElement("span", null, e.muscle),
-                    e.fat ? React.createElement("span", { className: 'fatdot f' + e.fat }) : null,
-                    e.prof ? React.createElement("span", { className: "exr-p" }, PROF[e.prof].k) : null,
+                    exDot(e),
+                    React.createElement("span", null, exLine(e)),
                     e.src === 'custom' ? React.createElement("span", { className: "badge own" }, "\u00F6zel") : null)),
             e.src === 'lib' ? React.createElement("button", { type: "button", className: "nav-arrow info", "aria-label": e.name + ' bilgisi', onClick: () => openSheet('exercise', { exId: e.id }) },
-                React.createElement(Icon, { name: "info", size: 16 })) : null))))));
+                React.createElement(Icon, { name: "info", size: 16 })) : null)))),
+        f.list.length > f.lim ? React.createElement("button", { type: "button", id: "ex-more", className: "btn ghost full", onClick: f.more },
+            "Daha fazla g\u00F6ster (",
+            f.list.length - f.lim,
+            ")") : null,
+        f.q.trim() && !exact && f.list.length && !showNew ? React.createElement("button", { type: "button", id: "ex-new-open", className: "add-item", onClick: () => setShowNew(true) },
+            "+ \u201C",
+            f.q.trim(),
+            "\u201D ad\u0131yla \u00F6zel hareket ekle") : null));
 }
 function PlanBody({ getProgram, st, openSheet }) {
     const p = getProgram();
@@ -5365,18 +6161,31 @@ function ExerciseBody({ exId, name, st }) {
     const series = e1Series(st.sessions, m ? m.id : exId, m ? m.name : name);
     const last = st.sessions.filter((s) => s.status === 'done').map((s) => ({ s, it: s.items.find((i) => (m && i.exId === m.id) || i.name === (m ? m.name : name)) })).filter((x) => x.it && x.it.sets.length).slice(0, 4);
     const latKind = m && m.id === 'band-yana-acis' ? 'band' : m && m.id === 'kablo-yana-acis' ? 'cable' : 'db';
+    const plyo = m && m.kind === 'plyo';
+    const setTxt = (z) => (z.plyo ? (Number(z.kg) ? '+' + nf(Number(z.kg)) + '×' : '') + z.reps : nf(Number(z.kg)) + '×' + z.reps);
     return (React.createElement("div", { className: "exsheet" },
         React.createElement(FactChips, { ex: m }),
-        m ? React.createElement("p", { className: "ex-prof" },
+        m && m.en ? React.createElement("p", { className: "ex-en" },
+            "\u0130ngilizce: ",
+            m.en) : null,
+        m && !plyo && m.prof ? React.createElement("p", { className: "ex-prof" },
             PROF[m.prof].d,
             ".") : null,
+        m && m.not ? React.createElement("p", { className: "ex-tip" },
+            React.createElement(Icon, { name: "info", size: 13 }),
+            " ",
+            m.not) : null,
+        plyo ? (React.createElement("div", { className: "ex-plyo" },
+            React.createElement("span", { className: "st-k" }, "Pliometrik doz"),
+            React.createElement("p", null, "Seans ba\u015F\u0131na toplam temas: ba\u015Flang\u0131\u00E7 80\u2013100, orta 100\u2013120, ileri 120\u2013140. Ayn\u0131 b\u00F6lgeye pliometrik \u00E7al\u0131\u015Fmalar aras\u0131nda 48\u201372 sa b\u0131rak. Her tekrar en y\u00FCksek niyetle; kalite d\u00FC\u015F\u00FCnce dur."),
+            React.createElement("p", { className: "ex-src" }, "Kaynak: NSCA \u00F6nerileri"))) : null,
         m && m.bio ? (React.createElement(CompactCtx.Provider, { value: true },
             React.createElement(BiomechTab, { move: m.bio, setMove: () => { }, latKind: latKind }))) : null,
         React.createElement("div", { className: "ex-hist" },
             React.createElement("span", { className: "st-k" }, "Ge\u00E7mi\u015F"),
             last.length ? last.map(({ s, it }) => (React.createElement("div", { key: s.id, className: "exh-row mono" },
                 React.createElement("span", null, dateTxt(s.startedAt)),
-                React.createElement("span", null, it.sets.map((z) => nf(Number(z.kg)) + '×' + z.reps).join(', '))))) : React.createElement("p", { className: "muted-p" }, "Bu hareketle hen\u00FCz kay\u0131t yok."),
+                React.createElement("span", null, it.sets.map(setTxt).join(', '))))) : React.createElement("p", { className: "muted-p" }, "Bu hareketle hen\u00FCz kay\u0131t yok."),
             series.length ? React.createElement("p", { className: "mono exh-best" },
                 "En iyi e1RM ",
                 nf(Math.round(Math.max(...series.map((p) => p.v)) * 2) / 2),
@@ -5385,9 +6194,15 @@ function ExerciseBody({ exId, name, st }) {
 function GoalBody({ st, put, onClose }) {
     const g0 = st.settings.find((x) => x.id === 'goal') || DEFAULT_GOAL;
     const [g, setG] = useState(g0);
-    const opts = EX_LIB.filter((e) => e.fat >= 2);
+    const [q, setQ] = useState('');
+    const toks = normTr(q).split(/\s+/).filter(Boolean);
+    const cur = libById(g.exId);
+    const opts = EX_LIB.filter((e) => e.kind !== 'plyo' && e.fat >= 2 && (!toks.length || toks.every((t) => normTr(e.name + ' ' + e.en).includes(t)))).slice(0, 8);
     return (React.createElement("div", { className: "note-sheet" },
-        React.createElement("span", { className: "st-k" }, "Hareket"),
+        React.createElement("span", { className: "st-k" },
+            "Hareket",
+            cur ? ': ' + cur.name : ''),
+        React.createElement("input", { id: "goal-search", className: "search", type: "search", placeholder: "Hareket ara (\u00F6r. bench, squat)", value: q, onChange: (e) => setQ(e.target.value), autoComplete: "off" }),
         React.createElement("div", { className: "chips-wrap" }, opts.map((e) => React.createElement("button", { key: e.id, type: "button", className: 'fchip' + (g.exId === e.id ? ' on' : ''), onClick: () => setG({ ...g, exId: e.id }) }, e.name))),
         React.createElement("div", { className: "entry-steps" },
             React.createElement(Stepper, { id: "goal-base", label: "Ba\u015Flang\u0131\u00E7 1RM", value: g.base, step: 2.5, min: 0, max: 400, onChange: (v) => setG({ ...g, base: v }) }),
@@ -5547,48 +6362,42 @@ const LAB_BASICS = [
     { id: 'meter', t: 'Toparlanma ve yorgunluk ölçer', d: 'Yük, RPE, hacim ve uykuyu kendin dene', sheet: ['fatigue', {}] },
 ];
 function LabScreen({ openSheet }) {
-    const groups = MUSCLES.filter((m) => EX_LIB.some((e) => e.muscle === m));
-    const [grp, setGrp] = useState(groups[0]);
-    const list = EX_LIB.filter((e) => e.muscle === grp);
+    const f = useExFilter(EX_LIB);
+    const [part, setPart] = useState('temel');
     return (React.createElement("div", { className: "screen" },
         React.createElement(ScreenHead, { title: "Lab", sub: "Antrenman\u0131n arkas\u0131ndaki bilim" }),
-        React.createElement("div", { className: "scr" },
-            React.createElement("section", { className: "labsec" },
-                React.createElement("div", { className: "labsec-h" },
-                    React.createElement("span", { className: "labsec-n mono" }, "01"),
-                    React.createElement("span", null,
-                        React.createElement("strong", null, "Temeller"),
-                        React.createElement("small", null, "Sinir sistemi ve yorgunluk"))),
-                React.createElement("ol", { className: "lablist" }, LAB_BASICS.map((x, i) => (React.createElement("li", { key: x.id },
-                    React.createElement("button", { type: "button", id: 'lab-' + x.id, className: "labrow", onClick: () => openSheet(x.sheet[0], x.sheet[1]) },
-                        React.createElement("span", { className: "labrow-i mono" }, i + 1),
-                        React.createElement("span", { className: "labrow-t" },
-                            React.createElement("strong", null, x.t),
-                            React.createElement("small", null, x.d)),
-                        React.createElement(Icon, { name: "right", size: 14 }))))))),
-            React.createElement("section", { className: "labsec" },
-                React.createElement("div", { className: "labsec-h" },
-                    React.createElement("span", { className: "labsec-n mono" }, "02"),
-                    React.createElement("span", null,
-                        React.createElement("strong", null, "Hareketler"),
-                        React.createElement("small", null, "Kas, yorgunluk maliyeti, diren\u00E7 profili"))),
-                React.createElement("div", { className: "chips-scroll", role: "group", "aria-label": "Kas grubu" }, groups.map((m) => React.createElement("button", { key: m, type: "button", id: 'labg-' + normTr(m).replace(/[^a-z]/g, ''), className: 'fchip' + (grp === m ? ' on' : ''), onClick: () => setGrp(m) },
-                    m,
-                    " ",
-                    React.createElement("span", { className: "mono fchip-n" }, EX_LIB.filter((e) => e.muscle === m).length)))),
-                React.createElement("ul", { className: "lablist ex" }, list.map((e) => (React.createElement("li", { key: e.id },
-                    React.createElement("button", { type: "button", id: 'labex-' + e.id, className: "labrow", onClick: () => openSheet('exercise', { exId: e.id }) },
-                        React.createElement("span", { className: 'fatdot f' + e.fat, title: 'Yorgunluk: ' + FAT[e.fat] }),
-                        React.createElement("span", { className: "labrow-t" },
-                            React.createElement("strong", null, e.name),
-                            React.createElement("small", null,
-                                e.muscle,
-                                " \u00B7 ",
-                                PROF[e.prof].k,
-                                " \u00B7 yorgunluk ",
-                                FAT[e.fat].toLocaleLowerCase('tr'))),
-                        e.bio ? React.createElement("span", { className: "badge bio" }, "tork") : null,
-                        React.createElement(Icon, { name: "right", size: 14 }))))))))));
+        React.createElement("div", { className: "segmented seg3 labseg", role: "tablist", "aria-label": "Lab b\u00F6l\u00FCmleri" },
+            React.createElement("button", { type: "button", role: "tab", id: "lab-part-temel", "aria-selected": part === 'temel', className: part === 'temel' ? 'on' : '', onClick: () => setPart('temel') },
+                React.createElement("b", { className: "mono" }, "01"),
+                " Temeller"),
+            React.createElement("button", { type: "button", role: "tab", id: "lab-part-hareket", "aria-selected": part === 'hareket', className: part === 'hareket' ? 'on' : '', onClick: () => setPart('hareket') },
+                React.createElement("b", { className: "mono" }, "02"),
+                " Hareketler ",
+                React.createElement("small", { className: "mono" }, EX_LIB.length))),
+        React.createElement("div", { className: "scr" }, part === 'temel' ? React.createElement("section", { className: "labsec" },
+            React.createElement("ol", { className: "lablist" }, LAB_BASICS.map((x, i) => (React.createElement("li", { key: x.id },
+                React.createElement("button", { type: "button", id: 'lab-' + x.id, className: "labrow", onClick: () => openSheet(x.sheet[0], x.sheet[1]) },
+                    React.createElement("span", { className: "labrow-i mono" }, i + 1),
+                    React.createElement("span", { className: "labrow-t" },
+                        React.createElement("strong", null, x.t),
+                        React.createElement("small", null, x.d)),
+                    React.createElement(Icon, { name: "right", size: 14 }))))))) : React.createElement("section", { className: "labsec" },
+            React.createElement(ExFilterBar, { f: f, idp: "lab" }),
+            React.createElement("span", { className: "exf-count mono" },
+                f.list.length,
+                " hareket"),
+            React.createElement("ul", { className: "lablist ex" }, f.list.slice(0, f.lim).map((e) => (React.createElement("li", { key: e.id },
+                React.createElement("button", { type: "button", id: 'labex-' + e.id, className: "labrow", onClick: () => openSheet('exercise', { exId: e.id }) },
+                    exDot(e),
+                    React.createElement("span", { className: "labrow-t" },
+                        React.createElement("strong", null, e.name),
+                        React.createElement("small", null, exLine(e))),
+                    e.bio ? React.createElement("span", { className: "badge bio" }, "tork") : e.kind === 'olimpik' ? React.createElement("span", { className: "badge kind" }, "olimpik") : null,
+                    React.createElement(Icon, { name: "right", size: 14 })))))),
+            f.list.length > f.lim ? React.createElement("button", { type: "button", id: "lab-more", className: "btn ghost full", onClick: f.more },
+                "Daha fazla g\u00F6ster (",
+                f.list.length - f.lim,
+                ")") : null))));
 }
 function MeasureBody({ openSheet }) {
     return (React.createElement("div", { className: "measure" },
@@ -5667,7 +6476,113 @@ function MeasureBody({ openSheet }) {
         React.createElement("p", { className: "ms-cav" }, "Bu bir tahmindir; a\u011F\u0131rl\u0131klar a\u015Fa\u011F\u0131daki \u00E7al\u0131\u015Fmalardan t\u00FCretildi, do\u011Frulanm\u0131\u015F bir \u00F6l\u00E7ek de\u011Fil. H\u0131z \u00F6l\u00E7er kullanmad\u0131\u011F\u0131n i\u00E7in h\u0131z senin hissin; hep ayn\u0131 \u00F6l\u00E7\u00FCtle se\u00E7ersen e\u011Filim g\u00FCvenilir olur. Kaynaklar: Zourdos ve ark. 2016 (RIR ile bar h\u0131z\u0131), Rodr\u00EDguez-Rosell ve ark. 2020 (h\u0131z kayb\u0131 ve kalan tekrar), Mor\u00E1n-Navarro ve ark. 2017 (t\u00FCkeni\u015F ve toparlanma), Craven ve ark. 2022 (uyku ve performans)."),
         React.createElement("button", { type: "button", id: "ms-meter", className: "btn primary full", onClick: () => openSheet('fatigue', {}) }, "Yorgunluk \u00F6l\u00E7eri a\u00E7")));
 }
-const SHEET_TITLES = { fatigue: 'Yorgunluk ölçer', lesson: 'Sinir sistemi', exercise: 'Hareket', picker: 'Hareket ekle', item: 'Hareketi düzenle', note: 'Not', exlist: 'Hareketler', summary: 'Antrenman özeti', saveTemplate: 'Antrenman türü olarak kaydet', plan: 'Program analizi', goal: 'Hedef', measure: 'Yorgunluk nasıl ölçülür?', wtype: 'Antrenman türü', setdetail: 'Set' };
+function AccountBody({ st, acct, setAcct, openSheet, onClose }) {
+    const [mode, setMode] = useState(null);
+    const [isNew, setIsNew] = useState(false);
+    const [email, setEmail] = useState('');
+    const [pass, setPass] = useState('');
+    const [confirm, setConfirm] = useState(null);
+    const [delTxt, setDelTxt] = useState('');
+    const n = { p: st.programs.length, s: st.sessions.filter((x) => x.status === 'done').length, c: st.checkins.length };
+    const signIn = (em) => openSheet('consent', { onAccept: () => setAcct({ mode: 'user', email: em, pending: 0, consent: Date.now(), lastSync: Date.now() }) });
+    const valid = /.+@.+\..+/.test(email) && pass.length >= 6;
+    if (acct.mode === 'guest') {
+        return (React.createElement("div", { className: "acct" },
+            React.createElement("div", { className: "acct-hero" },
+                React.createElement(Icon, { name: "cloud", size: 22 }),
+                React.createElement("div", null,
+                    React.createElement("strong", null, "Kay\u0131tlar\u0131n \u015Fu an yaln\u0131zca bu telefonda"),
+                    React.createElement("p", null, "Giri\u015F yap: her set buluta yedeklenir, telefon de\u011Fi\u015Fse de hesab\u0131nla geri gelir. \u0130nternet yokken de kaydeder, ba\u011Flant\u0131 gelince g\u00F6nderir."))),
+            React.createElement("p", { className: "acct-move mono" },
+                "Bu telefondaki ",
+                n.p,
+                " program, ",
+                n.s,
+                " antrenman ve ",
+                n.c,
+                " uyku kayd\u0131 hesab\u0131na ta\u015F\u0131n\u0131r."),
+            React.createElement("button", { type: "button", id: "google-signin", className: "btn google full", onClick: () => signIn('kullanici@gmail.com') },
+                React.createElement("span", { className: "g-mark" }, "G"),
+                " Google ile devam et"),
+            mode === 'email' ? (React.createElement("div", { className: "acct-form" },
+                React.createElement("input", { id: "acct-email", className: "text-in", type: "email", inputMode: "email", autoComplete: "email", placeholder: "E-posta", value: email, onChange: (e) => setEmail(e.target.value) }),
+                React.createElement("input", { id: "acct-pass", className: "text-in", type: "password", autoComplete: isNew ? 'new-password' : 'current-password', placeholder: isNew ? 'Şifre (en az 6 karakter)' : 'Şifre', value: pass, onChange: (e) => setPass(e.target.value) }),
+                React.createElement("button", { type: "button", id: "acct-email-go", className: "btn primary full", disabled: !valid, onClick: () => signIn(email.trim()) }, isNew ? 'Hesap oluştur' : 'Giriş yap'),
+                React.createElement("div", { className: "acct-links" },
+                    React.createElement("button", { type: "button", className: "linkbtn", onClick: () => setIsNew(!isNew) }, isNew ? 'Hesabın var mı? Giriş yap' : 'Hesabın yok mu? Oluştur'),
+                    !isNew ? React.createElement("button", { type: "button", className: "linkbtn", onClick: () => { } }, "\u015Eifremi unuttum") : null))) : React.createElement("button", { type: "button", id: "email-signin", className: "btn ghost full", onClick: () => setMode('email') },
+                React.createElement(Icon, { name: "mail", size: 15 }),
+                " E-posta ile devam et"),
+            React.createElement("button", { type: "button", className: "linkbtn", onClick: () => openSheet('privacy', {}) },
+                React.createElement(Icon, { name: "shield", size: 13 }),
+                " Verilerin nas\u0131l saklan\u0131r?")));
+    }
+    return (React.createElement("div", { className: "acct" },
+        React.createElement("div", { className: "acct-user" },
+            React.createElement("span", { className: "acct-av" }, (acct.email || '?')[0].toUpperCase()),
+            React.createElement("div", null,
+                React.createElement("strong", null, acct.email),
+                React.createElement("small", null, "Google hesab\u0131 \u00B7 giri\u015F yap\u0131ld\u0131"))),
+        React.createElement("div", { className: 'acct-sync ' + (acct.pending ? 'pending' : 'ok') },
+            React.createElement(Icon, { name: "cloud", size: 16 }),
+            React.createElement("span", null, acct.pending ? acct.pending + ' kayıt bekliyor; internet gelince gönderilecek' : 'Tüm kayıtlar bulutta'),
+            React.createElement("small", { className: "mono" }, acct.lastSync ? 'son eşitleme ' + hm(acct.lastSync) : '')),
+        React.createElement("p", { className: "acct-move mono" },
+            n.p,
+            " program \u00B7 ",
+            n.s,
+            " antrenman \u00B7 ",
+            n.c,
+            " uyku kayd\u0131"),
+        React.createElement("button", { type: "button", className: "btn ghost full", onClick: () => { } }, "Verilerimi d\u0131\u015Fa aktar (JSON)"),
+        React.createElement("button", { type: "button", className: "linkbtn", onClick: () => openSheet('privacy', {}) },
+            React.createElement(Icon, { name: "shield", size: 13 }),
+            " Gizlilik ve veri kullan\u0131m\u0131"),
+        confirm === 'out' ? (React.createElement("div", { className: "pop flat" },
+            React.createElement("p", null, acct.pending ? acct.pending + ' kayıt henüz buluta gitmedi. Çıkarsan bu telefondan silinir. İnternete bağlanıp bekle.' : 'Çıkış yapınca kayıtların bu telefondan kalkar, hesabında durur.'),
+            React.createElement("div", { className: "confirm-inline" },
+                React.createElement("button", { type: "button", id: "signout-yes", className: "btn danger sm", disabled: !!acct.pending, onClick: () => { setAcct({ mode: 'guest', email: null, pending: 0, consent: null, lastSync: null }); onClose(); } }, "\u00C7\u0131k\u0131\u015F yap"),
+                React.createElement("button", { type: "button", className: "btn ghost sm", onClick: () => setConfirm(null) }, "Vazge\u00E7")))) : confirm === 'del' ? (React.createElement("div", { className: "pop flat" },
+            React.createElement("p", null,
+                "Hesab\u0131n ve buluttaki t\u00FCm kay\u0131tlar\u0131n kal\u0131c\u0131 olarak silinir; geri al\u0131namaz. Onaylamak i\u00E7in ",
+                React.createElement("b", null, "S\u0130L"),
+                " yaz."),
+            React.createElement("input", { id: "del-confirm", className: "text-in", value: delTxt, onChange: (e) => setDelTxt(e.target.value), placeholder: "S\u0130L" }),
+            React.createElement("div", { className: "confirm-inline" },
+                React.createElement("button", { type: "button", id: "delete-yes", className: "btn danger sm", disabled: delTxt.trim().toLocaleUpperCase('tr') !== 'SİL', onClick: () => { setAcct({ mode: 'guest', email: null, pending: 0, consent: null, lastSync: null }); onClose(); } }, "Hesab\u0131 kal\u0131c\u0131 sil"),
+                React.createElement("button", { type: "button", className: "btn ghost sm", onClick: () => { setConfirm(null); setDelTxt(''); } }, "Vazge\u00E7")))) : (React.createElement("div", { className: "acct-danger" },
+            React.createElement("button", { type: "button", id: "signout", className: "btn ghost sm", onClick: () => setConfirm('out') }, "\u00C7\u0131k\u0131\u015F yap"),
+            React.createElement("button", { type: "button", id: "delete-account", className: "btn ghost sm danger-t", onClick: () => setConfirm('del') },
+                React.createElement(Icon, { name: "trash", size: 13 }),
+                " Hesab\u0131 sil")))));
+}
+function ConsentBody({ onAccept, onClose }) {
+    const [ok, setOk] = useState(false);
+    return (React.createElement("div", { className: "acct" },
+        React.createElement("p", { className: "consent-p" }, "Hesab\u0131na \u015Funlar kaydedilir: programlar\u0131n, antrenman ve set kay\u0131tlar\u0131n, notlar\u0131n, uyku saatlerin ve hedefin. Bunlar yaln\u0131zca sana g\u00F6sterilir, yorgunluk ve geli\u015Fim hesaplar\u0131 i\u00E7in kullan\u0131l\u0131r, kimseyle payla\u015F\u0131lmaz ve sat\u0131lmaz. Veriler Avrupa\u2019daki (Frankfurt) sunucularda tutulur."),
+        React.createElement("p", { className: "consent-p" }, "Uyku ve antrenman verisi sa\u011Fl\u0131kla ilgili say\u0131labilece\u011Fi i\u00E7in a\u00E7\u0131k r\u0131zan gerekir. R\u0131zan\u0131 istedi\u011Fin an hesab\u0131n\u0131 silerek geri alabilirsin; o zaman t\u00FCm verilerin silinir."),
+        React.createElement("label", { className: "check-row" },
+            React.createElement("input", { id: "consent-check", type: "checkbox", checked: ok, onChange: (e) => setOk(e.target.checked) }),
+            " Antrenman ve uyku verilerimin bu ama\u00E7la saklanmas\u0131na a\u00E7\u0131k r\u0131za veriyorum."),
+        React.createElement("button", { type: "button", id: "consent-yes", className: "btn primary full", disabled: !ok, onClick: () => { onAccept(); onClose(); } }, "Kabul et ve devam et")));
+}
+function PrivacyBody() {
+    return (React.createElement("div", { className: "acct privacy" },
+        React.createElement("p", null,
+            React.createElement("b", null, "Ne saklan\u0131r:"),
+            " e-posta adresin, programlar\u0131n, antrenman ve set kay\u0131tlar\u0131n (saatleriyle), notlar\u0131n, uyku giri\u015Flerin, hedefin."),
+        React.createElement("p", null,
+            React.createElement("b", null, "Nerede:"),
+            " Hesaps\u0131z kullan\u0131mda yaln\u0131zca bu telefonda. Giri\u015F yap\u0131nca Google Firebase\u2019in Avrupa (Frankfurt) sunucular\u0131nda; telefonda da bir kopya kal\u0131r, internet yokken kay\u0131t buraya yaz\u0131l\u0131r."),
+        React.createElement("p", null,
+            React.createElement("b", null, "Kim g\u00F6r\u00FCr:"),
+            " Yaln\u0131zca sen. Her kullan\u0131c\u0131 sadece kendi verisine eri\u015Febilir; bu kural sunucuda zorunlu."),
+        React.createElement("p", null,
+            React.createElement("b", null, "Silme:"),
+            " Hesap \u203A Hesab\u0131 sil ile hesab\u0131n ve t\u00FCm verilerin kal\u0131c\u0131 silinir. D\u0131\u015Fa aktar ile istedi\u011Fin an JSON kopyas\u0131n\u0131 alabilirsin."),
+        React.createElement("p", { className: "ex-src" }, "Veri sorumlusu ve ileti\u015Fim bilgisi yay\u0131n \u00F6ncesi eklenecek.")));
+}
+const SHEET_TITLES = { account: 'Hesap ve yedek', consent: 'Verilerin nasıl kullanılır', privacy: 'Gizlilik', fatigue: 'Yorgunluk ölçer', lesson: 'Sinir sistemi', exercise: 'Hareket', picker: 'Hareket ekle', item: 'Hareketi düzenle', note: 'Not', exlist: 'Hareketler', summary: 'Antrenman özeti', saveTemplate: 'Antrenman türü olarak kaydet', plan: 'Program analizi', goal: 'Hedef', measure: 'Yorgunluk nasıl ölçülür?', wtype: 'Antrenman türü', setdetail: 'Set' };
 function App() {
     const store = useLogStore();
     const [st, apiRef] = store;
@@ -5681,6 +6596,7 @@ function App() {
     const [sheets, setSheets] = useState([]);
     const [prog, setProg] = useState({ name: 'list' });
     const [antView, setAntView] = useState('start');
+    const [acct, setAcct] = useState({ mode: 'guest', email: null, pending: 0, consent: null, lastSync: null });
     const seeded = useRef(false);
     const put = (kind, obj) => (apiRef.current ? apiRef.current.put(kind, obj) : null);
     const del = (kind, id) => (apiRef.current ? apiRef.current.del(kind, id) : null);
@@ -5767,6 +6683,9 @@ function App() {
             case 'saveTemplate': return React.createElement(SaveTemplateBody, { session: p.session, st: st, put: put, onClose: close, onSaved: (pr, d) => { closeAll(); setProg({ name: 'edit', id: pr.id, draft: pr, day: d.id, back: 'antrenman' }); setTab('programlar'); } });
             case 'plan': return React.createElement(PlanBody, { getProgram: p.getProgram, st: st, openSheet: openSheet });
             case 'goal': return React.createElement(GoalBody, { st: st, put: put, onClose: close });
+            case 'account': return React.createElement(AccountBody, { st: st, acct: acct, setAcct: setAcct, openSheet: openSheet, onClose: close });
+            case 'consent': return React.createElement(ConsentBody, { onAccept: p.onAccept, onClose: close });
+            case 'privacy': return React.createElement(PrivacyBody, null);
             default: return null;
         }
     };
@@ -5786,7 +6705,7 @@ function App() {
     const sheetSize = (sh) => (['lesson', 'exercise', 'fatigue', 'summary', 'picker', 'measure'].includes(sh.type) ? 'full' : '');
     let screen = null;
     if (tab === 'bugun')
-        screen = React.createElement(TodayScreen, { st: st, put: put, openSheet: openSheet, startSession: startSession, goTab: setTab });
+        screen = React.createElement(TodayScreen, { st: st, put: put, openSheet: openSheet, startSession: startSession, goTab: setTab, acct: acct });
     if (tab === 'antrenman') {
         screen = active
             ? React.createElement(SessionView2, { key: active.id, session: active, st: st, put: put, del: del, openSheet: openSheet, onFinished: (ns) => openSheet('summary', { id: ns.id, draft: ns }), onDiscarded: () => setAntView('start') })

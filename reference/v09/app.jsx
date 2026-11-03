@@ -32,7 +32,7 @@ const sessionNotes = (s) => s.items.reduce((a, it) => a + (it.memo ? 1 : 0) + it
 function planStats(program) {
   const muscles = {};
   (program ? program.days : []).forEach((d) => d.items.forEach((it) => {
-    if (10 - rpeMid(it.rpeMin, it.rpeMax) > 4) return;
+    if (isPlyo(it.exId) || 10 - rpeMid(it.rpeMin, it.rpeMax) > 4) return;
     muscles[it.muscle] = (muscles[it.muscle] || 0) + Number(it.sets || 0);
   }));
   return { muscles };
@@ -65,7 +65,12 @@ function setLoads(sessions, t) {
     if (s.status !== 'done' && s.status !== 'active') return;
     s.items.forEach((it) => {
       const c = costW(it.exId, it.name);
-      it.sets.forEach((x) => { if (x.rir <= 4 && x.at && x.at <= t && t - x.at < 7 * DAY_MS) out.push({ at: x.at, w: proxW(x.rir) * c, rir: x.rir, heavy: c >= 1.5 }); });
+      const lib = exMeta(it.exId, it.name);
+      it.sets.forEach((x) => {
+        if (!x.at || x.at > t || t - x.at >= 7 * DAY_MS) return;
+        if (x.plyo) { out.push({ at: x.at, w: x.reps * PLYO_W[(lib && lib.int) || 2], plyo: true, contacts: x.reps }); return; }
+        if (x.rir <= 4) out.push({ at: x.at, w: proxW(x.rir) * c, rir: x.rir, heavy: c >= 1.5 });
+      });
     });
   });
   return out;
@@ -89,7 +94,7 @@ function fatigueAt(st, t, sessions) {
   const score = clamp(train + sp, 0, 100);
   return {
     sum, train, sleep: sl, sleepPts: sp, score, zone: zoneOf(score), hrs: hoursToFresh(sum),
-    hard: loads.length, fail: loads.filter((x) => x.rir <= 0.5).length,
+    hard: loads.filter((x) => !x.plyo).length, fail: loads.filter((x) => !x.plyo && x.rir <= 0.5).length, contacts: loads.reduce((a, x) => a + (x.contacts || 0), 0),
   };
 }
 // Simülatör: haftalık düzen sabit kalırsa seans başında ve sonunda ulaşılan denge değerleri
@@ -107,7 +112,7 @@ function steadyWeek(v) {
 }
 function simFromLogs(st) {
   const t = Date.now();
-  const loads = setLoads(st.sessions, t);
+  const loads = setLoads(st.sessions, t).filter((x) => !x.plyo);
   const sl = sleepInfo(st, t);
   const n = st.sessions.filter((s) => s.status === 'done' && t - s.startedAt < 7 * DAY_MS).length;
   const avg3 = sl.n ? (sl.avg3 * sl.n + 7.5 * (3 - sl.n)) / 3 : 7.5;
@@ -124,7 +129,7 @@ function simFromPlan(p) {
   const days = p.days.filter((d) => d.items.length);
   days.forEach((d) => d.items.forEach((it) => {
     const r = 10 - rpeMid(it.rpeMin, it.rpeMax);
-    if (r > 4) return;
+    if (isPlyo(it.exId) || r > 4) return;
     const n = Number(it.sets || 0);
     sets += n; rir += r * n;
     const m = exMeta(it.exId, it.name);
@@ -136,7 +141,12 @@ function simFromPlan(p) {
 function simulatePlan(p) {
   const days = p.days.filter((d) => d.items.length);
   if (!days.length) return null;
-  const dayLoad = (d) => d.items.reduce((a, it) => { const r = 10 - rpeMid(it.rpeMin, it.rpeMax); return r > 4 ? a : a + Number(it.sets || 0) * proxW(r) * costW(it.exId, it.name); }, 0);
+  const dayLoad = (d) => d.items.reduce((a, it) => {
+    const lib = exMeta(it.exId, it.name);
+    if (lib && lib.kind === 'plyo') return a + Number(it.sets || 0) * repMid(it.repMin, it.repMax) * PLYO_W[lib.int || 2];
+    const r = 10 - rpeMid(it.rpeMin, it.rpeMax);
+    return r > 4 ? a : a + Number(it.sets || 0) * proxW(r) * costW(it.exId, it.name);
+  }, 0);
   const fixed = days.filter((d) => d.weekday != null);
   const slots = days.map((d, i) => {
     const wd = d.weekday != null ? (d.weekday + 6) % 7 : fixed.length ? null : Math.round((i * 7) / days.length);
@@ -187,15 +197,16 @@ function sessionFatigue(s, st) {
   return { v: 2, pre, post };
 }
 function periodMetrics(list, days) {
-  let dur = 0, sets = 0, hard = 0, ton = 0, rpe = 0;
+  let dur = 0, sets = 0, hard = 0, ton = 0, rpe = 0, rset = 0, contacts = 0;
   list.forEach((s) => {
     const ss = sessionStats(s);
     dur += ss.dur; sets += ss.sets.length; hard += ss.hard.length; ton += ss.tonnage;
-    rpe += ss.sets.reduce((a, x) => a + Number(x.rpe || 0), 0);
+    rpe += ss.sets.reduce((a, x) => a + (x.plyo ? 0 : Number(x.rpe || 0)), 0);
+    rset += ss.sets.filter((x) => !x.plyo).length; contacts += ss.contacts;
   });
   const n = list.length;
   const span = days || Math.max(7, n ? (Date.now() - list[n - 1].startedAt) / DAY_MS : 7);
-  return { n, dur, avgDur: n ? dur / n : 0, sets, hard, ton, avgRpe: sets ? rpe / sets : 0, perWeek: n / (span / 7) };
+  return { n, dur, avgDur: n ? dur / n : 0, sets, hard, ton, contacts, avgRpe: rset ? rpe / rset : 0, perWeek: n / (span / 7) };
 }
 function historyWarnings(st, list) {
   const w = [];
@@ -209,7 +220,7 @@ function historyWarnings(st, list) {
   const ls = logStats(st.sessions, now);
   Object.entries(ls.muscles).filter(([, n]) => n > 20).sort((a, b) => b[1] - a[1]).forEach(([m, n]) => w.push({ lv: 'bad', t: m + ' · 7 günde ' + n + ' zor set', d: '20 setin üstünde toparlanma uzar. Hacmi azalt ya da 2–3 güne böl.' }));
   const sets = [];
-  list.forEach((s) => s.items.forEach((it) => it.sets.forEach((x) => sets.push(x))));
+  list.forEach((s) => s.items.forEach((it) => it.sets.forEach((x) => { if (!x.plyo) sets.push(x); })));
   if (sets.length >= 6) {
     const avgRpe = sets.reduce((a, x) => a + Number(x.rpe || 0), 0) / sets.length;
     if (avgRpe >= 9) w.push({ lv: 'warn', t: 'Ortalama RPE ' + nf(Math.round(avgRpe * 10) / 10), d: 'Setlerin çoğunu 1–3 tekrar kala bitir. Kazanım benzer, yorgunluk daha az.' });
@@ -238,6 +249,8 @@ function historyWarnings(st, list) {
     const low = MAIN_MUSCLES.filter((m) => plan[m] && (ls.muscles[m] || 0) < 10);
     if (low.length) w.push({ lv: 'info', t: 'Az çalışan: ' + low.map((m) => m + ' ' + (ls.muscles[m] || 0)).join(', '), d: 'Son 7 gün zor set. Kas başına haftada 10–20 sık önerilir.' });
   }
+  const bigPlyo = list.map((s) => sessionStats(s).contacts).filter((c) => c > 140);
+  if (bigPlyo.length) w.push({ lv: 'warn', t: 'Seans başına ' + Math.max(...bigPlyo) + ' sıçrama teması', d: 'Pliometrikte ileri seviye için bile 120–140 temas önerilir; fazlası kaliteyi düşürür, sakatlık riskini artırır.' });
   if (done.length) {
     const gap = Math.floor((now - done[0].startedAt) / DAY_MS);
     if (gap >= 6) w.push({ lv: 'info', t: gap + ' gündür antrenman yok', d: 'Uzun aradan sonra ilk antrenmanda yükü %5–10 düşük başla.' });
@@ -307,13 +320,61 @@ function MuscleBars({ muscles, list, max = 24, compact }) {
     </div>
   );
 }
+function exDot(e) {
+  if (!e) return null;
+  return e.kind === 'plyo' ? <span className={'pdot i' + (e.int || 2)} title={'Yoğunluk: ' + PLYO_INT[e.int || 2]} /> : e.fat ? <span className={'fatdot f' + e.fat} title={'Yorgunluk: ' + FAT[e.fat]} /> : null;
+}
+function exLine(e) {
+  if (!e.eq) return e.muscle;
+  return e.muscle + ' · ' + EQ[e.eq] + ' · ' + (e.kind === 'plyo' ? 'yoğunluk ' + PLYO_INT[e.int || 2].split(' ')[0].toLocaleLowerCase('tr') : PROF[e.prof].k);
+}
 function FactChips({ ex }) {
   if (!ex) return null;
   return (
     <div className="facts">
       <span className="fact"><b>{ex.muscle}</b>{ex.sec && ex.sec.length ? ' + ' + ex.sec.join(', ') : ''}</span>
-      <span className={'fact fat' + ex.fat}>Yorgunluk: {FAT[ex.fat]}</span>
-      <span className="fact prof" title={PROF[ex.prof].d}>{PROF[ex.prof].k}</span>
+      {ex.eq ? <span className="fact">{EQ[ex.eq]}</span> : null}
+      {ex.kind && ex.kind !== 'kuvvet' ? <span className="fact kind">{ex.kind === 'plyo' ? 'Pliometrik' : 'Olimpik'}</span> : null}
+      {ex.kind === 'plyo'
+        ? <span className={'fact fat' + Math.min(3, ex.int || 2)}>Yoğunluk: {PLYO_INT[ex.int || 2]}</span>
+        : <span className={'fact fat' + ex.fat}>Yorgunluk: {FAT[ex.fat]}</span>}
+      {ex.kind !== 'plyo' && ex.prof ? <span className="fact prof" title={PROF[ex.prof].d}>{PROF[ex.prof].k}</span> : null}
+    </div>
+  );
+}
+const EX_KINDS = [['all', 'Tümü'], ['kuvvet', 'Kuvvet'], ['olimpik', 'Olimpik'], ['plyo', 'Pliometrik']];
+function useExFilter(all, initGrp) {
+  const [q, setQ0] = useState('');
+  const [kind, setKind0] = useState('all');
+  const [grp, setGrp0] = useState(initGrp || null);
+  const [eq, setEq0] = useState(null);
+  const [lim, setLim] = useState(40);
+  const wrap = (f) => (v) => { f(v); setLim(40); };
+  const toks = normTr(q).split(/\s+/).filter(Boolean);
+  const hay = useMemo(() => new Map(all.map((e) => [e, normTr(e.name + ' ' + (e.en || '') + ' ' + e.muscle + ' ' + (EQ[e.eq] || ''))])), [all]);
+  const base = toks.length ? all.filter((e) => toks.every((t) => hay.get(e).includes(t))) : all;
+  const byKind = base.filter((e) => kind === 'all' || (e.kind || 'kuvvet') === kind);
+  const list = byKind.filter((e) => (!grp || e.muscle === grp) && (!eq || e.eq === eq));
+  const groups = MUSCLES.map((m) => [m, byKind.filter((e) => e.muscle === m && (!eq || e.eq === eq)).length]).filter((x) => x[1]);
+  const eqs = Object.keys(EQ).map((k) => [k, byKind.filter((e) => e.eq === k && (!grp || e.muscle === grp)).length]).filter((x) => x[1]);
+  const kinds = EX_KINDS.map(([k, t]) => [k, t, k === 'all' ? base.length : base.filter((e) => (e.kind || 'kuvvet') === k).length]);
+  return { q, setQ: wrap(setQ0), kind, setKind: wrap(setKind0), grp, setGrp: wrap(setGrp0), eq, setEq: wrap(setEq0), lim, more: () => setLim(lim + 60), list, groups, eqs, kinds };
+}
+function ExFilterBar({ f, idp, placeholder }) {
+  return (
+    <div className="exf">
+      <input id={idp + '-search'} className="search" type="search" placeholder={placeholder || 'Hareket ara (Türkçe ya da İngilizce)'} value={f.q} onChange={(e) => f.setQ(e.target.value)} autoComplete="off" />
+      <div className="segmented seg4" role="tablist" aria-label="Hareket türü">
+        {f.kinds.map(([k, t]) => <button key={k} type="button" role="tab" id={idp + '-kind-' + k} aria-selected={f.kind === k} className={f.kind === k ? 'on' : ''} onClick={() => f.setKind(k)}>{t}</button>)}
+      </div>
+      <div className="chips-scroll" role="group" aria-label="Kas grubu">
+        <button type="button" className={'fchip' + (!f.grp ? ' on' : '')} onClick={() => f.setGrp(null)}>Tüm kaslar</button>
+        {f.groups.map(([m, n]) => <button key={m} type="button" id={idp + '-g-' + normTr(m).replace(/[^a-z]/g, '')} className={'fchip' + (f.grp === m ? ' on' : '')} onClick={() => f.setGrp(f.grp === m ? null : m)}>{m} <span className="mono fchip-n">{n}</span></button>)}
+      </div>
+      <div className="chips-scroll" role="group" aria-label="Ekipman">
+        <button type="button" className={'fchip sm' + (!f.eq ? ' on' : '')} onClick={() => f.setEq(null)}>Tüm ekipman</button>
+        {f.eqs.map(([k, n]) => <button key={k} type="button" id={idp + '-eq-' + k} className={'fchip sm' + (f.eq === k ? ' on' : '')} onClick={() => f.setEq(f.eq === k ? null : k)}>{EQ[k]} <span className="mono fchip-n">{n}</span></button>)}
+      </div>
     </div>
   );
 }
@@ -355,7 +416,17 @@ function Spark({ pts, goal, w = 120, h = 34 }) {
     </svg>
   );
 }
-function TodayScreen({ st, put, openSheet, startSession, goTab }) {
+function AccountChip({ acct, onClick }) {
+  const state = acct.mode === 'guest' ? 'guest' : acct.pending ? 'pending' : 'ok';
+  const label = acct.mode === 'guest' ? 'Misafir: kayıtlar yalnızca bu telefonda' : acct.pending ? acct.pending + ' kayıt buluta gönderilmeyi bekliyor' : 'Tüm kayıtlar bulutta';
+  return (
+    <button type="button" id="account-btn" className={'acct-chip ' + state} onClick={onClick} aria-label={'Hesap. ' + label} title={label}>
+      <Icon name={acct.mode === 'guest' ? 'user' : 'cloud'} size={17} />
+      <i className="acct-dot" />
+    </button>
+  );
+}
+function TodayScreen({ st, put, openSheet, startSession, goTab, acct }) {
   const fz = fatigueAt(st, Date.now());
   const sl = fz.sleep;
   const active = st.sessions.find((s) => s.status === 'active');
@@ -370,8 +441,15 @@ function TodayScreen({ st, put, openSheet, startSession, goTab }) {
 
   return (
     <div className="screen">
-      <ScreenHead title="Bugün" sub={fullDate(Date.now())} right={<span className={'sync-dot ' + (st.status === 'db' && !st.error ? 'ok' : st.status === 'loading' ? 'wait' : 'warn')} title={st.status === 'local' ? 'Önizleme: kayıtlar saklanmıyor' : 'Hesabına kaydediliyor'} />} />
+      <ScreenHead title="Bugün" sub={fullDate(Date.now())} right={<AccountChip acct={acct} onClick={() => openSheet('account', {})} />} />
       <div className="scr fit">
+        {acct.mode === 'guest' && st.sessions.length ? (
+          <button type="button" id="guest-banner" className="guest-banner" onClick={() => openSheet('account', {})}>
+            <Icon name="cloud" size={16} />
+            <span>Kayıtlar yalnızca bu telefonda · <b>Yedekle</b></span>
+            <Icon name="right" size={14} />
+          </button>
+        ) : null}
         <section className="ready">
           <button type="button" id="ready-ring" className="ready-ring" onClick={() => openSheet('fatigue', {})} aria-label="Yorgunluk ayrıntısı">
             <Ring score={fz.score} zone={fz.zone} label={'Yorgunluk ' + Math.round(fz.score)} />
@@ -568,6 +646,7 @@ function SpeedStage({ reps, lvl, exId }) {
 }
 
 function SetTable({ item, entry, rpe, onOpen, bodyRef }) {
+  if (isPlyo(item.exId)) return <PlyoTable item={item} entry={entry} onOpen={onOpen} bodyRef={bodyRef} />;
   const t = item.target;
   const done = item.sets;
   const extra = done.length >= t.sets;
@@ -615,6 +694,73 @@ function SetTable({ item, entry, rpe, onOpen, bodyRef }) {
   );
 }
 
+function PlyoTable({ item, entry, onOpen, bodyRef }) {
+  const t = item.target;
+  const done = item.sets;
+  const extra = done.length >= t.sets;
+  const plan = [];
+  for (let j = done.length + 1; j < t.sets; j++) plan.push(j);
+  const q = (i) => PLYO_Q[i || 0];
+  return (
+    <div className="stable plyo">
+      <div className="srow sh" aria-hidden="true"><span>Set</span><span>Ek yük</span><span>Temas</span><span /><span>Kalite</span><span>Saat</span></div>
+      <div className="sbody" ref={bodyRef}>
+        {done.map((x, j) => (
+          <button key={x.at + '-' + j} type="button" className="srow done" onClick={() => onOpen(j)} aria-label={'Set ' + (j + 1) + ': ' + x.reps + ' temas. Ayrıntı'}>
+            <span className="s-i mono"><Icon name="check" size={12} />{j + 1}</span>
+            <span className="s-v mono">{Number(x.kg) ? nf(Number(x.kg)) : '–'}</span>
+            <span className="s-v mono">{x.reps}</span>
+            <span />
+            <span className="s-sp" style={{ '--c': q(x.q).c }}><i />{q(x.q).k}</span>
+            <span className="s-t mono">{hm(x.at)}{x.note || (x.tags && x.tags.length) ? <em>✎</em> : null}</span>
+          </button>
+        ))}
+        {!extra ? (
+          <div className="srow now">
+            <span className="s-i mono">{done.length + 1}</span>
+            <span className="s-v mono">{Number(entry.kg) ? nf(Number(entry.kg)) : '–'}</span>
+            <span className="s-v mono">{entry.reps}</span>
+            <span />
+            <span className="s-sp" style={{ '--c': q(entry.q).c }}><i />{q(entry.q).k}</span>
+            <span className="s-t now-t">sırada</span>
+          </div>
+        ) : null}
+        {plan.map((j) => (
+          <div key={'p' + j} className="srow plan">
+            <span className="s-i mono">{j + 1}</span>
+            <span className="s-v mono">{hasNum(t.kg) && Number(t.kg) ? nf(Number(t.kg)) : '–'}</span>
+            <span className="s-v mono">{repTxt(t.repMin, t.repMax)}</span>
+            <span />
+            <span className="s-sp none">–</span>
+            <span className="s-t" />
+          </div>
+        ))}
+        {extra ? <div className="srow fin"><Icon name="check" size={13} /> Hedef tamam · kalite düşmeden bitir</div> : null}
+      </div>
+    </div>
+  );
+}
+
+function PlyoStage({ lib, item, session }) {
+  const total = sessionStats(session).contacts;
+  const lastQ = item.sets.length ? item.sets[item.sets.length - 1].q || 0 : 0;
+  return (
+    <div className={'plyostage' + (lastQ === 2 ? ' warn' : '')}>
+      <div className="ps-l">
+        <span className="ps-k">Yoğunluk</span>
+        <b>{PLYO_INT[(lib && lib.int) || 2]}</b>
+      </div>
+      <div className="ps-m">
+        {lastQ === 2 ? <span>Kalite düştü: bu hareketi bitir ya da dinlenmeyi uzat.</span> : <span>Her tekrarda en yükseğe, en hızlıya. Kalite düşünce dur; tükenişe gitme.</span>}
+      </div>
+      <div className="ps-r">
+        <span className="ps-k">Seans teması</span>
+        <b className={'mono' + (total > 140 ? ' over' : '')}>{total}</b>
+      </div>
+    </div>
+  );
+}
+
 function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarded }) {
   const sRef = useRef(clone(session));
   const [s, setS] = useState(sRef.current);
@@ -636,6 +782,8 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
   const rirFinal = entry.rpe != null ? (entry.rpe === 6 ? Math.max(4, rirInt) : 10 - entry.rpe) : rirInt;
   const prev = item ? prevPerf(st.sessions, item, s.startedAt) : null;
   const t = item ? item.target : null;
+  const lib = item ? exMeta(item.exId, item.name) : null;
+  const plyo = !!(lib && lib.kind === 'plyo');
 
   useEffect(() => {
     // sıradaki satır görünür kalsın (yalnızca tablonun kendi kaydırması)
@@ -647,15 +795,18 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
 
   const logSet = () => {
     if (!item) return;
-    const set = { kg: Number(entry.kg) || 0, reps: Math.max(1, Math.round(entry.reps)), lvl: entry.lvl, vl: SPEED[entry.lvl].vl, rpe, rir: rirFinal, rirEst: Math.round(rirEst * 10) / 10, at: Date.now() };
+    const set = plyo
+      ? { kg: Number(entry.kg) || 0, reps: Math.max(1, Math.round(entry.reps)), plyo: true, q: entry.q || 0, lvl: null, vl: 0, rpe: null, rir: 9, at: Date.now() }
+      : { kg: Number(entry.kg) || 0, reps: Math.max(1, Math.round(entry.reps)), lvl: entry.lvl, vl: SPEED[entry.lvl].vl, rpe, rir: rirFinal, rirEst: Math.round(rirEst * 10) / 10, at: Date.now() };
     if (entry.note) set.note = entry.note;
     if (entry.tags.length) set.tags = entry.tags;
     mutate((ns) => { ns.items[cur].sets.push(set); });
     setRest({ start: Date.now(), total: item.target.rest || 120 });
-    setEntry({ ...entry, rpe: null, note: '', tags: [] });
+    setEntry({ ...entry, rpe: null, q: 0, note: '', tags: [] });
   };
   const addItem = (ex) => {
-    const ns = mutate((x) => { x.items.push({ id: newId('e'), srcId: null, exId: ex.exId || null, name: ex.name, muscle: ex.muscle, note: '', memo: '', target: { sets: 3, repMin: 8, repMax: 12, kg: null, rpeMin: null, rpeMax: null, rest: ex.rest || 120 }, sets: [] }); });
+    const d = itemFromEx(ex);
+    const ns = mutate((x) => { x.items.push({ id: newId('e'), srcId: null, exId: d.exId, name: d.name, muscle: d.muscle, note: '', memo: '', target: { sets: d.sets, repMin: d.repMin, repMax: d.repMax, kg: null, rpeMin: null, rpeMax: null, rest: d.rest }, sets: [] }); });
     go(ns.items.length - 1);
   };
   const openNote = () => openSheet('note', {
@@ -752,10 +903,12 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
             <div className="tg-main">
               <span className="tg-k">Hedef</span>
               <span className="tg-big mono">{t.sets}<i>×</i>{repTxt(t.repMin, t.repMax)}</span>
-              <span className="tg-u">set × tekrar</span>
+              <span className="tg-u">{plyo ? 'set × temas' : 'set × tekrar'}</span>
             </div>
-            <div className="tg-cell"><b className="mono">{hasNum(t.kg) ? nf(Number(t.kg)) : '–'}</b><small>kg</small></div>
-            <div className="tg-cell"><b className="mono">{hasNum(t.rpeMin) ? rpeTxt(t.rpeMin, t.rpeMax).replace('RPE ', '') : '–'}</b><small>RPE</small></div>
+            <div className="tg-cell"><b className="mono">{hasNum(t.kg) && (Number(t.kg) || !plyo) ? nf(Number(t.kg)) : '–'}</b><small>{plyo ? 'ek kg' : 'kg'}</small></div>
+            {plyo
+              ? <div className="tg-cell"><b className="tg-int">{PLYO_INT[lib.int || 2].split(' ')[0]}</b><small>yoğunluk</small></div>
+              : <div className="tg-cell"><b className="mono">{hasNum(t.rpeMin) ? rpeTxt(t.rpeMin, t.rpeMax).replace('RPE ', '') : '–'}</b><small>RPE</small></div>}
             <div className="tg-cell"><b className="mono">{restTxt(t.rest || 120).replace(' dk', '')}</b><small>dk ara</small></div>
             {prev || item.memo || item.note ? (
               <div className="tg-foot">
@@ -768,14 +921,25 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
           <SetTable item={item} entry={entry} rpe={rpe} onOpen={openSet} bodyRef={bodyRef} />
 
           <div className="ses2-mid">
-            <SpeedStage reps={entry.reps} lvl={entry.lvl} exId={item.exId} />
+            {plyo ? <PlyoStage lib={lib} item={item} session={s} /> : <SpeedStage reps={entry.reps} lvl={entry.lvl} exId={item.exId} />}
           </div>
 
           <div className="dock">
             <div className="dock-steps">
-              <Stepper id={'kg-' + item.id} label="Kilo" value={entry.kg} step={2.5} min={0} max={500} onChange={(v) => setEntry({ ...entry, kg: v, rpe: null })} />
-              <Stepper id={'reps-' + item.id} label="Tekrar" value={entry.reps} step={1} min={1} max={60} decimals={0} onChange={(v) => setEntry({ ...entry, reps: Math.round(v), rpe: null })} />
+              <Stepper id={'kg-' + item.id} label={plyo ? 'Ek yük (kg)' : 'Kilo'} value={entry.kg} step={2.5} min={0} max={500} onChange={(v) => setEntry({ ...entry, kg: v, rpe: null })} />
+              <Stepper id={'reps-' + item.id} label={plyo ? 'Temas' : 'Tekrar'} value={entry.reps} step={1} min={1} max={60} decimals={0} onChange={(v) => setEntry({ ...entry, reps: Math.round(v), rpe: null })} />
             </div>
+            {plyo ? (
+              <div className="spd">
+                <div className="spd-h"><span className="st-k">Son tekrarların kalitesi</span><span className="spd-v" style={{ color: PLYO_Q[entry.q || 0].c }}>{PLYO_Q[entry.q || 0].d}</span></div>
+                <div className="pq-row" role="radiogroup" aria-label="Sıçrama kalitesi">
+                  {PLYO_Q.map((pq, i) => (
+                    <button key={i} type="button" id={'pq-' + i} role="radio" aria-checked={(entry.q || 0) === i} className={'pq' + ((entry.q || 0) === i ? ' on' : '')} style={{ '--c': pq.c }} onClick={() => setEntry({ ...entry, q: i })}>{pq.k}</button>
+                  ))}
+                  <button type="button" id="note-btn" className={'note-btn' + (entry.note || entry.tags.length || item.memo ? ' has' : '')} onClick={openNote} aria-label="Not ekle"><Icon name="edit" size={17} /></button>
+                </div>
+              </div>
+            ) : <React.Fragment>
             <div className="spd">
               <div className="spd-h"><span className="st-k">Son tekrarın hızı</span><span className="spd-v" style={{ color: vlColor(SPEED[entry.lvl].vl) }}>{SPEED[entry.lvl].d}</span></div>
               <div className="seg5s" role="radiogroup" aria-label="Son tekrarın hızı">
@@ -797,6 +961,7 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
               </div>
               <button type="button" id="note-btn" className={'note-btn' + (entry.note || entry.tags.length || item.memo ? ' has' : '')} onClick={openNote} aria-label="Not ekle"><Icon name="edit" size={17} /></button>
             </div>
+            </React.Fragment>}
             {(() => {
               const two = item.sets.length >= item.target.sets && cur < n - 1;
               return (
@@ -822,6 +987,30 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
 
 function SetDetailBody({ set, idx, exId, onDelete, onClose }) {
   const [confirm, setConfirm] = useState(false);
+  if (set.plyo) {
+    const lib = libById(exId);
+    const q = PLYO_Q[set.q || 0];
+    return (
+      <div className="setd">
+        <div className="setd-top">
+          <span className="setd-n mono">Set {idx + 1}</span>
+          <span className="setd-v mono">{set.reps} temas{Number(set.kg) ? ' · +' + nf(Number(set.kg)) + ' kg' : ''}</span>
+          <span className="setd-t mono">{hm(set.at)}</span>
+        </div>
+        <div className="setd-grid two">
+          <div><small>Kalite</small><b style={{ color: q.c }}>{q.k}</b></div>
+          <div><small>Yoğunluk</small><b>{PLYO_INT[(lib && lib.int) || 2].split(' ')[0]}</b></div>
+          <div><small>Yorgunluk payı</small><b className="mono">{nf(Math.round(set.reps * PLYO_W[(lib && lib.int) || 2] * 100) / 100)}</b></div>
+          <div><small>Zor set</small><b className="mono" style={{ color: 'var(--faint)' }}>hayır</b></div>
+        </div>
+        {set.tags && set.tags.length ? <div className="chips-wrap">{set.tags.map((x) => <span key={x} className="fchip on">{x}</span>)}</div> : null}
+        {set.note ? <p className="sd-note">{set.note}</p> : null}
+        {confirm ? (
+          <span className="confirm-inline"><button type="button" id="set-del-yes" className="btn danger sm" onClick={() => { onDelete(); onClose(); }}>Seti sil</button><button type="button" className="btn ghost sm" onClick={() => setConfirm(false)}>Vazgeç</button></span>
+        ) : <button type="button" id="set-del" className="btn ghost sm danger-t setd-del" onClick={() => setConfirm(true)}><Icon name="trash" size={13} /> Seti sil</button>}
+      </div>
+    );
+  }
   const e1 = e1Ok(set) ? Math.round(e1rm(set.kg, set.reps, set.rir) * 2) / 2 : null;
   return (
     <div className="setd">
@@ -922,7 +1111,7 @@ function ExListBody({ getSession, onGo, onAdd, onClose, openSheet }) {
           <li key={it.id} className="item">
             <button type="button" className="item-row" onClick={() => { onGo(i); onClose(); }}>
               <span className="item-i mono">{i + 1}</span>
-              <span className="item-t"><strong>{it.name}</strong><small className="mono">{it.sets.length}/{it.target.sets} set · {targetTxt(it.target)}</small></span>
+              <span className="item-t"><strong>{it.name}</strong><small className="mono">{it.sets.length}/{it.target.sets} set · {targetTxt(it.target, it.exId)}</small></span>
               {it.sets.length >= it.target.sets ? <Icon name="check" size={15} /> : <Icon name="right" size={14} />}
             </button>
           </li>
@@ -970,10 +1159,10 @@ function SummaryBody({ session, st, openSheet, onDelete, onClose }) {
             <li key={it.id}>
               <div className="se-top">
                 <strong>{it.name}</strong>
-                <span className="mono se-e1">{best ? <React.Fragment>e1RM {nf(Math.round(best * 2) / 2)}{pb ? <em className={d >= 0 ? 'up' : 'down'}> {d >= 0 ? '+' : '−'}{nf(Math.abs(Math.round(d * 2) / 2))}</em> : null}</React.Fragment> : 'hafif'}</span>
+                <span className="mono se-e1">{best ? <React.Fragment>e1RM {nf(Math.round(best * 2) / 2)}{pb ? <em className={d >= 0 ? 'up' : 'down'}> {d >= 0 ? '+' : '−'}{nf(Math.abs(Math.round(d * 2) / 2))}</em> : null}</React.Fragment> : isPlyo(it.exId) ? it.sets.reduce((a, z) => a + z.reps, 0) + ' temas' : 'e1RM –'}</span>
               </div>
               <div className="se-sets">
-                {it.sets.map((z, j) => <span key={j} className="se-set"><span className="mono">{nf(Number(z.kg))}×{z.reps}</span><i style={{ background: vlColor(z.vl), width: Math.max(10, z.vl * 100) + '%' }} /><small className="mono">{hm(z.at)}</small></span>)}
+                {it.sets.map((z, j) => <span key={j} className="se-set"><span className="mono">{z.plyo ? (Number(z.kg) ? '+' + nf(Number(z.kg)) + '×' : '') + z.reps + (Number(z.kg) ? '' : ' temas') : nf(Number(z.kg)) + '×' + z.reps}</span><i style={z.plyo ? { background: PLYO_Q[z.q || 0].c, width: '100%' } : { background: vlColor(z.vl), width: Math.max(10, z.vl * 100) + '%' }} /><small className="mono">{hm(z.at)}</small></span>)}
               </div>
             </li>
           );
@@ -1138,10 +1327,10 @@ function ProgramEditor2({ program, startDay, st, put, del, onBack, openSheet, st
                         <span className="item-i mono">{i + 1}</span>
                         <span className="item-t">
                           <strong>{it.name}</strong>
-                          <small className="mono">{targetTxt(it)} · {restTxt(it.rest)}</small>
+                          <small className="mono">{targetTxt(it, it.exId)} · {restTxt(it.rest)}</small>
                           {it.note ? <em>{it.note}</em> : null}
                         </span>
-                        {m ? <span className={'fatdot f' + m.fat} title={'Yorgunluk: ' + FAT[m.fat]} /> : null}
+                        {exDot(m)}
                       </button>
                     </li>
                   );
@@ -1185,46 +1374,39 @@ function ItemSheetBody({ it: it0, idx, n, onChange, onMove, onRemove, onClose, o
 }
 
 function PickerBody({ custom, addCustom, onPick, onClose, low, openSheet }) {
-  const [q, setQ] = useState('');
-  const [grp, setGrp] = useState(null);
   const [newMuscle, setNewMuscle] = useState(null);
+  const [showNew, setShowNew] = useState(false);
   const all = useMemo(() => [
     ...EX_LIB.map((e) => ({ ...e, exId: e.id, src: 'lib' })),
-    ...custom.map((c) => ({ id: c.id, exId: c.id, name: c.name, muscle: c.muscle, rest: 90, src: 'custom' })),
+    ...custom.map((c) => ({ id: c.id, exId: c.id, name: c.name, muscle: c.muscle, rest: 90, kind: 'kuvvet', src: 'custom' })),
   ], [custom]);
-  const nq = normTr(q);
-  const list = all.filter((e) => (!grp || e.muscle === grp) && (!nq || normTr(e.name).includes(nq)));
-  const exact = all.some((e) => normTr(e.name) === nq);
-  const groups = MUSCLES.filter((m) => all.some((e) => e.muscle === m));
+  const f = useExFilter(all);
+  const exact = all.some((e) => normTr(e.name) === normTr(f.q));
   const pick = (e) => { onPick(e); onClose(); };
   return (
     <div className="picker2">
-      <input id="ex-search" className="search" type="search" placeholder="Ara ya da yeni hareket yaz" value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" />
-      {low && low.length && !q ? (
+      <ExFilterBar f={f} idp="ex" placeholder="Ara ya da yeni hareket yaz" />
+      {low && low.length && !f.q ? (
         <div className="lowrow"><span className="st-k">Haftada 10 setin altında</span>
-          <div className="chips-scroll">{low.map((m) => <button key={m} type="button" className={'fchip warn' + (grp === m ? ' on' : '')} onClick={() => setGrp(grp === m ? null : m)}>{m}</button>)}</div>
+          <div className="chips-scroll">{low.map((m) => <button key={m} type="button" className={'fchip warn' + (f.grp === m ? ' on' : '')} onClick={() => f.setGrp(f.grp === m ? null : m)}>{m}</button>)}</div>
         </div>
       ) : null}
-      <div className="chips-scroll" role="group" aria-label="Kas grubu">
-        <button type="button" className={'fchip' + (!grp ? ' on' : '')} onClick={() => setGrp(null)}>Tümü</button>
-        {groups.map((m) => <button key={m} type="button" className={'fchip' + (grp === m ? ' on' : '')} onClick={() => setGrp(grp === m ? null : m)}>{m}</button>)}
-      </div>
-      {q.trim() && !exact ? (
+      {f.q.trim() && !exact && (showNew || !f.list.length) ? (
         <div className="new-ex">
-          <div className="new-ex-top"><span className="badge new">Yeni</span><strong>{q.trim()}</strong></div>
+          <div className="new-ex-top"><span className="badge new">Yeni</span><strong>{f.q.trim()}</strong></div>
           <div className="chips-wrap">{MUSCLES.map((m) => <button key={m} type="button" className={'fchip sm' + (newMuscle === m ? ' on' : '')} onClick={() => setNewMuscle(m)}>{m}</button>)}</div>
-          <button type="button" id="ex-add-new" className="btn fire full" onClick={() => { const d = addCustom(q.trim(), newMuscle); pick({ exId: d.id, name: d.name, muscle: d.muscle, rest: 90 }); }}>Ekle</button>
+          <button type="button" id="ex-add-new" className="btn fire full" onClick={() => { const d = addCustom(f.q.trim(), newMuscle); pick({ exId: d.id, name: d.name, muscle: d.muscle, rest: 90 }); }}>Ekle</button>
         </div>
       ) : null}
+      <span className="exf-count mono">{f.list.length} hareket</span>
       <ul className="ex-list2">
-        {list.map((e) => (
+        {f.list.slice(0, f.lim).map((e) => (
           <li key={e.src + e.id} className="exr">
             <button type="button" className="exr-main" onClick={() => pick(e)}>
               <span className="exr-n">{e.name}</span>
               <span className="exr-k">
-                <span>{e.muscle}</span>
-                {e.fat ? <span className={'fatdot f' + e.fat} /> : null}
-                {e.prof ? <span className="exr-p">{PROF[e.prof].k}</span> : null}
+                {exDot(e)}
+                <span>{exLine(e)}</span>
                 {e.src === 'custom' ? <span className="badge own">özel</span> : null}
               </span>
             </button>
@@ -1232,6 +1414,8 @@ function PickerBody({ custom, addCustom, onPick, onClose, low, openSheet }) {
           </li>
         ))}
       </ul>
+      {f.list.length > f.lim ? <button type="button" id="ex-more" className="btn ghost full" onClick={f.more}>Daha fazla göster ({f.list.length - f.lim})</button> : null}
+      {f.q.trim() && !exact && f.list.length && !showNew ? <button type="button" id="ex-new-open" className="add-item" onClick={() => setShowNew(true)}>+ “{f.q.trim()}” adıyla özel hareket ekle</button> : null}
     </div>
   );
 }
@@ -1349,10 +1533,21 @@ function ExerciseBody({ exId, name, st }) {
   const series = e1Series(st.sessions, m ? m.id : exId, m ? m.name : name);
   const last = st.sessions.filter((s) => s.status === 'done').map((s) => ({ s, it: s.items.find((i) => (m && i.exId === m.id) || i.name === (m ? m.name : name)) })).filter((x) => x.it && x.it.sets.length).slice(0, 4);
   const latKind = m && m.id === 'band-yana-acis' ? 'band' : m && m.id === 'kablo-yana-acis' ? 'cable' : 'db';
+  const plyo = m && m.kind === 'plyo';
+  const setTxt = (z) => (z.plyo ? (Number(z.kg) ? '+' + nf(Number(z.kg)) + '×' : '') + z.reps : nf(Number(z.kg)) + '×' + z.reps);
   return (
     <div className="exsheet">
       <FactChips ex={m} />
-      {m ? <p className="ex-prof">{PROF[m.prof].d}.</p> : null}
+      {m && m.en ? <p className="ex-en">İngilizce: {m.en}</p> : null}
+      {m && !plyo && m.prof ? <p className="ex-prof">{PROF[m.prof].d}.</p> : null}
+      {m && m.not ? <p className="ex-tip"><Icon name="info" size={13} /> {m.not}</p> : null}
+      {plyo ? (
+        <div className="ex-plyo">
+          <span className="st-k">Pliometrik doz</span>
+          <p>Seans başına toplam temas: başlangıç 80–100, orta 100–120, ileri 120–140. Aynı bölgeye pliometrik çalışmalar arasında 48–72 sa bırak. Her tekrar en yüksek niyetle; kalite düşünce dur.</p>
+          <p className="ex-src">Kaynak: NSCA önerileri</p>
+        </div>
+      ) : null}
       {m && m.bio ? (
         <CompactCtx.Provider value={true}>
           <BiomechTab move={m.bio} setMove={() => {}} latKind={latKind} />
@@ -1361,7 +1556,7 @@ function ExerciseBody({ exId, name, st }) {
       <div className="ex-hist">
         <span className="st-k">Geçmiş</span>
         {last.length ? last.map(({ s, it }) => (
-          <div key={s.id} className="exh-row mono"><span>{dateTxt(s.startedAt)}</span><span>{it.sets.map((z) => nf(Number(z.kg)) + '×' + z.reps).join(', ')}</span></div>
+          <div key={s.id} className="exh-row mono"><span>{dateTxt(s.startedAt)}</span><span>{it.sets.map(setTxt).join(', ')}</span></div>
         )) : <p className="muted-p">Bu hareketle henüz kayıt yok.</p>}
         {series.length ? <p className="mono exh-best">En iyi e1RM {nf(Math.round(Math.max(...series.map((p) => p.v)) * 2) / 2)} kg</p> : null}
       </div>
@@ -1372,10 +1567,14 @@ function ExerciseBody({ exId, name, st }) {
 function GoalBody({ st, put, onClose }) {
   const g0 = st.settings.find((x) => x.id === 'goal') || DEFAULT_GOAL;
   const [g, setG] = useState(g0);
-  const opts = EX_LIB.filter((e) => e.fat >= 2);
+  const [q, setQ] = useState('');
+  const toks = normTr(q).split(/\s+/).filter(Boolean);
+  const cur = libById(g.exId);
+  const opts = EX_LIB.filter((e) => e.kind !== 'plyo' && e.fat >= 2 && (!toks.length || toks.every((t) => normTr(e.name + ' ' + e.en).includes(t)))).slice(0, 8);
   return (
     <div className="note-sheet">
-      <span className="st-k">Hareket</span>
+      <span className="st-k">Hareket{cur ? ': ' + cur.name : ''}</span>
+      <input id="goal-search" className="search" type="search" placeholder="Hareket ara (ör. bench, squat)" value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" />
       <div className="chips-wrap">{opts.map((e) => <button key={e.id} type="button" className={'fchip' + (g.exId === e.id ? ' on' : '')} onClick={() => setG({ ...g, exId: e.id })}>{e.name}</button>)}</div>
       <div className="entry-steps">
         <Stepper id="goal-base" label="Başlangıç 1RM" value={g.base} step={2.5} min={0} max={400} onChange={(v) => setG({ ...g, base: v })} />
@@ -1553,15 +1752,17 @@ const LAB_BASICS = [
   { id: 'meter', t: 'Toparlanma ve yorgunluk ölçer', d: 'Yük, RPE, hacim ve uykuyu kendin dene', sheet: ['fatigue', {}] },
 ];
 function LabScreen({ openSheet }) {
-  const groups = MUSCLES.filter((m) => EX_LIB.some((e) => e.muscle === m));
-  const [grp, setGrp] = useState(groups[0]);
-  const list = EX_LIB.filter((e) => e.muscle === grp);
+  const f = useExFilter(EX_LIB);
+  const [part, setPart] = useState('temel');
   return (
     <div className="screen">
       <ScreenHead title="Lab" sub="Antrenmanın arkasındaki bilim" />
+      <div className="segmented seg3 labseg" role="tablist" aria-label="Lab bölümleri">
+        <button type="button" role="tab" id="lab-part-temel" aria-selected={part === 'temel'} className={part === 'temel' ? 'on' : ''} onClick={() => setPart('temel')}><b className="mono">01</b> Temeller</button>
+        <button type="button" role="tab" id="lab-part-hareket" aria-selected={part === 'hareket'} className={part === 'hareket' ? 'on' : ''} onClick={() => setPart('hareket')}><b className="mono">02</b> Hareketler <small className="mono">{EX_LIB.length}</small></button>
+      </div>
       <div className="scr">
-        <section className="labsec">
-          <div className="labsec-h"><span className="labsec-n mono">01</span><span><strong>Temeller</strong><small>Sinir sistemi ve yorgunluk</small></span></div>
+        {part === 'temel' ? <section className="labsec">
           <ol className="lablist">
             {LAB_BASICS.map((x, i) => (
               <li key={x.id}>
@@ -1573,25 +1774,23 @@ function LabScreen({ openSheet }) {
               </li>
             ))}
           </ol>
-        </section>
-        <section className="labsec">
-          <div className="labsec-h"><span className="labsec-n mono">02</span><span><strong>Hareketler</strong><small>Kas, yorgunluk maliyeti, direnç profili</small></span></div>
-          <div className="chips-scroll" role="group" aria-label="Kas grubu">
-            {groups.map((m) => <button key={m} type="button" id={'labg-' + normTr(m).replace(/[^a-z]/g, '')} className={'fchip' + (grp === m ? ' on' : '')} onClick={() => setGrp(m)}>{m} <span className="mono fchip-n">{EX_LIB.filter((e) => e.muscle === m).length}</span></button>)}
-          </div>
+        </section> : <section className="labsec">
+          <ExFilterBar f={f} idp="lab" />
+          <span className="exf-count mono">{f.list.length} hareket</span>
           <ul className="lablist ex">
-            {list.map((e) => (
+            {f.list.slice(0, f.lim).map((e) => (
               <li key={e.id}>
                 <button type="button" id={'labex-' + e.id} className="labrow" onClick={() => openSheet('exercise', { exId: e.id })}>
-                  <span className={'fatdot f' + e.fat} title={'Yorgunluk: ' + FAT[e.fat]} />
-                  <span className="labrow-t"><strong>{e.name}</strong><small>{e.muscle} · {PROF[e.prof].k} · yorgunluk {FAT[e.fat].toLocaleLowerCase('tr')}</small></span>
-                  {e.bio ? <span className="badge bio">tork</span> : null}
+                  {exDot(e)}
+                  <span className="labrow-t"><strong>{e.name}</strong><small>{exLine(e)}</small></span>
+                  {e.bio ? <span className="badge bio">tork</span> : e.kind === 'olimpik' ? <span className="badge kind">olimpik</span> : null}
                   <Icon name="right" size={14} />
                 </button>
               </li>
             ))}
           </ul>
-        </section>
+          {f.list.length > f.lim ? <button type="button" id="lab-more" className="btn ghost full" onClick={f.more}>Daha fazla göster ({f.list.length - f.lim})</button> : null}
+        </section>}
       </div>
     </div>
   );
@@ -1651,8 +1850,109 @@ function MeasureBody({ openSheet }) {
   );
 }
 
+/* ================= HESAP ================= */
+function AccountBody({ st, acct, setAcct, openSheet, onClose }) {
+  const [mode, setMode] = useState(null); // null | 'email'
+  const [isNew, setIsNew] = useState(false);
+  const [email, setEmail] = useState('');
+  const [pass, setPass] = useState('');
+  const [confirm, setConfirm] = useState(null); // 'out' | 'del'
+  const [delTxt, setDelTxt] = useState('');
+  const n = { p: st.programs.length, s: st.sessions.filter((x) => x.status === 'done').length, c: st.checkins.length };
+  const signIn = (em) => openSheet('consent', { onAccept: () => setAcct({ mode: 'user', email: em, pending: 0, consent: Date.now(), lastSync: Date.now() }) });
+  const valid = /.+@.+\..+/.test(email) && pass.length >= 6;
+  if (acct.mode === 'guest') {
+    return (
+      <div className="acct">
+        <div className="acct-hero">
+          <Icon name="cloud" size={22} />
+          <div>
+            <strong>Kayıtların şu an yalnızca bu telefonda</strong>
+            <p>Giriş yap: her set buluta yedeklenir, telefon değişse de hesabınla geri gelir. İnternet yokken de kaydeder, bağlantı gelince gönderir.</p>
+          </div>
+        </div>
+        <p className="acct-move mono">Bu telefondaki {n.p} program, {n.s} antrenman ve {n.c} uyku kaydı hesabına taşınır.</p>
+        <button type="button" id="google-signin" className="btn google full" onClick={() => signIn('kullanici@gmail.com')}><span className="g-mark">G</span> Google ile devam et</button>
+        {mode === 'email' ? (
+          <div className="acct-form">
+            <input id="acct-email" className="text-in" type="email" inputMode="email" autoComplete="email" placeholder="E-posta" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input id="acct-pass" className="text-in" type="password" autoComplete={isNew ? 'new-password' : 'current-password'} placeholder={isNew ? 'Şifre (en az 6 karakter)' : 'Şifre'} value={pass} onChange={(e) => setPass(e.target.value)} />
+            <button type="button" id="acct-email-go" className="btn primary full" disabled={!valid} onClick={() => signIn(email.trim())}>{isNew ? 'Hesap oluştur' : 'Giriş yap'}</button>
+            <div className="acct-links">
+              <button type="button" className="linkbtn" onClick={() => setIsNew(!isNew)}>{isNew ? 'Hesabın var mı? Giriş yap' : 'Hesabın yok mu? Oluştur'}</button>
+              {!isNew ? <button type="button" className="linkbtn" onClick={() => {}}>Şifremi unuttum</button> : null}
+            </div>
+          </div>
+        ) : <button type="button" id="email-signin" className="btn ghost full" onClick={() => setMode('email')}><Icon name="mail" size={15} /> E-posta ile devam et</button>}
+        <button type="button" className="linkbtn" onClick={() => openSheet('privacy', {})}><Icon name="shield" size={13} /> Verilerin nasıl saklanır?</button>
+      </div>
+    );
+  }
+  return (
+    <div className="acct">
+      <div className="acct-user">
+        <span className="acct-av">{(acct.email || '?')[0].toUpperCase()}</span>
+        <div><strong>{acct.email}</strong><small>Google hesabı · giriş yapıldı</small></div>
+      </div>
+      <div className={'acct-sync ' + (acct.pending ? 'pending' : 'ok')}>
+        <Icon name="cloud" size={16} />
+        <span>{acct.pending ? acct.pending + ' kayıt bekliyor; internet gelince gönderilecek' : 'Tüm kayıtlar bulutta'}</span>
+        <small className="mono">{acct.lastSync ? 'son eşitleme ' + hm(acct.lastSync) : ''}</small>
+      </div>
+      <p className="acct-move mono">{n.p} program · {n.s} antrenman · {n.c} uyku kaydı</p>
+      <button type="button" className="btn ghost full" onClick={() => {}}>Verilerimi dışa aktar (JSON)</button>
+      <button type="button" className="linkbtn" onClick={() => openSheet('privacy', {})}><Icon name="shield" size={13} /> Gizlilik ve veri kullanımı</button>
+      {confirm === 'out' ? (
+        <div className="pop flat">
+          <p>{acct.pending ? acct.pending + ' kayıt henüz buluta gitmedi. Çıkarsan bu telefondan silinir. İnternete bağlanıp bekle.' : 'Çıkış yapınca kayıtların bu telefondan kalkar, hesabında durur.'}</p>
+          <div className="confirm-inline">
+            <button type="button" id="signout-yes" className="btn danger sm" disabled={!!acct.pending} onClick={() => { setAcct({ mode: 'guest', email: null, pending: 0, consent: null, lastSync: null }); onClose(); }}>Çıkış yap</button>
+            <button type="button" className="btn ghost sm" onClick={() => setConfirm(null)}>Vazgeç</button>
+          </div>
+        </div>
+      ) : confirm === 'del' ? (
+        <div className="pop flat">
+          <p>Hesabın ve buluttaki tüm kayıtların kalıcı olarak silinir; geri alınamaz. Onaylamak için <b>SİL</b> yaz.</p>
+          <input id="del-confirm" className="text-in" value={delTxt} onChange={(e) => setDelTxt(e.target.value)} placeholder="SİL" />
+          <div className="confirm-inline">
+            <button type="button" id="delete-yes" className="btn danger sm" disabled={delTxt.trim().toLocaleUpperCase('tr') !== 'SİL'} onClick={() => { setAcct({ mode: 'guest', email: null, pending: 0, consent: null, lastSync: null }); onClose(); }}>Hesabı kalıcı sil</button>
+            <button type="button" className="btn ghost sm" onClick={() => { setConfirm(null); setDelTxt(''); }}>Vazgeç</button>
+          </div>
+        </div>
+      ) : (
+        <div className="acct-danger">
+          <button type="button" id="signout" className="btn ghost sm" onClick={() => setConfirm('out')}>Çıkış yap</button>
+          <button type="button" id="delete-account" className="btn ghost sm danger-t" onClick={() => setConfirm('del')}><Icon name="trash" size={13} /> Hesabı sil</button>
+        </div>
+      )}
+    </div>
+  );
+}
+function ConsentBody({ onAccept, onClose }) {
+  const [ok, setOk] = useState(false);
+  return (
+    <div className="acct">
+      <p className="consent-p">Hesabına şunlar kaydedilir: programların, antrenman ve set kayıtların, notların, uyku saatlerin ve hedefin. Bunlar yalnızca sana gösterilir, yorgunluk ve gelişim hesapları için kullanılır, kimseyle paylaşılmaz ve satılmaz. Veriler Avrupa’daki (Frankfurt) sunucularda tutulur.</p>
+      <p className="consent-p">Uyku ve antrenman verisi sağlıkla ilgili sayılabileceği için açık rızan gerekir. Rızanı istediğin an hesabını silerek geri alabilirsin; o zaman tüm verilerin silinir.</p>
+      <label className="check-row"><input id="consent-check" type="checkbox" checked={ok} onChange={(e) => setOk(e.target.checked)} /> Antrenman ve uyku verilerimin bu amaçla saklanmasına açık rıza veriyorum.</label>
+      <button type="button" id="consent-yes" className="btn primary full" disabled={!ok} onClick={() => { onAccept(); onClose(); }}>Kabul et ve devam et</button>
+    </div>
+  );
+}
+function PrivacyBody() {
+  return (
+    <div className="acct privacy">
+      <p><b>Ne saklanır:</b> e-posta adresin, programların, antrenman ve set kayıtların (saatleriyle), notların, uyku girişlerin, hedefin.</p>
+      <p><b>Nerede:</b> Hesapsız kullanımda yalnızca bu telefonda. Giriş yapınca Google Firebase’in Avrupa (Frankfurt) sunucularında; telefonda da bir kopya kalır, internet yokken kayıt buraya yazılır.</p>
+      <p><b>Kim görür:</b> Yalnızca sen. Her kullanıcı sadece kendi verisine erişebilir; bu kural sunucuda zorunlu.</p>
+      <p><b>Silme:</b> Hesap › Hesabı sil ile hesabın ve tüm verilerin kalıcı silinir. Dışa aktar ile istediğin an JSON kopyasını alabilirsin.</p>
+      <p className="ex-src">Veri sorumlusu ve iletişim bilgisi yayın öncesi eklenecek.</p>
+    </div>
+  );
+}
+
 /* ================= KABUK ================= */
-const SHEET_TITLES = { fatigue: 'Yorgunluk ölçer', lesson: 'Sinir sistemi', exercise: 'Hareket', picker: 'Hareket ekle', item: 'Hareketi düzenle', note: 'Not', exlist: 'Hareketler', summary: 'Antrenman özeti', saveTemplate: 'Antrenman türü olarak kaydet', plan: 'Program analizi', goal: 'Hedef', measure: 'Yorgunluk nasıl ölçülür?', wtype: 'Antrenman türü', setdetail: 'Set' };
+const SHEET_TITLES = { account: 'Hesap ve yedek', consent: 'Verilerin nasıl kullanılır', privacy: 'Gizlilik', fatigue: 'Yorgunluk ölçer', lesson: 'Sinir sistemi', exercise: 'Hareket', picker: 'Hareket ekle', item: 'Hareketi düzenle', note: 'Not', exlist: 'Hareketler', summary: 'Antrenman özeti', saveTemplate: 'Antrenman türü olarak kaydet', plan: 'Program analizi', goal: 'Hedef', measure: 'Yorgunluk nasıl ölçülür?', wtype: 'Antrenman türü', setdetail: 'Set' };
 
 function App() {
   const store = useLogStore();
@@ -1661,6 +1961,8 @@ function App() {
   const [sheets, setSheets] = useState([]);
   const [prog, setProg] = useState({ name: 'list' });
   const [antView, setAntView] = useState('start');
+  // Prototipte hesap taklit edilir; uygulamada Firebase Auth + Firestore (bkz. CODEX görevi)
+  const [acct, setAcct] = useState({ mode: 'guest', email: null, pending: 0, consent: null, lastSync: null });
   const seeded = useRef(false);
   const put = (kind, obj) => (apiRef.current ? apiRef.current.put(kind, obj) : null);
   const del = (kind, id) => (apiRef.current ? apiRef.current.del(kind, id) : null);
@@ -1728,6 +2030,9 @@ function App() {
       case 'saveTemplate': return <SaveTemplateBody session={p.session} st={st} put={put} onClose={close} onSaved={(pr, d) => { closeAll(); setProg({ name: 'edit', id: pr.id, draft: pr, day: d.id, back: 'antrenman' }); setTab('programlar'); }} />;
       case 'plan': return <PlanBody getProgram={p.getProgram} st={st} openSheet={openSheet} />;
       case 'goal': return <GoalBody st={st} put={put} onClose={close} />;
+      case 'account': return <AccountBody st={st} acct={acct} setAcct={setAcct} openSheet={openSheet} onClose={close} />;
+      case 'consent': return <ConsentBody onAccept={p.onAccept} onClose={close} />;
+      case 'privacy': return <PrivacyBody />;
       default: return null;
     }
   };
@@ -1741,7 +2046,7 @@ function App() {
   const sheetSize = (sh) => (['lesson', 'exercise', 'fatigue', 'summary', 'picker', 'measure'].includes(sh.type) ? 'full' : '');
 
   let screen = null;
-  if (tab === 'bugun') screen = <TodayScreen st={st} put={put} openSheet={openSheet} startSession={startSession} goTab={setTab} />;
+  if (tab === 'bugun') screen = <TodayScreen st={st} put={put} openSheet={openSheet} startSession={startSession} goTab={setTab} acct={acct} />;
   if (tab === 'antrenman') {
     screen = active
       ? <SessionView2 key={active.id} session={active} st={st} put={put} del={del} openSheet={openSheet} onFinished={(ns) => openSheet('summary', { id: ns.id, draft: ns })} onDiscarded={() => setAntView('start')} />

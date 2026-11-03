@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+    // Her kullanıcı yalnızca kendi users/{uid} ağacını okuyup yazabilir.
+    match /users/{uid} {
+      allow read, write: if isOwner(uid);
+      match /{col}/{docId} {
+        allow read, write: if isOwner(uid)
+          && col in ['programs', 'sessions', 'exercises', 'checkins', 'settings'];
+      }
+    }
+  }
+}

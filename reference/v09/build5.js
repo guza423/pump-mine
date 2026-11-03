@@ -6,7 +6,7 @@ const rd = (f) => fs.readFileSync(path.join(dir, f), 'utf8');
 const jsx = ['cns.jsx', 'bio-ui.jsx', 'core.jsx', 'app.jsx'].map(rd).join('\n');
 const out = ts.transpileModule(jsx, { compilerOptions: { jsx: ts.JsxEmit.React, target: ts.ScriptTarget.ES2019, removeComments: true, ignoreDeprecations: '6.0' }, fileName: 'app.jsx', reportDiagnostics: true });
 (out.diagnostics || []).forEach((d) => console.error('TS:', ts.flattenDiagnosticMessageText(d.messageText, '\n')));
-let js = rd('biomech.js').replace("if (typeof module !== 'undefined') module.exports = BIO;", '') + '\n' + out.outputText.replace(/^"use strict";\s*/, '').replace(/export \{\};?\s*$/m, '');
+let js = rd('biomech.js').replace("if (typeof module !== 'undefined') module.exports = BIO;", '') + '\n' + rd('exlib.js') + '\n' + out.outputText.replace(/^"use strict";\s*/, '').replace(/export \{\};?\s*$/m, '');
 js = js.replace(/<\/script/gi, '<\\/script');
 new Function(js);
 // Artifact görüntüleyici güvenli alanı zaten :root'ta boşluk olarak veriyor; çift boşluk olmasın.

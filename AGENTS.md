@@ -2,12 +2,16 @@
 
 Android telefonda çalışan, sunucusuz, çevrimdışı bir antrenman uygulaması. Arayüz dili Türkçe.
 
+## Görevler
+Yapılacak işler `GOREV.md`'de sırayla listelidir; görev ayrıntıları `docs/gorevler/` altında. Kullanıcı "GOREV.md'yi uygula" dediğinde bekleyen ilk görevden başla.
+
 ## Referans prototip
-`reference/v07/` klasörü, Claude'da yapılmış ve çalışan güncel prototiptir. Bu projenin tasarım ve davranış kaynağıdır. Önceki prototip `reference/v03/` altında yalnızca tarihçe için tutulur.
+`reference/v09/` klasörü, Claude'da yapılmış ve çalışan güncel prototiptir. Bu projenin tasarım ve davranış kaynağıdır. Önceki prototip `reference/v03/` altında yalnızca tarihçe için tutulur.
 
 - `performance.html`: tek dosyalık çalışan hali. Tarayıcıda açıp davranışı gör.
-- `app.jsx`: dört sekmeli uygulama kabuğu (Bugün, Antrenman, Programlar, Lab), ekranlar ve sheet yığını.
-- `core.jsx`: sabitler, hareket kütüphanesi, şablonlar, hız/RIR modeli ve ortak antrenman bileşenleri.
+- `app.jsx`: dört sekmeli uygulama kabuğu (Bugün, Antrenman, Programlar, Lab), ekranlar, sheet yığını, hesap ekranları.
+- `exlib.js`: 438 hareketlik kütüphane (kuvvet, olimpik, pliometrik).
+- `core.jsx`: sabitler, şablonlar, hız/RIR modeli, pliometrik yardımcılar ve ortak antrenman bileşenleri.
 - `bio-ui.jsx` + `biomech.js`: biyomekanik hareket kartları ve tork modelleri.
 - `cns.jsx` + `cns.css`: sinir sistemi dersleri, göstergeler ve yorgunluk simülatörü.
 - CSS sırası: `cns.css → app.css → log.css → mobile.css → app5.css`.
