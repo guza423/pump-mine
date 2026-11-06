@@ -12,7 +12,7 @@ new Function(js);
 // Artifact görüntüleyici güvenli alanı zaten :root'ta boşluk olarak veriyor; çift boşluk olmasın.
 const artifactOverride = ':root { --sat: 0px; --sab: 0px; }';
 const css = ['cns.css', 'app.css', 'log.css', 'mobile.css', 'app5.css'].map(rd).join('\n') + '\n' + artifactOverride;
-const html = `<title>PERFORMANCE Uygulaması</title>
+const html = `<title>OUTMOVE</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

@@ -24,8 +24,8 @@ async function shareJson(contents: string, filename: string) {
   });
 
   await Share.share({
-    title: 'PERFORMANCE yedeği',
-    text: 'Antrenman verilerimin PERFORMANCE yedeği',
+    title: 'OUTMOVE yedeği',
+    text: 'Antrenman verilerimin OUTMOVE yedeği',
     url: uri,
     dialogTitle: 'Yedeği kaydet veya paylaş',
   });

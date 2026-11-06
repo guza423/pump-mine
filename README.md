@@ -1,4 +1,4 @@
-# PERFORMANCE
+# OUTMOVE
 
 Android telefonları hedefleyen; sunucusuz, çevrimdışı çalışan kuvvet antrenmanı uygulaması. Vite + React + TypeScript ile geliştirilen v0.7, Capacitor ile Android uygulaması olarak paketlenir ve dört ana sekmeye ayrılır:
 
@@ -61,7 +61,7 @@ Yerel APK `android/app/build/outputs/apk/debug/app-debug.apk` konumunda oluşur.
 
 Programlar, antrenmanlar, özel hareketler, uyku girişleri ve hedef tarayıcının IndexedDB alanında tutulur; bir sunucuya gönderilmez. İlk açılışta **Hipertrofi bloğu** örnek programı eklenir. Her set, uyku girişi ve antrenman başlangıç/bitişi zaman damgalıdır.
 
-**Programlar** listesinin altındaki **Yedekle** düğmesi bütün veriyi v2 JSON olarak dışa aktarır. Web sürümü dosyayı indirir; Android sürümü Capacitor Filesystem ve Share ile sistem paylaşım menüsünü açar. **Geri yükle**, seçilen PERFORMANCE yedeğini doğrular ve mevcut yerel verinin yerine koyar. Tarayıcı verilerini temizlemeden veya telefon değiştirmeden önce yedek alın.
+**Programlar** listesinin altındaki **Yedekle** düğmesi bütün veriyi v2 JSON olarak dışa aktarır. Web sürümü dosyayı indirir; Android sürümü Capacitor Filesystem ve Share ile sistem paylaşım menüsünü açar. **Geri yükle**, seçilen OUTMOVE yedeğini doğrular ve mevcut yerel verinin yerine koyar. Tarayıcı verilerini temizlemeden veya telefon değiştirmeden önce yedek alın.
 
 ## Hesap modelleri
 

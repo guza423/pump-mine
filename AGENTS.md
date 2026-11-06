@@ -1,4 +1,4 @@
-# PERFORMANCE · kuvvet antrenmanı uygulaması
+# OUTMOVE · antrenman takip uygulaması
 
 Android telefonda çalışan, sunucusuz, çevrimdışı bir antrenman uygulaması. Arayüz dili Türkçe.
 
@@ -67,7 +67,7 @@ src/
 
 ## Fazlar
 1. **Web uygulaması.** Vite + React + TS iskeleti, prototipin birebir taşınması, IndexedDB store, yedekleme, PWA. Her push'ta GitHub Pages'e deploy eden workflow (Vite `base` ayarını repo adına göre yap).
-2. **Android APK.** Capacitor Android projesi. Her push'ta debug APK üreten GitHub Actions workflow'u; APK, Actions çalıştırmasının "Artifacts" bölümünden indirilebilsin. Uygulama adı: PERFORMANCE, paket adı: `app.performance.training`.
+2. **Android APK.** Capacitor Android projesi. Her push'ta debug APK üreten GitHub Actions workflow'u; APK, Actions çalıştırmasının "Artifacts" bölümünden indirilebilsin. Uygulama adı: OUTMOVE (eski adı PERFORMANCE). Paket adı `app.performance.training` **değişmez**: kurulu uygulama güncellenebilsin, Firebase kaydı ve yerel veriler korunsun. IndexedDB adı (`performance-training`) ve kod içindeki `Performance*` tip adları da aynı kalır.
 3. **v0.7 arayüzü.** Bugün, Antrenman, Programlar ve Lab; hedef, geçmiş, program analizi ve yorgunluk simülatörü.
 
 ## Teslim

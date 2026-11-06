@@ -57,7 +57,7 @@ export function parseBackup(value: unknown): PerformanceBackup {
   if (!value || typeof value !== 'object') throw new Error('Yedek bir JSON nesnesi olmalı.');
   const candidate = value as Omit<Partial<PerformanceBackup>, 'version'> & { version?: number };
   if (candidate.format !== 'performance-backup' || (candidate.version !== 1 && candidate.version !== 2)) {
-    throw new Error('Bu dosya desteklenen bir PERFORMANCE yedeği değil.');
+    throw new Error('Bu dosya desteklenen bir OUTMOVE yedeği değil.');
   }
   const data = candidate.data as Partial<PerformanceBackup['data']> | undefined;
   if (!data || !Array.isArray(data.programs) || !Array.isArray(data.sessions) || !Array.isArray(data.exercises)) {

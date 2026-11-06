@@ -16,9 +16,9 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         includeAssets: ['icon.svg', 'icon-192.png', 'icon-512.png'],
         manifest: {
-          name: 'PERFORMANCE',
-          short_name: 'PERFORMANCE',
-          description: 'Sunucusuz ve çevrimdışı kuvvet antrenmanı uygulaması',
+          name: 'OUTMOVE',
+          short_name: 'OUTMOVE',
+          description: 'Her türlü antrenmanı takip et, yorgunluğunu yönet',
           lang: 'tr',
           start_url: base,
           scope: base,

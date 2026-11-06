@@ -3,7 +3,7 @@
 Google hesabınla https://console.firebase.google.com adresine gir. Menü Türkçe ya da İngilizce olabilir; parantez içinde İngilizcesi var.
 
 ## 1) Proje
-- **Proje ekle (Add project)** → ad: `performance` → Google Analytics: **kapalı** → Oluştur.
+- **Proje ekle (Add project)** → ad: `outmove` → Google Analytics: **kapalı** → Oluştur.
 
 ## 2) Giriş yöntemleri
 - Sol menü **Derleme (Build) → Authentication → Başlayın (Get started)**.
@@ -21,7 +21,7 @@ Google hesabınla https://console.firebase.google.com adresine gir. Menü Türk�
 ## 4) Android uygulaması
 - Sol üstte dişli → **Proje ayarları (Project settings) → Genel (General)** → en altta **Uygulamalarınız** → Android simgesi.
 - Paket adı: `app.performance.training`
-- Takma ad: `PERFORMANCE`
+- Takma ad: `OUTMOVE`
 - Hata ayıklama imza sertifikası SHA-1:
   `C5:34:1E:AF:12:E4:35:0E:1A:48:D4:69:BB:6B:90:85:02:C3:1F:64`
 - **Uygulamayı kaydet** → **google-services.json indir**. Kalan adımlarda sadece İleri'ye bas.
@@ -31,7 +31,7 @@ Google hesabınla https://console.firebase.google.com adresine gir. Menü Türk�
 Bu iki parmak izi, APK'yı imzalayan sabit anahtarın. Google ile girişin çalışması için gerekli.
 
 ## 5) Web uygulaması
-- Aynı yerde **Uygulama ekle → Web (</>)** → takma ad: `PERFORMANCE web` → Hosting **işaretleme** → Kaydet.
+- Aynı yerde **Uygulama ekle → Web (</>)** → takma ad: `OUTMOVE web` → Hosting **işaretleme** → Kaydet.
 - Ekranda `firebaseConfig = { apiKey: ..., authDomain: ..., ... }` çıkar. Bu altı değeri kopyala (6. adımda kullanılacak).
 
 ## 6) İki dosyayı repoya koydur
