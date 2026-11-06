@@ -2,6 +2,9 @@
 
 Android telefonda çalışan, sunucusuz, çevrimdışı bir antrenman uygulaması. Arayüz dili Türkçe.
 
+## Her görevin başında (zorunlu, kullanıcıya sorma)
+`git pull --rebase origin main` çalıştır. Claude repoya doğrudan görev, referans ve yapılandırma dosyası gönderiyor; yerel klasör geride olabilir. Çekme bitmeden hiçbir dosyayı okuma ya da değiştirme.
+
 ## Görevler
 Yapılacak işler `GOREV.md`'de sırayla listelidir; görev ayrıntıları `docs/gorevler/` altında. Kullanıcı "GOREV.md'yi uygula" dediğinde bekleyen ilk görevden başla.
 

@@ -1,6 +1,6 @@
 # Görevler
 
-Codex ya da Claude: önce `AGENTS.md`'yi, sonra bu dosyayı oku. "Bekleyen" listesindeki görevleri **sırayla** uygula. Her görev bitince satırını "Tamamlanan"a taşı (tarih + commit kısa kodu). `AGENTS.md`'deki "Her görevin sonunda" kuralı her görev için geçerli: test + build geçsin, doğrudan `main`'e push.
+Codex ya da Claude: önce `git pull --rebase origin main`, sonra `AGENTS.md`'yi, sonra bu dosyayı oku. "Bekleyen" listesindeki görevleri **sırayla** uygula. Her görev bitince satırını "Tamamlanan"a taşı (tarih + commit kısa kodu). `AGENTS.md`'deki "Her görevin sonunda" kuralı her görev için geçerli: test + build geçsin, doğrudan `main`'e push.
 
 ## Bekleyen
 1. [`docs/gorevler/V08-hareket-kutuphanesi.md`](docs/gorevler/V08-hareket-kutuphanesi.md): 438 hareketlik kütüphane, arama/filtre, pliometrik kayıt.
