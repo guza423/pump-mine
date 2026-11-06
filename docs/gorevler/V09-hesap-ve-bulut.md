@@ -30,7 +30,7 @@ export const auth = initializeAuth(app, { persistence: indexedDBLocalPersistence
 auth.languageCode = 'tr';
 export const fs = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentSingleTabManager(undefined) }) });
 ```
-`getAuth` kullanma. Capacitor WebView'de popup/redirect çözümleyicisi sorun çıkarır; `initializeAuth` + `indexedDBLocalPersistence` şart.
+Google Analytics'i başlatma (`getAnalytics` yok); config'deki `measurementId` yalnızca bekleme durumunda kalsın. Analitik ileride ayrı onayla eklenecek. `getAuth` kullanma. Capacitor WebView'de popup/redirect çözümleyicisi sorun çıkarır; `initializeAuth` + `indexedDBLocalPersistence` şart.
 
 ## 3) Veri modeli
 - Firestore yolları: `users/{uid}` ve alt koleksiyonlar `programs`, `sessions`, `exercises`, `checkins`, `settings`. Belge kimliği mevcut `id`.
