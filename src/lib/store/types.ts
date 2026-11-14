@@ -31,11 +31,13 @@ export interface Program {
 export interface RecordedSet {
   kg: number;
   reps: number;
-  lvl: 0 | 1 | 2 | 3 | 4;
+  lvl: 0 | 1 | 2 | 3 | 4 | null;
   vl: number;
-  rpe: number;
+  rpe: number | null;
   rir: number;
-  rirEst: number;
+  rirEst?: number;
+  plyo?: boolean;
+  q?: 0 | 1 | 2;
   at: number;
   note?: string;
   tags?: string[];
@@ -73,7 +75,7 @@ export interface Exercise {
   createdAt: number;
   pending: true;
   fat?: 1 | 2 | 3;
-  prof?: 'alt' | 'ust' | 'dengeli';
+  prof?: 'alt' | 'ust' | 'dengeli' | 'a' | 'u' | 'o' | 'd';
   sec?: string[];
   bio?: 'bench' | 'rdl' | 'yanaacis';
 }

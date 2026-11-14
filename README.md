@@ -5,7 +5,7 @@ Android telefonları hedefleyen; sunucusuz, çevrimdışı çalışan kuvvet ant
 - **Bugün:** zaman damgalı zor setler ve uyku girişlerinden yorgunluk, toparlanma, haftalık plan ve hedef.
 - **Antrenman:** antrenman türleri, aktif set kaydı, dinlenme sayacı ve dönem filtreli geçmiş.
 - **Programlar:** program editörü, şablonlar ve üç haftalık seans başı/sonu yorgunluk analizi.
-- **Lab:** yorgunluk modelinin dört adımı, sinir sistemi dersleri, simülatör ve biyomekanik hareket kartları.
+- **Lab:** Temeller dersleri ve Türkçe/İngilizce arama, tür, kas, ekipman filtreleriyle 438 hareket (359 kuvvet, 28 olimpik, 51 pliometrik).
 
 ## Yerelde çalıştırma
 
@@ -64,6 +64,8 @@ Programlar, antrenmanlar, özel hareketler, uyku girişleri ve hedef tarayıcın
 **Programlar** listesinin altındaki **Yedekle** düğmesi bütün veriyi v2 JSON olarak dışa aktarır. Web sürümü dosyayı indirir; Android sürümü Capacitor Filesystem ve Share ile sistem paylaşım menüsünü açar. **Geri yükle**, seçilen OUTMOVE yedeğini doğrular ve mevcut yerel verinin yerine koyar. Tarayıcı verilerini temizlemeden veya telefon değiştirmeden önce yedek alın.
 
 ## Hesap modelleri
+
+- Pliometrik kayıtta ek yük, temas ve sıçrama kalitesi tutulur. Temaslar tonaj, e1RM, zor set ve RPE ortalamasına katılmaz; yoğunluğa göre ayrı yük üretir ve 36 saatlik aynı azalmayı kullanır. Bir seansta 140 üstü temas için uyarı gösterilir.
 
 - Hız seçici yükten ve tekrar sayısından bağımsız olarak `5+ / 3 / 2 / 1 / 0 RIR` eşlemesini kullanır. Bench hareketlerinde tahmini m/s, diğer hareketlerde ilk tekrara göre temsili yüzde gösterilir.
 - e1RM yalnızca `RIR ≤ 4` ve `tekrar + RIR ≤ 12` koşulunu sağlayan setlerde Epley ile hesaplanır.

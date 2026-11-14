@@ -563,6 +563,83 @@
 .fat2-simv { font-size: 11.5px; color: var(--muted); white-space: nowrap; }
 .fat2-simv b { font-size: 15px; font-weight: 600; }
 
+/* ================= HAREKET KÜTÜPHANESİ ================= */
+.exf { display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr); }
+.seg4 { grid-auto-columns: minmax(0, 1fr); }
+.seg4 button { padding-left: 2px; padding-right: 2px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.seg4 button small { font-size: 9.5px; color: var(--faint); }
+.seg4 button.on small { color: var(--neuro); }
+.exf-count { font-size: 10.5px; color: var(--faint); margin-top: -2px; }
+.pdot { width: 8px; height: 8px; flex: none; transform: rotate(45deg); border-radius: 2px; justify-self: center; }
+.pdot.i1 { background: var(--ok); }
+.pdot.i2 { background: var(--warn); }
+.pdot.i3 { background: var(--fire); }
+.pdot.i4 { background: var(--bad); box-shadow: 0 0 6px var(--bad); }
+.badge.kind { color: var(--amber); border-color: rgba(255, 189, 90, 0.45); }
+.fact.kind { color: var(--amber); border-color: rgba(255, 189, 90, 0.45); }
+.ex-en { margin: -4px 0 0; font-size: 11.5px; color: var(--faint); }
+.ex-tip { margin: 0; display: flex; gap: 6px; align-items: flex-start; font-size: 12.5px; line-height: 1.45; color: var(--amber); }
+.ex-tip svg { flex: none; margin-top: 2px; }
+.ex-plyo { display: grid; gap: 6px; padding: 10px 12px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); }
+.ex-plyo p { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+.ex-plyo .ex-src { font-size: 11px; color: var(--faint); }
+.exr-k .fatdot, .exr-k .pdot { margin-right: 2px; }
+/* pliometrik kayıt */
+.plyostage { width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line); background: rgba(3, 5, 11, 0.5); }
+.plyostage.warn { border-color: rgba(255, 67, 87, 0.5); }
+.ps-l, .ps-r { display: grid; gap: 1px; justify-items: center; }
+.ps-k { font-size: 9.5px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+.ps-l b { font-size: 14px; color: var(--amber); }
+.ps-r b { font-size: 18px; }
+.ps-r b.over { color: var(--bad); }
+.ps-m { font-size: 12px; line-height: 1.4; color: var(--muted); }
+.plyostage.warn .ps-m { color: #ff8f99; }
+.pq-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) 44px; gap: 4px; }
+.pq { appearance: none; cursor: pointer; padding: 10px 2px; border-radius: 10px; border: 1px solid var(--line); background: var(--deep); color: var(--muted); font: 500 12px var(--f-body); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pq.on { border-color: var(--c); color: var(--text); background: color-mix(in srgb, var(--c) 14%, var(--deep)); box-shadow: 0 0 12px -5px var(--c); }
+.pq:focus-visible { outline: 2px solid var(--neuro); outline-offset: 2px; }
+.tg-int { font-size: 14px; font-weight: 600; color: var(--amber); }
+.stable.plyo .srow { grid-template-columns: 32px minmax(0, 1fr) minmax(0, 1fr) 8px 96px 40px; }
+@container (max-height: 40px) { .plyostage { display: none; } }
+.setd-grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.labseg button b { font-size: 10.5px; color: var(--faint); margin-right: 3px; }
+.labseg button.on b { color: var(--neuro); }
+.labseg button small { font-size: 10px; color: var(--faint); margin-left: 2px; }
+
+/* ================= HESAP ================= */
+.acct-chip { appearance: none; cursor: pointer; position: relative; flex: none; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line-strong); background: var(--panel); color: var(--muted); }
+.acct-chip.ok, .acct-chip.pending { color: var(--neuro-hi); border-color: rgba(57, 213, 255, 0.5); }
+.acct-dot { position: absolute; right: 1px; bottom: 1px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--deep); background: var(--faint); }
+.acct-chip.ok .acct-dot { background: var(--ok); }
+.acct-chip.pending .acct-dot { background: var(--amber); animation: blink 1.2s ease-in-out infinite; }
+.acct-chip.guest .acct-dot { background: var(--amber); }
+.acct-chip:focus-visible { outline: 2px solid var(--neuro); outline-offset: 2px; }
+.guest-banner { appearance: none; cursor: pointer; display: grid; grid-template-columns: 16px minmax(0, 1fr) 14px; gap: 8px; align-items: center; padding: 6px 12px; white-space: nowrap; border-radius: 12px; border: 1px solid rgba(255, 189, 90, 0.4); background: rgba(255, 189, 90, 0.07); color: var(--amber); text-align: left; font: 12.5px var(--f-body); }
+.guest-banner b { color: var(--text); font-weight: 600; }
+.acct { display: grid; gap: 10px; grid-template-columns: minmax(0, 1fr); }
+.acct-hero { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; padding: 12px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); color: var(--neuro); }
+.acct-hero strong { color: var(--text); font-size: 15px; }
+.acct-hero p { margin: 4px 0 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
+.acct-move { margin: 0; font-size: 11.5px; color: var(--faint); }
+.btn.google { justify-content: center; background: #fff; color: #1f1f1f; border-color: #fff; font-weight: 600; }
+.g-mark { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: conic-gradient(#ea4335 0 25%, #fbbc05 0 50%, #34a853 0 75%, #4285f4 0); color: #fff; font: 700 12px var(--f-body); }
+.acct-form { display: grid; gap: 8px; }
+.acct-links { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.linkbtn { appearance: none; cursor: pointer; justify-self: start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 0; background: none; border: 0; color: var(--neuro); font: 12.5px var(--f-body); }
+.acct-user { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: center; }
+.acct-av { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: rgba(57, 213, 255, 0.15); border: 1px solid var(--neuro); color: var(--neuro-hi); font: 700 18px var(--f-body); }
+.acct-user strong { display: block; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acct-user small { font-size: 12px; color: var(--muted); }
+.acct-sync { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 10px 12px; border-radius: 12px; font-size: 13px; border: 1px solid rgba(62, 224, 164, 0.4); background: rgba(62, 224, 164, 0.07); color: var(--ok); }
+.acct-sync span { color: var(--text); }
+.acct-sync.pending { border-color: rgba(255, 189, 90, 0.45); background: rgba(255, 189, 90, 0.07); color: var(--amber); }
+.acct-sync small { font-size: 10.5px; color: var(--faint); }
+.acct-danger { display: flex; justify-content: space-between; gap: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+.consent-p, .privacy p { margin: 0; font-size: 13px; line-height: 1.55; color: var(--muted); }
+.privacy p b { color: var(--text); }
+
+.guest-banner span { overflow: hidden; text-overflow: ellipsis; }
+
 .backup-card { margin-top: 8px; padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
 .backup-card p { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.45; }
 .backup-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }

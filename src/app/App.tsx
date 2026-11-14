@@ -4,7 +4,7 @@ import { BackupPanel } from '../features/programlar/BackupPanel';
 import { BiomechTab, Tile } from '../features/lab/Biomekanik';
 import { CompactCtx, Icon, NeedleGauge, Range, STAGES, StageFatigue, StageRate, StageRecruit, StageSignal, Switch, clamp } from '../features/lab/Cns';
 import {
-  BENCH_IDS, EX_LIB, FAT, MONTHS, MUSCLES, PROF, SPEED, TEMPLATES,
+  BENCH_IDS, EX_LIB, FAT, EQ, PLYO_INT, isPlyo, PLYO_W, PLYO_Q, libById, MONTHS, MUSCLES, PROF, SPEED, TEMPLATES,
   WD_LONG, WD_SHORT, WEEK_ORDER, ItemEditor, Lane, SetReplay, Stepper, animVl,
   bestE1, blankProgram, clone, dateTxt, durTxt, e1Ok, e1rm, entryFor,
   firstOpen, hasNum, itemFromEx, mmss, newId, nextPlanned, nf, normTr,
@@ -12,13 +12,14 @@ import {
   rpeTxt, sameDay, sessionFromDay, sessionStats, targetTxt, vlColor,
 } from '../features/antrenman/core';
 import { useLogStore } from '../lib/store/useLogStore';
+import { planStats, logStats, TAU_H, FRESH, proxW, costW, loadScore, hoursToFresh, decayK, setLoads, sleepInfo, sleepPts, fatigueAt, steadyWeek, simFromLogs, simFromPlan, simulatePlan, fatigueRecs, e1Series, prevPerf, sessionFatigue, periodMetrics, historyWarnings } from '../lib/models/fatigue';
 import '../styles/cns.css';
 import '../styles/app.css';
 import '../styles/log.css';
 import '../styles/mobile.css';
 import '../styles/v7.css';
 
-/* ================= PERFORMANCE v0.7 · son kullanıcı uygulaması ================= */
+/* ================= PERFORMANCE v0.5 · son kullanıcı uygulaması ================= */
 const TABS2 = [
   { id: 'bugun', label: 'Bugün', icon: 'home' },
   { id: 'antrenman', label: 'Antrenman', icon: 'bolt' },
@@ -49,222 +50,6 @@ const sessionNotes = (s) => s.items.reduce((a, it) => a + (it.memo ? 1 : 0) + it
 
 /* ---------- analizler ---------- */
 // Haftalık hacim: kas başına zor set sayısı (azalmasız, 7 gün). Hipertrofi için 10–20 aralığı izlenir.
-function planStats(program) {
-  const muscles = {};
-  (program ? program.days : []).forEach((d) => d.items.forEach((it) => {
-    if (10 - rpeMid(it.rpeMin, it.rpeMax) > 4) return;
-    muscles[it.muscle] = (muscles[it.muscle] || 0) + Number(it.sets || 0);
-  }));
-  return { muscles };
-}
-function logStats(sessions, endTs) {
-  const from = endTs - 7 * DAY_MS;
-  const muscles = {};
-  sessions.filter((s) => (s.status === 'done' || s.status === 'active') && s.startedAt >= from && s.startedAt <= endTs + 1000).forEach((s) => s.items.forEach((it) => {
-    it.sets.forEach((x) => { if (x.rir <= 4) muscles[it.muscle] = (muscles[it.muscle] || 0) + 1; });
-  }));
-  return { muscles };
-}
-
-/* ---------- yorgunluk modeli ----------
-   Antrenman yorgunluğu: son 7 günün zor setleri (RIR ≤ 4). Her set = tükenişe yakınlık × hareketin sistemik maliyeti
-   ve zamanla üstel azalır (τ 36 sa: 24 sa sonra %51, 48 sa sonra %26 kalır). Tükenişe giden setler toparlanmayı
-   24–48 sa uzatır (Morán-Navarro ve ark. 2017). Skor = 100 × (1 − e^(−toplam/20)).
-   Uyku ayrı eklenir. Tek gece kısa uyku maksimal kuvveti ortalama ~%3, kuvvet-dayanıklılığını ~%10 düşürür
-   (Craven ve ark. 2022); birkaç gece üst üste daha fazla. Ağırlıklar bu çalışmalardan türetilmiş tahmindir. */
-const TAU_H = 36, FK = 20;
-const FRESH = -FK * Math.log(0.75); // antrenman skoru 25'in altı: toparlanmış
-const proxW = (rir) => (rir <= 0.5 ? 1.6 : rir <= 1.5 ? 1.3 : rir <= 2.5 ? 1.1 : rir <= 3.5 ? 1 : 0.8);
-const costW = (exId, name) => { const m = exMeta(exId, name); return m ? [1, 0.6, 1, 1.5][m.fat] : 1; };
-const loadScore = (sum) => 100 * (1 - Math.exp(-sum / FK));
-const hoursToFresh = (sum) => (sum > FRESH ? Math.ceil(TAU_H * Math.log(sum / FRESH)) : 0);
-const decayK = (h) => Math.exp(-h / TAU_H);
-function setLoads(sessions, t) {
-  const out = [];
-  sessions.forEach((s) => {
-    if (s.status !== 'done' && s.status !== 'active') return;
-    s.items.forEach((it) => {
-      const c = costW(it.exId, it.name);
-      it.sets.forEach((x) => { if (x.rir <= 4 && x.at && x.at <= t && t - x.at < 7 * DAY_MS) out.push({ at: x.at, w: proxW(x.rir) * c, rir: x.rir, heavy: c >= 1.5 }); });
-    });
-  });
-  return out;
-}
-function sleepInfo(st, t) {
-  const d0 = new Date(t);
-  const keys = [0, 1, 2].map((i) => dayKey(new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() - i).getTime()));
-  const got = keys.map((k) => st.checkins.find((c) => c.id === k)).filter(Boolean);
-  const last = st.checkins.find((c) => c.id === keys[0]);
-  const avg3 = got.length ? got.reduce((a, c) => a + Number(c.sleep), 0) / got.length : null;
-  return { known: !!last, last: last ? Number(last.sleep) : null, avg3, n: got.length };
-}
-// Dün gece: 7,5 sa altı en çok +20 (5 sa ve altı). Son 3 gece ortalaması 7 sa altı en çok +10; bilinmeyen geceler varsayılmaz.
-const sleepPts = (last, avg3, n) => (last == null ? 0 : 20 * clamp((7.5 - last) / 2.5) + 10 * clamp((7 - avg3) / 2) * ((n || 3) / 3));
-function fatigueAt(st, t, sessions) {
-  const loads = setLoads(sessions || st.sessions, t);
-  const sum = loads.reduce((a, x) => a + x.w * decayK((t - x.at) / 3.6e6), 0);
-  const train = loadScore(sum);
-  const sl = sleepInfo(st, t);
-  const sp = sleepPts(sl.last, sl.avg3, sl.n);
-  const score = clamp(train + sp, 0, 100);
-  return {
-    sum, train, sleep: sl, sleepPts: sp, score, zone: zoneOf(score), hrs: hoursToFresh(sum),
-    hard: loads.length, fail: loads.filter((x) => x.rir <= 0.5).length,
-  };
-}
-// Simülatör: haftalık düzen sabit kalırsa seans başında ve sonunda ulaşılan denge değerleri
-function steadyWeek(v) {
-  const n = Math.max(1, v.n);
-  const sets = v.deload ? v.sets * 0.5 : v.sets;
-  const rir = v.deload ? Math.min(4, v.rir + 1) : v.rir;
-  const c = 0.6 * (1 - v.heavy / 100) + 1.5 * (v.heavy / 100);
-  const per = (sets / n) * proxW(rir) * c;
-  const k = decayK(168 / n);
-  const resid = (per * k) / (1 - k);
-  const sp = sleepPts(v.sleepLast, v.sleepAvg, 3);
-  const pre = clamp(loadScore(resid) + sp, 0, 100);
-  return { per, resid, pre, post: clamp(loadScore(resid + per) + sp, 0, 100), train: loadScore(resid), sleepPts: sp, hrs: hoursToFresh(resid + per), perSession: sets / n, zone: zoneOf(pre) };
-}
-function simFromLogs(st) {
-  const t = Date.now();
-  const loads = setLoads(st.sessions, t);
-  const sl = sleepInfo(st, t);
-  const n = st.sessions.filter((s) => s.status === 'done' && t - s.startedAt < 7 * DAY_MS).length;
-  const avg3 = sl.n ? (sl.avg3 * sl.n + 7.5 * (3 - sl.n)) / 3 : 7.5;
-  const base = { sleepLast: sl.last != null ? sl.last : 7.5, sleepAvg: Math.round(avg3 * 2) / 2, deload: false };
-  if (loads.length && n) {
-    return { ...base, sets: Math.max(4, Math.round(loads.length / 2) * 2), rir: clamp(Math.round((loads.reduce((a, x) => a + x.rir, 0) / loads.length) * 2) / 2, 0, 4), n: clamp(n, 1, 6), heavy: Math.round((loads.filter((x) => x.heavy).length / loads.length) * 10) * 10, src: 'Son 7 günün kayıtlarından' };
-  }
-  const p = st.programs.find((x) => x.days.some((d) => d.items.length));
-  if (p) return { ...simFromPlan(p), ...base, src: 'Programına göre' };
-  return { ...base, sets: 30, rir: 2, n: 3, heavy: 40, src: 'Örnek değerler' };
-}
-function simFromPlan(p) {
-  let sets = 0, rir = 0, heavy = 0;
-  const days = p.days.filter((d) => d.items.length);
-  days.forEach((d) => d.items.forEach((it) => {
-    const r = 10 - rpeMid(it.rpeMin, it.rpeMax);
-    if (r > 4) return;
-    const n = Number(it.sets || 0);
-    sets += n; rir += r * n;
-    const m = exMeta(it.exId, it.name);
-    if (m && m.fat === 3) heavy += n;
-  }));
-  return { sets: Math.max(4, sets), rir: sets ? clamp(Math.round((rir / sets) * 2) / 2, 0, 4) : 2, n: clamp(days.length || 1, 1, 6), heavy: sets ? Math.round((heavy / sets) * 10) * 10 : 0, sleepLast: 7.5, sleepAvg: 7.5, deload: false };
-}
-// Programı 3 hafta boyunca, her tür kendi gününde 18:00'de yapılmış gibi işletir; 3. haftanın değerleri raporlanır
-function simulatePlan(p) {
-  const days = p.days.filter((d) => d.items.length);
-  if (!days.length) return null;
-  const dayLoad = (d) => d.items.reduce((a, it) => { const r = 10 - rpeMid(it.rpeMin, it.rpeMax); return r > 4 ? a : a + Number(it.sets || 0) * proxW(r) * costW(it.exId, it.name) * 1.07; }, 0);
-  const fixed = days.filter((d) => d.weekday != null);
-  const slots = days.map((d, i) => {
-    const wd = d.weekday != null ? (d.weekday + 6) % 7 : fixed.length ? null : Math.round((i * 7) / days.length);
-    return { d, h: wd == null ? null : wd * 24 + 18, w: dayLoad(d) };
-  }).filter((x) => x.h != null);
-  if (!slots.length) return null;
-  const events = [];
-  for (let wk = 0; wk < 3; wk++) slots.forEach((x) => events.push({ h: wk * 168 + x.h, w: x.w, d: x.d, wk }));
-  events.sort((a, b) => a.h - b.h);
-  const at = (h) => events.filter((e) => e.h < h).reduce((a, e) => a + e.w * decayK(h - e.h), 0);
-  const per = events.filter((e) => e.wk === 2).map((e) => { const pre = at(e.h); return { d: e.d, pre: loadScore(pre), post: loadScore(pre + e.w) }; });
-  return { per, pre: per.reduce((a, x) => a + x.pre, 0) / per.length, post: Math.max(...per.map((x) => x.post)), unplaced: days.length - slots.length };
-}
-function fatigueRecs(f) {
-  // f: { pre|score, post?, sleepLast, sleepAvg, n?, rir?, perSession?, fail? }
-  const r = [];
-  const score = f.score != null ? f.score : f.pre;
-  if (f.sleepLast != null && f.sleepLast < 6.5) r.push('Dün gece ' + nf(f.sleepLast) + ' sa: maksimal kuvvet ortalama ~%3, çok tekrarlı setler ~%10 düşebilir ve aynı yük daha ağır hissedilir. Ağır setlerde hedefi 1 tekrar erken bitir.');
-  if (f.sleepAvg != null && f.sleepAvg < 6.5 && f.sleepN !== 1) r.push('Son gecelerin ortalaması ' + nf(Math.round(f.sleepAvg * 10) / 10) + ' sa. Birkaç gece üst üste kısa uyku tek geceden daha çok düşürür; önce uykuyu 7 saatin üstüne çıkar.');
-  if (score >= 70) r.push('Yorgunluk yüksek: bugün hafif çalış ya da dinlen. Birkaç gün üst üste böyleyse 1 hafta hacmi %40–50 azalt (deload).');
-  else if (score >= 40) r.push('Yorgunluk birikiyor: setleri 2–3 tekrar kala bitir, aynı kas grubunu ağır çalışmadan önce 48 sa ver.');
-  if (f.rir != null && f.rir <= 1) r.push('Setlerin çoğu tükenişte. Tükeniş toparlanmayı 24–48 sa uzatır; 1–3 tekrar kala bitirmek benzer kazanım sağlar.');
-  if (f.perSession != null && f.perSession > 24) r.push('Seans başına ' + Math.round(f.perSession) + ' zor set çok. Hacmi daha fazla seansa böl.');
-  if (f.post != null && f.post >= 85) r.push('Seans sonrası tepe çok yüksek; en ağır günleri arka arkaya koyma.');
-  if (score < 40 && !r.length) r.push('Toparlanmış görünüyorsun. Plana göre yüklen; ilerlemeyi küçük adımlarla yap.');
-  return r.slice(0, 3);
-}
-function e1Series(sessions, exId, name) {
-  return sessions.filter((s) => s.status === 'done').map((s) => {
-    let best = 0;
-    s.items.forEach((it) => { if ((exId && it.exId === exId) || (!exId && it.name === name)) best = Math.max(best, bestE1(it.sets)); });
-    return { t: s.startedAt, v: best };
-  }).filter((p) => p.v > 0).sort((a, b) => a.t - b.t);
-}
-function prevPerf(sessions, item, beforeTs) {
-  const s = sessions.filter((x) => x.status === 'done' && x.startedAt < beforeTs).sort((a, b) => b.startedAt - a.startedAt)
-    .find((x) => x.items.some((it) => (item.exId && it.exId === item.exId) || it.name === item.name));
-  if (!s) return null;
-  const it = s.items.find((i) => (item.exId && i.exId === item.exId) || i.name === item.name);
-  return it && it.sets.length ? it.sets.map((z) => nf(Number(z.kg)) + '×' + z.reps).join(', ') : null;
-}
-
-// Antrenmana başlarken ve bitirirken yorgunluk (o günün uykusu dahil)
-function sessionFatigue(s, st) {
-  if (s.fatigue && s.fatigue.v === 2) return s.fatigue;
-  const pre = fatigueAt(st, s.startedAt - 1).score;
-  const post = fatigueAt(st, s.endedAt || s.startedAt).score;
-  return { v: 2, pre, post };
-}
-function periodMetrics(list, days) {
-  let dur = 0, sets = 0, hard = 0, ton = 0, rpe = 0;
-  list.forEach((s) => {
-    const ss = sessionStats(s);
-    dur += ss.dur; sets += ss.sets.length; hard += ss.hard.length; ton += ss.tonnage;
-    rpe += ss.sets.reduce((a, x) => a + Number(x.rpe || 0), 0);
-  });
-  const n = list.length;
-  const span = days || Math.max(7, n ? (Date.now() - list[n - 1].startedAt) / DAY_MS : 7);
-  return { n, dur, avgDur: n ? dur / n : 0, sets, hard, ton, avgRpe: sets ? rpe / sets : 0, perWeek: n / (span / 7) };
-}
-function historyWarnings(st, list) {
-  const w = [];
-  const now = Date.now();
-  const done = st.sessions.filter((s) => s.status === 'done');
-  const fz = fatigueAt(st, now);
-  const sc = Math.round(fz.score);
-  if (sc >= 70) w.push({ lv: 'bad', t: 'Yorgunluk yüksek · ' + sc, d: 'Bugün hafif çalış ya da dinlen. Günlerce böyleyse 1 hafta hacmi %40–50 azalt.' });
-  else if (sc >= 40) w.push({ lv: 'warn', t: 'Yorgunluk birikiyor · ' + sc, d: 'Setleri 2–3 tekrar kala bitir; aynı kası ağır çalışmadan önce 48 sa ver.' });
-  if (fz.sleep.known && fz.sleep.last < 6.5) w.push({ lv: 'warn', t: 'Dün gece ' + nf(fz.sleep.last) + ' sa uyku', d: 'Maksimal kuvvet ~%3, çok tekrarlı setler ~%10 düşebilir. Ağır setlerde 1 tekrar erken bitir.' });
-  const ls = logStats(st.sessions, now);
-  Object.entries(ls.muscles).filter(([, n]) => n > 20).sort((a, b) => b[1] - a[1]).forEach(([m, n]) => w.push({ lv: 'bad', t: m + ' · 7 günde ' + n + ' zor set', d: '20 setin üstünde toparlanma uzar. Hacmi azalt ya da 2–3 güne böl.' }));
-  const sets = [];
-  list.forEach((s) => s.items.forEach((it) => it.sets.forEach((x) => sets.push(x))));
-  if (sets.length >= 6) {
-    const avgRpe = sets.reduce((a, x) => a + Number(x.rpe || 0), 0) / sets.length;
-    if (avgRpe >= 9) w.push({ lv: 'warn', t: 'Ortalama RPE ' + nf(Math.round(avgRpe * 10) / 10), d: 'Setlerin çoğunu 1–3 tekrar kala bitir. Kazanım benzer, yorgunluk daha az.' });
-    const fail = sets.filter((x) => x.rir <= 0.5).length / sets.length;
-    if (fail >= 0.3) w.push({ lv: 'warn', t: 'Setlerin %' + Math.round(fail * 100) + '’i tükenişte', d: 'Tükeniş toparlanmayı 24–48 sa uzatır. 1–3 tekrar kala bitirmek benzer kazanım sağlar.' });
-  }
-  const sl = st.checkins.filter((c) => now - (c.at || 0) < 7 * DAY_MS);
-  if (sl.length >= 2) {
-    const a = sl.reduce((x, c) => x + Number(c.sleep), 0) / sl.length;
-    if (a < 7) w.push({ lv: 'warn', t: 'Uyku ortalaması ' + nf(Math.round(a * 10) / 10) + ' sa', d: 'Son 7 gün. 7 saatin altı aynı yükü daha ağır hissettirir.' });
-  }
-  const seen = {};
-  done.forEach((s) => s.items.forEach((it) => { if (bestE1(it.sets)) seen[it.exId || it.name] = it; }));
-  Object.values(seen).forEach((it) => {
-    const ser = e1Series(st.sessions, it.exId, it.name);
-    if (ser.length < 3) return;
-    const last = ser[ser.length - 1];
-    if (now - last.t > 14 * DAY_MS) return;
-    const best = Math.max(...ser.slice(0, -1).map((x) => x.v));
-    const drop = 1 - last.v / best;
-    if (drop >= 0.05) w.push({ lv: 'warn', t: it.name + ' · e1RM %' + Math.round(drop * 100) + ' düştü', d: 'En iyi ' + nf(Math.round(best * 2) / 2) + ' kg, son ' + nf(Math.round(last.v * 2) / 2) + ' kg. Yorgunluk birikmiş olabilir.' });
-  });
-  if (done.some((s) => now - s.startedAt < 7 * DAY_MS)) {
-    const plan = {};
-    st.programs.forEach((p) => p.days.forEach((d) => d.items.forEach((i) => { plan[i.muscle] = 1; })));
-    const low = MAIN_MUSCLES.filter((m) => plan[m] && (ls.muscles[m] || 0) < 10);
-    if (low.length) w.push({ lv: 'info', t: 'Az çalışan: ' + low.map((m) => m + ' ' + (ls.muscles[m] || 0)).join(', '), d: 'Son 7 gün zor set. Kas başına haftada 10–20 sık önerilir.' });
-  }
-  if (done.length) {
-    const gap = Math.floor((now - done[0].startedAt) / DAY_MS);
-    if (gap >= 6) w.push({ lv: 'info', t: gap + ' gündür antrenman yok', d: 'Uzun aradan sonra ilk antrenmanda yükü %5–10 düşük başla.' });
-  }
-  return w;
-}
-
 /* ---------- ortak parçalar ---------- */
 function ScreenHead({ title, sub, right, left }) {
   return (
@@ -327,13 +112,61 @@ function MuscleBars({ muscles, list, max = 24, compact }) {
     </div>
   );
 }
+function exDot(e) {
+  if (!e) return null;
+  return e.kind === 'plyo' ? <span className={'pdot i' + (e.int || 2)} title={'Yoğunluk: ' + PLYO_INT[e.int || 2]} /> : e.fat ? <span className={'fatdot f' + e.fat} title={'Yorgunluk: ' + FAT[e.fat]} /> : null;
+}
+function exLine(e) {
+  if (!e.eq) return e.muscle;
+  return e.muscle + ' · ' + EQ[e.eq] + ' · ' + (e.kind === 'plyo' ? 'yoğunluk ' + PLYO_INT[e.int || 2].split(' ')[0].toLocaleLowerCase('tr') : PROF[e.prof].k);
+}
 function FactChips({ ex }) {
   if (!ex) return null;
   return (
     <div className="facts">
       <span className="fact"><b>{ex.muscle}</b>{ex.sec && ex.sec.length ? ' + ' + ex.sec.join(', ') : ''}</span>
-      <span className={'fact fat' + ex.fat}>Yorgunluk: {FAT[ex.fat]}</span>
-      <span className="fact prof" title={PROF[ex.prof].d}>{PROF[ex.prof].k}</span>
+      {ex.eq ? <span className="fact">{EQ[ex.eq]}</span> : null}
+      {ex.kind && ex.kind !== 'kuvvet' ? <span className="fact kind">{ex.kind === 'plyo' ? 'Pliometrik' : 'Olimpik'}</span> : null}
+      {ex.kind === 'plyo'
+        ? <span className={'fact fat' + Math.min(3, ex.int || 2)}>Yoğunluk: {PLYO_INT[ex.int || 2]}</span>
+        : <span className={'fact fat' + ex.fat}>Yorgunluk: {FAT[ex.fat]}</span>}
+      {ex.kind !== 'plyo' && ex.prof ? <span className="fact prof" title={PROF[ex.prof].d}>{PROF[ex.prof].k}</span> : null}
+    </div>
+  );
+}
+const EX_KINDS = [['all', 'Tümü'], ['kuvvet', 'Kuvvet'], ['olimpik', 'Olimpik'], ['plyo', 'Pliometrik']];
+function useExFilter(all, initGrp) {
+  const [q, setQ0] = useState('');
+  const [kind, setKind0] = useState('all');
+  const [grp, setGrp0] = useState(initGrp || null);
+  const [eq, setEq0] = useState(null);
+  const [lim, setLim] = useState(40);
+  const wrap = (f) => (v) => { f(v); setLim(40); };
+  const toks = normTr(q).split(/\s+/).filter(Boolean);
+  const hay = useMemo(() => new Map(all.map((e) => [e, normTr(e.name + ' ' + (e.en || '') + ' ' + e.muscle + ' ' + (EQ[e.eq] || ''))])), [all]);
+  const base = toks.length ? all.filter((e) => toks.every((t) => hay.get(e).includes(t))) : all;
+  const byKind = base.filter((e) => kind === 'all' || (e.kind || 'kuvvet') === kind);
+  const list = byKind.filter((e) => (!grp || e.muscle === grp) && (!eq || e.eq === eq));
+  const groups = MUSCLES.map((m) => [m, byKind.filter((e) => e.muscle === m && (!eq || e.eq === eq)).length]).filter((x) => x[1]);
+  const eqs = Object.keys(EQ).map((k) => [k, byKind.filter((e) => e.eq === k && (!grp || e.muscle === grp)).length]).filter((x) => x[1]);
+  const kinds = EX_KINDS.map(([k, t]) => [k, t, k === 'all' ? base.length : base.filter((e) => (e.kind || 'kuvvet') === k).length]);
+  return { q, setQ: wrap(setQ0), kind, setKind: wrap(setKind0), grp, setGrp: wrap(setGrp0), eq, setEq: wrap(setEq0), lim, more: () => setLim(lim + 60), list, groups, eqs, kinds };
+}
+function ExFilterBar({ f, idp, placeholder }) {
+  return (
+    <div className="exf">
+      <input id={idp + '-search'} className="search" type="search" placeholder={placeholder || 'Hareket ara (Türkçe ya da İngilizce)'} value={f.q} onChange={(e) => f.setQ(e.target.value)} autoComplete="off" />
+      <div className="segmented seg4" role="tablist" aria-label="Hareket türü">
+        {f.kinds.map(([k, t]) => <button key={k} type="button" role="tab" id={idp + '-kind-' + k} aria-selected={f.kind === k} className={f.kind === k ? 'on' : ''} onClick={() => f.setKind(k)}>{t}</button>)}
+      </div>
+      <div className="chips-scroll" role="group" aria-label="Kas grubu">
+        <button type="button" className={'fchip' + (!f.grp ? ' on' : '')} onClick={() => f.setGrp(null)}>Tüm kaslar</button>
+        {f.groups.map(([m, n]) => <button key={m} type="button" id={idp + '-g-' + normTr(m).replace(/[^a-z]/g, '')} className={'fchip' + (f.grp === m ? ' on' : '')} onClick={() => f.setGrp(f.grp === m ? null : m)}>{m} <span className="mono fchip-n">{n}</span></button>)}
+      </div>
+      <div className="chips-scroll" role="group" aria-label="Ekipman">
+        <button type="button" className={'fchip sm' + (!f.eq ? ' on' : '')} onClick={() => f.setEq(null)}>Tüm ekipman</button>
+        {f.eqs.map(([k, n]) => <button key={k} type="button" id={idp + '-eq-' + k} className={'fchip sm' + (f.eq === k ? ' on' : '')} onClick={() => f.setEq(f.eq === k ? null : k)}>{EQ[k]} <span className="mono fchip-n">{n}</span></button>)}
+      </div>
     </div>
   );
 }
@@ -390,7 +223,7 @@ function TodayScreen({ st, put, openSheet, startSession, goTab }) {
 
   return (
     <div className="screen">
-      <ScreenHead title="Bugün" sub={fullDate(Date.now())} right={<span className={'sync-dot ' + (st.status === 'db' && !st.error ? 'ok' : st.status === 'loading' ? 'wait' : 'warn')} title={st.status === 'local' ? 'Önizleme: kayıtlar saklanmıyor' : 'Hesabına kaydediliyor'} />} />
+      <ScreenHead title="Bugün" sub={fullDate(Date.now())} />
       <div className="scr fit">
         <section className="ready">
           <button type="button" id="ready-ring" className="ready-ring" onClick={() => openSheet('fatigue', {})} aria-label="Yorgunluk ayrıntısı">
@@ -588,6 +421,7 @@ function SpeedStage({ reps, lvl, exId }) {
 }
 
 function SetTable({ item, entry, rpe, onOpen, bodyRef }) {
+  if (isPlyo(item.exId)) return <PlyoTable item={item} entry={entry} onOpen={onOpen} bodyRef={bodyRef} />;
   const t = item.target;
   const done = item.sets;
   const extra = done.length >= t.sets;
@@ -635,6 +469,73 @@ function SetTable({ item, entry, rpe, onOpen, bodyRef }) {
   );
 }
 
+function PlyoTable({ item, entry, onOpen, bodyRef }) {
+  const t = item.target;
+  const done = item.sets;
+  const extra = done.length >= t.sets;
+  const plan = [];
+  for (let j = done.length + 1; j < t.sets; j++) plan.push(j);
+  const q = (i) => PLYO_Q[i || 0];
+  return (
+    <div className="stable plyo">
+      <div className="srow sh" aria-hidden="true"><span>Set</span><span>Ek yük</span><span>Temas</span><span /><span>Kalite</span><span>Saat</span></div>
+      <div className="sbody" ref={bodyRef}>
+        {done.map((x, j) => (
+          <button key={x.at + '-' + j} type="button" className="srow done" onClick={() => onOpen(j)} aria-label={'Set ' + (j + 1) + ': ' + x.reps + ' temas. Ayrıntı'}>
+            <span className="s-i mono"><Icon name="check" size={12} />{j + 1}</span>
+            <span className="s-v mono">{Number(x.kg) ? nf(Number(x.kg)) : '–'}</span>
+            <span className="s-v mono">{x.reps}</span>
+            <span />
+            <span className="s-sp" style={{ '--c': q(x.q).c }}><i />{q(x.q).k}</span>
+            <span className="s-t mono">{hm(x.at)}{x.note || (x.tags && x.tags.length) ? <em>✎</em> : null}</span>
+          </button>
+        ))}
+        {!extra ? (
+          <div className="srow now">
+            <span className="s-i mono">{done.length + 1}</span>
+            <span className="s-v mono">{Number(entry.kg) ? nf(Number(entry.kg)) : '–'}</span>
+            <span className="s-v mono">{entry.reps}</span>
+            <span />
+            <span className="s-sp" style={{ '--c': q(entry.q).c }}><i />{q(entry.q).k}</span>
+            <span className="s-t now-t">sırada</span>
+          </div>
+        ) : null}
+        {plan.map((j) => (
+          <div key={'p' + j} className="srow plan">
+            <span className="s-i mono">{j + 1}</span>
+            <span className="s-v mono">{hasNum(t.kg) && Number(t.kg) ? nf(Number(t.kg)) : '–'}</span>
+            <span className="s-v mono">{repTxt(t.repMin, t.repMax)}</span>
+            <span />
+            <span className="s-sp none">–</span>
+            <span className="s-t" />
+          </div>
+        ))}
+        {extra ? <div className="srow fin"><Icon name="check" size={13} /> Hedef tamam · kalite düşmeden bitir</div> : null}
+      </div>
+    </div>
+  );
+}
+
+function PlyoStage({ lib, item, session }) {
+  const total = sessionStats(session).contacts;
+  const lastQ = item.sets.length ? item.sets[item.sets.length - 1].q || 0 : 0;
+  return (
+    <div className={'plyostage' + (lastQ === 2 ? ' warn' : '')}>
+      <div className="ps-l">
+        <span className="ps-k">Yoğunluk</span>
+        <b>{PLYO_INT[(lib && lib.int) || 2]}</b>
+      </div>
+      <div className="ps-m">
+        {lastQ === 2 ? <span>Kalite düştü: bu hareketi bitir ya da dinlenmeyi uzat.</span> : <span>Her tekrarda en yükseğe, en hızlıya. Kalite düşünce dur; tükenişe gitme.</span>}
+      </div>
+      <div className="ps-r">
+        <span className="ps-k">Seans teması</span>
+        <b className={'mono' + (total > 140 ? ' over' : '')}>{total}</b>
+      </div>
+    </div>
+  );
+}
+
 function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarded }) {
   const sRef = useRef(clone(session));
   const [s, setS] = useState(sRef.current);
@@ -656,6 +557,8 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
   const rirFinal = entry.rpe != null ? (entry.rpe === 6 ? Math.max(4, rirInt) : 10 - entry.rpe) : rirInt;
   const prev = item ? prevPerf(st.sessions, item, s.startedAt) : null;
   const t = item ? item.target : null;
+  const lib = item ? exMeta(item.exId, item.name) : null;
+  const plyo = !!(lib && lib.kind === 'plyo');
 
   useEffect(() => {
     // sıradaki satır görünür kalsın (yalnızca tablonun kendi kaydırması)
@@ -667,15 +570,18 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
 
   const logSet = () => {
     if (!item) return;
-    const set = { kg: Number(entry.kg) || 0, reps: Math.max(1, Math.round(entry.reps)), lvl: entry.lvl, vl: SPEED[entry.lvl].vl, rpe, rir: rirFinal, rirEst: Math.round(rirEst * 10) / 10, at: Date.now() };
+    const set = plyo
+      ? { kg: Number(entry.kg) || 0, reps: Math.max(1, Math.round(entry.reps)), plyo: true, q: entry.q || 0, lvl: null, vl: 0, rpe: null, rir: 9, at: Date.now() }
+      : { kg: Number(entry.kg) || 0, reps: Math.max(1, Math.round(entry.reps)), lvl: entry.lvl, vl: SPEED[entry.lvl].vl, rpe, rir: rirFinal, rirEst: Math.round(rirEst * 10) / 10, at: Date.now() };
     if (entry.note) set.note = entry.note;
     if (entry.tags.length) set.tags = entry.tags;
     mutate((ns) => { ns.items[cur].sets.push(set); });
     setRest({ start: Date.now(), total: item.target.rest || 120 });
-    setEntry({ ...entry, rpe: null, note: '', tags: [] });
+    setEntry({ ...entry, rpe: null, q: 0, note: '', tags: [] });
   };
   const addItem = (ex) => {
-    const ns = mutate((x) => { x.items.push({ id: newId('e'), srcId: null, exId: ex.exId || null, name: ex.name, muscle: ex.muscle, note: '', memo: '', target: { sets: 3, repMin: 8, repMax: 12, kg: null, rpeMin: null, rpeMax: null, rest: ex.rest || 120 }, sets: [] }); });
+    const d = itemFromEx(ex);
+    const ns = mutate((x) => { x.items.push({ id: newId('e'), srcId: null, exId: d.exId, name: d.name, muscle: d.muscle, note: '', memo: '', target: { sets: d.sets, repMin: d.repMin, repMax: d.repMax, kg: d.kg, rpeMin: d.rpeMin, rpeMax: d.rpeMax, rest: d.rest }, sets: [] }); });
     go(ns.items.length - 1);
   };
   const openNote = () => openSheet('note', {
@@ -772,10 +678,12 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
             <div className="tg-main">
               <span className="tg-k">Hedef</span>
               <span className="tg-big mono">{t.sets}<i>×</i>{repTxt(t.repMin, t.repMax)}</span>
-              <span className="tg-u">set × tekrar</span>
+              <span className="tg-u">{plyo ? 'set × temas' : 'set × tekrar'}</span>
             </div>
-            <div className="tg-cell"><b className="mono">{hasNum(t.kg) ? nf(Number(t.kg)) : '–'}</b><small>kg</small></div>
-            <div className="tg-cell"><b className="mono">{hasNum(t.rpeMin) ? rpeTxt(t.rpeMin, t.rpeMax).replace('RPE ', '') : '–'}</b><small>RPE</small></div>
+            <div className="tg-cell"><b className="mono">{hasNum(t.kg) && (Number(t.kg) || !plyo) ? nf(Number(t.kg)) : '–'}</b><small>{plyo ? 'ek kg' : 'kg'}</small></div>
+            {plyo
+              ? <div className="tg-cell"><b className="tg-int">{PLYO_INT[lib.int || 2].split(' ')[0]}</b><small>yoğunluk</small></div>
+              : <div className="tg-cell"><b className="mono">{hasNum(t.rpeMin) ? rpeTxt(t.rpeMin, t.rpeMax).replace('RPE ', '') : '–'}</b><small>RPE</small></div>}
             <div className="tg-cell"><b className="mono">{restTxt(t.rest || 120).replace(' dk', '')}</b><small>dk ara</small></div>
             {prev || item.memo || item.note ? (
               <div className="tg-foot">
@@ -788,14 +696,25 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
           <SetTable item={item} entry={entry} rpe={rpe} onOpen={openSet} bodyRef={bodyRef} />
 
           <div className="ses2-mid">
-            <SpeedStage reps={entry.reps} lvl={entry.lvl} exId={item.exId} />
+            {plyo ? <PlyoStage lib={lib} item={item} session={s} /> : <SpeedStage reps={entry.reps} lvl={entry.lvl} exId={item.exId} />}
           </div>
 
           <div className="dock">
             <div className="dock-steps">
-              <Stepper id={'kg-' + item.id} label="Kilo" value={entry.kg} step={2.5} min={0} max={500} onChange={(v) => setEntry({ ...entry, kg: v, rpe: null })} />
-              <Stepper id={'reps-' + item.id} label="Tekrar" value={entry.reps} step={1} min={1} max={60} decimals={0} onChange={(v) => setEntry({ ...entry, reps: Math.round(v), rpe: null })} />
+              <Stepper id={'kg-' + item.id} label={plyo ? 'Ek yük (kg)' : 'Kilo'} value={entry.kg} step={2.5} min={0} max={500} onChange={(v) => setEntry({ ...entry, kg: v, rpe: null })} />
+              <Stepper id={'reps-' + item.id} label={plyo ? 'Temas' : 'Tekrar'} value={entry.reps} step={1} min={1} max={60} decimals={0} onChange={(v) => setEntry({ ...entry, reps: Math.round(v), rpe: null })} />
             </div>
+            {plyo ? (
+              <div className="spd">
+                <div className="spd-h"><span className="st-k">Son tekrarların kalitesi</span><span className="spd-v" style={{ color: PLYO_Q[entry.q || 0].c }}>{PLYO_Q[entry.q || 0].d}</span></div>
+                <div className="pq-row" role="radiogroup" aria-label="Sıçrama kalitesi">
+                  {PLYO_Q.map((pq, i) => (
+                    <button key={i} type="button" id={'pq-' + i} role="radio" aria-checked={(entry.q || 0) === i} className={'pq' + ((entry.q || 0) === i ? ' on' : '')} style={{ '--c': pq.c }} onClick={() => setEntry({ ...entry, q: i })}>{pq.k}</button>
+                  ))}
+                  <button type="button" id="note-btn" className={'note-btn' + (entry.note || entry.tags.length || item.memo ? ' has' : '')} onClick={openNote} aria-label="Not ekle"><Icon name="edit" size={17} /></button>
+                </div>
+              </div>
+            ) : <React.Fragment>
             <div className="spd">
               <div className="spd-h"><span className="st-k">Son tekrarın hızı</span><span className="spd-v" style={{ color: vlColor(SPEED[entry.lvl].vl) }}>{SPEED[entry.lvl].d}</span></div>
               <div className="seg5s" role="radiogroup" aria-label="Son tekrarın hızı">
@@ -817,6 +736,7 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
               </div>
               <button type="button" id="note-btn" className={'note-btn' + (entry.note || entry.tags.length || item.memo ? ' has' : '')} onClick={openNote} aria-label="Not ekle"><Icon name="edit" size={17} /></button>
             </div>
+            </React.Fragment>}
             {(() => {
               const two = item.sets.length >= item.target.sets && cur < n - 1;
               return (
@@ -842,6 +762,30 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
 
 function SetDetailBody({ set, idx, exId, onDelete, onClose }) {
   const [confirm, setConfirm] = useState(false);
+  if (set.plyo) {
+    const lib = libById(exId);
+    const q = PLYO_Q[set.q || 0];
+    return (
+      <div className="setd">
+        <div className="setd-top">
+          <span className="setd-n mono">Set {idx + 1}</span>
+          <span className="setd-v mono">{set.reps} temas{Number(set.kg) ? ' · +' + nf(Number(set.kg)) + ' kg' : ''}</span>
+          <span className="setd-t mono">{hm(set.at)}</span>
+        </div>
+        <div className="setd-grid two">
+          <div><small>Kalite</small><b style={{ color: q.c }}>{q.k}</b></div>
+          <div><small>Yoğunluk</small><b>{PLYO_INT[(lib && lib.int) || 2].split(' ')[0]}</b></div>
+          <div><small>Yorgunluk payı</small><b className="mono">{nf(Math.round(set.reps * PLYO_W[(lib && lib.int) || 2] * 100) / 100)}</b></div>
+          <div><small>Zor set</small><b className="mono" style={{ color: 'var(--faint)' }}>hayır</b></div>
+        </div>
+        {set.tags && set.tags.length ? <div className="chips-wrap">{set.tags.map((x) => <span key={x} className="fchip on">{x}</span>)}</div> : null}
+        {set.note ? <p className="sd-note">{set.note}</p> : null}
+        {confirm ? (
+          <span className="confirm-inline"><button type="button" id="set-del-yes" className="btn danger sm" onClick={() => { onDelete(); onClose(); }}>Seti sil</button><button type="button" className="btn ghost sm" onClick={() => setConfirm(false)}>Vazgeç</button></span>
+        ) : <button type="button" id="set-del" className="btn ghost sm danger-t setd-del" onClick={() => setConfirm(true)}><Icon name="trash" size={13} /> Seti sil</button>}
+      </div>
+    );
+  }
   const e1 = e1Ok(set) ? Math.round(e1rm(set.kg, set.reps, set.rir) * 2) / 2 : null;
   return (
     <div className="setd">
@@ -942,7 +886,7 @@ function ExListBody({ getSession, onGo, onAdd, onClose, openSheet }) {
           <li key={it.id} className="item">
             <button type="button" className="item-row" onClick={() => { onGo(i); onClose(); }}>
               <span className="item-i mono">{i + 1}</span>
-              <span className="item-t"><strong>{it.name}</strong><small className="mono">{it.sets.length}/{it.target.sets} set · {targetTxt(it.target)}</small></span>
+              <span className="item-t"><strong>{it.name}</strong><small className="mono">{it.sets.length}/{it.target.sets} set · {targetTxt(it.target, it.exId)}</small></span>
               {it.sets.length >= it.target.sets ? <Icon name="check" size={15} /> : <Icon name="right" size={14} />}
             </button>
           </li>
@@ -990,10 +934,10 @@ function SummaryBody({ session, st, openSheet, onDelete, onClose }) {
             <li key={it.id}>
               <div className="se-top">
                 <strong>{it.name}</strong>
-                <span className="mono se-e1">{best ? <React.Fragment>e1RM {nf(Math.round(best * 2) / 2)}{pb ? <em className={d >= 0 ? 'up' : 'down'}> {d >= 0 ? '+' : '−'}{nf(Math.abs(Math.round(d * 2) / 2))}</em> : null}</React.Fragment> : 'hafif'}</span>
+                <span className="mono se-e1">{best ? <React.Fragment>e1RM {nf(Math.round(best * 2) / 2)}{pb ? <em className={d >= 0 ? 'up' : 'down'}> {d >= 0 ? '+' : '−'}{nf(Math.abs(Math.round(d * 2) / 2))}</em> : null}</React.Fragment> : isPlyo(it.exId) ? it.sets.reduce((a, z) => a + z.reps, 0) + ' temas' : 'e1RM –'}</span>
               </div>
               <div className="se-sets">
-                {it.sets.map((z, j) => <span key={j} className="se-set"><span className="mono">{nf(Number(z.kg))}×{z.reps}</span><i style={{ background: vlColor(z.vl), width: Math.max(10, z.vl * 100) + '%' }} /><small className="mono">{hm(z.at)}</small></span>)}
+                {it.sets.map((z, j) => <span key={j} className="se-set"><span className="mono">{z.plyo ? (Number(z.kg) ? '+' + nf(Number(z.kg)) + '×' : '') + z.reps + (Number(z.kg) ? '' : ' temas') : nf(Number(z.kg)) + '×' + z.reps}</span><i style={z.plyo ? { background: PLYO_Q[z.q || 0].c, width: '100%' } : { background: vlColor(z.vl), width: Math.max(10, z.vl * 100) + '%' }} /><small className="mono">{hm(z.at)}</small></span>)}
               </div>
             </li>
           );
@@ -1159,10 +1103,10 @@ function ProgramEditor2({ program, startDay, st, put, del, onBack, openSheet, st
                         <span className="item-i mono">{i + 1}</span>
                         <span className="item-t">
                           <strong>{it.name}</strong>
-                          <small className="mono">{targetTxt(it)} · {restTxt(it.rest)}</small>
+                          <small className="mono">{targetTxt(it, it.exId)} · {restTxt(it.rest)}</small>
                           {it.note ? <em>{it.note}</em> : null}
                         </span>
-                        {m ? <span className={'fatdot f' + m.fat} title={'Yorgunluk: ' + FAT[m.fat]} /> : null}
+                        {exDot(m)}
                       </button>
                     </li>
                   );
@@ -1206,46 +1150,39 @@ function ItemSheetBody({ it: it0, idx, n, onChange, onMove, onRemove, onClose, o
 }
 
 function PickerBody({ custom, addCustom, onPick, onClose, low, openSheet }) {
-  const [q, setQ] = useState('');
-  const [grp, setGrp] = useState(null);
   const [newMuscle, setNewMuscle] = useState(null);
+  const [showNew, setShowNew] = useState(false);
   const all = useMemo(() => [
     ...EX_LIB.map((e) => ({ ...e, exId: e.id, src: 'lib' })),
-    ...custom.map((c) => ({ id: c.id, exId: c.id, name: c.name, muscle: c.muscle, rest: 90, src: 'custom' })),
+    ...custom.map((c) => ({ id: c.id, exId: c.id, name: c.name, muscle: c.muscle, rest: 90, kind: 'kuvvet', src: 'custom' })),
   ], [custom]);
-  const nq = normTr(q);
-  const list = all.filter((e) => (!grp || e.muscle === grp) && (!nq || normTr(e.name).includes(nq)));
-  const exact = all.some((e) => normTr(e.name) === nq);
-  const groups = MUSCLES.filter((m) => all.some((e) => e.muscle === m));
+  const f = useExFilter(all);
+  const exact = all.some((e) => normTr(e.name) === normTr(f.q));
   const pick = (e) => { onPick(e); onClose(); };
   return (
     <div className="picker2">
-      <input id="ex-search" className="search" type="search" placeholder="Ara ya da yeni hareket yaz" value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" />
-      {low && low.length && !q ? (
+      <ExFilterBar f={f} idp="ex" placeholder="Ara ya da yeni hareket yaz" />
+      {low && low.length && !f.q ? (
         <div className="lowrow"><span className="st-k">Haftada 10 setin altında</span>
-          <div className="chips-scroll">{low.map((m) => <button key={m} type="button" className={'fchip warn' + (grp === m ? ' on' : '')} onClick={() => setGrp(grp === m ? null : m)}>{m}</button>)}</div>
+          <div className="chips-scroll">{low.map((m) => <button key={m} type="button" className={'fchip warn' + (f.grp === m ? ' on' : '')} onClick={() => f.setGrp(f.grp === m ? null : m)}>{m}</button>)}</div>
         </div>
       ) : null}
-      <div className="chips-scroll" role="group" aria-label="Kas grubu">
-        <button type="button" className={'fchip' + (!grp ? ' on' : '')} onClick={() => setGrp(null)}>Tümü</button>
-        {groups.map((m) => <button key={m} type="button" className={'fchip' + (grp === m ? ' on' : '')} onClick={() => setGrp(grp === m ? null : m)}>{m}</button>)}
-      </div>
-      {q.trim() && !exact ? (
+      {f.q.trim() && !exact && (showNew || !f.list.length) ? (
         <div className="new-ex">
-          <div className="new-ex-top"><span className="badge new">Yeni</span><strong>{q.trim()}</strong></div>
+          <div className="new-ex-top"><span className="badge new">Yeni</span><strong>{f.q.trim()}</strong></div>
           <div className="chips-wrap">{MUSCLES.map((m) => <button key={m} type="button" className={'fchip sm' + (newMuscle === m ? ' on' : '')} onClick={() => setNewMuscle(m)}>{m}</button>)}</div>
-          <button type="button" id="ex-add-new" className="btn fire full" onClick={() => { const d = addCustom(q.trim(), newMuscle); pick({ exId: d.id, name: d.name, muscle: d.muscle, rest: 90 }); }}>Ekle</button>
+          <button type="button" id="ex-add-new" className="btn fire full" onClick={() => { const d = addCustom(f.q.trim(), newMuscle); pick({ exId: d.id, name: d.name, muscle: d.muscle, rest: 90 }); }}>Ekle</button>
         </div>
       ) : null}
+      <span className="exf-count mono">{f.list.length} hareket</span>
       <ul className="ex-list2">
-        {list.map((e) => (
+        {f.list.slice(0, f.lim).map((e) => (
           <li key={e.src + e.id} className="exr">
             <button type="button" className="exr-main" onClick={() => pick(e)}>
               <span className="exr-n">{e.name}</span>
               <span className="exr-k">
-                <span>{e.muscle}</span>
-                {e.fat ? <span className={'fatdot f' + e.fat} /> : null}
-                {e.prof ? <span className="exr-p">{PROF[e.prof].k}</span> : null}
+                {exDot(e)}
+                <span>{exLine(e)}</span>
                 {e.src === 'custom' ? <span className="badge own">özel</span> : null}
               </span>
             </button>
@@ -1253,6 +1190,8 @@ function PickerBody({ custom, addCustom, onPick, onClose, low, openSheet }) {
           </li>
         ))}
       </ul>
+      {f.list.length > f.lim ? <button type="button" id="ex-more" className="btn ghost full" onClick={f.more}>Daha fazla göster ({f.list.length - f.lim})</button> : null}
+      {f.q.trim() && !exact && f.list.length && !showNew ? <button type="button" id="ex-new-open" className="add-item" onClick={() => setShowNew(true)}>+ “{f.q.trim()}” adıyla özel hareket ekle</button> : null}
     </div>
   );
 }
@@ -1370,10 +1309,21 @@ function ExerciseBody({ exId, name, st }) {
   const series = e1Series(st.sessions, m ? m.id : exId, m ? m.name : name);
   const last = st.sessions.filter((s) => s.status === 'done').map((s) => ({ s, it: s.items.find((i) => (m && i.exId === m.id) || i.name === (m ? m.name : name)) })).filter((x) => x.it && x.it.sets.length).slice(0, 4);
   const latKind = m && m.id === 'band-yana-acis' ? 'band' : m && m.id === 'kablo-yana-acis' ? 'cable' : 'db';
+  const plyo = m && m.kind === 'plyo';
+  const setTxt = (z) => (z.plyo ? (Number(z.kg) ? '+' + nf(Number(z.kg)) + '×' : '') + z.reps : nf(Number(z.kg)) + '×' + z.reps);
   return (
     <div className="exsheet">
       <FactChips ex={m} />
-      {m ? <p className="ex-prof">{PROF[m.prof].d}.</p> : null}
+      {m && m.en ? <p className="ex-en">İngilizce: {m.en}</p> : null}
+      {m && !plyo && m.prof ? <p className="ex-prof">{PROF[m.prof].d}.</p> : null}
+      {m && m.not ? <p className="ex-tip"><Icon name="info" size={13} /> {m.not}</p> : null}
+      {plyo ? (
+        <div className="ex-plyo">
+          <span className="st-k">Pliometrik doz</span>
+          <p>Seans başına toplam temas: başlangıç 80–100, orta 100–120, ileri 120–140. Aynı bölgeye pliometrik çalışmalar arasında 48–72 sa bırak. Her tekrar en yüksek niyetle; kalite düşünce dur.</p>
+          <p className="ex-src">Kaynak: NSCA önerileri</p>
+        </div>
+      ) : null}
       {m && m.bio ? (
         <CompactCtx.Provider value={true}>
           <BiomechTab move={m.bio} setMove={() => {}} latKind={latKind} />
@@ -1382,7 +1332,7 @@ function ExerciseBody({ exId, name, st }) {
       <div className="ex-hist">
         <span className="st-k">Geçmiş</span>
         {last.length ? last.map(({ s, it }) => (
-          <div key={s.id} className="exh-row mono"><span>{dateTxt(s.startedAt)}</span><span>{it.sets.map((z) => nf(Number(z.kg)) + '×' + z.reps).join(', ')}</span></div>
+          <div key={s.id} className="exh-row mono"><span>{dateTxt(s.startedAt)}</span><span>{it.sets.map(setTxt).join(', ')}</span></div>
         )) : <p className="muted-p">Bu hareketle henüz kayıt yok.</p>}
         {series.length ? <p className="mono exh-best">En iyi e1RM {nf(Math.round(Math.max(...series.map((p) => p.v)) * 2) / 2)} kg</p> : null}
       </div>
@@ -1393,10 +1343,14 @@ function ExerciseBody({ exId, name, st }) {
 function GoalBody({ st, put, onClose }) {
   const g0 = st.settings.find((x) => x.key === 'goal')?.value || DEFAULT_GOAL;
   const [g, setG] = useState(g0);
-  const opts = EX_LIB.filter((e) => e.fat >= 2);
+  const [q, setQ] = useState('');
+  const toks = normTr(q).split(/\s+/).filter(Boolean);
+  const cur = libById(g.exId);
+  const opts = EX_LIB.filter((e) => e.kind !== 'plyo' && e.fat >= 2 && (!toks.length || toks.every((t) => normTr(e.name + ' ' + e.en).includes(t)))).slice(0, 8);
   return (
     <div className="note-sheet">
-      <span className="st-k">Hareket</span>
+      <span className="st-k">Hareket{cur ? ': ' + cur.name : ''}</span>
+      <input id="goal-search" className="search" type="search" placeholder="Hareket ara (ör. bench, squat)" value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" />
       <div className="chips-wrap">{opts.map((e) => <button key={e.id} type="button" className={'fchip' + (g.exId === e.id ? ' on' : '')} onClick={() => setG({ ...g, exId: e.id })}>{e.name}</button>)}</div>
       <div className="entry-steps">
         <Stepper id="goal-base" label="Başlangıç 1RM" value={g.base} step={2.5} min={0} max={400} onChange={(v) => setG({ ...g, base: v })} />
@@ -1574,15 +1528,17 @@ const LAB_BASICS = [
   { id: 'meter', t: 'Toparlanma ve yorgunluk ölçer', d: 'Yük, RPE, hacim ve uykuyu kendin dene', sheet: ['fatigue', {}] },
 ];
 function LabScreen({ openSheet }) {
-  const groups = MUSCLES.filter((m) => EX_LIB.some((e) => e.muscle === m));
-  const [grp, setGrp] = useState(groups[0]);
-  const list = EX_LIB.filter((e) => e.muscle === grp);
+  const f = useExFilter(EX_LIB);
+  const [part, setPart] = useState('temel');
   return (
     <div className="screen">
       <ScreenHead title="Lab" sub="Antrenmanın arkasındaki bilim" />
+      <div className="segmented seg3 labseg" role="tablist" aria-label="Lab bölümleri">
+        <button type="button" role="tab" id="lab-part-temel" aria-selected={part === 'temel'} className={part === 'temel' ? 'on' : ''} onClick={() => setPart('temel')}><b className="mono">01</b> Temeller</button>
+        <button type="button" role="tab" id="lab-part-hareket" aria-selected={part === 'hareket'} className={part === 'hareket' ? 'on' : ''} onClick={() => setPart('hareket')}><b className="mono">02</b> Hareketler <small className="mono">{EX_LIB.length}</small></button>
+      </div>
       <div className="scr">
-        <section className="labsec">
-          <div className="labsec-h"><span className="labsec-n mono">01</span><span><strong>Temeller</strong><small>Sinir sistemi ve yorgunluk</small></span></div>
+        {part === 'temel' ? <section className="labsec">
           <ol className="lablist">
             {LAB_BASICS.map((x, i) => (
               <li key={x.id}>
@@ -1594,25 +1550,23 @@ function LabScreen({ openSheet }) {
               </li>
             ))}
           </ol>
-        </section>
-        <section className="labsec">
-          <div className="labsec-h"><span className="labsec-n mono">02</span><span><strong>Hareketler</strong><small>Kas, yorgunluk maliyeti, direnç profili</small></span></div>
-          <div className="chips-scroll" role="group" aria-label="Kas grubu">
-            {groups.map((m) => <button key={m} type="button" id={'labg-' + normTr(m).replace(/[^a-z]/g, '')} className={'fchip' + (grp === m ? ' on' : '')} onClick={() => setGrp(m)}>{m} <span className="mono fchip-n">{EX_LIB.filter((e) => e.muscle === m).length}</span></button>)}
-          </div>
+        </section> : <section className="labsec">
+          <ExFilterBar f={f} idp="lab" />
+          <span className="exf-count mono">{f.list.length} hareket</span>
           <ul className="lablist ex">
-            {list.map((e) => (
+            {f.list.slice(0, f.lim).map((e) => (
               <li key={e.id}>
                 <button type="button" id={'labex-' + e.id} className="labrow" onClick={() => openSheet('exercise', { exId: e.id })}>
-                  <span className={'fatdot f' + e.fat} title={'Yorgunluk: ' + FAT[e.fat]} />
-                  <span className="labrow-t"><strong>{e.name}</strong><small>{e.muscle} · {PROF[e.prof].k} · yorgunluk {FAT[e.fat].toLocaleLowerCase('tr')}</small></span>
-                  {e.bio ? <span className="badge bio">tork</span> : null}
+                  {exDot(e)}
+                  <span className="labrow-t"><strong>{e.name}</strong><small>{exLine(e)}</small></span>
+                  {e.bio ? <span className="badge bio">tork</span> : e.kind === 'olimpik' ? <span className="badge kind">olimpik</span> : null}
                   <Icon name="right" size={14} />
                 </button>
               </li>
             ))}
           </ul>
-        </section>
+          {f.list.length > f.lim ? <button type="button" id="lab-more" className="btn ghost full" onClick={f.more}>Daha fazla göster ({f.list.length - f.lim})</button> : null}
+        </section>}
       </div>
     </div>
   );
@@ -1672,6 +1626,7 @@ function MeasureBody({ openSheet }) {
   );
 }
 
+/* ================= HESAP ================= */
 /* ================= KABUK ================= */
 const SHEET_TITLES = { fatigue: 'Yorgunluk ölçer', lesson: 'Sinir sistemi', exercise: 'Hareket', picker: 'Hareket ekle', item: 'Hareketi düzenle', note: 'Not', exlist: 'Hareketler', summary: 'Antrenman özeti', saveTemplate: 'Antrenman türü olarak kaydet', plan: 'Program analizi', goal: 'Hedef', measure: 'Yorgunluk nasıl ölçülür?', wtype: 'Antrenman türü', setdetail: 'Set' };
 

@@ -72,6 +72,52 @@ describe('ana ekran akışları', () => {
     await db.delete();
   });
 
+  it('kütüphaneyi filtreler ve karma pliometrik/kuvvet antrenmanını kaydeder', async () => {
+    const { container } = render(<App />);
+    const click = (selector) => fireEvent.click(container.querySelector(selector));
+    const close = () => fireEvent.click(within(screen.getAllByRole('dialog').at(-1)).getAllByRole('button', { name: 'Kapat' }).at(-1));
+    await screen.findByRole('heading', { name: 'Bugün' });
+    click('#tab-lab');
+    click('#lab-part-hareket');
+    fireEvent.change(container.querySelector('#lab-search'), { target: { value: 'bench' } });
+    expect(container.querySelector('#labex-duz-bench')).toBeTruthy();
+    fireEvent.change(container.querySelector('#lab-search'), { target: { value: '' } });
+    click('#lab-kind-plyo');
+    click('#labex-derinlik-sicrama');
+    expect(await screen.findByRole('dialog', { name: 'Derinlik sıçraması (depth jump)' })).toBeTruthy();
+    expect(screen.getByText(/48–72/)).toBeTruthy();
+    close();
+    click('#tab-antrenman');
+    click('#free-session');
+    await waitFor(() => expect(container.querySelector('#finish-btn')).toBeTruthy());
+    fireEvent.click(screen.getByRole('button', { name: /Hareket ekle/ }));
+    fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'box jump' } });
+    fireEvent.click(container.querySelector('.exr-main'));
+    await waitFor(() => expect(container.querySelector('#pq-1')).toBeTruthy());
+    click('#pq-1');
+    click('#log-set');
+    click('#log-set');
+    fireEvent.click(screen.getByRole('button', { name: 'Set 1: 5 temas. Ayrıntı' }));
+    expect(within(screen.getAllByRole('dialog').at(-1)).getByText('Biraz düştü')).toBeTruthy();
+    close();
+    click('#exnav-list');
+    fireEvent.click(screen.getByRole('button', { name: /Hareket ekle/ }));
+    fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'düz bench' } });
+    fireEvent.click(container.querySelector('.exr-main'));
+    await waitFor(() => expect(container.querySelector('#pq-1')).toBeNull());
+    click('#log-set');
+    click('#finish-btn');
+    fireEvent.click(screen.getByRole('button', { name: 'Bitir ve özetle' }));
+    expect(await screen.findByRole('dialog', { name: 'Antrenman özeti' })).toBeTruthy();
+    await waitFor(async () => {
+      const done = (await db.sessions.toArray()).find(s => s.status === 'done');
+      expect(done.items[0].sets).toHaveLength(2);
+      expect(done.items[0].sets[0]).toMatchObject({ plyo: true, reps: 5, rpe: null, q: 1 });
+      expect(done.items[1].sets).toHaveLength(1);
+    });
+    expectHealthy();
+  });
+
   it('v0.7 ana akışlarını hatasız tamamlar', async () => {
     const { container } = render(<App />);
 
@@ -148,6 +194,7 @@ describe('ana ekran akışları', () => {
     click('#lab-measure');
     expect(await screen.findByRole('dialog', { name: 'Yorgunluk nasıl ölçülür?' })).toBeTruthy();
     closeTopSheet();
+    click('#lab-part-hareket');
     click('#labex-egimli-bench');
     expect(await screen.findByRole('dialog', { name: 'Eğimli bench press' })).toBeTruthy();
     expectHealthy();

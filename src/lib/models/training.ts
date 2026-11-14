@@ -53,10 +53,10 @@ export function repVelocities(reps: number, rir: number, velocityLoss: number): 
 
 export const animVl = (reps: number, rir: number) => velocityLossFor(Math.max(1, reps), rir);
 
-export const e1Ok = (set: { kg: number; reps: number; rir: number }) =>
-  Number(set.kg) > 0 && isE1rmEligible(set.reps, set.rir);
+export const e1Ok = (set: { kg: number; reps: number; rir: number; plyo?: boolean }) =>
+  !set.plyo && Number(set.kg) > 0 && isE1rmEligible(set.reps, set.rir);
 
-export const bestE1 = (sets: Array<{ kg: number; reps: number; rir: number }>) =>
+export const bestE1 = (sets: Array<{ kg: number; reps: number; rir: number; plyo?: boolean }>) =>
   sets.filter(e1Ok).reduce((best, set) => Math.max(best, e1rm(set.kg, set.reps, set.rir)), 0);
 
 export function e1Series(sessions: any[], exId?: string | null, name?: string) {
