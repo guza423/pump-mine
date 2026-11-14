@@ -1,8 +1,8 @@
-import { useRef, useState } from 'react';
+import { useContext, useRef, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
-import { readBackup, restoreBackup } from '../../lib/store/database';
+import { BackupContext } from '../../lib/store/BackupContext';
 
 type Status = { tone: 'ok' | 'bad'; message: string } | null;
 
@@ -31,7 +31,16 @@ async function shareJson(contents: string, filename: string) {
   });
 }
 
+export async function exportBackup(readBackup: () => Promise<import('../../lib/store/types').PerformanceBackup>) {
+  const backup = await readBackup();
+  const filename = `performance-yedek-${backup.exportedAt.slice(0, 10)}.json`;
+  const contents = JSON.stringify(backup, null, 2);
+  if (Capacitor.isNativePlatform()) await shareJson(contents, filename);
+  else downloadJson(contents, filename);
+}
+
 export function BackupPanel() {
+  const { readBackup, restoreBackup, cloud } = useContext(BackupContext);
   const input = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<Status>(null);
   const [busy, setBusy] = useState(false);
@@ -39,17 +48,8 @@ export function BackupPanel() {
   const exportData = async () => {
     setBusy(true);
     try {
-      const backup = await readBackup();
-      const date = backup.exportedAt.slice(0, 10);
-      const contents = JSON.stringify(backup, null, 2);
-      const filename = `performance-yedek-${date}.json`;
-      if (Capacitor.isNativePlatform()) {
-        await shareJson(contents, filename);
-        setStatus({ tone: 'ok', message: 'Yedek paylaşıma hazır.' });
-      } else {
-        downloadJson(contents, filename);
-        setStatus({ tone: 'ok', message: 'Yedek indirildi.' });
-      }
+      await exportBackup(readBackup);
+      setStatus({ tone: 'ok', message: Capacitor.isNativePlatform() ? 'Yedek paylaşıma hazır.' : 'Yedek indirildi.' });
     } catch {
       setStatus({ tone: 'bad', message: 'Yedek oluşturulamadı.' });
     } finally {
@@ -77,7 +77,7 @@ export function BackupPanel() {
     <section className="hub-sec backup-card" aria-labelledby="backup-title">
       <div className="sec-h">
         <h3 id="backup-title">Verilerim</h3>
-        <span className="sec-k mono">yalnızca bu cihazda</span>
+        <span className="sec-k mono">{cloud ? 'hesap ve cihaz' : 'yalnızca bu cihazda'}</span>
       </div>
       <p>Program, antrenman, uyku, hedef ve özel hareket kayıtlarını tek JSON dosyasında sakla.</p>
       <div className="backup-actions">

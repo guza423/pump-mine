@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { Checkin, Exercise, PerformanceBackup, Program, Session, Setting } from './types';
+import type { BackupData, Checkin, Exercise, PerformanceBackup, Program, Session, Setting } from './types';
 
 export class PerformanceDatabase extends Dexie {
   programs!: EntityTable<Program, 'id'>;
@@ -7,6 +7,8 @@ export class PerformanceDatabase extends Dexie {
   exercises!: EntityTable<Exercise, 'id'>;
   checkins!: EntityTable<Checkin, 'id'>;
   settings!: EntityTable<Setting, 'key'>;
+  snapshots!: EntityTable<{ id?: number; at: number; uid: string; data: BackupData }, 'id'>;
+  meta!: EntityTable<Setting, 'key'>;
 
   constructor(name = 'performance-training') {
     super(name);
@@ -23,13 +25,15 @@ export class PerformanceDatabase extends Dexie {
       checkins: 'id, at',
       settings: 'key',
     });
+    this.version(3).stores({ snapshots: '++id, at, uid', meta: 'key' });
   }
 }
 
 export const db = new PerformanceDatabase();
 
 export async function seedInitialProgram(program: Program): Promise<void> {
-  await db.transaction('rw', db.programs, db.settings, async () => {
+  await db.transaction('rw', db.programs, db.settings, db.meta, async () => {
+    if (await db.meta.get('empty-guest')) return;
     const seeded = await db.settings.get('initial-program-seeded');
     if (seeded) return;
     if ((await db.programs.count()) === 0) await db.programs.put(program);
@@ -64,9 +68,18 @@ export function parseBackup(value: unknown): PerformanceBackup {
     throw new Error('Yedekte v0.7 veri tablolarından biri eksik.');
   }
   const everyHasId = [...data.programs, ...data.sessions, ...data.exercises].every(
-    (item) => item && typeof item === 'object' && typeof item.id === 'string' && item.id.length > 0,
+    (item) => item && typeof item === 'object' && typeof item.id === 'string' && item.id.length > 0 && !item.id.includes('/'),
   );
   if (!everyHasId) throw new Error('Yedekte kimliği eksik kayıt var.');
+  if (data.programs.some(p => typeof p.name !== 'string' || !Array.isArray(p.days) || p.days.some(d => !d || !Array.isArray(d.items)))
+    || data.sessions.some(s => !Array.isArray(s.items) || s.items.some(i => !i || !Array.isArray(i.sets)))
+    || data.exercises.some(e => typeof e.name !== 'string' || typeof e.muscle !== 'string')) {
+    throw new Error('Yedekte program, antrenman veya hareket yapısı bozuk.');
+  }
+  if ((data.checkins !== undefined && (!Array.isArray(data.checkins) || data.checkins.some(c => !c || typeof c.id !== 'string' || !c.id.startsWith('c_') || c.id.includes('/') || !Number.isFinite(c.at) || !Number.isFinite(c.sleep))))
+    || (data.settings !== undefined && (!Array.isArray(data.settings) || data.settings.some(s => !s || typeof s.key !== 'string' || !s.key || s.key.includes('/') || s.value === undefined)))) {
+    throw new Error('Yedekte uyku veya ayar kaydı bozuk.');
+  }
   return {
     format: 'performance-backup',
     version: 2,

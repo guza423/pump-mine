@@ -31,6 +31,10 @@ Görünüm, Türkçe metinler, animasyonlar, formüller ve modeller birebir koru
 - Testler: Vitest.
 
 ## Veri
+
+Misafir veri katmanı Dexie'dir. Hesapta Firebase Auth ve Firestore kullanılır: `users/{uid}` profilinde `{ email, createdAt, consent: { v: 1, at }, appVersion }`, altındaki `programs`, `sessions`, `exercises`, `checkins`, `settings` koleksiyonlarında bugünkü belgeler tutulur; settings belge kimliği `key`'dir. Her kullanıcı yalnızca kendi ağacına erişir (`firestore.rules`). Analytics başlatılmaz.
+
+İlk girişte açık rıza alınır. Misafir verisi tam sunucu okumasıyla birleştirilir: programda yeni updatedAt, seansta fazla set (eşitse bulut), checkin'de yeni at; özel hareketler birleşir ve buluttaki settings korunur. En fazla 400'lük batch ve `waitForPendingWrites` onayından sonra Dexie snapshots tablosuna `{ at, uid, data }` kopyalanır, aktif tablolar atomik boşaltılır; snapshotlar 30 gün tutulur. Başarısız/çevrimdışı taşıma yereli korur ve yeniden denenir. Çıkış bekleyen yazma varken engellenir; çıkışta Firestore önbelleği temizlenir ve boş misafir alanı açılır. Hesap silme çevrimiçi, yeniden doğrulamayla tüm kullanıcı belgelerini ve Auth hesabını siler. Yedekleme aktif arka ucu kullanır; hesapta geri yükleme buluta yazar.
 Prototip `window.claude.use('db')` kullanıyor; bu yalnızca Claude artifact ortamında var. Kaldır.
 
 Yerine cihazda IndexedDB (Dexie) kullan, veri modeli aynı kalsın:

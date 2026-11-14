@@ -1,5 +1,7 @@
 // @ts-nocheck
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { BackupContext } from '../lib/store/BackupContext';
+import { AccountChip, AccountBody, ConsentBody, PrivacyBody } from '../features/hesap/Account';
 import { BackupPanel } from '../features/programlar/BackupPanel';
 import { BiomechTab, Tile } from '../features/lab/Biomekanik';
 import { CompactCtx, Icon, NeedleGauge, Range, STAGES, StageFatigue, StageRate, StageRecruit, StageSignal, Switch, clamp } from '../features/lab/Cns';
@@ -208,7 +210,7 @@ function Spark({ pts, goal, w = 120, h = 34 }) {
     </svg>
   );
 }
-function TodayScreen({ st, put, openSheet, startSession, goTab }) {
+function TodayScreen({ st, put, openSheet, startSession, goTab, acct }) {
   const fz = fatigueAt(st, Date.now());
   const sl = fz.sleep;
   const active = st.sessions.find((s) => s.status === 'active');
@@ -223,8 +225,15 @@ function TodayScreen({ st, put, openSheet, startSession, goTab }) {
 
   return (
     <div className="screen">
-      <ScreenHead title="Bugün" sub={fullDate(Date.now())} />
+      <ScreenHead title="Bugün" sub={fullDate(Date.now())} right={<AccountChip acct={acct} onClick={() => openSheet('account', {})} />} />
       <div className="scr fit">
+        {acct.mode === 'guest' && st.sessions.length ? (
+          <button type="button" id="guest-banner" className="guest-banner" onClick={() => openSheet('account', {})}>
+            <Icon name="cloud" size={16} />
+            <span>Kayıtlar yalnızca bu telefonda · <b>Yedekle</b></span>
+            <Icon name="right" size={14} />
+          </button>
+        ) : null}
         <section className="ready">
           <button type="button" id="ready-ring" className="ready-ring" onClick={() => openSheet('fatigue', {})} aria-label="Yorgunluk ayrıntısı">
             <Ring score={fz.score} zone={fz.zone} label={'Yorgunluk ' + Math.round(fz.score)} />
@@ -1628,16 +1637,18 @@ function MeasureBody({ openSheet }) {
 
 /* ================= HESAP ================= */
 /* ================= KABUK ================= */
-const SHEET_TITLES = { fatigue: 'Yorgunluk ölçer', lesson: 'Sinir sistemi', exercise: 'Hareket', picker: 'Hareket ekle', item: 'Hareketi düzenle', note: 'Not', exlist: 'Hareketler', summary: 'Antrenman özeti', saveTemplate: 'Antrenman türü olarak kaydet', plan: 'Program analizi', goal: 'Hedef', measure: 'Yorgunluk nasıl ölçülür?', wtype: 'Antrenman türü', setdetail: 'Set' };
+const SHEET_TITLES = { account: 'Hesap ve yedek', consent: 'Verilerin nasıl kullanılır', privacy: 'Gizlilik', fatigue: 'Yorgunluk ölçer', lesson: 'Sinir sistemi', exercise: 'Hareket', picker: 'Hareket ekle', item: 'Hareketi düzenle', note: 'Not', exlist: 'Hareketler', summary: 'Antrenman özeti', saveTemplate: 'Antrenman türü olarak kaydet', plan: 'Program analizi', goal: 'Hedef', measure: 'Yorgunluk nasıl ölçülür?', wtype: 'Antrenman türü', setdetail: 'Set' };
 
 function App() {
   const store = useLogStore(() => programFromTemplate(TEMPLATES[0]));
   const [st, apiRef] = store;
+  const acct = st.account;
+  const actions = apiRef.current;
   const [tab, setTab] = useState(() => { try { const h = (location.hash || '').slice(1); return TABS2.some((t) => t.id === h) ? h : 'bugun'; } catch (e) { return 'bugun'; } });
   const [sheets, setSheets] = useState([]);
   const [prog, setProg] = useState({ name: 'list' });
   const [antView, setAntView] = useState('start');
-  const seeded = useRef(false);
+  const previousAccount = useRef(acct.mode + ':' + acct.uid);
   const put = (kind, obj) => (apiRef.current ? apiRef.current.put(kind, obj) : null);
   const del = (kind, id) => (apiRef.current ? apiRef.current.del(kind, id) : null);
   const addCustom = (name, muscle) => { const doc = { id: newId('x'), name, muscle: muscle || 'Diğer', createdAt: Date.now(), pending: true }; put('custom', doc); return doc; };
@@ -1648,9 +1659,12 @@ function App() {
 
   useEffect(() => { try { history.replaceState(null, '', '#' + tab); } catch (e) {} }, [tab]);
   useEffect(() => {
-    // önizlemede (kayıt yok) örnek program yükle, gerçek hesapta kullanıcı kendi programını kurar
-    if (st.status === 'local' && !seeded.current && !st.programs.length) { seeded.current = true; put('programs', programFromTemplate(TEMPLATES[0])); }
-  }, [st.status]);
+    const identity = acct.mode + ':' + acct.uid;
+    if (previousAccount.current === identity) return;
+    previousAccount.current = identity;
+    setSheets([]); setProg({ name: 'list' }); setAntView('start'); setTab('bugun');
+  }, [acct.mode, acct.uid]);
+  useEffect(() => { if (acct.needsConsent) setSheets(a => a.some(s => s.type === 'consent') ? a : [...a, { key: newId('sh'), type: 'consent', props: {} }]); else setSheets(a => a.filter(s => s.type !== 'consent')); }, [acct.needsConsent]);
 
   const startSession = (program, day) => {
     closeAll();
@@ -1690,6 +1704,9 @@ function App() {
     const p = sh.props;
     const close = closeTop;
     switch (sh.type) {
+      case 'account': return <AccountBody st={st} acct={acct} actions={actions} openSheet={openSheet} onClose={close} />;
+      case 'consent': return <ConsentBody onAccept={actions.acceptConsent} onClose={actions.rejectConsent} busy={acct.busy} />;
+      case 'privacy': return <PrivacyBody />;
       case 'fatigue': { const init = p.sim || simFromLogs(st); return <FatigueBody st={st} init={init} source={p.source || init.src} showNow={!p.sim} openSheet={openSheet} />; }
       case 'lesson': return <LessonBody stage={p.stage} />;
       case 'measure': return <MeasureBody openSheet={openSheet} />;
@@ -1717,7 +1734,7 @@ function App() {
   const sheetSize = (sh) => (['lesson', 'exercise', 'fatigue', 'summary', 'picker', 'measure'].includes(sh.type) ? 'full' : '');
 
   let screen = null;
-  if (tab === 'bugun') screen = <TodayScreen st={st} put={put} openSheet={openSheet} startSession={startSession} goTab={setTab} />;
+  if (tab === 'bugun') screen = <TodayScreen st={st} put={put} openSheet={openSheet} startSession={startSession} goTab={setTab} acct={acct} />;
   if (tab === 'antrenman') {
     screen = active
       ? <SessionView2 key={active.id} session={active} st={st} put={put} del={del} openSheet={openSheet} onFinished={(ns) => openSheet('summary', { id: ns.id, draft: ns })} onDiscarded={() => setAntView('start')} />
@@ -1737,11 +1754,14 @@ function App() {
   if (tab === 'lab') screen = <LabScreen openSheet={openSheet} />;
 
   return (
+    <BackupContext.Provider value={{ readBackup: actions.readBackup, restoreBackup: actions.restoreBackup, cloud: acct.mode === 'user' }}>
     <div className="device-wrap">
       <div className="device">
         <div className="app-shell app2">
-          <main className="app2-main">{screen}</main>
-          <nav className="tabbar tb4" aria-label="Ana gezinme">
+          <main className="app2-main" inert={acct.migrating || acct.busy}>{screen}</main>
+          {st.error ? <div className="store-message" role="alert">{st.error}</div> : null}
+          {acct.migrating ? <div className="store-message" role="status">Kayıtlar hesabına taşınıyor…</div> : null}
+          <nav className="tabbar tb4" aria-label="Ana gezinme" inert={acct.migrating || acct.busy}>
             {TABS2.map((t) => (
               <button key={t.id} id={'tab-' + t.id} type="button" className={'tab' + (t.id === tab ? ' on' : '')} aria-current={t.id === tab ? 'page' : undefined} onClick={() => pick(t.id)}>
                 <span className="tab-ic"><Icon name={t.icon} size={20} />{t.id === 'antrenman' && active ? <i className="tab-live" /> : null}</span>
@@ -1750,13 +1770,14 @@ function App() {
             ))}
           </nav>
           {sheets.map((sh, i) => (
-            <SheetFrame key={sh.key} title={sheetTitle(sh)} onClose={closeTop} size={sheetSize(sh)} z={40 + i * 2}>
+            <SheetFrame key={sh.key} title={sheetTitle(sh)} onClose={sh.type === 'consent' ? actions.rejectConsent : closeTop} size={sheetSize(sh)} z={40 + i * 2}>
               {renderSheet(sh)}
             </SheetFrame>
           ))}
         </div>
       </div>
     </div>
+    </BackupContext.Provider>
   );
 }
 

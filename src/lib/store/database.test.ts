@@ -39,6 +39,19 @@ describe('IndexedDB veri katmanı', () => {
     expect(() => parseBackup({ version: 1 })).toThrow(/desteklenen/);
   });
 
+  it('hatalı belge kimliği ve tablo yapısını hiçbir kaydı silmeden reddeder', async () => {
+    await db.programs.put(program);
+    const backup = await readBackup();
+    for (const data of [
+      { ...backup.data, programs: [{ ...program, days: null }] },
+      { ...backup.data, settings: [{ value: 1 }] },
+      { ...backup.data, checkins: [{ id: 'c_a/b', at: 1, sleep: 8 }] },
+    ]) {
+      await expect(restoreBackup({ ...backup, data } as never)).rejects.toThrow();
+      expect(await db.programs.toArray()).toEqual([program]);
+    }
+  });
+
   it('v1 yedeğini veri kaybetmeden v2 biçimine yükseltir', () => {
     const migrated = parseBackup({
       format: 'performance-backup', version: 1, exportedAt: new Date(0).toISOString(),

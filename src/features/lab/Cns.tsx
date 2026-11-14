@@ -47,6 +47,10 @@ function Icon({ name, size = 16 }) {
     case 'list': return <svg {...p}><path d="M9 6h11" /><path d="M9 12h11" /><path d="M9 18h11" /><path d="M4 6h.01" /><path d="M4 12h.01" /><path d="M4 18h.01" /></svg>;
     case 'check': return <svg {...p}><path d="m5 12 5 5L20 7" /></svg>;
     case 'bolt': return <svg {...p}><path d="M6 10v4" /><path d="M18 10v4" /><path d="M3 11v2" /><path d="M21 11v2" /><path d="M6 12h12" /><rect x="7.5" y="7" width="2.5" height="10" rx="1" /><rect x="14" y="7" width="2.5" height="10" rx="1" /></svg>;
+    case 'user': return <svg {...p}><circle cx="12" cy="8.5" r="3.6" /><path d="M5 20a7 7 0 0 1 14 0" /></svg>;
+    case 'cloud': return <svg {...p}><path d="M7 18.5h10a4 4 0 0 0 .6-7.96A6 6 0 0 0 6.1 9.6 4.5 4.5 0 0 0 7 18.5z" /></svg>;
+    case 'mail': return <svg {...p}><rect x="3.5" y="5.5" width="17" height="13" rx="2" /><path d="m4 7 8 6 8-6" /></svg>;
+    case 'shield': return <svg {...p}><path d="M12 3.5 5 6v5.5c0 4.4 3 7.6 7 9 4-1.4 7-4.6 7-9V6l-7-2.5z" /></svg>;
     case 'more': return <svg {...p}><circle cx="12" cy="5.5" r="1.2" /><circle cx="12" cy="12" r="1.2" /><circle cx="12" cy="18.5" r="1.2" /></svg>;
     case 'trash': return <svg {...p}><path d="M4 7h16" /><path d="M9 7V4.5h6V7" /><path d="M6.5 7 7.5 20h9l1-13" /><path d="M10 11v5" /><path d="M14 11v5" /></svg>;
     case 'alert': return <svg {...p}><path d="M12 3.5 2.5 20h19L12 3.5z" /><path d="M12 10v4.5" /><path d="M12 17.5v.5" /></svg>;

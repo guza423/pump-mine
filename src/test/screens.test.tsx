@@ -5,6 +5,9 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testi
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from '../app/App';
 import { db } from '../lib/store/database';
+import { resetTestRuntime, testEnvironment } from './cloudRuntime';
+
+vi.mock('../lib/cloud/runtime', async () => ({ get accountRuntime() { return testEnvironment.runtime; } }));
 
 Object.defineProperty(window, 'matchMedia', {
   configurable: true,
@@ -61,6 +64,7 @@ function expectHealthy() {
 
 describe('ana ekran akışları', () => {
   beforeEach(async () => {
+    resetTestRuntime();
     window.location.hash = '';
     await db.delete();
     await db.open();
@@ -70,6 +74,32 @@ describe('ana ekran akışları', () => {
     cleanup();
     db.close();
     await db.delete();
+  });
+
+  it('hesap, e-posta, onay ve hesap silme ekranlarını açar', async () => {
+    const { container } = render(<App />);
+    const click = selector => fireEvent.click(container.querySelector(selector));
+    await screen.findByRole('heading', { name: 'Bugün' });
+    await waitFor(async () => expect(await db.programs.count()).toBe(1));
+    click('#account-btn');
+    expect(await screen.findByRole('dialog', { name: 'Hesap ve yedek' })).toBeTruthy();
+    click('#email-signin');
+    fireEvent.change(container.querySelector('#acct-email'), { target: { value: 'spor@example.com' } });
+    fireEvent.change(container.querySelector('#acct-pass'), { target: { value: 'secret123' } });
+    click('#acct-email-go');
+    expect(await screen.findByRole('dialog', { name: 'Verilerin nasıl kullanılır' })).toBeTruthy();
+    expect(container.querySelector('#consent-yes').disabled).toBe(true);
+    click('#consent-check');
+    click('#consent-yes');
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await waitFor(async () => expect(await db.snapshots.count()).toBe(1));
+    click('#account-btn');
+    click('#delete-account');
+    expect(container.querySelector('#delete-yes').disabled).toBe(true);
+    fireEvent.change(container.querySelector('#del-confirm'), { target: { value: 'SİL' } });
+    expect(container.querySelector('#delete-yes').disabled).toBe(false);
+    expect(testEnvironment.runtime.deleteAccount).not.toHaveBeenCalled();
+    expectHealthy();
   });
 
   it('kütüphaneyi filtreler ve karma pliometrik/kuvvet antrenmanını kaydeder', async () => {

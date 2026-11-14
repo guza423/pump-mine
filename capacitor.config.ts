@@ -6,6 +6,7 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   plugins: {
     SystemBars: { insetsHandling: 'native', style: 'DARK' },
+    FirebaseAuthentication: { skipNativeAuth: true, providers: ['google.com'] },
   },
 };
 
