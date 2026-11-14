@@ -3,7 +3,7 @@
 Codex ya da Claude: önce `git pull --rebase origin main`, sonra `AGENTS.md`'yi, sonra bu dosyayı oku. "Bekleyen" listesindeki görevleri **sırayla** uygula. Her görev bitince satırını "Tamamlanan"a taşı (tarih + commit kısa kodu). `AGENTS.md`'deki "Her görevin sonunda" kuralı her görev için geçerli: test + build geçsin, doğrudan `main`'e push.
 
 ## Bekleyen
-Bekleyen görev yok.
+1. [`docs/gorevler/V10-ekran-uyumu-hedef-program.md`](docs/gorevler/V10-ekran-uyumu-hedef-program.md): Android'deki beyaz üst şerit (kök neden: `EdgeToEdge.enable` `super.onCreate()`'ten önce + beyaz splash teması), her telefona oturan seans ekranı, boş başlayan "Hedef ekle", şablonsuz Programlar, otomatik yerleşim testi.
 
 ## Tamamlanan
 - V09 · Firebase hesap, açık rıza, veri taşıma ve çevrimdışı bulut eşitleme: 2026-11-14 · `b9c35e2`
