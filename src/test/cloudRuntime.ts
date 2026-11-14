@@ -50,7 +50,7 @@ export function createTestRuntime() {
     email: vi.fn(async email => login('password', email)),
     reset: vi.fn(async () => {}),
     reject: vi.fn(async () => { user = null; next?.(null); }),
-    logout: vi.fn(async () => {}),
+    logout: vi.fn(async () => { user = null; next?.(null); }),
     deleteAccount: vi.fn(async () => {}),
   };
   return { cloud, runtime, login, setConsent: (value: boolean) => { consent = value; } };

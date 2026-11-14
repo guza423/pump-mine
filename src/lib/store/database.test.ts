@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { db, parseBackup, readBackup, restoreBackup, seedInitialProgram } from './database';
+import { db, parseBackup, readBackup, restoreBackup } from './database';
 import type { PerformanceBackup, Program } from './types';
 
 const program: Program = {
@@ -20,10 +20,9 @@ afterEach(async () => {
 });
 
 describe('IndexedDB veri katmanı', () => {
-  it('ilk programı yalnızca bir kez yükler', async () => {
-    await seedInitialProgram(program);
-    await seedInitialProgram({ ...program, id: 'p_second' });
-    expect(await db.programs.toArray()).toEqual([program]);
+  it('yeni veritabanı boş başlar', async () => {
+    expect(await db.programs.toArray()).toEqual([]);
+    expect(await db.settings.toArray()).toEqual([]);
   });
 
   it('tüm tabloları dışa aktarır ve atomik olarak geri yükler', async () => {

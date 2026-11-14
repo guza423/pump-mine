@@ -5,6 +5,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testi
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from '../app/App';
 import { db } from '../lib/store/database';
+import { hipertrofiProgram } from './fixtures';
 import { resetTestRuntime, testEnvironment } from './cloudRuntime';
 
 vi.mock('../lib/cloud/runtime', async () => ({ get accountRuntime() { return testEnvironment.runtime; } }));
@@ -76,7 +77,74 @@ describe('ana ekran akışları', () => {
     await db.delete();
   });
 
+  it('yeni misafir boş başlar, program oluştur doğrudan düzenleyiciyi açar', async () => {
+    const { container } = render(<App />);
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    expect(await db.programs.count()).toBe(0);
+    expect(container.querySelector('#goal-add')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Program oluştur' }));
+    expect(container.querySelector('.editor2')).toBeTruthy();
+    fireEvent.click(container.querySelector('#tab-programlar'));
+    fireEvent.click(container.querySelector('#tab-programlar'));
+    expect(screen.getByText('Henüz programın yok')).toBeTruthy();
+    expect(screen.queryByText('Şablonla başla')).toBeNull();
+    expect(container.querySelector('.tmpl')).toBeNull();
+    fireEvent.click(container.querySelector('#prog-empty-new'));
+    expect(container.querySelector('.editor2')).toBeTruthy();
+    expect(await db.programs.count()).toBe(0);
+  });
+
+  it('hedef boş açılır, yalnızca geçerli hedef kaydedilir ve kaldırılabilir', async () => {
+    const { container } = render(<App />);
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    const click = selector => fireEvent.click(container.querySelector(selector));
+    expect(container.querySelector('#goal-add')).toBeTruthy();
+    expect(container.querySelector('#goal-card')).toBeNull();
+    click('#goal-add');
+    expect(container.querySelector('#goal-save').disabled).toBe(true);
+    expect(screen.getByText('Önce bir hareket seç')).toBeTruthy();
+    fireEvent.change(container.querySelector('#goal-search'), { target: { value: 'bench' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Eğimli bench press', exact: true }));
+    expect(container.querySelector('#goal-base').value).toBe('0');
+    expect(container.querySelector('#goal-target').value).toBe('0');
+    expect(container.querySelector('#goal-save').disabled).toBe(true);
+    fireEvent.change(container.querySelector('#goal-base'), { target: { value: '95' } });
+    fireEvent.blur(container.querySelector('#goal-base'));
+    fireEvent.change(container.querySelector('#goal-target'), { target: { value: '95' } });
+    fireEvent.blur(container.querySelector('#goal-target'));
+    expect(container.querySelector('#goal-save').disabled).toBe(true);
+    expect(screen.getByText('Hedef, başlangıçtan büyük olmalı')).toBeTruthy();
+    fireEvent.change(container.querySelector('#goal-target'), { target: { value: '100' } });
+    fireEvent.blur(container.querySelector('#goal-target'));
+    expect(container.querySelector('#goal-save').disabled).toBe(false);
+    click('#goal-save');
+    await waitFor(() => expect(container.querySelector('#goal-card')).toBeTruthy());
+    expect(container.querySelector('#goal-card').textContent).toContain('Eğimli bench press');
+    expect(container.querySelector('#goal-card').textContent).toContain('100');
+    click('#goal-card');
+    expect(container.querySelector('#goal-base').value).toBe('95');
+    click('#goal-remove');
+    await waitFor(() => expect(container.querySelector('#goal-add')).toBeTruthy());
+    expect(await db.settings.get('goal')).toBeUndefined();
+  });
+
+  it('hedef önerilerinde son kayıt öndedir ve başlangıç son e1RM ile dolar', async () => {
+    const session = (id, at, exId, kg) => ({ id, status: 'done', startedAt: at, endedAt: at + 1000, items: [{ exId, sets: [{ kg, reps: 8, rir: 2 }] }] });
+    await db.sessions.bulkPut([session('old', 1, 'rdl', 60), session('new', 2, 'egimli-bench', 75)]);
+    const { container } = render(<App />);
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    fireEvent.click(container.querySelector('#goal-add'));
+    const chips = container.querySelectorAll('.note-sheet .fchip');
+    expect(chips).toHaveLength(8);
+    expect(chips[0].textContent).toBe('Eğimli bench press');
+    fireEvent.click(chips[0]);
+    expect(container.querySelector('#goal-base').value).toBe('100');
+    expect(container.querySelector('#goal-target').value).toBe('0');
+    expect(await db.programs.count()).toBe(0);
+  });
+
   it('hesap, e-posta, onay ve hesap silme ekranlarını açar', async () => {
+    await db.programs.put(hipertrofiProgram());
     const { container } = render(<App />);
     const click = selector => fireEvent.click(container.querySelector(selector));
     await screen.findByRole('heading', { name: 'Bugün' });
@@ -149,6 +217,7 @@ describe('ana ekran akışları', () => {
   });
 
   it('v0.7 ana akışlarını hatasız tamamlar', async () => {
+    await db.programs.put(hipertrofiProgram());
     const { container } = render(<App />);
 
     const click = (selector: string) => {

@@ -1,8 +1,8 @@
-import { db, parseBackup, restoreBackup, seedInitialProgram } from './database';
+import { db, parseBackup, restoreBackup } from './database';
 import { collectionFor, emptyData, kinds, LocalBackend, type Backend, type Kind, type StoredValue } from './backend';
 import { migrateGuest, type MigrationBackend } from '../cloud/migration';
 import { accountError } from '../cloud/errors';
-import type { PerformanceBackup, Program } from './types';
+import type { PerformanceBackup } from './types';
 
 export interface AccountUser { uid: string; email: string | null; provider: string }
 export interface AccountRuntime {
@@ -29,7 +29,6 @@ export class LogController {
   private running = false;
   private closing = false;
   state = { status: 'loading', ...emptyData(), custom: [] as ReturnType<typeof emptyData>['exercises'], loaded: {} as Record<Kind, boolean>, error: null as string | null, account: guest() };
-  constructor(private initial: () => Program) {}
   subscribe = (fn: () => void) => { this.listeners.add(fn); return () => { this.listeners.delete(fn); }; };
   getSnapshot = () => this.state;
   private patch(value: Partial<typeof this.state>) { this.state = { ...this.state, ...value }; this.listeners.forEach(fn => fn()); }
@@ -69,7 +68,7 @@ export class LogController {
     const generation = ++this.generation;
     if (!user) {
       this.account(guest()); this.attach(new LocalBackend());
-      await seedInitialProgram(this.initial()); return;
+      return;
     }
     this.account({ uid: user.uid, email: user.email, provider: user.provider });
     try {

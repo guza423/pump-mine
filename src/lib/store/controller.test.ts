@@ -1,18 +1,19 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { LogController } from './controller';
-import { db, readBackup, seedInitialProgram } from './database';
+import { db, readBackup } from './database';
 import { createTestRuntime, MemoryCloud } from '../../test/cloudRuntime';
 import { migrateGuest } from '../cloud/migration';
 import type { Program } from './types';
 
 const program: Program = { id: 'p1', name: 'Misafir programı', createdAt: 1, updatedAt: 2, days: [] };
 let controller: LogController;
-beforeEach(async () => { await db.delete(); await db.open(); controller = new LogController(() => program); Object.defineProperty(navigator, 'onLine', { configurable: true, value: true }); });
+beforeEach(async () => { await db.delete(); await db.open(); controller = new LogController(); Object.defineProperty(navigator, 'onLine', { configurable: true, value: true }); });
 afterEach(async () => { controller.stop(); await db.delete(); });
 
 async function userController() {
   const env = createTestRuntime();
+  await db.programs.put(program);
   await controller.start(env.runtime);
   await expect.poll(() => db.programs.count()).toBe(1);
   await controller.google();
@@ -23,6 +24,28 @@ async function userController() {
 }
 
 describe('yerel/bulut store geçişi', () => {
+  it('yeni misafir start sonrasında boş başlar', async () => {
+    await controller.start(createTestRuntime().runtime);
+    await expect.poll(() => controller.state.status).toBe('db');
+    expect(controller.state.programs).toEqual([]);
+    expect(await db.programs.count()).toBe(0);
+    expect(await db.settings.count()).toBe(0);
+  });
+
+  it('çıkıştan sonra ve yeniden açılınca boş misafir açılır, program tohumlanmaz', async () => {
+    const env = await userController();
+    await controller.logout();
+    // Auth çıkış olayı gerçek runtime'da önbellek temizliğinden sonra gelir.
+    controller.stop();
+    controller = new LogController();
+    await controller.start(env.runtime);
+    await expect.poll(() => controller.state.status).toBe('db');
+    expect(controller.state.account.mode).toBe('guest');
+    expect(controller.state.programs).toEqual([]);
+    expect(await db.programs.count()).toBe(0);
+    expect(await db.snapshots.count()).toBe(1);
+  });
+
   it('onaydan sonra taşır, sunucu onayından sonra yereli boşaltıp snapshot saklar', async () => {
     const env = await userController();
     expect(await db.programs.count()).toBe(0);
@@ -32,9 +55,6 @@ describe('yerel/bulut store geçişi', () => {
     expect(snapshot.data.programs).toEqual([program]);
     expect(env.cloud.data.programs).toEqual([program]);
     expect(controller.state.programs).toEqual([program]);
-    // Logout/reload must open an empty guest instead of reseeding a template.
-    await seedInitialProgram(program);
-    expect(await db.programs.count()).toBe(0);
   });
 
   it('bekleyen ekleme ve silme varken çıkışı engeller', async () => {
@@ -79,6 +99,7 @@ describe('yerel/bulut store geçişi', () => {
 
   it('çevrimdışı taşımayı bekletir ve bağlantı gelince tamamlar', async () => {
     const env = createTestRuntime(); env.setConsent(true);
+    await db.programs.put(program);
     await controller.start(env.runtime);
     await expect.poll(() => db.programs.count()).toBe(1);
     Object.defineProperty(navigator, 'onLine', { configurable: true, value: false });

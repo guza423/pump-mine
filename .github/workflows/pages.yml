@@ -30,6 +30,17 @@ jobs:
         run: npm test
       - name: Build PWA
         run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Check mobile layouts
+        run: npm run test:layout
+      - name: Upload failed layout screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: layout-shots
+          path: layout-shots/
+          if-no-files-found: ignore
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:

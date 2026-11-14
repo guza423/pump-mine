@@ -63,12 +63,6 @@
 .pday-t span { font-size: 14px; font-weight: 500; }
 .pday-t small { font-size: 11.5px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .new-prog { display: flex; flex-wrap: wrap; gap: 8px; }
-.tmpls { display: grid; gap: 8px; }
-.tmpl { appearance: none; text-align: left; cursor: pointer; display: grid; gap: 2px; padding: 12px; border-radius: 12px; background: var(--raised); border: 1px dashed var(--line-strong); color: var(--text); }
-.tmpl:hover { border-color: var(--neuro); }
-.tmpl strong { font-size: 14px; }
-.tmpl span { font-size: 12.5px; color: var(--muted); }
-.tmpl small { font-size: 10.5px; color: var(--neuro); }
 .empty { display: grid; gap: 6px; padding: 16px; border-radius: 14px; border: 1px dashed var(--line-strong); background: rgba(10, 17, 33, 0.5); justify-items: start; }
 .empty strong { font-size: 15px; }
 .empty p { margin: 0; font-size: 13px; color: var(--muted); }
@@ -266,7 +260,7 @@
 .sopt-t strong { font-size: 12.5px; font-weight: 600; color: var(--text); }
 .sopt-t small { font-size: 10.5px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sopt.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 12%, var(--deep)); box-shadow: 0 0 14px -6px var(--c); }
-.sopt:focus-visible, .rchip:focus-visible, .wd-btn:focus-visible, .fchip:focus-visible, .day-tab:focus-visible, .exs:focus-visible, .item-row:focus-visible, .setrow-b:focus-visible, .ex-row:focus-visible, .hist-row:focus-visible, .tmpl:focus-visible, .add-item:focus-visible { outline: 2px solid var(--neuro); outline-offset: 2px; }
+.sopt:focus-visible, .rchip:focus-visible, .wd-btn:focus-visible, .fchip:focus-visible, .day-tab:focus-visible, .exs:focus-visible, .item-row:focus-visible, .setrow-b:focus-visible, .ex-row:focus-visible, .hist-row:focus-visible, .add-item:focus-visible { outline: 2px solid var(--neuro); outline-offset: 2px; }
 .rpe-pick { display: grid; gap: 8px; }
 .rpe-est { font-size: 11px; color: var(--muted); }
 .rpe-chips { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }

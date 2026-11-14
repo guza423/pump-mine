@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { fatigueAt, fatigueResult, isoLocalDate, movementCost, proximityWeight, simulatePlan, sleepScore, trainingLoad, trainingScoreFromLoad } from './fatigue';
-import { TEMPLATES, programFromTemplate } from '../../features/antrenman/core';
+import { hipertrofiProgram } from '../../test/fixtures';
 
 describe('v0.7 yorgunluk modeli', () => {
   it('yakınlık ve hareket maliyetlerini uygular', () => {
@@ -36,8 +36,8 @@ describe('v0.7 yorgunluk modeli', () => {
 
   it('Ağır gün kaydı ve uykuya göre toplam skoru üretir', () => {
     const now = new Date(2026, 9, 25, 12).getTime();
-    const program = programFromTemplate(TEMPLATES[0]);
-    const day = program.days.find((item: any) => item.name === 'Ağır gün');
+    const program = hipertrofiProgram();
+    const day = program.days.find((item: any) => item.name === 'Ağır gün')!;
     const startedAt = now - 16 * 3_600_000;
     let cursor = startedAt;
     const session = {
@@ -55,8 +55,8 @@ describe('v0.7 yorgunluk modeli', () => {
     expect(fatigueAt(state(5), now).score).toBeCloseTo(75, 0);
   });
 
-  it('şablon program simülasyonunu prototiple aynı aralıkta tutar', () => {
-    const result = simulatePlan(programFromTemplate(TEMPLATES[0]));
+  it('fikstür program simülasyonunu prototiple aynı aralıkta tutar', () => {
+    const result = simulatePlan(hipertrofiProgram());
     expect(Math.abs((result?.pre || 0) - 21)).toBeLessThanOrEqual(1);
     expect(Math.abs((result?.post || 0) - 76)).toBeLessThanOrEqual(1);
   });

@@ -31,16 +31,6 @@ export class PerformanceDatabase extends Dexie {
 
 export const db = new PerformanceDatabase();
 
-export async function seedInitialProgram(program: Program): Promise<void> {
-  await db.transaction('rw', db.programs, db.settings, db.meta, async () => {
-    if (await db.meta.get('empty-guest')) return;
-    const seeded = await db.settings.get('initial-program-seeded');
-    if (seeded) return;
-    if ((await db.programs.count()) === 0) await db.programs.put(program);
-    await db.settings.put({ key: 'initial-program-seeded', value: true });
-  });
-}
-
 export async function readBackup(): Promise<PerformanceBackup> {
   const [programs, sessions, exercises, checkins, settings] = await Promise.all([
     db.programs.toArray(),

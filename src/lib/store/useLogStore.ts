@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import { LogController } from './controller';
-import type { Program } from './types';
 
-export function useLogStore(initialProgram: () => Program) {
-  const controller = useMemo(() => new LogController(initialProgram), []);
+export function useLogStore() {
+  const controller = useMemo(() => new LogController(), []);
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot);
   useEffect(() => {
     let alive = true;

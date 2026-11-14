@@ -98,32 +98,6 @@ const e1Ok = (z) => !z.plyo && z.rir <= 4 && Number(z.kg) > 0 && z.reps + z.rir 
 const bestE1 = (sets) => sets.filter(e1Ok).reduce((m, z) => Math.max(m, e1rm(z.kg, z.reps, z.rir)), 0);
 const vlColor = (vl) => (vl < 0.2 ? 'var(--neuro)' : vl < 0.35 ? 'var(--amber)' : vl < 0.5 ? 'var(--fire)' : 'var(--burn)');
 
-/* ---------- şablon ---------- */
-function tItem(exId, sets, repMin, repMax, kg, rpeMin, rpeMax, rest, note) {
-  const ex = libById(exId);
-  return { exId, name: ex.name, muscle: ex.muscle, sets, repMin, repMax, kg, rpeMin, rpeMax, rest: rest || ex.rest, note: note || '' };
-}
-const TEMPLATES = [
-  {
-    key: 'hipertrofi', name: 'Hipertrofi bloğu', desc: 'Salı pump, Perşembe ağır gün, Cumartesi evde band',
-    days: [
-      { name: 'Pump günü', weekday: 2, items: [tItem('egimli-bench', 5, 8, 12, 60, 6, 7, 120), tItem('rdl', 3, 8, 10, null, 7, 8), tItem('db-omuz-press', 3, 10, 12, null, 6, 7), tItem('shrug', 2, 12, 15, null, null, null), tItem('leg-curl', 2, 10, 12, null, null, null), tItem('boyun', 2, 15, 20, null, null, null)] },
-      { name: 'Ağır gün', weekday: 4, items: [tItem('egimli-bench', 2, 5, 8, 75, 9, 10, 240, 'Ağır setler'), tItem('db-omuz-press', 3, 8, 12, null, 7, 8), tItem('egimli-bench', 5, 8, 12, 65, 8, 8, 150, 'Hacim setleri'), tItem('shrug', 2, 10, 15, null, 9, 10), tItem('rdl', 1, 8, 10, null, 6, 7), tItem('leg-curl', 3, 8, 12, null, 9, 10), tItem('boyun', 2, 15, 20, null, 5, 6)] },
-      { name: 'Ev · band', weekday: 6, items: [tItem('band-leg-curl', 3, 12, 20, null, 8, 9), tItem('band-yana-acis', 3, 15, 25, null, 8, 9)] },
-    ],
-  },
-  {
-    key: 'tamvucut', name: 'Tam vücut · 2 gün', desc: 'Başlangıç için sade iki gün',
-    days: [
-      { name: 'A günü', weekday: 1, items: [tItem('duz-bench', 3, 6, 10, null, 7, 8), tItem('squat', 3, 6, 10, null, 7, 8), tItem('barfiks', 3, 5, 10, null, 7, 8), tItem('yana-acis', 3, 12, 20, null, 8, 9)] },
-      { name: 'B günü', weekday: 4, items: [tItem('egimli-db-press', 3, 8, 12, null, 7, 8), tItem('rdl', 3, 8, 10, null, 7, 8), tItem('leg-curl', 3, 10, 15, null, 8, 9), tItem('triceps-pushdown', 3, 10, 15, null, 8, 9)] },
-    ],
-  },
-];
-function programFromTemplate(t) {
-  const now = Date.now();
-  return { id: newId('p'), name: t.name, createdAt: now, updatedAt: now, days: t.days.map((d) => ({ id: newId('d'), name: d.name, weekday: d.weekday, items: d.items.map((i) => ({ ...clone(i), id: newId('i') })) })) };
-}
 function blankProgram() {
   const now = Date.now();
   return { id: newId('p'), name: '', createdAt: now, updatedAt: now, days: [{ id: newId('d'), name: '1. gün', weekday: null, items: [] }] };
@@ -418,8 +392,8 @@ export {
   EX_LIB, EQ, PLYO_INT, isPlyo, PLYO_W, PLYO_Q, PROF, FAT, libById, clone, rid, newId, nf, hasNum,
   kgTxt, restTxt, mmss, durTxt, dateTxt, sameDay, normTr,
   SPEED, rirTxt, rirFromSpeed, animVl, BENCH_IDS, rpeFromRir, repVelocities,
-  e1rm, rpeLabel, e1Ok, bestE1, vlColor, TEMPLATES,
-  programFromTemplate, blankProgram, sessionFromDay, itemFromEx,
+  e1rm, rpeLabel, e1Ok, bestE1, vlColor,
+  blankProgram, sessionFromDay, itemFromEx,
   repTxt, rpeTxt, targetTxt, sessionStats, weeklyHard, nextPlanned,
   Stepper, ItemEditor, Lane, RepBars, SetReplay, firstOpen, entryFor, RestBar,
 };

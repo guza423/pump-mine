@@ -9,6 +9,8 @@ Android telefonda çalışan, sunucusuz, çevrimdışı bir antrenman uygulamas�
 Yapılacak işler `GOREV.md`'de sırayla listelidir; görev ayrıntıları `docs/gorevler/` altında. Kullanıcı "GOREV.md'yi uygula" dediğinde bekleyen ilk görevden başla.
 
 ## Referans prototip
+
+V10 ve sonraki görev dosyaları referanstan farklı bir şey söylüyorsa görev dosyası geçerlidir.
 `reference/v09/` klasörü, Claude'da yapılmış ve çalışan güncel prototiptir. Bu projenin tasarım ve davranış kaynağıdır. Önceki prototip `reference/v03/` altında yalnızca tarihçe için tutulur.
 
 - `performance.html`: tek dosyalık çalışan hali. Tarayıcıda açıp davranışı gör.
@@ -42,7 +44,7 @@ Yerine cihazda IndexedDB (Dexie) kullan, veri modeli aynı kalsın:
 - `sessions`: { id, programId, programName, dayId, dayName, startedAt, endedAt, status: 'active' | 'done', items: [{ id, exId, name, muscle, note, target: { sets, repMin, repMax, kg, rpeMin, rpeMax, rest }, sets: [{ kg, reps, lvl (0–4), vl, rpe, rir, rirEst, at }] }] }
 - `exercises`: kullanıcının eklediği özel hareketler { id, name, muscle, createdAt, pending: true }
 
-Store arayüzü prototiptekiyle aynı mantıkta olsun (`put`, `del`, canlı liste). İlk açılışta `TEMPLATES[0]` (Hipertrofi bloğu) örnek program olarak yüklensin.
+Store arayüzü prototiptekiyle aynı mantıkta olsun (`put`, `del`, canlı liste). İlk açılışta veri yoktur; uygulama boş başlar (örnek program, şablon ve varsayılan hedef yok).
 
 Veri yalnızca telefonda tutulduğu için Programlar listesinin sonuna "Yedekle / Geri yükle" ekle: tüm veriyi JSON olarak dışa aktar, JSON'dan içe aktar. Android'de Capacitor Filesystem + Share kullan.
 
@@ -62,6 +64,8 @@ src/
 ```
 
 ## Kurallar
+- Her telefona oturma: 320–430 px genişlik, 568 px'ten itibaren yükseklik ve %115'e kadar sistem yazısı desteklenir. Ana eylem düğmeleri kaydırmadan görünür. Her görevde `npm run test:layout` geçmeli.
+- Android: pencereye/temaya `super.onCreate()` öncesinde dokunma; tüm temalar koyu ve başlıksız; sistem çubukları şeffaf, simgeler açık.
 - Mobil öncelikli, 360–430 px genişlik. `env(safe-area-inset-*)` paylarını koru.
 - Animasyonlar `requestAnimationFrame` ile. `prefers-reduced-motion` desteklensin.
 - Modeller birim testleriyle korunsun. Prototipten alınan kontrol değerleri:
@@ -69,7 +73,7 @@ src/
   - `rirFromSpeed(20, 4)` = 0, `rirFromSpeed(20, 2)` = 2, `rirFromSpeed(5, 0)` = 5
   - `e1rm(75, 8, 2)` = 100
   - `bestE1([{ kg: 40, reps: 20, rir: 1 }])` = 0
-  - `simulatePlan(programFromTemplate(TEMPLATES[0]))`: seans başı ortalama ≈21, en yüksek tepe ≈76
+  - `simulatePlan(hipertrofiProgram())` (test fikstürü, `src/test/fixtures.ts`): seans başı ortalama ≈21, en yüksek tepe ≈76
 - Her PR'da `npm run build` ve `npm test` geçmeli.
 
 ## Fazlar

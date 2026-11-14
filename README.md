@@ -4,7 +4,7 @@ Android telefonları hedefleyen, çevrimdışı çalışan antrenman uygulaması
 
 - **Bugün:** zaman damgalı zor setler ve uyku girişlerinden yorgunluk, toparlanma, haftalık plan ve hedef.
 - **Antrenman:** antrenman türleri, aktif set kaydı, dinlenme sayacı ve dönem filtreli geçmiş.
-- **Programlar:** program editörü, şablonlar ve üç haftalık seans başı/sonu yorgunluk analizi.
+- **Programlar:** program editörü ve üç haftalık seans başı/sonu yorgunluk analizi.
 - **Lab:** Temeller dersleri ve Türkçe/İngilizce arama, tür, kas, ekipman filtreleriyle 438 hareket (359 kuvvet, 28 olimpik, 51 pliometrik).
 
 ## Yerelde çalıştırma
@@ -21,8 +21,12 @@ npm run dev
 ```bash
 npm test
 npm run build
+npx playwright install chromium
+npm run test:layout
 npm run preview
 ```
+
+`npm run test:layout`, Chromium ile 320×568–430×932 telefonları, %115 yazı ölçeğini ve 884×1104 dokunmatik tableti kontrol eder. Başarısız ekranlar `layout-shots/` altına kaydedilir. Pages workflow'u da build sonrasında aynı kontrolü çalıştırır.
 
 ## Android projesini yerelde çalıştırma
 
@@ -59,7 +63,7 @@ Yerel APK `android/app/build/outputs/apk/debug/app-debug.apk` konumunda oluşur.
 
 ## Veri ve yedekleme
 
-Misafirken programlar, antrenmanlar, özel hareketler, uyku girişleri ve hedef tarayıcının IndexedDB alanında tutulur. İlk açılışta **Hipertrofi bloğu** örnek programı eklenir. Her set, uyku girişi ve antrenman başlangıç/bitişi zaman damgalıdır.
+Misafirken programlar, antrenmanlar, özel hareketler, uyku girişleri ve hedef tarayıcının IndexedDB alanında tutulur. İlk açılışta veri yoktur; örnek program, hazır şablon ve varsayılan hedef eklenmez. Her set, uyku girişi ve antrenman başlangıç/bitişi zaman damgalıdır.
 
 **Programlar** listesinin altındaki **Yedekle** düğmesi bütün veriyi v2 JSON olarak dışa aktarır. Web sürümü dosyayı indirir; Android sürümü Capacitor Filesystem ve Share ile sistem paylaşım menüsünü açar. **Geri yükle**, seçilen OUTMOVE yedeğini doğrular ve mevcut yerel verinin yerine koyar. Tarayıcı verilerini temizlemeden veya telefon değiştirmeden önce yedek alın.
 
@@ -102,6 +106,10 @@ Her push ve elle tetiklenen çalıştırma, **Build Android debug APK** GitHub A
 2. Soldan **Build Android debug APK** workflow'unu, ardından başarılı bir çalıştırmayı seç.
 3. Sayfanın altındaki **Artifacts** bölümünden `outmove-<çalıştırma numarası>` dosyasını indir.
 4. İndirilen ZIP'i aç ve içindeki `app-debug.apk` dosyasını telefona aktar.
+
+### Telefona kurulum
+
+Telefon yatay çevrilse de uygulama dikey kalır.
 
 Telefonda APK'ya dokun ve istendiğinde kullandığın tarayıcı/dosya yöneticisi için **Bilinmeyen uygulamaları yükle** iznini ver. Play Protect debug uygulama için uyarı gösterebilir. Bu APK geliştirme/test amaçlıdır ve Play Store için imzalanmış bir sürüm değildir.
 

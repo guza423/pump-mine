@@ -1,16 +1,16 @@
 // @ts-nocheck
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { BackupContext } from '../lib/store/BackupContext';
 import { AccountChip, AccountBody, ConsentBody, PrivacyBody } from '../features/hesap/Account';
 import { BackupPanel } from '../features/programlar/BackupPanel';
 import { BiomechTab, Tile } from '../features/lab/Biomekanik';
 import { CompactCtx, Icon, NeedleGauge, Range, STAGES, StageFatigue, StageRate, StageRecruit, StageSignal, Switch, clamp } from '../features/lab/Cns';
 import {
-  BENCH_IDS, EX_LIB, FAT, EQ, PLYO_INT, isPlyo, PLYO_W, PLYO_Q, libById, MONTHS, MUSCLES, PROF, SPEED, TEMPLATES,
+  BENCH_IDS, EX_LIB, FAT, EQ, PLYO_INT, isPlyo, PLYO_W, PLYO_Q, libById, MONTHS, MUSCLES, PROF, SPEED,
   WD_LONG, WD_SHORT, WEEK_ORDER, ItemEditor, Lane, SetReplay, Stepper, animVl,
   bestE1, blankProgram, clone, dateTxt, durTxt, e1Ok, e1rm, entryFor,
   firstOpen, hasNum, itemFromEx, mmss, newId, nextPlanned, nf, normTr,
-  programFromTemplate, repTxt, repVelocities, restTxt, rirFromSpeed, rirTxt, rpeLabel,
+  repTxt, repVelocities, restTxt, rirFromSpeed, rirTxt, rpeLabel,
   rpeTxt, sameDay, sessionFromDay, sessionStats, targetTxt, vlColor,
 } from '../features/antrenman/core';
 import { useLogStore } from '../lib/store/useLogStore';
@@ -31,7 +31,6 @@ const TABS2 = [
 const MAIN_MUSCLES = ['Göğüs', 'Omuz (ön)', 'Omuz (yan)', 'Sırt', 'Trapez', 'Triceps', 'Hamstring', 'Quadriceps'];
 const SPEED_SHORT = ['Aynı', 'Hafif', 'Belirgin', 'Çok', 'Grind'];
 const NOTE_TAGS = ['Kolay geldi', 'Form bozuldu', 'Takıldı', 'Ağrı', 'Pump', 'Yardım aldım'];
-const DEFAULT_GOAL = { id: 'goal', exId: 'egimli-bench', base: 95, target: 100 };
 const DAY_MS = 864e5;
 
 function useNow(ms) {
@@ -210,15 +209,15 @@ function Spark({ pts, goal, w = 120, h = 34 }) {
     </svg>
   );
 }
-function TodayScreen({ st, put, openSheet, startSession, goTab, acct }) {
+function TodayScreen({ st, put, openSheet, startSession, createProgram, goTab, acct }) {
   const fz = fatigueAt(st, Date.now());
   const sl = fz.sleep;
   const active = st.sessions.find((s) => s.status === 'active');
   const next = nextPlanned(st.programs, st.sessions);
-  const goal = st.settings.find((x) => x.key === 'goal')?.value || DEFAULT_GOAL;
-  const gEx = exMeta(goal.exId);
-  const series = e1Series(st.sessions, goal.exId, gEx ? gEx.name : '');
-  const cur = series.length ? series[series.length - 1].v : goal.base;
+  const goal = st.settings.find((x) => x.key === 'goal')?.value ?? null;
+  const gEx = goal ? exMeta(goal.exId) : null;
+  const series = goal ? e1Series(st.sessions, goal.exId, gEx ? gEx.name : '') : [];
+  const cur = series.length ? series[series.length - 1].v : goal?.base;
   const setSleep = (h) => put('checkins', { id: dayKey(Date.now()), sleep: h, at: Date.now() });
   const loading = st.status === 'loading' || !st.loaded.programs || !st.loaded.sessions;
   const short = sl.known && sl.last < 6.5;
@@ -276,7 +275,7 @@ function TodayScreen({ st, put, openSheet, startSession, goTab, acct }) {
           <section className="hero-card">
             <h3>Programın yok</h3>
             <p className="hc-sub">İlk antrenman türünü oluştur ya da boş bir antrenmanla başla.</p>
-            <button type="button" className="btn primary full" onClick={() => goTab('programlar')}>Program oluştur</button>
+            <button type="button" className="btn primary full" onClick={() => createProgram(null, 'bugun')}>Program oluştur</button>
           </section>
         )}
 
@@ -285,17 +284,24 @@ function TodayScreen({ st, put, openSheet, startSession, goTab, acct }) {
           <WeekRow programs={st.programs} sessions={st.sessions} />
         </section>
 
-        <button type="button" id="goal-card" className="tcard goal2" onClick={() => openSheet('goal', {})}>
+        {goal ? <button type="button" id="goal-card" className="tcard goal2" onClick={() => openSheet('goal', {})}>
           <div className="goal2-l">
             <span className="eyebrow fire">Hedef</span>
-            <span className="goal2-n">{gEx ? gEx.name : 'Hedef seç'}</span>
+            <span className="goal2-n">{gEx?.name || goal.name || goal.exId}</span>
             <span className="goal2-v mono"><b>{nf(Math.round(cur * 2) / 2)}</b> → {nf(goal.target)} kg</span>
           </div>
           <div className="goal2-r">
             {series.length > 1 ? <Spark pts={series.slice(-10)} goal={goal.target} /> : <span className="goal2-hint">Kayıtlar arttıkça eğri oluşur</span>}
             <div className="goal-bar"><span style={{ width: clamp((cur - goal.base * 0.9) / (goal.target - goal.base * 0.9)) * 100 + '%' }} /></div>
           </div>
-        </button>
+        </button> : <button type="button" id="goal-add" className="tcard goal-add" onClick={() => openSheet('goal', {})}>
+          <span className="goal2-l">
+            <span className="eyebrow fire">Hedef</span>
+            <span className="goal2-n">Hedef ekle</span>
+            <span className="goal-add-hint">Bir hareket seç, ulaşmak istediğin 1RM'i yaz.</span>
+          </span>
+          <span className="goal-add-plus"><Icon name="plus" size={18} /></span>
+        </button>}
       </div>
     </div>
   );
@@ -345,7 +351,7 @@ function StartView({ st, startSession, newWorkoutType, openSheet, onHistory, edi
               })}
             </ul>
           </section>
-        )) : <div className="empty"><strong>Henüz antrenman türün yok</strong><p>Yeni bir tür oluştur ya da boş antrenmanla başlayıp sonunda şablon olarak kaydet.</p></div>}
+        )) : <div className="empty"><strong>Henüz antrenman türün yok</strong><p>Yeni bir tür oluştur ya da boş antrenmanla başlayıp sonunda antrenman türü olarak kaydet.</p></div>}
         <div className="start-actions">
           <button type="button" id="free-session" className="btn ghost" onClick={() => startSession(null, null)}><Icon name="plus" size={14} /> Boş antrenman</button>
           <button type="button" id="new-type" className="btn ghost" onClick={newWorkoutType}><Icon name="edit" size={14} /> Yeni antrenman türü</button>
@@ -553,6 +559,7 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
   const [rest, setRest] = useState(null);
   const [confirm, setConfirm] = useState(null);
   const bodyRef = useRef(null);
+  const sessionBodyRef = useRef(null);
   const now = useNow(500);
   const mutate = (fn) => { const ns = clone(sRef.current); fn(ns); sRef.current = ns; setS(ns); put('sessions', ns); return ns; };
   const item = s.items[cur];
@@ -568,6 +575,28 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
   const t = item ? item.target : null;
   const lib = item ? exMeta(item.exId, item.name) : null;
   const plyo = !!(lib && lib.kind === 'plyo');
+
+  useLayoutEffect(() => {
+    const body = sessionBodyRef.current;
+    if (!body) return;
+    const fixed = [...body.children].filter(el => !el.matches('.stable, .ses2-mid'));
+    const table = body.querySelector('.stable');
+    const tableHead = table.querySelector('.sh');
+    const tableBody = table.querySelector('.sbody');
+    const fit = () => {
+      const css = getComputedStyle(body);
+      const available = body.clientHeight - parseFloat(css.paddingTop) - parseFloat(css.paddingBottom);
+      const minimum = fixed.reduce((sum, el) => sum + el.getBoundingClientRect().height, 0)
+        + tableHead.getBoundingClientRect().height + parseFloat(getComputedStyle(tableBody).minHeight) + 2
+        + parseFloat(css.rowGap) * (body.children.length - 1);
+      // Yazı, çentik ve gerçek içerik boyutunu ölç; viewport eşiğine güvenme.
+      body.classList.toggle('compact-overflow', minimum > available);
+    };
+    const observer = new ResizeObserver(fit);
+    [body, ...fixed, tableHead].forEach(el => observer.observe(el));
+    fit();
+    return () => observer.disconnect();
+  }, [item?.id]);
 
   useEffect(() => {
     // sıradaki satır görünür kalsın (yalnızca tablonun kendi kaydırması)
@@ -660,12 +689,12 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
 
       {!item ? (
         <div className="scr">
-          <div className="empty"><strong>Boş antrenman</strong><p>Yaptığın hareketi ekle, setlerini kaydet. Bitirince şablon olarak saklayabilirsin.</p>
+          <div className="empty"><strong>Boş antrenman</strong><p>Yaptığın hareketi ekle, setlerini kaydet. Bitirince antrenman türü olarak saklayabilirsin.</p>
             <button type="button" id="ses-add-first" className="btn primary" onClick={() => openSheet('picker', { onPick: addItem })}><Icon name="plus" size={14} /> Hareket ekle</button>
           </div>
         </div>
       ) : (
-        <div className="ses2-body">
+        <div className="ses2-body" ref={sessionBodyRef}>
           <div className="exprog" aria-label="Hareket ilerlemesi">
             {s.items.map((it, i) => (
               <button key={it.id} type="button" className={'exp' + (i === cur ? ' on' : '') + (it.sets.length >= it.target.sets ? ' done' : '')} onClick={() => go(i)} aria-label={(i + 1) + '. hareket: ' + it.name + ', ' + it.sets.length + '/' + it.target.sets + ' set'}>
@@ -906,7 +935,7 @@ function ExListBody({ getSession, onGo, onAdd, onClose, openSheet }) {
   );
 }
 
-/* ---------- özet + şablon ---------- */
+/* ---------- özet + antrenman türü ---------- */
 function SummaryBody({ session, st, openSheet, onDelete, onClose }) {
   const [confirm, setConfirm] = useState(false);
   const ss = sessionStats(session);
@@ -1012,7 +1041,7 @@ function ProgramsList({ st, open, createProgram }) {
       <ScreenHead title="Programlar" sub="Antrenman türlerini ve haftanı kur" right={<button type="button" id="prog-new" className="icon-btn sm" aria-label="Yeni program" onClick={createProgram}><Icon name="plus" size={18} /></button>} />
       <div className="scr">
         {!st.programs.length ? (
-          <div className="empty"><strong>Henüz programın yok</strong><p>Boş bir sayfayla başla ya da şablon seç.</p></div>
+          <div className="empty"><strong>Henüz programın yok</strong><p>İlk programını oluştur; günlerini ve hareketlerini sen belirle.</p><button type="button" id="prog-empty-new" className="btn primary full" onClick={createProgram}>Program oluştur</button></div>
         ) : st.programs.map((p) => {
           const ps = planStats(p);
           const sim = simulatePlan(p);
@@ -1030,14 +1059,6 @@ function ProgramsList({ st, open, createProgram }) {
             </button>
           );
         })}
-        <div className="tmpl-row">
-          <span className="st-k">Şablonla başla</span>
-          {TEMPLATES.map((t) => (
-            <button key={t.key} type="button" id={'tmpl-' + t.key} className="tmpl" onClick={() => createProgram(t)}>
-              <strong>{t.name}</strong><span>{t.desc}</span>
-            </button>
-          ))}
-        </div>
         <BackupPanel />
       </div>
     </div>
@@ -1349,23 +1370,34 @@ function ExerciseBody({ exId, name, st }) {
   );
 }
 
-function GoalBody({ st, put, onClose }) {
-  const g0 = st.settings.find((x) => x.key === 'goal')?.value || DEFAULT_GOAL;
-  const [g, setG] = useState(g0);
+function GoalBody({ st, put, del, onClose }) {
+  const g0 = st.settings.find((x) => x.key === 'goal')?.value ?? null;
+  const [g, setG] = useState(g0 || { exId: null, base: 0, target: 0 });
   const [q, setQ] = useState('');
   const toks = normTr(q).split(/\s+/).filter(Boolean);
   const cur = libById(g.exId);
-  const opts = EX_LIB.filter((e) => e.kind !== 'plyo' && e.fat >= 2 && (!toks.length || toks.every((t) => normTr(e.name + ' ' + e.en).includes(t)))).slice(0, 8);
+  const recorded = st.sessions.filter(s => s.status === 'done').sort((a, b) => b.startedAt - a.startedAt)
+    .flatMap(s => s.items.filter(it => bestE1(it.sets)).map(it => exMeta(it.exId, it.name)))
+    .filter(e => e && e.kind !== 'plyo');
+  const suggested = [...new Map([...recorded, ...EX_LIB.filter(e => e.kind !== 'plyo' && e.fat >= 2)].map(e => [e.id, e])).values()];
+  const opts = (toks.length ? EX_LIB.filter(e => e.kind !== 'plyo' && toks.every(t => normTr(e.name + ' ' + e.en).includes(t))) : suggested).slice(0, 8);
+  const valid = !!g.exId && Number(g.base) > 0 && Number(g.target) > Number(g.base);
+  const select = (e) => {
+    const pts = e1Series(st.sessions, e.id, e.name);
+    setG({ ...g, exId: e.id, base: pts.length ? Math.round(pts[pts.length - 1].v / 2.5) * 2.5 : 0 });
+  };
   return (
     <div className="note-sheet">
       <span className="st-k">Hareket{cur ? ': ' + cur.name : ''}</span>
       <input id="goal-search" className="search" type="search" placeholder="Hareket ara (ör. bench, squat)" value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" />
-      <div className="chips-wrap">{opts.map((e) => <button key={e.id} type="button" className={'fchip' + (g.exId === e.id ? ' on' : '')} onClick={() => setG({ ...g, exId: e.id })}>{e.name}</button>)}</div>
+      <div className="chips-wrap">{opts.map((e) => <button key={e.id} type="button" className={'fchip' + (g.exId === e.id ? ' on' : '')} onClick={() => select(e)}>{e.name}</button>)}</div>
       <div className="entry-steps">
         <Stepper id="goal-base" label="Başlangıç 1RM" value={g.base} step={2.5} min={0} max={400} onChange={(v) => setG({ ...g, base: v })} />
         <Stepper id="goal-target" label="Hedef 1RM" value={g.target} step={2.5} min={0} max={400} onChange={(v) => setG({ ...g, target: v })} />
       </div>
-      <button type="button" id="goal-save" className="btn primary full" onClick={() => { put('settings', { key: 'goal', value: { ...g, id: 'goal' } }); onClose(); }}>Kaydet</button>
+      <button type="button" id="goal-save" className="btn primary full" disabled={!valid} onClick={() => { put('settings', { key: 'goal', value: { ...g, id: 'goal' } }); onClose(); }}>Kaydet</button>
+      {!valid ? <p className="goal-form-hint">{!g.exId ? 'Önce bir hareket seç' : Number(g.base) <= 0 ? 'Başlangıç 1RM değerini gir' : 'Hedef, başlangıçtan büyük olmalı'}</p> : null}
+      {g0 ? <button type="button" id="goal-remove" className="btn danger-t full" onClick={() => { del('settings', 'goal'); onClose(); }}>Hedefi kaldır</button> : null}
     </div>
   );
 }
@@ -1423,8 +1455,8 @@ function Metric({ k, v, sub }) {
 }
 function HistoryView({ st, openSheet, onBack }) {
   const [per, setPer] = useState('30');
-  const goal = st.settings.find((x) => x.key === 'goal')?.value || DEFAULT_GOAL;
-  const [sel, setSel] = useState(goal.exId);
+  const goal = st.settings.find((x) => x.key === 'goal')?.value ?? null;
+  const [sel, setSel] = useState(goal?.exId ?? null);
   const now = Date.now();
   const done = st.sessions.filter((s) => s.status === 'done');
   const days = per === 'all' ? 0 : Number(per);
@@ -1443,7 +1475,7 @@ function HistoryView({ st, openSheet, onBack }) {
   done.forEach((s) => s.items.forEach((it) => { if (bestE1(it.sets) && !exs.some((e) => e.key === (it.exId || it.name))) exs.push({ key: it.exId || it.name, exId: it.exId, name: it.name }); }));
   const cur = exs.find((e) => e.key === sel) || exs[0];
   const pts = cur ? e1Series(st.sessions, cur.exId, cur.name) : [];
-  const gLine = cur && cur.exId === goal.exId ? goal.target : null;
+  const gLine = cur && goal && cur.exId === goal.exId ? goal.target : null;
 
   return (
     <div className="screen">
@@ -1640,7 +1672,7 @@ function MeasureBody({ openSheet }) {
 const SHEET_TITLES = { account: 'Hesap ve yedek', consent: 'Verilerin nasıl kullanılır', privacy: 'Gizlilik', fatigue: 'Yorgunluk ölçer', lesson: 'Sinir sistemi', exercise: 'Hareket', picker: 'Hareket ekle', item: 'Hareketi düzenle', note: 'Not', exlist: 'Hareketler', summary: 'Antrenman özeti', saveTemplate: 'Antrenman türü olarak kaydet', plan: 'Program analizi', goal: 'Hedef', measure: 'Yorgunluk nasıl ölçülür?', wtype: 'Antrenman türü', setdetail: 'Set' };
 
 function App() {
-  const store = useLogStore(() => programFromTemplate(TEMPLATES[0]));
+  const store = useLogStore();
   const [st, apiRef] = store;
   const acct = st.account;
   const actions = apiRef.current;
@@ -1676,10 +1708,9 @@ function App() {
     setTab('antrenman');
   };
   // Boş program ve yeni tür yalnızca ilk düzenlemede kaydedilir; dokunmadan çıkılırsa iz bırakmaz.
-  const createProgram = (t, back) => {
-    const p = t && t.days ? programFromTemplate(t) : blankProgram();
-    if (t && t.days) put('programs', p);
-    else p.days[0].name = 'Yeni tür';
+  const createProgram = (_t, back) => {
+    const p = blankProgram();
+    p.days[0].name = 'Yeni tür';
     setProg({ name: 'edit', id: p.id, draft: p, back });
     setTab('programlar');
   };
@@ -1720,7 +1751,7 @@ function App() {
       case 'summary': { const s = p.draft || st.sessions.find((x) => x.id === p.id); return s ? <SummaryBody session={s} st={st} openSheet={openSheet} onDelete={(id) => del('sessions', id)} onClose={close} /> : <p className="muted-p">Kayıt bulunamadı.</p>; }
       case 'saveTemplate': return <SaveTemplateBody session={p.session} st={st} put={put} onClose={close} onSaved={(pr, d) => { closeAll(); setProg({ name: 'edit', id: pr.id, draft: pr, day: d.id, back: 'antrenman' }); setTab('programlar'); }} />;
       case 'plan': return <PlanBody getProgram={p.getProgram} st={st} openSheet={openSheet} />;
-      case 'goal': return <GoalBody st={st} put={put} onClose={close} />;
+      case 'goal': return <GoalBody st={st} put={put} del={del} onClose={close} />;
       default: return null;
     }
   };
@@ -1734,7 +1765,7 @@ function App() {
   const sheetSize = (sh) => (['lesson', 'exercise', 'fatigue', 'summary', 'picker', 'measure'].includes(sh.type) ? 'full' : '');
 
   let screen = null;
-  if (tab === 'bugun') screen = <TodayScreen st={st} put={put} openSheet={openSheet} startSession={startSession} goTab={setTab} acct={acct} />;
+  if (tab === 'bugun') screen = <TodayScreen st={st} put={put} openSheet={openSheet} startSession={startSession} createProgram={createProgram} goTab={setTab} acct={acct} />;
   if (tab === 'antrenman') {
     screen = active
       ? <SessionView2 key={active.id} session={active} st={st} put={put} del={del} openSheet={openSheet} onFinished={(ns) => openSheet('summary', { id: ns.id, draft: ns })} onDiscarded={() => setAntView('start')} />
@@ -1749,7 +1780,7 @@ function App() {
     const back = () => { const b2 = prog.back; setProg({ name: 'list' }); if (b2 && b2 !== 'programlar') setTab(b2); };
     screen = p
       ? <ProgramEditor2 key={p.id} program={p} startDay={prog.day} st={st} put={put} del={del} onBack={back} openSheet={openSheet} startSession={startSession} />
-      : <ProgramsList st={st} open={(pr) => setProg({ name: 'edit', id: pr.id })} createProgram={(t) => createProgram(t)} />;
+      : <ProgramsList st={st} open={(pr) => setProg({ name: 'edit', id: pr.id })} createProgram={() => createProgram()} />;
   }
   if (tab === 'lab') screen = <LabScreen openSheet={openSheet} />;
 
@@ -1763,7 +1794,7 @@ function App() {
           {acct.migrating ? <div className="store-message" role="status">Kayıtlar hesabına taşınıyor…</div> : null}
           <nav className="tabbar tb4" aria-label="Ana gezinme" inert={acct.migrating || acct.busy}>
             {TABS2.map((t) => (
-              <button key={t.id} id={'tab-' + t.id} type="button" className={'tab' + (t.id === tab ? ' on' : '')} aria-current={t.id === tab ? 'page' : undefined} onClick={() => pick(t.id)}>
+              <button key={t.id} id={'tab-' + t.id} type="button" className={'tab' + (t.id === tab ? ' on' : '')} aria-label={t.label} aria-current={t.id === tab ? 'page' : undefined} onClick={() => pick(t.id)}>
                 <span className="tab-ic"><Icon name={t.icon} size={20} />{t.id === 'antrenman' && active ? <i className="tab-live" /> : null}</span>
                 <span className="tab-l">{t.label}</span>
               </button>

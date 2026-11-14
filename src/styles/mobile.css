@@ -20,7 +20,7 @@ html, body, #root { height: 100%; overflow: hidden; }
 /* Tek sütunlu grid'ler içerik genişliğine göre büyümesin (taşmanın ana sebebi) */
 .hub, .hub-sec, .mods, .bio, .bio-panel, .fatigue, .stage, .stage-head, .stage-grid, .lab, .notes, .log, .log-sec, .editor, .session, .summary,
 .card, .ex-card, .entry, .day-card, .fig-card, .prog, .sim-grid, .sim-out, .sim-inputs, .controls, .mu-groups, .speed, .rpe-pick, .field, .stepper,
-.recs, .recov, .meter-card, .fpanel, .vel-box, .rpe-box, .setrow-x, .item-ed, .new-ex, .tmpls, .hist, .items, .setlist, .sum-ex, .wk { grid-template-columns: minmax(0, 1fr); min-width: 0; }
+.recs, .recov, .meter-card, .fpanel, .vel-box, .rpe-box, .setrow-x, .item-ed, .new-ex, .hist, .items, .setlist, .sum-ex, .wk { grid-template-columns: minmax(0, 1fr); min-width: 0; }
 
 /* Grid/flex çocukları taşmasın */
 .tile, .mod-body, .prog-t, .pday-t, .item-t, .hist-row, .ex-row, .sopt-t, .se-top, .rest-t, .entry-h, .ses-title, .card-h, .sec-h, .field-top, .tab, .node, .axon-nodes li { min-width: 0; }
