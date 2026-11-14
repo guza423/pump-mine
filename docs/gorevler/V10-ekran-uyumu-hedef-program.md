@@ -184,6 +184,7 @@ Bundan sonra hiçbir değişiklik bir telefonu bozmasın diye:
   - **Karıştırma:** `#tmpl-save` ve `saveTemplate` sayfası "Antrenman türü olarak kaydet" özelliğidir; **kalacak**.
   - Boş hali şöyle olsun: `<strong>Henüz programın yok</strong><p>İlk programını oluştur; günlerini ve hareketlerini sen belirle.</p>` ve altında `<button id="prog-empty-new" className="btn primary full">Program oluştur</button>`. Bu düğme `createProgram()` çağırır.
 - `App`'te `createProgram = (t, back)` → şablon dalı kalksın; her zaman `blankProgram()`.
+- Bugün'deki "Programın yok" kartının `Program oluştur` düğmesi şu an sadece Programlar sekmesine götürüyor (`goTab('programlar')`), orada bir kez daha dokunmak gerekiyor. Doğrudan `createProgram(null, 'bugun')` çağırıp düzenleyiciyi açsın.
 - **İlk açılış tohumu kalksın:** yeni misafir **boş** başlar.
   - `useLogStore(() => programFromTemplate(TEMPLATES[0]))` → `useLogStore()`.
   - `LogController` kurucusundaki `initial` parametresi ve `seedInitialProgram` çağrısı (`onUser(null)` içinde) kalksın.
