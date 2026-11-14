@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "234169093667",
+    "project_id": "outmove-cd140",
+    "storage_bucket": "outmove-cd140.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:234169093667:android:985c4964ccb7005275eb96",
+        "android_client_info": {
+          "package_name": "app.performance.training"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "234169093667-6gc17tkql0r1rogp6ii83jptf0i96qr1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.performance.training",
+            "certificate_hash": "c5341eaf12e4350e1a48d469bb6b908502c31f64"
+          }
+        },
+        {
+          "client_id": "234169093667-aedeavlg19ddhqesdc0s1g0mmjts159d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBVykjfKzEUVutmsAvXrbF4dg3MjaAO_xU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "234169093667-aedeavlg19ddhqesdc0s1g0mmjts159d.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -5,8 +5,8 @@ Codex ya da Claude: önce `git pull --rebase origin main`, sonra `AGENTS.md`'yi,
 ## Bekleyen
 1. [`docs/gorevler/V08-hareket-kutuphanesi.md`](docs/gorevler/V08-hareket-kutuphanesi.md): 438 hareketlik kütüphane, arama/filtre, pliometrik kayıt.
 2. [`docs/gorevler/V09-hesap-ve-bulut.md`](docs/gorevler/V09-hesap-ve-bulut.md): Firebase ile hesap ve bulut veritabanı.
-   - **Ön koşul:** kökte `firebase-config.json` (eklendi), ayrıca `android/app/google-services.json` (bekleniyor).
-   - Yoksa başlama. V08'i bitir, kullanıcıya "Firebase dosyaları eksik, `docs/FIREBASE-KURULUM.md`" de ve dur.
+   - **Ön koşul tamam:** kökte `firebase-config.json`, ayrıca `android/app/google-services.json` (SHA-1 ve SHA-256 Firebase'e eklendi). Firebase konsolu (Auth, Firestore, kurallar) kullanıcı tarafında hazır.
+   - Proje: `outmove-cd140`. Google girişi için web istemci kimliği `google-services.json` içindeki `client_type: 3` kaydıdır; google-services eklentisi bunu `default_web_client_id` olarak üretir.
 
 ## Tamamlanan
 - v0.7 arayüz taşıma: `4fb0bc1`
