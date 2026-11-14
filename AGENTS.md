@@ -42,6 +42,9 @@ Prototip `window.claude.use('db')` kullanıyor; bu yalnızca Claude artifact ort
 Yerine cihazda IndexedDB (Dexie) kullan, veri modeli aynı kalsın:
 - `programs`: { id, name, createdAt, updatedAt, days: [{ id, name, weekday (0=Pazar … 6=Cumartesi | null), items: [{ id, exId, name, muscle, sets, repMin, repMax, kg, rpeMin, rpeMax, rest (sn), note }] }] }
 - `sessions`: { id, programId, programName, dayId, dayName, startedAt, endedAt, status: 'active' | 'done', items: [{ id, exId, name, muscle, note, target: { sets, repMin, repMax, kg, rpeMin, rpeMax, rest }, sets: [{ kg, reps, lvl (0–4), vl, rpe, rir, rirEst, at }] }] }
+- `sessions` belgesinde isteğe bağlı `rest: { start, total, exId, setNo }` dinlenme sayacını saklar. `start` epoch ms, `total` saniye, `setNo` biten setin numarasıdır.
+- `settings` içinde `key: 'restPrefs'`, `value: { [exId]: saniye }` plansız hareketlerin dinlenme tercihleridir; hesapta buluta eşitlenir.
+- Plansız oturum tanımı `dayId == null` koşuludur (`isFree`); görünen ada göre belirlenmez.
 - `exercises`: kullanıcının eklediği özel hareketler { id, name, muscle, createdAt, pending: true }
 
 Store arayüzü prototiptekiyle aynı mantıkta olsun (`put`, `del`, canlı liste). İlk açılışta veri yoktur; uygulama boş başlar (örnek program, şablon ve varsayılan hedef yok).

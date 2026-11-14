@@ -14,6 +14,10 @@ import {
   rpeTxt, sameDay, sessionFromDay, sessionStats, targetTxt, vlColor,
 } from '../features/antrenman/core';
 import { useLogStore } from '../lib/store/useLogStore';
+import { freeEntry, isFree, sessionName } from '../lib/models/session';
+import { changeRest, restDuration } from '../lib/models/rest';
+import { startRest, stopRest } from '../lib/native/restTimer';
+import { useAndroidBack, useBack } from './back';
 import { planStats, logStats, TAU_H, FRESH, proxW, costW, loadScore, hoursToFresh, decayK, setLoads, sleepInfo, sleepPts, fatigueAt, steadyWeek, simFromLogs, simFromPlan, simulatePlan, fatigueRecs, e1Series, prevPerf, sessionFatigue, periodMetrics, historyWarnings } from '../lib/models/fatigue';
 import '../styles/cns.css';
 import '../styles/app.css';
@@ -66,7 +70,8 @@ function ScreenHead({ title, sub, right, left }) {
     </header>
   );
 }
-function SheetFrame({ title, onClose, children, size, z, head }) {
+function SheetFrame({ title, onClose, children, size, z, head, top }) {
+  useBack(top, onClose);
   return (
     <div className="sheet-wrap" style={{ zIndex: z }} role="dialog" aria-modal="true" aria-label={title}>
       <button type="button" className="sheet-bg" aria-label="Kapat" onClick={onClose} />
@@ -261,7 +266,7 @@ function TodayScreen({ st, put, openSheet, startSession, createProgram, goTab, a
         {loading ? <div className="skeleton"><span /><span /></div> : active ? (
           <section className="hero-card live">
             <div className="hc-top"><span className="live-dot" /><span className="eyebrow fire">Antrenman sürüyor</span><span className="hc-when mono">{active.items.reduce((a, it) => a + it.sets.length, 0)} set</span></div>
-            <h3>{active.dayName}</h3>
+            <h3>{sessionName(active)}</h3>
             <button type="button" id="resume-btn" className="btn fire full" onClick={() => goTab('antrenman')}>Devam et <Icon name="right" /></button>
           </section>
         ) : next ? (
@@ -319,7 +324,7 @@ function StartView({ st, startSession, newWorkoutType, openSheet, onHistory, edi
     <div className="screen">
       <ScreenHead
         title="Antrenman"
-        sub={last ? 'Son: ' + dateTxt(last.startedAt) + ' · ' + last.dayName : 'Bir antrenman türü seç ve başla'}
+        sub={last ? 'Son: ' + dateTxt(last.startedAt) + ' · ' + sessionName(last) : 'Bir antrenman türü seç ve başla'}
         right={(
           <button type="button" id="history-btn" className="hist-btn" onClick={onHistory} aria-label="Antrenman geçmişi">
             <Icon name="history" size={16} /><span>Geçmiş</span>{done.length ? <b className="mono">{done.length}</b> : null}
@@ -351,9 +356,9 @@ function StartView({ st, startSession, newWorkoutType, openSheet, onHistory, edi
               })}
             </ul>
           </section>
-        )) : <div className="empty"><strong>Henüz antrenman türün yok</strong><p>Yeni bir tür oluştur ya da boş antrenmanla başlayıp sonunda antrenman türü olarak kaydet.</p></div>}
+        )) : <div className="empty"><strong>Henüz antrenman türün yok</strong><p>Plansız antrenmanla hemen başla; istersen bitince antrenman türü olarak kaydet.</p></div>}
         <div className="start-actions">
-          <button type="button" id="free-session" className="btn ghost" onClick={() => startSession(null, null)}><Icon name="plus" size={14} /> Boş antrenman</button>
+          <button type="button" id="free-session" className="btn ghost" onClick={() => startSession(null, null)}><Icon name="plus" size={14} /> Plansız antrenman</button>
           <button type="button" id="new-type" className="btn ghost" onClick={newWorkoutType}><Icon name="edit" size={14} /> Yeni antrenman türü</button>
         </div>
       </div>
@@ -435,12 +440,12 @@ function SpeedStage({ reps, lvl, exId }) {
   );
 }
 
-function SetTable({ item, entry, rpe, onOpen, bodyRef }) {
-  if (isPlyo(item.exId)) return <PlyoTable item={item} entry={entry} onOpen={onOpen} bodyRef={bodyRef} />;
+function SetTable({ item, entry, rpe, onOpen, bodyRef, free }) {
+  if (isPlyo(item.exId)) return <PlyoTable item={item} entry={entry} onOpen={onOpen} bodyRef={bodyRef} free={free} />;
   const t = item.target;
   const done = item.sets;
   const extra = done.length >= t.sets;
-  const inRange = (r) => (!hasNum(t.repMin) || r >= Number(t.repMin)) && (!hasNum(t.repMax) || r <= Number(t.repMax));
+  const inRange = (r) => free || ((!hasNum(t.repMin) || r >= Number(t.repMin)) && (!hasNum(t.repMax) || r <= Number(t.repMax)));
   const plan = [];
   for (let j = done.length + 1; j < t.sets; j++) plan.push(j);
   const tRpe = hasNum(t.rpeMin) ? rpeTxt(t.rpeMin, t.rpeMax).replace('RPE ', '') : '–';
@@ -458,7 +463,8 @@ function SetTable({ item, entry, rpe, onOpen, bodyRef }) {
             <span className="s-t mono">{hm(x.at)}{x.note || (x.tags && x.tags.length) ? <em>✎</em> : null}</span>
           </button>
         ))}
-        {!extra ? (
+        {free && !done.length ? <div className="srow first-set">İlk setini kaydet</div> : null}
+        {!free && !extra ? (
           <div className="srow now" aria-label={'Set ' + (done.length + 1) + ' sırada'}>
             <span className="s-i mono">{done.length + 1}</span>
             <span className="s-v mono">{nf(Number(entry.kg))}</span>
@@ -468,7 +474,7 @@ function SetTable({ item, entry, rpe, onOpen, bodyRef }) {
             <span className="s-t now-t">sırada</span>
           </div>
         ) : null}
-        {plan.map((j) => (
+        {!free && plan.map((j) => (
           <div key={'p' + j} className="srow plan">
             <span className="s-i mono">{j + 1}</span>
             <span className="s-v mono">{hasNum(t.kg) ? nf(Number(t.kg)) : '–'}</span>
@@ -478,13 +484,13 @@ function SetTable({ item, entry, rpe, onOpen, bodyRef }) {
             <span className="s-t" />
           </div>
         ))}
-        {extra ? <div className="srow fin"><Icon name="check" size={13} /> Hedef tamam · istersen ek set kaydet</div> : null}
+        {!free && extra ? <div className="srow fin"><Icon name="check" size={13} /> Hedef tamam · istersen ek set kaydet</div> : null}
       </div>
     </div>
   );
 }
 
-function PlyoTable({ item, entry, onOpen, bodyRef }) {
+function PlyoTable({ item, entry, onOpen, bodyRef, free }) {
   const t = item.target;
   const done = item.sets;
   const extra = done.length >= t.sets;
@@ -505,7 +511,8 @@ function PlyoTable({ item, entry, onOpen, bodyRef }) {
             <span className="s-t mono">{hm(x.at)}{x.note || (x.tags && x.tags.length) ? <em>✎</em> : null}</span>
           </button>
         ))}
-        {!extra ? (
+        {free && !done.length ? <div className="srow first-set">İlk setini kaydet</div> : null}
+        {!free && !extra ? (
           <div className="srow now">
             <span className="s-i mono">{done.length + 1}</span>
             <span className="s-v mono">{Number(entry.kg) ? nf(Number(entry.kg)) : '–'}</span>
@@ -515,7 +522,7 @@ function PlyoTable({ item, entry, onOpen, bodyRef }) {
             <span className="s-t now-t">sırada</span>
           </div>
         ) : null}
-        {plan.map((j) => (
+        {!free && plan.map((j) => (
           <div key={'p' + j} className="srow plan">
             <span className="s-i mono">{j + 1}</span>
             <span className="s-v mono">{hasNum(t.kg) && Number(t.kg) ? nf(Number(t.kg)) : '–'}</span>
@@ -525,17 +532,17 @@ function PlyoTable({ item, entry, onOpen, bodyRef }) {
             <span className="s-t" />
           </div>
         ))}
-        {extra ? <div className="srow fin"><Icon name="check" size={13} /> Hedef tamam · kalite düşmeden bitir</div> : null}
+        {!free && extra ? <div className="srow fin"><Icon name="check" size={13} /> Hedef tamam · kalite düşmeden bitir</div> : null}
       </div>
     </div>
   );
 }
 
-function PlyoStage({ lib, item, session }) {
+function PlyoStage({ lib, item, session, compact }) {
   const total = sessionStats(session).contacts;
   const lastQ = item.sets.length ? item.sets[item.sets.length - 1].q || 0 : 0;
   return (
-    <div className={'plyostage' + (lastQ === 2 ? ' warn' : '')}>
+    <div className={'plyostage' + (lastQ === 2 ? ' warn' : '') + (compact ? ' compact' : '')}>
       <div className="ps-l">
         <span className="ps-k">Yoğunluk</span>
         <b>{PLYO_INT[(lib && lib.int) || 2]}</b>
@@ -555,16 +562,24 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
   const sRef = useRef(clone(session));
   const [s, setS] = useState(sRef.current);
   const [cur, setCur] = useState(() => firstOpen(session));
-  const [entry, setEntry] = useState(() => ({ ...entryFor(session.items[firstOpen(session)]), note: '', tags: [] }));
-  const [rest, setRest] = useState(null);
+  const free = isFree(s);
+  const getEntry = (item) => ({ ...(free ? freeEntry(item, st.sessions) : entryFor(item)), note: '', tags: [] });
+  const [entry, setEntry] = useState(() => getEntry(session.items[firstOpen(session)]));
+  const rest = s.rest;
+  const prefsRef = useRef({});
+  const prefsSource = st.settings.find(x => x.key === 'restPrefs')?.value;
+  useEffect(() => { prefsRef.current = prefsSource || {}; }, [prefsSource]);
+  const [compactRest, setCompactRest] = useState(false);
   const [confirm, setConfirm] = useState(null);
+  useBack(!!confirm, () => setConfirm(null));
   const bodyRef = useRef(null);
   const sessionBodyRef = useRef(null);
+  const stripRef = useRef(null);
   const now = useNow(500);
   const mutate = (fn) => { const ns = clone(sRef.current); fn(ns); sRef.current = ns; setS(ns); put('sessions', ns); return ns; };
   const item = s.items[cur];
   const n = s.items.length;
-  const go = (i) => { const j = clamp(i, 0, Math.max(0, sRef.current.items.length - 1)); setCur(j); setEntry({ ...entryFor(sRef.current.items[j]), note: '', tags: [] }); };
+  const go = (i) => { const j = clamp(i, 0, Math.max(0, sRef.current.items.length - 1)); setCur(j); setEntry(getEntry(sRef.current.items[j])); };
   const totalSets = s.items.reduce((a, it) => a + it.sets.length, 0);
   const rirEst = item ? rirFromSpeed(entry.reps, entry.lvl) : 0;
   const rirInt = Math.round(rirEst);
@@ -575,6 +590,17 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
   const t = item ? item.target : null;
   const lib = item ? exMeta(item.exId, item.name) : null;
   const plyo = !!(lib && lib.kind === 'plyo');
+  const needsKg = free && !plyo && lib?.eq !== 'bw' && !(Number(entry.kg) > 0);
+  useEffect(() => {
+    const r = sRef.current.rest;
+    if (r && r.start + r.total * 1000 > Date.now()) {
+      void startRest(r, sRef.current.items.find(it => it.exId === r.exId)?.name || 'Antrenman');
+    }
+  }, []);
+  useLayoutEffect(() => {
+    const strip = stripRef.current, chip = strip?.querySelector('.fx-chip.on');
+    if (chip) strip.scrollLeft = Math.max(0, chip.offsetLeft - strip.offsetLeft - (strip.clientWidth - chip.offsetWidth) / 2);
+  }, [cur, n]);
 
   useLayoutEffect(() => {
     const body = sessionBodyRef.current;
@@ -591,30 +617,32 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
         + parseFloat(css.rowGap) * (body.children.length - 1);
       // Yazı, çentik ve gerçek içerik boyutunu ölç; viewport eşiğine güvenme.
       body.classList.toggle('compact-overflow', minimum > available);
+      setCompactRest(minimum > available || body.querySelector('.ses2-mid').getBoundingClientRect().height < 72);
     };
     const observer = new ResizeObserver(fit);
-    [body, ...fixed, tableHead].forEach(el => observer.observe(el));
+    [body, ...fixed, tableHead, body.querySelector('.ses2-mid')].forEach(el => observer.observe(el));
     fit();
     return () => observer.disconnect();
-  }, [item?.id]);
+  }, [item?.id, !!rest, compactRest, needsKg]);
 
   useEffect(() => {
     // sıradaki satır görünür kalsın (yalnızca tablonun kendi kaydırması)
     const b = bodyRef.current;
     if (!b) return;
-    const row = b.querySelector('.srow.now, .srow.fin');
+    const row = free ? b.querySelector('.srow.done:last-child') : b.querySelector('.srow.now, .srow.fin');
     if (row && (row.offsetTop + row.offsetHeight > b.scrollTop + b.clientHeight || row.offsetTop < b.scrollTop)) b.scrollTop = row.offsetTop - b.clientHeight + row.offsetHeight;
   }, [cur, item ? item.sets.length : 0]);
 
   const logSet = () => {
-    if (!item) return;
+    if (!item || needsKg) return;
     const set = plyo
       ? { kg: Number(entry.kg) || 0, reps: Math.max(1, Math.round(entry.reps)), plyo: true, q: entry.q || 0, lvl: null, vl: 0, rpe: null, rir: 9, at: Date.now() }
       : { kg: Number(entry.kg) || 0, reps: Math.max(1, Math.round(entry.reps)), lvl: entry.lvl, vl: SPEED[entry.lvl].vl, rpe, rir: rirFinal, rirEst: Math.round(rirEst * 10) / 10, at: Date.now() };
     if (entry.note) set.note = entry.note;
     if (entry.tags.length) set.tags = entry.tags;
-    mutate((ns) => { ns.items[cur].sets.push(set); });
-    setRest({ start: Date.now(), total: item.target.rest || 120 });
+    const nextRest = { start: set.at, total: restDuration(sRef.current, item, prefsRef.current), exId: item.exId, setNo: item.sets.length + 1 };
+    mutate((ns) => { delete ns.rest; ns.items[cur].sets.push(set); ns.rest = nextRest; });
+    void stopRest(); void startRest(nextRest, item.name);
     setEntry({ ...entry, rpe: null, q: 0, note: '', tags: [] });
   };
   const addItem = (ex) => {
@@ -644,22 +672,38 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
     openSheet('setdetail', { title: item.name, exId: item.exId, set: item.sets[j], idx: j, onDelete: () => mutate((ns) => { ns.items[ci].sets.splice(j, 1); }) });
   };
   const openList = () => openSheet('exlist', { getSession: () => sRef.current, onGo: (i) => go(i), onAdd: addItem });
+  const skipRest = () => { mutate(ns => { delete ns.rest; }); void stopRest(); };
+  const adjustRest = (delta) => {
+    if (!sRef.current.rest) return;
+    const next = changeRest(sRef.current, sRef.current.rest, delta, prefsRef.current);
+    mutate(ns => { ns.rest = next.rest; });
+    if (next.prefs) { prefsRef.current = next.prefs; put('settings', { key: 'restPrefs', value: next.prefs }); }
+    void startRest(next.rest, sRef.current.items.find(it => it.exId === next.rest.exId)?.name || item.name);
+  };
+  const discard = () => { void stopRest(); del('sessions', s.id); onDiscarded(); };
+  const removeItem = (i) => {
+    const removed = sRef.current.items[i];
+    if (removed.sets.length) return;
+    mutate(ns => { ns.items.splice(i, 1); });
+    go(i < cur ? cur - 1 : Math.min(cur, sRef.current.items.length - 1));
+  };
   const finish = () => {
+    void stopRest();
     const end = Date.now();
     const draft = { ...clone(sRef.current), status: 'done', endedAt: end };
     const all = [draft, ...st.sessions.filter((x) => x.id !== draft.id)];
     const pre = Math.round(fatigueAt(st, draft.startedAt - 1, all).score);
     const post = Math.round(fatigueAt(st, end, all).score);
-    const ns = mutate((x) => { x.status = 'done'; x.endedAt = end; x.fatigue = { v: 2, pre, post }; });
+    const ns = mutate((x) => { delete x.rest; x.status = 'done'; x.endedAt = end; x.fatigue = { v: 2, pre, post }; });
     onFinished(ns);
   };
 
   return (
-    <div className="screen ses2">
+    <div className={'screen ses2' + (free ? ' free-session' : '')}>
       <header className="shead ses2-head">
         <div className="shead-row">
           <span className="live-dot" />
-          <div className="shead-t"><h1 className="ses2-name">{s.dayName}</h1><span className="shead-sub mono">{hm(s.startedAt)} başladı · {mmss(now - s.startedAt)} · {totalSets} set</span></div>
+          <div className="shead-t"><h1 className="ses2-name">{sessionName(s)}</h1><span className="shead-sub mono">{hm(s.startedAt)} başladı · {mmss(now - s.startedAt)} · {totalSets} set</span></div>
           <button type="button" id="finish-btn" className="btn fire sm" onClick={() => setConfirm(confirm ? null : 'finish')}>Bitir</button>
         </div>
       </header>
@@ -670,7 +714,7 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
             <React.Fragment>
               <p>{totalSets ? `Antrenmanı bitir? ${totalSets} set kaydedildi.` : 'Hiç set yok. Kaydetmeden çıkabilirsin.'}</p>
               <div className="confirm-inline">
-                {totalSets ? <button type="button" id="finish-yes" className="btn fire sm" onClick={finish}>Bitir ve özetle</button> : <button type="button" id="discard-yes" className="btn danger sm" onClick={() => { del('sessions', s.id); onDiscarded(); }}>Kaydetmeden çık</button>}
+                {totalSets ? <button type="button" id="finish-yes" className="btn fire sm" onClick={finish}>Bitir ve özetle</button> : <button type="button" id="discard-yes" className="btn danger sm" onClick={discard}>Kaydetmeden çık</button>}
                 <button type="button" className="btn ghost sm" onClick={() => setConfirm(null)}>Devam</button>
                 {totalSets ? <button type="button" className="btn ghost sm danger-t" onClick={() => setConfirm('discard')}>Sil</button> : null}
               </div>
@@ -679,7 +723,7 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
             <React.Fragment>
               <p>Bu antrenman ve {totalSets} set silinsin mi?</p>
               <div className="confirm-inline">
-                <button type="button" className="btn danger sm" onClick={() => { del('sessions', s.id); onDiscarded(); }}>Sil</button>
+                <button type="button" className="btn danger sm" onClick={discard}>Sil</button>
                 <button type="button" className="btn ghost sm" onClick={() => setConfirm(null)}>Vazgeç</button>
               </div>
             </React.Fragment>
@@ -689,12 +733,22 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
 
       {!item ? (
         <div className="scr">
-          <div className="empty"><strong>Boş antrenman</strong><p>Yaptığın hareketi ekle, setlerini kaydet. Bitirince antrenman türü olarak saklayabilirsin.</p>
+          <div className="empty"><strong>Plansız antrenman</strong><p>Yaptığın hareketi ekle, setlerini kaydet.</p>
             <button type="button" id="ses-add-first" className="btn primary" onClick={() => openSheet('picker', { onPick: addItem })}><Icon name="plus" size={14} /> Hareket ekle</button>
           </div>
         </div>
       ) : (
         <div className="ses2-body" ref={sessionBodyRef}>
+          {free ? <React.Fragment>
+            <div className="fx-strip" ref={stripRef} aria-label="Antrenmandaki hareketler">
+              {s.items.map((it, i) => <div key={it.id} className={'fx-chip' + (i === cur ? ' on' : '')}>
+                <button type="button" onClick={() => go(i)} aria-pressed={i === cur}><span className="fx-label">{it.name}</span><span className="mono">{it.sets.length || ''}</span></button>
+                {!it.sets.length ? <button type="button" className="fx-remove" aria-label={it.name + ' hareketini çıkar'} onClick={() => removeItem(i)}>×</button> : null}
+              </div>)}
+              <button type="button" id="fx-add" className="fx-add" onClick={() => openSheet('picker', { onPick: addItem })}>+ Hareket</button>
+            </div>
+            <div className="fx-title"><span className="exnav-n">{item.name}</span><button type="button" id="ex-info" className="nav-arrow info" aria-label="Hareket bilgisi" onClick={() => openSheet('exercise', { exId: item.exId, name: item.name })}><Icon name="info" size={17} /></button></div>
+          </React.Fragment> : <React.Fragment>
           <div className="exprog" aria-label="Hareket ilerlemesi">
             {s.items.map((it, i) => (
               <button key={it.id} type="button" className={'exp' + (i === cur ? ' on' : '') + (it.sets.length >= it.target.sets ? ' done' : '')} onClick={() => go(i)} aria-label={(i + 1) + '. hareket: ' + it.name + ', ' + it.sets.length + '/' + it.target.sets + ' set'}>
@@ -730,14 +784,16 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
               </div>
             ) : null}
           </div>
+          </React.Fragment>}
 
-          <SetTable item={item} entry={entry} rpe={rpe} onOpen={openSet} bodyRef={bodyRef} />
+          <SetTable item={item} entry={entry} rpe={rpe} onOpen={openSet} bodyRef={bodyRef} free={free} />
 
           <div className="ses2-mid">
-            {plyo ? <PlyoStage lib={lib} item={item} session={s} /> : <SpeedStage reps={entry.reps} lvl={entry.lvl} exId={item.exId} />}
+            {free && rest ? (!compactRest ? <RestBig rest={rest} now={now} onAdjust={adjustRest} onClose={skipRest} /> : null) : plyo ? <PlyoStage lib={lib} item={item} session={s} /> : !free ? <SpeedStage reps={entry.reps} lvl={entry.lvl} exId={item.exId} /> : null}
           </div>
 
           <div className="dock">
+            {free && plyo && compactRest ? <PlyoStage lib={lib} item={item} session={s} compact /> : null}
             <div className="dock-steps">
               <Stepper id={'kg-' + item.id} label={plyo ? 'Ek yük (kg)' : 'Kilo'} value={entry.kg} step={2.5} min={0} max={500} onChange={(v) => setEntry({ ...entry, kg: v, rpe: null })} />
               <Stepper id={'reps-' + item.id} label={plyo ? 'Temas' : 'Tekrar'} value={entry.reps} step={1} min={1} max={60} decimals={0} onChange={(v) => setEntry({ ...entry, reps: Math.round(v), rpe: null })} />
@@ -776,17 +832,19 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
             </div>
             </React.Fragment>}
             {(() => {
-              const two = item.sets.length >= item.target.sets && cur < n - 1;
+              const two = !free && item.sets.length >= item.target.sets && cur < n - 1;
+              const chip = rest && (!free || compactRest);
               return (
-                <div className={'dock-go' + (two ? ' two' : '') + (rest ? ' r' : '')}>
-                  {rest ? <RestChip rest={rest} now={now} onAdd={() => setRest({ ...rest, total: rest.total + 30 })} onClose={() => setRest(null)} /> : null}
+                <div className={'dock-go' + (two ? ' two' : '') + (chip ? ' r' : '')}>
+                  {chip ? <RestChip rest={rest} now={now} onAdjust={adjustRest} onClose={skipRest} /> : null}
+                  {needsKg ? <small className="kg-hint">Kiloyu gir</small> : null}
                   {two ? (
                     <React.Fragment>
                       <button type="button" id="log-set" className="btn ghost big" onClick={logSet}>Ek set</button>
                       <button type="button" id="next-ex" className="btn primary big" onClick={() => go(cur + 1)}>{rest ? 'Sonraki' : 'Sonraki hareket'} <Icon name="right" /></button>
                     </React.Fragment>
                   ) : (
-                    <button type="button" id="log-set" className="btn fire big" onClick={logSet}>Set {item.sets.length + 1}{item.sets.length < item.target.sets ? '/' + item.target.sets : ''} kaydet{item.sets.length >= item.target.sets ? ' · ek' : ''}</button>
+                    <button type="button" id="log-set" className="btn fire big" disabled={needsKg} onClick={logSet}>{free ? 'Seti kaydet' : <>Set {item.sets.length + 1}{item.sets.length < item.target.sets ? '/' + item.target.sets : ''} kaydet{item.sets.length >= item.target.sets ? ' · ek' : ''}</>}</button>
                   )}
                 </div>
               );
@@ -848,7 +906,7 @@ function SetDetailBody({ set, idx, exId, onDelete, onClose }) {
   );
 }
 
-function RestChip({ rest, now, onAdd, onClose }) {
+function RestChip({ rest, now, onAdjust, onClose }) {
   const el = (now - rest.start) / 1000;
   const left = rest.total - el;
   const over = left <= 0;
@@ -856,26 +914,28 @@ function RestChip({ rest, now, onAdd, onClose }) {
   const R = 14, L = 2 * Math.PI * R;
   return (
     <div className={'restchip' + (over ? ' over' : '')} role="timer" aria-label={over ? 'Dinlenme bitti' : 'Dinlenme ' + mmss(left * 1000)}>
-      <button type="button" className="rc-main" onClick={onClose} title="Dinlenmeyi kapat">
+      <div className="rc-main">
         <svg viewBox="0 0 34 34" className="rc-ring" aria-hidden="true">
           <circle cx="17" cy="17" r={R} className="rr-bg" />
           <circle cx="17" cy="17" r={R} className="rr-fg" style={{ strokeDasharray: `${(1 - k) * L} ${L}` }} transform="rotate(-90 17 17)" />
         </svg>
         <span className="rc-t"><small>{over ? 'Hazırsın' : 'Dinlen'}</small><b className="mono">{over ? '+' + mmss(-left * 1000) : mmss(left * 1000)}</b></span>
-      </button>
-      <button type="button" className="rc-add mono" onClick={onAdd} aria-label="30 saniye ekle">+30</button>
+      </div>
+      <button type="button" className="rc-add mono" onClick={() => onAdjust(-15)} aria-label="15 saniye azalt">−15</button>
+      <button type="button" className="rc-add mono" onClick={() => onAdjust(15)} aria-label="15 saniye ekle">+15</button>
+      <button type="button" className="rc-add" onClick={onClose}>Atla</button>
     </div>
   );
 }
 
-function RestBig({ rest, now, onAdd, onClose }) {
+function RestBig({ rest, now, onAdjust, onClose }) {
   const el = (now - rest.start) / 1000;
   const left = rest.total - el;
   const over = left <= 0;
   const k = clamp(el / rest.total);
   const R = 44, L = 2 * Math.PI * R;
   return (
-    <div className={'restbig' + (over ? ' over' : '')} role="timer">
+    <div id="rest-big" className={'restbig' + (over ? ' over' : '')} role="timer">
       <svg viewBox="0 0 100 100" className="rb-ring" aria-hidden="true">
         <circle cx="50" cy="50" r={R} className="rr-bg" />
         <circle cx="50" cy="50" r={R} className="rr-fg" style={{ strokeDasharray: `${(1 - k) * L} ${L}` }} transform="rotate(-90 50 50)" />
@@ -884,8 +944,9 @@ function RestBig({ rest, now, onAdd, onClose }) {
         <span className="rest-k">{over ? 'Hazırsın' : 'Dinlenme'}</span>
         <span className="mono rb-v">{over ? '+' + mmss(-left * 1000) : mmss(left * 1000)}</span>
         <div className="rb-a">
-          <button type="button" className="btn ghost sm" onClick={onAdd}>+30 sn</button>
-          <button type="button" className="btn ghost sm" onClick={onClose}>Geç</button>
+          <button type="button" className="btn ghost sm" onClick={() => onAdjust(-15)} aria-label="15 saniye azalt">−15</button>
+          <button type="button" className="btn ghost sm" onClick={() => onAdjust(15)} aria-label="15 saniye ekle">+15</button>
+          <button type="button" className="btn ghost sm" onClick={onClose}>Atla</button>
         </div>
       </div>
     </div>
@@ -999,7 +1060,7 @@ function SummaryBody({ session, st, openSheet, onDelete, onClose }) {
 }
 
 function SaveTemplateBody({ session, st, put, onClose, onSaved }) {
-  const [name, setName] = useState(session.dayName === 'Boş antrenman' ? '' : session.dayName + ' (yeni)');
+  const [name, setName] = useState(isFree(session) ? '' : session.dayName + ' (yeni)');
   const [target, setTarget] = useState(st.programs[0] ? st.programs[0].id : 'new');
   const [wd, setWd] = useState(null);
   const items = session.items.filter((it) => it.sets.length).map((it) => {
@@ -1074,6 +1135,8 @@ function ProgramEditor2({ program, startDay, st, put, del, onBack, openSheet, st
   const timer = useRef(0);
   const pending = useRef(false);
   const flush = () => { if (pending.current) { pending.current = false; put('programs', latest.current); setSaved(true); } };
+  useBack(true, () => { flush(); onBack(); });
+  useBack(!!confirm, () => setConfirm(null));
   useEffect(() => () => { clearTimeout(timer.current); if (pending.current) { pending.current = false; put('programs', latest.current); } }, []);
   const commit = (fn) => {
     const np = clone(latest.current); fn(np); np.updatedAt = Date.now();
@@ -1454,6 +1517,7 @@ function Metric({ k, v, sub }) {
   );
 }
 function HistoryView({ st, openSheet, onBack }) {
+  useBack(true, onBack);
   const [per, setPer] = useState('30');
   const goal = st.settings.find((x) => x.key === 'goal')?.value ?? null;
   const [sel, setSel] = useState(goal?.exId ?? null);
@@ -1542,7 +1606,7 @@ function HistoryView({ st, openSheet, onBack }) {
                     <button type="button" className="hrow" onClick={() => openSheet('summary', { id: s.id })}>
                       <span className="hrow-d"><b className="mono">{d.getDate()}</b><small>{MONTHS[d.getMonth()]}</small></span>
                       <span className="hrow-t">
-                        <strong>{s.dayName}</strong>
+                        <strong>{sessionName(s)}</strong>
                         <small className="mono">{WD_SHORT[d.getDay()]} {hm(s.startedAt)}–{hm(s.endedAt || s.startedAt)} · {durTxt(ss.dur)}</small>
                         <small className="mono">{ss.sets.length} set · {tonTxt(ss.tonnage)}{nn ? ' · ✎ ' + nn : ''}</small>
                       </span>
@@ -1688,6 +1752,7 @@ function App() {
   const closeTop = () => setSheets((a) => a.slice(0, -1));
   const closeAll = () => setSheets([]);
   const active = st.sessions.find((s) => s.status === 'active');
+  const exitToast = useAndroidBack(tab, () => setTab('bugun'));
 
   useEffect(() => { try { history.replaceState(null, '', '#' + tab); } catch (e) {} }, [tab]);
   useEffect(() => {
@@ -1703,7 +1768,6 @@ function App() {
     setAntView('start');
     if (active) { setTab('antrenman'); return; }
     const s = sessionFromDay(program, day);
-    if (!day) s.dayName = 'Boş antrenman';
     put('sessions', s);
     setTab('antrenman');
   };
@@ -1792,6 +1856,7 @@ function App() {
           <main className="app2-main" inert={acct.migrating || acct.busy}>{screen}</main>
           {st.error ? <div className="store-message" role="alert">{st.error}</div> : null}
           {acct.migrating ? <div className="store-message" role="status">Kayıtlar hesabına taşınıyor…</div> : null}
+          {exitToast ? <div className="back-toast" role="status">Çıkmak için tekrar bas</div> : null}
           <nav className="tabbar tb4" aria-label="Ana gezinme" inert={acct.migrating || acct.busy}>
             {TABS2.map((t) => (
               <button key={t.id} id={'tab-' + t.id} type="button" className={'tab' + (t.id === tab ? ' on' : '')} aria-label={t.label} aria-current={t.id === tab ? 'page' : undefined} onClick={() => pick(t.id)}>
@@ -1801,7 +1866,7 @@ function App() {
             ))}
           </nav>
           {sheets.map((sh, i) => (
-            <SheetFrame key={sh.key} title={sheetTitle(sh)} onClose={sh.type === 'consent' ? actions.rejectConsent : closeTop} size={sheetSize(sh)} z={40 + i * 2}>
+            <SheetFrame key={sh.key} top={i === sheets.length - 1} title={sheetTitle(sh)} onClose={sh.type === 'consent' ? actions.rejectConsent : closeTop} size={sheetSize(sh)} z={40 + i * 2}>
               {renderSheet(sh)}
             </SheetFrame>
           ))}

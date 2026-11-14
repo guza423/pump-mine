@@ -10,6 +10,7 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
+    registerPlugin(RestTimerPlugin.class);
     // Capacitor önce koyu uygulama temasını ve WebView'i kursun.
     super.onCreate(savedInstanceState);
     EdgeToEdge.enable(this, SystemBarStyle.dark(Color.TRANSPARENT), SystemBarStyle.dark(Color.TRANSPARENT));

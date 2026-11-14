@@ -111,6 +111,14 @@ Her push ve elle tetiklenen çalıştırma, **Build Android debug APK** GitHub A
 
 Telefon yatay çevrilse de uygulama dikey kalır.
 
+İlk dinlenme sayacında Android bildirim izni ister; izin verirsen kilit ekranında geri sayım görürsün. Süre bitince ses ve titreşim gelir. İzin verilmezse ekrandaki sayaç çalışır. PWA'da yalnızca ekrandaki sayaç bulunur.
+
+Plansız antrenmanda hareket ekleyip doğrudan set kaydedebilirsin; kilo, tekrar ve hız son kaydından gelir. Dinlenmedeki −15 / +15 ayarı o hareket için hatırlanır. Sayaç sekme değişiminde ve uygulama yeniden açıldığında devam eder. Android geri tuşu önce açık pencereyi veya alt ekranı kapatır, aktif oturumdan Bugün'e döner; oturum sürer. Bugün'de iki saniye içinde iki kez geri basınca uygulama kapanır.
+
 Telefonda APK'ya dokun ve istendiğinde kullandığın tarayıcı/dosya yöneticisi için **Bilinmeyen uygulamaları yükle** iznini ver. Play Protect debug uygulama için uyarı gösterebilir. Bu APK geliştirme/test amaçlıdır ve Play Store için imzalanmış bir sürüm değildir.
 
 İmza sabitlendi. Bu sürümden önceki bir APK yüklüyse telefondan bir kez kaldır, sonra yenisini kur. Bundan sonraki sürümler üstüne kurulur, veriler kalır.
+
+### Bilinen notlar
+
+Dinlenme bitişi için `USE_EXACT_ALARM` kullanılır; APK doğrudan kuruluyor. Play Store'a çıkarken bu iznin gerekçesi ve mağaza politikası yeniden değerlendirilecek. Kesin alarm izni bulunmayan cihazlarda sistem alarmı geciktirebilir. [Android alarm belgeleri](https://developer.android.com/develop/background-work/services/alarms/schedule).

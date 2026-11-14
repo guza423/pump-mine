@@ -7,6 +7,14 @@ import App from '../app/App';
 import { db } from '../lib/store/database';
 import { hipertrofiProgram } from './fixtures';
 import { resetTestRuntime, testEnvironment } from './cloudRuntime';
+import { backStack } from '../app/back';
+
+const native = vi.hoisted(() => ({ start: vi.fn(), stop: vi.fn(), checkPermissions: vi.fn(), requestPermissions: vi.fn() }));
+vi.mock('@capacitor/core', async importOriginal => {
+  const actual = await importOriginal();
+  return { ...actual, Capacitor: { ...actual.Capacitor, isNativePlatform: () => true }, registerPlugin: (name, options) => name === 'RestTimer' ? native : actual.registerPlugin(name, options) };
+});
+vi.mock('@capacitor/app', () => ({ App: { addListener: vi.fn(async () => ({ remove: vi.fn() })), exitApp: vi.fn() } }));
 
 vi.mock('../lib/cloud/runtime', async () => ({ get accountRuntime() { return testEnvironment.runtime; } }));
 
@@ -65,6 +73,10 @@ function expectHealthy() {
 
 describe('ana ekran akışları', () => {
   beforeEach(async () => {
+    vi.clearAllMocks();
+    native.start.mockResolvedValue(undefined);
+    native.stop.mockResolvedValue(undefined);
+    native.checkPermissions.mockResolvedValue({ notifications: 'granted' });
     resetTestRuntime();
     window.location.hash = '';
     await db.delete();
@@ -75,6 +87,101 @@ describe('ana ekran akışları', () => {
     cleanup();
     db.close();
     await db.delete();
+  });
+
+  it('plansız ekranda yalnızca yapılan setleri gösterir, dinlenmeyi saklar ve setsiz hareketi çıkarır', async () => {
+    const { container } = render(<App />);
+    const click = selector => fireEvent.click(container.querySelector(selector));
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    click('#tab-antrenman');
+    expect(container.querySelector('#free-session').textContent).toContain('Plansız antrenman');
+    click('#free-session');
+    await waitFor(() => expect(container.querySelector('#ses-add-first')).toBeTruthy());
+    click('#ses-add-first');
+    fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'düz bench' } });
+    fireEvent.click(container.querySelector('.exr-main'));
+    expect(container.querySelector('.dock input[id^="kg-"]').value).toBe('20');
+    expect(container.querySelector('.dock input[id^="reps-"]').value).toBe('10');
+    expect(container.querySelector('.tgt2, .exprog, .exnav, .srow.plan, .srow.now, .spwrap')).toBeNull();
+    expect(container.querySelector('#log-set').textContent).toBe('Seti kaydet');
+    expect(screen.getByText('İlk setini kaydet')).toBeTruthy();
+    click('#log-set');
+    expect(container.querySelectorAll('.srow.done')).toHaveLength(1);
+    expect(container.querySelector('#rest-big, .restchip')).toBeTruthy();
+    await waitFor(() => expect(native.start).toHaveBeenCalledTimes(1));
+    const saved = (await db.sessions.toArray())[0];
+    expect(saved.rest).toMatchObject({ total: 180, exId: 'duz-bench', setNo: 1, start: saved.items[0].sets[0].at });
+    expect(native.start).toHaveBeenLastCalledWith(expect.objectContaining({ endAt: saved.rest.start + 180000, body: '2. set sırada' }));
+    expect(native.stop.mock.invocationCallOrder[0]).toBeLessThan(native.start.mock.invocationCallOrder[0]);
+    fireEvent.click(screen.getByRole('button', { name: '15 saniye ekle' }));
+    await waitFor(async () => expect((await db.settings.get('restPrefs')).value).toEqual({ 'duz-bench': 195 }));
+    click('#log-set');
+    await waitFor(() => expect(native.start).toHaveBeenCalledTimes(3));
+    expect(native.stop.mock.invocationCallOrder.at(-1)).toBeLessThan(native.start.mock.invocationCallOrder.at(-1));
+    await waitFor(async () => expect((await db.sessions.toArray())[0].rest.total).toBe(195));
+    click('#tab-bugun');
+    click('#tab-antrenman');
+    await waitFor(() => expect(container.querySelector('#rest-big, .restchip')).toBeTruthy());
+    fireEvent.click(screen.getByRole('button', { name: 'Atla' }));
+    await waitFor(async () => expect((await db.sessions.toArray())[0].rest).toBeUndefined());
+    click('#fx-add');
+    fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'Oturarak dumbbell omuz press' } });
+    fireEvent.click(container.querySelector('.exr-main'));
+    expect(container.querySelectorAll('.fx-chip')).toHaveLength(2);
+    expect(container.querySelector('.fx-chip.on').textContent).toContain('dumbbell');
+    expect(container.querySelector('#log-set').disabled).toBe(true);
+    expect(screen.getByText('Kiloyu gir')).toBeTruthy();
+    fireEvent.click(container.querySelector('.fx-chip.on .fx-remove'));
+    expect(container.querySelectorAll('.fx-chip')).toHaveLength(1);
+    expect(container.querySelector('.fx-chip .fx-remove')).toBeNull();
+    expect(container.querySelector('.s-v.off')).toBeNull();
+  });
+
+  it('plansız hareketin kilosunu, tekrarını ve hızını en yeni bitmiş setten alır', async () => {
+    const item = (sets) => ({ id: 'bench', exId: 'duz-bench', name: 'Düz bench press', muscle: 'Göğüs', target: { rest: 180 }, sets });
+    const set = (kg, reps, lvl, at) => ({ kg, reps, lvl, at, vl: .2, rpe: 8, rir: 2 });
+    await db.sessions.bulkPut([
+      { id: 'new-session', dayId: null, dayName: 'Boş antrenman', status: 'done', startedAt: 20, items: [item([set(80, 8, 1, 100)])] },
+      { id: 'last-set', dayId: null, dayName: 'Boş antrenman', status: 'done', startedAt: 10, items: [item([set(60, 10, 3, 200), set(40, 12, 0, 50)])] },
+    ]);
+    const { container } = render(<App />);
+    const click = selector => fireEvent.click(container.querySelector(selector));
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    click('#tab-antrenman');
+    expect(container.querySelector('.shead-sub').textContent).toContain('Plansız antrenman');
+    click('#free-session');
+    await waitFor(() => expect(container.querySelector('#ses-add-first')).toBeTruthy());
+    click('#ses-add-first');
+    fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'düz bench' } });
+    fireEvent.click(container.querySelector('.exr-main'));
+    expect(container.querySelector('input[id^="kg-"]').value).toBe('60');
+    expect(container.querySelector('input[id^="reps-"]').value).toBe('10');
+    expect(container.querySelector('#speed-3').getAttribute('aria-checked')).toBe('true');
+    expect((await db.sessions.get('new-session')).dayName).toBe('Boş antrenman');
+  });
+
+  it('bildirim hatası set kaydını engellemez; bitirince sayaç durur ve oturumdan silinir', async () => {
+    native.start.mockRejectedValue(new Error('Bildirim kullanılamıyor'));
+    const { container } = render(<App />);
+    const click = selector => fireEvent.click(container.querySelector(selector));
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    click('#tab-antrenman'); click('#free-session');
+    await waitFor(() => expect(container.querySelector('#ses-add-first')).toBeTruthy());
+    click('#ses-add-first');
+    fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'düz bench' } });
+    fireEvent.click(container.querySelector('.exr-main'));
+    click('#log-set');
+    await waitFor(() => expect(native.start).toHaveBeenCalled());
+    await waitFor(async () => expect((await db.sessions.toArray())[0].items[0].sets).toHaveLength(1));
+    click('#finish-btn');
+    act(() => { backStack.dispatch(); });
+    expect(container.querySelector('#finish-yes')).toBeNull();
+    click('#finish-btn'); click('#finish-yes');
+    await waitFor(() => expect(native.stop).toHaveBeenCalledTimes(2));
+    await waitFor(async () => {
+      const s = (await db.sessions.toArray())[0];
+      expect(s.status).toBe('done'); expect(s.rest).toBeUndefined();
+    });
   });
 
   it('yeni misafir boş başlar, program oluştur doğrudan düzenleyiciyi açar', async () => {
@@ -198,8 +305,7 @@ describe('ana ekran akışları', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Set 1: 5 temas. Ayrıntı' }));
     expect(within(screen.getAllByRole('dialog').at(-1)).getByText('Biraz düştü')).toBeTruthy();
     close();
-    click('#exnav-list');
-    fireEvent.click(screen.getByRole('button', { name: /Hareket ekle/ }));
+    click('#fx-add');
     fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'düz bench' } });
     fireEvent.click(container.querySelector('.exr-main'));
     await waitFor(() => expect(container.querySelector('#pq-1')).toBeNull());
@@ -242,6 +348,9 @@ describe('ana ekran akışları', () => {
     const heavy = await screen.findByText('Ağır gün', { selector: 'strong' });
     fireEvent.click(heavy.closest('button')!);
     await waitFor(() => expect(container.querySelector('#log-set')).toBeTruthy());
+    expect(container.querySelector('.tgt2')).toBeTruthy();
+    expect(container.querySelector('.srow.plan')).toBeTruthy();
+    expect(container.querySelector('#log-set').textContent).toBe('Set 1/2 kaydet');
     click('#log-set');
     click('#log-set');
     const firstSet = await screen.findByRole('button', { name: /Set 1:.*Ayrıntı/ });

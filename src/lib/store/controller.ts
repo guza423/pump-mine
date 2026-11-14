@@ -3,6 +3,7 @@ import { collectionFor, emptyData, kinds, LocalBackend, type Backend, type Kind,
 import { migrateGuest, type MigrationBackend } from '../cloud/migration';
 import { accountError } from '../cloud/errors';
 import type { PerformanceBackup } from './types';
+import { stopRest } from '../native/restTimer';
 
 export interface AccountUser { uid: string; email: string | null; provider: string }
 export interface AccountRuntime {
@@ -115,13 +116,13 @@ export class LogController {
   }
   logout = async () => {
     this.canLeave(); this.closing = true; this.account({ busy: true }); this.unsubscribe?.();
-    try { await this.runtime!.logout(); } catch (e) { this.closing = false; this.account({ busy: false }); this.attach(this.backend); throw e; }
+    try { await stopRest(); await this.runtime!.logout(); } catch (e) { this.closing = false; this.account({ busy: false }); this.attach(this.backend); throw e; }
   };
   deleteAccount = async (password?: string) => {
     this.canLeave();
     if (!navigator.onLine) throw new Error('Hesabı silmek için internete bağlan.');
     this.closing = true; this.account({ busy: true }); this.unsubscribe?.();
-    try { await this.runtime!.deleteAccount(password); } catch (e) { this.closing = false; this.account({ busy: false }); this.attach(this.backend); throw e; }
+    try { await stopRest(); await this.runtime!.deleteAccount(password); } catch (e) { this.closing = false; this.account({ busy: false }); this.attach(this.backend); throw e; }
   };
   readBackup = async (): Promise<PerformanceBackup> => ({ format: 'performance-backup', version: 2, exportedAt: new Date().toISOString(), data: await this.backend.readAll() });
   restoreBackup = async (value: PerformanceBackup) => {

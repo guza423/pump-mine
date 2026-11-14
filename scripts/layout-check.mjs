@@ -37,10 +37,10 @@ async function scaleFonts(page, factor) {
   }, factor);
 }
 
-async function check(page, label, screen, { session = false, tablet = false } = {}) {
+async function check(page, label, screen, { session = false, tablet = false, rest = false } = {}) {
   await page.evaluate(() => document.fonts.ready);
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-  const errors = await page.evaluate(({ session, tablet }) => {
+  const errors = await page.evaluate(({ session, tablet, rest }) => {
     const errors = [];
     const selector = el => el.id ? `#${CSS.escape(el.id)}` : `${el.localName}${[...el.classList].map(c => '.' + CSS.escape(c)).join('')}`;
     const visible = el => {
@@ -73,10 +73,20 @@ async function check(page, label, screen, { session = false, tablet = false } = 
         errors.push(`#log-set: kaydırmadan görünmüyor (düğme ${br?.top.toFixed(1)}–${br?.bottom.toFixed(1)}, sekme ${tr?.top.toFixed(1)})`);
       }
       if (document.querySelector('.ses2-body').scrollTop !== 0) errors.push('.ses2-body: seans ana kabı kaydırılmış');
+      if (document.querySelector('.free-session .pq-row') && !document.querySelector('#rest-big') && ![...document.querySelectorAll('.ps-r')].some(visible)) errors.push('pliometrik: seans temas sayısı görünmüyor');
+      if (rest) {
+        const timer = [...document.querySelectorAll('#rest-big, .restchip')].find(visible);
+        const rr = timer?.getBoundingClientRect();
+        if (!rr || rr.top < 0 || rr.bottom >= tr.top || rr.left < 0 || rr.right > innerWidth) errors.push('dinlenme sayacı: tamamı kaydırmadan görünmüyor');
+        for (const control of timer?.querySelectorAll('button') || []) {
+          const cr = control.getBoundingClientRect();
+          if (!visible(control) || cr.top < rr.top || cr.bottom > rr.bottom + 1) errors.push('dinlenme sayacı: süre düğmesi kırpılıyor');
+        }
+      }
     }
     if (tablet && getComputedStyle(document.querySelector('.device')).borderRadius !== '0px') errors.push('.device: dokunmatik tablette telefon çerçevesi var');
     return errors;
-  }, { session, tablet });
+  }, { session, tablet, rest });
   if (errors.length) {
     failures.push(...errors.map(error => `${label} · ${screen} · ${error}`));
   }
@@ -144,22 +154,45 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
     await check(page, label, screen, { session: true });
 
     await page.locator('#log-set').click();
-    await page.locator('#log-set').filter({ hasText: 'Set 2/' }).waitFor();
+    await page.locator('.srow.done').waitFor();
     screen = 'seans-set-kayitli';
-    await check(page, label, screen, { session: true });
+    await check(page, label, screen, { session: true, rest: true });
 
     // Uzun set listesi yalnızca kendi içinde kaymalı; ana eylem yerinde kalmalı.
     for (let i = 0; i < 5; i++) await page.locator('#log-set').click();
     screen = 'seans-uzun-tablo';
-    await check(page, label, screen, { session: true });
+    await check(page, label, screen, { session: true, rest: true });
 
-    await page.locator('#exnav-list').click();
-    await page.getByRole('dialog').last().getByRole('button', { name: /Hareket ekle/ }).click();
+    await page.getByRole('button', { name: 'Atla', exact: true }).click();
+    await page.locator('#fx-add').click();
     await page.locator('#ex-search').fill('box jump');
     await page.locator('.exr-main').first().click();
     await page.locator('#pq-0').waitFor();
     screen = 'seans-plyo';
     await check(page, label, screen, { session: true });
+    await page.locator('#log-set').click();
+    screen = 'seans-plyo-dinlenme';
+    await check(page, label, screen, { session: true, rest: true });
+    await page.locator('#finish-btn').click();
+    await page.locator('#finish-yes').click();
+    await page.getByRole('dialog', { name: 'Antrenman özeti' }).waitFor();
+    await closeSheet(page);
+
+    screen = 'programli-editor';
+    await page.locator('#tab-programlar').click();
+    await page.locator('#tab-programlar').click();
+    await page.locator('#prog-new').click();
+    await page.locator('#add-item').click();
+    await page.locator('#ex-search').fill('düz bench');
+    await page.locator('.exr-main').first().click();
+    await page.locator('#ed-start').click();
+    await page.locator('.tgt2').waitFor();
+    screen = 'programli-seans';
+    await check(page, label, screen, { session: true });
+    await page.locator('#log-set').click();
+    await page.locator('.restchip').waitFor();
+    screen = 'programli-dinlenme';
+    await check(page, label, screen, { session: true, rest: true });
 
     screen = 'lab-hareketler';
     await page.locator('#tab-lab').click();

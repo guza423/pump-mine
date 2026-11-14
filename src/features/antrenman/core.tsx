@@ -105,7 +105,7 @@ function blankProgram() {
 function sessionFromDay(program, day) {
   return {
     id: newId('s'), programId: program ? program.id : null, programName: program ? program.name : '', dayId: day ? day.id : null,
-    dayName: day ? day.name : 'Serbest antrenman', startedAt: Date.now(), endedAt: null, status: 'active',
+    dayName: day ? day.name : 'Plansız antrenman', startedAt: Date.now(), endedAt: null, status: 'active',
     items: (day ? day.items : []).map((it) => ({
       id: newId('e'), srcId: it.id || null, exId: it.exId || null, name: it.name, muscle: it.muscle, note: it.note || '', memo: '',
       target: { sets: it.sets, repMin: it.repMin, repMax: it.repMax, kg: hasNum(it.kg) ? Number(it.kg) : null, rpeMin: it.rpeMin, rpeMax: it.rpeMax, rest: it.rest || 120 },

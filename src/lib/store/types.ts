@@ -55,6 +55,13 @@ export interface SessionItem {
   sets: RecordedSet[];
 }
 
+export interface SessionRest {
+  start: number;
+  total: number;
+  exId: string | null;
+  setNo: number;
+}
+
 export interface Session {
   id: string;
   programId: string | null;
@@ -65,6 +72,7 @@ export interface Session {
   endedAt: number | null;
   status: 'active' | 'done';
   fatigue?: { v: 2; pre: number; post: number | null };
+  rest?: SessionRest;
   items: SessionItem[];
 }
 
