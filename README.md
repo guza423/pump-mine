@@ -2,10 +2,10 @@
 
 Android telefonları hedefleyen, çevrimdışı çalışan antrenman uygulaması. Misafir kullanımında veri cihazda kalır; isteğe bağlı hesap ile Firebase'e eşitlenir. Vite + React + TypeScript uygulaması Capacitor ile Android için paketlenir ve dört ana sekmeye ayrılır:
 
-- **Bugün:** zaman damgalı zor setler ve uyku girişlerinden yorgunluk, toparlanma, haftalık plan ve hedef.
-- **Antrenman:** antrenman türleri, aktif set kaydı, dinlenme sayacı ve dönem filtreli geçmiş.
-- **Programlar:** program editörü ve üç haftalık seans başı/sonu yorgunluk analizi.
-- **Lab:** Temeller dersleri ve Türkçe/İngilizce arama, tür, kas, ekipman filtreleriyle 438 hareket (359 kuvvet, 28 olimpik, 51 pliometrik).
+- **Dashboard:** zaman damgalı zor setler ve uyku girişlerinden yorgunluk, toparlanma, haftalık plan, güç (1RM) ve beceri öğrenme hedefleri.
+- **Antrenman:** antrenman planları (`Planlarım`), plansız antrenman, aktif set kaydı, dinlenme sayacı ve satır içi geçmiş.
+- **Gözlem (Antrenman plan ve gözlem):** 42 hücreli aylık takvim, seçili gün paneli (tek günlük veya haftalık planlama), ay özeti, yorgunluk/uyarılar, hareket gelişimi (1RM eğrisi) ve haftalık yük analizi.
+- **Lab:** Temeller dersleri ve Türkçe/İngilizce arama, tür, kas, ekipman filtreleriyle 466 hareket (359 kuvvet, 28 olimpik, 51 pliometrik, 28 beceri).
 
 ## Yerelde çalıştırma
 
@@ -65,7 +65,7 @@ Yerel APK `android/app/build/outputs/apk/debug/app-debug.apk` konumunda oluşur.
 
 Misafirken programlar, antrenmanlar, özel hareketler, uyku girişleri ve hedef tarayıcının IndexedDB alanında tutulur. İlk açılışta veri yoktur; örnek program, hazır şablon ve varsayılan hedef eklenmez. Her set, uyku girişi ve antrenman başlangıç/bitişi zaman damgalıdır.
 
-**Programlar** listesinin altındaki **Yedekle** düğmesi bütün veriyi v2 JSON olarak dışa aktarır. Web sürümü dosyayı indirir; Android sürümü Capacitor Filesystem ve Share ile sistem paylaşım menüsünü açar. **Geri yükle**, seçilen OUTMOVE yedeğini doğrular ve mevcut yerel verinin yerine koyar. Tarayıcı verilerini temizlemeden veya telefon değiştirmeden önce yedek alın.
+**Hesap ve yedek** penceresinin altındaki **Yedekle** düğmesi bütün veriyi v2 JSON olarak dışa aktarır. Web sürümü dosyayı indirir; Android sürümü Capacitor Filesystem ve Share ile sistem paylaşım menüsünü açar. **Geri yükle**, seçilen OUTMOVE yedeğini doğrular ve mevcut yerel verinin yerine koyar. Tarayıcı verilerini temizlemeden veya telefon değiştirmeden önce yedek alın.
 
 ## Hesap ve yedek
 

@@ -8,6 +8,7 @@ import { db } from '../lib/store/database';
 import { hipertrofiProgram } from './fixtures';
 import { resetTestRuntime, testEnvironment } from './cloudRuntime';
 import { backStack } from '../app/back';
+import { dateKey } from '../features/plan/plans';
 
 const native = vi.hoisted(() => ({ start: vi.fn(), stop: vi.fn(), checkPermissions: vi.fn(), requestPermissions: vi.fn() }));
 vi.mock('@capacitor/core', async importOriginal => {
@@ -87,6 +88,16 @@ describe('ana ekran akışları', () => {
     cleanup();
     db.close();
     await db.delete();
+  });
+
+  it('alt menü Dashboard / Antrenman / Gözlem / Lab gösterir ve Dashboard başlığıyla açılır', async () => {
+    const { container } = render(<App />);
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    expect(await screen.findByRole('heading', { level: 1, name: 'Dashboard' })).toBeTruthy();
+    const tabs = [...container.querySelectorAll('.tabbar .tab .tab-l')].map((el) => el.textContent);
+    expect(tabs).toEqual(['Dashboard', 'Antrenman', 'Gözlem', 'Lab']);
+    expect(container.querySelector('#tab-programlar')).toBeNull();
+    expect(container.querySelector('#tab-gozlem')).toBeTruthy();
   });
 
   it('plansız ekranda yalnızca yapılan setleri gösterir, dinlenmeyi saklar ve setsiz hareketi çıkarır', async () => {
@@ -184,21 +195,145 @@ describe('ana ekran akışları', () => {
     });
   });
 
-  it('yeni misafir boş başlar, program oluştur doğrudan düzenleyiciyi açar', async () => {
+  it('yeni misafir boş başlar, Plan oluştur doğrudan düzenleyiciyi açar ve dokunmadan çıkılırsa kaydedilmez', async () => {
     const { container } = render(<App />);
     await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
     expect(await db.programs.count()).toBe(0);
     expect(container.querySelector('#goal-add')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'Program oluştur' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Plan oluştur' }));
     expect(container.querySelector('.editor2')).toBeTruthy();
-    fireEvent.click(container.querySelector('#tab-programlar'));
-    fireEvent.click(container.querySelector('#tab-programlar'));
-    expect(screen.getByText('Henüz programın yok')).toBeTruthy();
-    expect(screen.queryByText('Şablonla başla')).toBeNull();
-    expect(container.querySelector('.tmpl')).toBeNull();
-    fireEvent.click(container.querySelector('#prog-empty-new'));
-    expect(container.querySelector('.editor2')).toBeTruthy();
+    fireEvent.click(container.querySelector('#ed-back'));
     expect(await db.programs.count()).toBe(0);
+  });
+
+  it('Antrenman sekmesinde #hist-btn yoktur, geçmiş doğrudan sayfada görünür ve #new-plan ile oluşturulan plan Planlarım listesinde yer alır', async () => {
+    await db.sessions.put({
+      id: 'done-1',
+      dayId: null,
+      dayName: 'Plansız antrenman',
+      status: 'done',
+      startedAt: Date.now() - 3600_000,
+      endedAt: Date.now() - 1800_000,
+      items: [{ id: 'i1', exId: 'duz-bench', name: 'Düz bench press', muscle: 'Göğüs', target: { rest: 180 }, sets: [{ kg: 80, reps: 8, rir: 2, rpe: 8, lvl: 2, vl: 0.2, at: Date.now() - 3000_000 }] }],
+    });
+    const { container } = render(<App />);
+    const click = (selector) => fireEvent.click(container.querySelector(selector));
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    click('#tab-antrenman');
+    expect(container.querySelector('#hist-btn')).toBeNull();
+    expect(container.querySelector('#history-btn')).toBeNull();
+    expect(container.querySelector('.hist-inline .hrow')).toBeTruthy();
+    expect(screen.getByText('Planın yok. Plansız başla ya da bir plan oluştur.')).toBeTruthy();
+
+    click('#new-plan');
+    expect(container.querySelector('.editor2')).toBeTruthy();
+    fireEvent.change(container.querySelector('#plan-name'), { target: { value: 'Push Planı' } });
+    fireEvent.click(within(container.querySelector('.wd-pick')).getByRole('button', { name: 'Pzt' }));
+    click('#add-item');
+    const picker = await screen.findByRole('dialog', { name: 'Hareket ekle' });
+    fireEvent.click(picker.querySelector('.exr-main'));
+    click('#ed-back');
+
+    await waitFor(() => expect(container.querySelector('.plan-list')).toBeTruthy());
+    expect(container.querySelector('.plan-list').textContent).toContain('Push Planı');
+    expect(container.querySelector('.plan-list').textContent).toContain('1 hareket · Pzt');
+  });
+
+  it('Gözlem sekmesinde 42 hücreli takvimi, haftalık ve tek günlük plan halkalarını, ay geçişini ve gözlem metriklerini gösterir', async () => {
+    const now = new Date();
+    await db.sessions.put({
+      id: 's-month',
+      dayId: null,
+      dayName: 'Plansız antrenman',
+      status: 'done',
+      startedAt: now.getTime() - 1200_000,
+      endedAt: now.getTime() - 600_000,
+      items: [{
+        id: 'i1',
+        exId: 'egimli-bench',
+        name: 'Eğimli bench press',
+        muscle: 'Göğüs',
+        target: { rest: 180 },
+        sets: [{ kg: 75, reps: 8, rir: 2, rpe: 8, lvl: 2, vl: 0.2, at: now.getTime() - 900_000 }],
+      }],
+    });
+    await db.programs.put({
+      id: 'p-mon',
+      name: 'Pazartesi Planı',
+      createdAt: 1,
+      updatedAt: 2,
+      days: [{
+        id: 'd-mon',
+        name: 'Pazartesi Planı',
+        weekdays: [1],
+        dates: [],
+        skip: [],
+        items: [{ id: 'i1', exId: 'squat', name: 'Squat', muscle: 'Quadriceps', sets: 3, repMin: 5, repMax: 5, kg: 100, rpeMin: 8, rpeMax: 8, rest: 180, note: '' }],
+      }],
+    });
+
+    const { container } = render(<App />);
+    const click = (selector) => fireEvent.click(container.querySelector(selector));
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    click('#tab-gozlem');
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Antrenman plan ve gözlem' })).toBeTruthy();
+    const cells = container.querySelectorAll('.cal .cal-d');
+    expect(cells).toHaveLength(42);
+    const todayKey = dateKey(now);
+    const todayCell = container.querySelector(`.cal-d[data-date="${todayKey}"]`);
+    expect(todayCell?.classList.contains('today')).toBe(true);
+    expect(todayCell?.classList.contains('sel')).toBe(true);
+
+    // Gelecek Pazartesi hücresinde halka (.cal-m.plan)
+    let nextMon = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    while (nextMon.getDay() !== 1) {
+      nextMon = new Date(nextMon.getFullYear(), nextMon.getMonth(), nextMon.getDate() + 1);
+    }
+    const nextMonKey = dateKey(nextMon);
+    if (nextMon.getMonth() !== now.getMonth()) {
+      click('#cal-next');
+    }
+    const monCell = container.querySelector(`.cal-d[data-date="${nextMonKey}"]`);
+    expect(monCell?.querySelector('.cal-m.plan')).toBeTruthy();
+    if (nextMon.getMonth() !== now.getMonth()) {
+      click('#cal-prev');
+    }
+
+    // Yarın için tek günlük plan ekle -> halka oluşur -> Bu günden kaldır -> halka gider
+    // (Yarın Pazartesi ise Çarşamba seçelim ki haftalık Pazartesi planıyla çakışmasın)
+    let targetDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    if (targetDay.getDay() === 1) {
+      targetDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2);
+    }
+    const targetKey = dateKey(targetDay);
+    if (targetDay.getMonth() !== now.getMonth()) {
+      click('#cal-next');
+    }
+    fireEvent.click(container.querySelector(`.cal-d[data-date="${targetKey}"]`));
+    expect(container.querySelector(`.cal-d[data-date="${targetKey}"] .cal-m.plan`)).toBeNull();
+    click('#day-add-plan');
+    expect(await screen.findByRole('dialog', { name: 'Bu güne plan ekle' })).toBeTruthy();
+    click('#plan-pick-save');
+    await waitFor(() => expect(container.querySelector(`.cal-d[data-date="${targetKey}"] .cal-m.plan`)).toBeTruthy());
+
+    fireEvent.click(screen.getByRole('button', { name: 'Pazartesi Planı menüsü' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Bu günden kaldır' }));
+    await waitFor(() => expect(container.querySelector(`.cal-d[data-date="${targetKey}"] .cal-m.plan`)).toBeNull());
+
+    if (targetDay.getMonth() !== now.getMonth()) {
+      click('#cal-prev');
+    }
+
+    // Ay geçişi (#cal-next / #cal-prev)
+    click('#cal-next');
+    expect(container.querySelector('#cal-today')).toBeTruthy();
+    click('#cal-prev');
+    expect(container.querySelector('#cal-today')).toBeNull();
+
+    // Gözlem bölümünde Metric ve E1Chart
+    expect(container.querySelector('.mgrid .metric')).toBeTruthy();
+    expect(container.querySelector('.chart-svg')).toBeTruthy();
   });
 
   it('hedef boş açılır, yalnızca geçerli hedef kaydedilir ve kaldırılabilir', async () => {
@@ -231,8 +366,59 @@ describe('ana ekran akışları', () => {
     click('#goal-card');
     expect(container.querySelector('#goal-base').value).toBe('95');
     click('#goal-remove');
-    await waitFor(() => expect(container.querySelector('#goal-add')).toBeTruthy());
+    await waitFor(() => expect(container.querySelector('#goal-card')).toBeNull());
     expect(await db.settings.get('goal')).toBeUndefined();
+  });
+
+  it('eski goal ayarı olan kullanıcı güç kartını görür', async () => {
+    await db.settings.put({
+      key: 'goal',
+      value: { exId: 'egimli-bench', name: 'Eğimli bench press', base: 85, target: 105, createdAt: 100 },
+    });
+    const { container } = render(<App />);
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    expect(container.querySelector('.goal-card')).toBeTruthy();
+    expect(container.querySelector('.goal-card').textContent).toContain('Eğimli bench press');
+    expect(container.querySelector('.goal-card').textContent).toContain('105');
+  });
+
+  it('öğrenme hedefi ekler, Pratik et ile Kip-up seansı başlatır ve özetten aşamayı ilerletir', async () => {
+    const { container } = render(<App />);
+    const click = (selector) => fireEvent.click(container.querySelector(selector));
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+
+    click('#goal-add');
+    click('#goal-type-skill');
+    fireEvent.change(container.querySelector('#goal-search'), { target: { value: 'kip' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Kip-up', exact: true }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Parçalarını yapıyorum' }));
+    click('#goal-save');
+
+    await waitFor(() => expect(container.querySelector('.skill-card')).toBeTruthy());
+    expect(container.querySelector('.skill-card').textContent).toContain('Kip-up');
+    expect(container.querySelector('.skill-card').textContent).toContain('Parçalarını yapıyorum');
+
+    fireEvent.click(container.querySelector('.skill-card .skill-go'));
+    await waitFor(() => expect(container.querySelector('#sq-0')).toBeTruthy());
+    expect(container.querySelector('.fx-chip.on').textContent).toContain('Kip-up');
+
+    fireEvent.change(container.querySelector('.dock input[id^="reps-"]'), { target: { value: '2' } });
+    fireEvent.blur(container.querySelector('.dock input[id^="reps-"]'));
+    click('#sq-0');
+    click('#log-set');
+
+    click('#finish-btn');
+    click('#finish-yes');
+    const summaryDialog = await screen.findByRole('dialog', { name: 'Antrenman özeti' });
+    expect(summaryDialog.textContent).toContain('Kip-up');
+    expect(summaryDialog.textContent).toContain('2 temiz deneme');
+    fireEvent.click(within(summaryDialog).getByRole('button', { name: 'Aşamayı ilerlet' }));
+    fireEvent.click(within(summaryDialog).getAllByRole('button', { name: 'Kapat' }).at(-1));
+
+    click('#tab-bugun');
+    await waitFor(() => expect(container.querySelector('.skill-card')).toBeTruthy());
+    expect(container.querySelector('.skill-card').textContent).toContain('İlk temiz tekrar');
+    expect(container.querySelector('.skill-card').textContent).toContain('1 pratik');
   });
 
   it('hedef önerilerinde son kayıt öndedir ve başlangıç son e1RM ile dolar', async () => {
@@ -254,7 +440,7 @@ describe('ana ekran akışları', () => {
     await db.programs.put(hipertrofiProgram());
     const { container } = render(<App />);
     const click = selector => fireEvent.click(container.querySelector(selector));
-    await screen.findByRole('heading', { name: 'Bugün' });
+    await screen.findByRole('heading', { name: 'Dashboard' });
     await waitFor(async () => expect(await db.programs.count()).toBe(1));
     click('#account-btn');
     expect(await screen.findByRole('dialog', { name: 'Hesap ve yedek' })).toBeTruthy();
@@ -281,7 +467,7 @@ describe('ana ekran akışları', () => {
     const { container } = render(<App />);
     const click = (selector) => fireEvent.click(container.querySelector(selector));
     const close = () => fireEvent.click(within(screen.getAllByRole('dialog').at(-1)).getAllByRole('button', { name: 'Kapat' }).at(-1));
-    await screen.findByRole('heading', { name: 'Bugün' });
+    await screen.findByRole('heading', { name: 'Dashboard' });
     click('#tab-lab');
     click('#lab-part-hareket');
     fireEvent.change(container.querySelector('#lab-search'), { target: { value: 'bench' } });
@@ -322,7 +508,7 @@ describe('ana ekran akışları', () => {
     expectHealthy();
   });
 
-  it('v0.7 ana akışlarını hatasız tamamlar', async () => {
+  it('ana akışları hatasız tamamlar', async () => {
     await db.programs.put(hipertrofiProgram());
     const { container } = render(<App />);
 
@@ -336,7 +522,7 @@ describe('ana ekran akışları', () => {
       fireEvent.click(within(dialog).getAllByRole('button', { name: 'Kapat' }).at(-1)!);
     };
 
-    await screen.findByRole('heading', { level: 1, name: 'Bugün' });
+    await screen.findByRole('heading', { level: 1, name: 'Dashboard' });
     await waitFor(async () => expect(await db.programs.count()).toBe(1));
     fireEvent.click(screen.getByRole('radio', { name: '5' }));
     await waitFor(() => expect(screen.getByRole('radio', { name: '5' }).getAttribute('aria-checked')).toBe('true'));
@@ -347,6 +533,8 @@ describe('ana ekran akışları', () => {
     click('#tab-antrenman');
     const heavy = await screen.findByText('Ağır gün', { selector: 'strong' });
     fireEvent.click(heavy.closest('button')!);
+    expect(await screen.findByRole('dialog', { name: 'Ağır gün' })).toBeTruthy();
+    click('#wtype-start');
     await waitFor(() => expect(container.querySelector('#log-set')).toBeTruthy());
     expect(container.querySelector('.tgt2')).toBeTruthy();
     expect(container.querySelector('.srow.plan')).toBeTruthy();
@@ -367,17 +555,12 @@ describe('ana ekran akışları', () => {
 
     const menuButton = await screen.findByRole('button', { name: 'Ağır gün seçenekleri' });
     fireEvent.click(menuButton);
-    const typeName = screen.getByLabelText('Tür adı');
+    const typeName = screen.getByLabelText('Plan adı');
     fireEvent.change(typeName, { target: { value: 'Ağır güç' } });
     fireEvent.blur(typeName);
     click('#wtype-del');
     expect(screen.getByRole('button', { name: 'Sil' })).toBeTruthy();
     closeTopSheet();
-
-    click('#history-btn');
-    click('#per-7');
-    expect(container.querySelector('#per-7')?.getAttribute('aria-selected')).toBe('true');
-    click('#hist-back');
 
     click('#free-session');
     await waitFor(() => expect(container.querySelector('#finish-btn')).toBeTruthy());
@@ -385,14 +568,10 @@ describe('ana ekran akışları', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Kaydetmeden çık' }));
     await waitFor(() => expect(container.querySelector('#tab-antrenman')?.getAttribute('aria-current')).toBe('page'));
 
-    click('#tab-programlar');
-    await waitFor(() => expect(container.querySelector('button[id^="open-"]')).toBeTruthy());
-    fireEvent.click(container.querySelector('button[id^="open-"]')!);
-    click('#add-item');
-    const picker = await screen.findByRole('dialog', { name: 'Hareket ekle' });
-    fireEvent.click(picker.querySelector('.exr-main')!);
-    click('#plan-dock');
-    expect(await screen.findByRole('dialog', { name: 'Program analizi' })).toBeTruthy();
+    click('#tab-gozlem');
+    await waitFor(() => expect(container.querySelector('#obs-week')).toBeTruthy());
+    click('#obs-week');
+    expect(await screen.findByRole('dialog', { name: 'Haftalık yük' })).toBeTruthy();
     fireEvent.click(container.querySelector('.plan2-meter')!);
     expect(await screen.findByRole('dialog', { name: 'Yorgunluk ölçer' })).toBeTruthy();
     closeTopSheet();

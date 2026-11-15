@@ -7,13 +7,13 @@
    Mevcut kayıtların id'leri korunur. */
 const MUS_CODE = { G: 'Göğüs', OO: 'Omuz (ön)', OY: 'Omuz (yan)', OA: 'Omuz (arka)', S: 'Sırt', T: 'Trapez', B: 'Bel', BI: 'Biceps', TR: 'Triceps', OK: 'Ön kol', K: 'Karın', Q: 'Quadriceps', H: 'Hamstring', KA: 'Kalça', AD: 'Adduktor', BA: 'Baldır', TI: 'Tibialis', BO: 'Boyun', TV: 'Tüm vücut' };
 const EQ = { bb: 'Barbell', db: 'Dumbbell', kb: 'Kettlebell', ez: 'EZ bar', tb: 'Trap bar', sm: 'Smith', cb: 'Kablo', mk: 'Makine', bw: 'Vücut ağırlığı', bd: 'Band', lm: 'Landmine', mb: 'Sağlık topu', pl: 'Plaka', sb: 'Özel bar', kz: 'Kızak', kt: 'Kutu / engel', sg: 'Strongman', dg: 'Diğer' };
-const KIND = { k: 'Kuvvet', o: 'Olimpik', p: 'Pliometrik' };
+const KIND = { k: 'Kuvvet', o: 'Olimpik', p: 'Pliometrik', b: 'Beceri' };
 const PLYO_INT = ['', 'Düşük', 'Orta', 'Yüksek', 'Şok (reaktif)'];
-type Extra = { k?: 'o' | 'p'; i?: 1 | 2 | 3 | 4; r?: number; bio?: 'bench' | 'rdl' | 'yanaacis'; not?: string };
+type Extra = { k?: 'o' | 'p' | 'b'; i?: 1 | 2 | 3 | 4; h?: 1; r?: number; bio?: 'bench' | 'rdl' | 'yanaacis'; not?: string };
 export interface LibraryExercise {
   id: string; name: string; en: string; muscle: string; sec: string[];
-  eq: keyof typeof EQ; kind: 'kuvvet' | 'olimpik' | 'plyo'; fat: 1 | 2 | 3;
-  prof: 'a' | 'u' | 'o' | 'd'; rest: number; int?: 1 | 2 | 3 | 4;
+  eq: keyof typeof EQ; kind: 'kuvvet' | 'olimpik' | 'plyo' | 'beceri'; fat: 1 | 2 | 3;
+  prof: 'a' | 'u' | 'o' | 'd'; rest: number; int?: 1 | 2 | 3 | 4; h?: 1;
   bio?: Extra['bio']; not?: string;
 }
 type Row = [string, string, string, keyof typeof MUS_CODE, string, keyof typeof EQ, 1 | 2 | 3, LibraryExercise['prof'], Extra?];
@@ -498,13 +498,44 @@ const EX_ROWS: Row[] = [
   ['mb-rotasyon', 'Rotasyonel sağlık topu atışı (duvara)', 'Rotational medicine ball throw', 'K', 'KA,OO', 'mb', 1, 'd', { k: 'p', i: 2 }],
   ['mb-kepce', 'Sağlık topu kepçe atışı (scoop toss)', 'Medicine ball scoop toss', 'TV', 'KA,H,Q', 'mb', 1, 'd', { k: 'p', i: 2 }],
   ['mb-squat-atis', 'Squat’tan yukarı sağlık topu atışı', 'Squat to overhead medicine ball throw', 'TV', 'Q,KA,OO', 'mb', 1, 'd', { k: 'p', i: 2 }],
+
+  /* ---------- BECERİ ---------- */
+  ['kip-up', 'Kip-up', 'Kip-up', 'K', 'KA,Q', 'bw', 1, 'd', { k: 'b' }],
+  ['duvar-amut', 'Duvara karşı amut', 'Wall handstand', 'OO', 'TR,T', 'bw', 1, 'd', { k: 'b', h: 1 }],
+  ['serbest-amut', 'Serbest amut', 'Freestanding handstand', 'OO', 'TR,T,K', 'bw', 1, 'd', { k: 'b', h: 1 }],
+  ['amut-yurume', 'Amut yürüyüşü', 'Handstand walk', 'OO', 'TR,T,K', 'bw', 2, 'd', { k: 'b' }],
+  ['bas-durusu', 'Baş duruşu', 'Headstand', 'K', 'OO,BO', 'bw', 1, 'd', { k: 'b', h: 1 }],
+  ['karga-durusu', 'Karga duruşu', 'Crow pose', 'OO', 'TR,K', 'bw', 1, 'd', { k: 'b', h: 1 }],
+  ['dirsek-dengesi', 'Dirsek dengesi', 'Elbow lever', 'K', 'OO,TR', 'bw', 1, 'd', { k: 'b', h: 1 }],
+  ['tuck-front-lever', 'Toplu front lever', 'Tuck front lever', 'S', 'K,OA', 'bw', 1, 'd', { k: 'b', h: 1 }],
+  ['front-lever', 'Front lever', 'Front lever', 'S', 'K,OA', 'bw', 2, 'd', { k: 'b', h: 1 }],
+  ['back-lever', 'Back lever', 'Back lever', 'S', 'OO,BI,K', 'bw', 2, 'd', { k: 'b', h: 1 }],
+  ['tuck-planche', 'Toplu planche', 'Tuck planche', 'OO', 'G,TR,K', 'bw', 2, 'd', { k: 'b', h: 1 }],
+  ['planche', 'Planche', 'Full planche', 'OO', 'G,TR,K', 'bw', 3, 'd', { k: 'b', h: 1 }],
+  ['insan-bayragi', 'İnsan bayrağı', 'Human flag', 'K', 'OY,S', 'bw', 2, 'd', { k: 'b', h: 1 }],
+  ['v-sit', 'V-sit', 'V-sit', 'K', 'TR', 'bw', 1, 'd', { k: 'b', h: 1 }],
+  ['manna', 'Manna', 'Manna', 'K', 'TR,OA', 'bw', 2, 'd', { k: 'b', h: 1 }],
+  ['halka-muscle-up', 'Halkada muscle-up', 'Ring muscle-up', 'S', 'TR,G', 'bw', 2, 'd', { k: 'b' }],
+  ['skin-the-cat', 'Skin the cat', 'Skin the cat', 'S', 'OO,K', 'bw', 1, 'd', { k: 'b' }],
+  ['kopru', 'Köprü', 'Back bridge', 'B', 'OO,KA', 'bw', 1, 'd', { k: 'b', h: 1 }],
+  ['ayaktan-kopru', 'Ayaktan köprüye iniş', 'Standing back bend to bridge', 'B', 'OO,KA', 'bw', 1, 'd', { k: 'b' }],
+  ['yan-cember', 'Yan çember', 'Cartwheel', 'TV', 'OO', 'bw', 1, 'd', { k: 'b' }],
+  ['round-off', 'Round-off', 'Round-off', 'TV', 'OO', 'bw', 1, 'd', { k: 'b' }],
+  ['one-el-yaylanma', 'Öne el yaylanma', 'Front handspring', 'TV', 'OO,KA', 'bw', 2, 'd', { k: 'b' }],
+  ['flik', 'Geri el yaylanma (flik)', 'Back handspring', 'TV', 'OO,KA', 'bw', 2, 'd', { k: 'b' }],
+  ['one-salto', 'Öne salto', 'Front flip', 'TV', 'KA,Q', 'bw', 2, 'd', { k: 'b' }],
+  ['geri-salto', 'Geri salto', 'Backflip', 'TV', 'KA,Q', 'bw', 2, 'd', { k: 'b' }],
+  ['cift-gecis', 'İp atlama çift geçiş', 'Double under', 'BA', 'OY', 'dg', 1, 'd', { k: 'b' }],
+  ['tek-kol-barfiks', 'Tek kol barfiks', 'One-arm pull-up', 'S', 'BI,OK', 'bw', 3, 'a', { k: 'b' }],
+  ['tek-kol-sinav', 'Tek kol şınav', 'One-arm push-up', 'G', 'TR,K', 'bw', 2, 'a', { k: 'b' }],
 ];
 const EX_LIB: LibraryExercise[] = EX_ROWS.map(([id, name, en, mus, sec, eq, fat, prof, x]) => {
   const o = x || {};
-  const kind = o.k === 'o' ? 'olimpik' : o.k === 'p' ? 'plyo' : 'kuvvet';
-  const rest = o.r || (kind === 'plyo' ? ((o.i || 2) >= 4 ? 180 : 120) : kind === 'olimpik' ? 150 : fat === 3 ? 180 : fat === 2 ? 120 : 75);
+  const kind = o.k === 'o' ? 'olimpik' : o.k === 'p' ? 'plyo' : o.k === 'b' ? 'beceri' : 'kuvvet';
+  const rest = o.r || (kind === 'beceri' ? 90 : kind === 'plyo' ? ((o.i || 2) >= 4 ? 180 : 120) : kind === 'olimpik' ? 150 : fat === 3 ? 180 : fat === 2 ? 120 : 75);
   const e: LibraryExercise = { id, name, en, muscle: MUS_CODE[mus], sec: sec ? sec.split(',').map((c) => MUS_CODE[c as keyof typeof MUS_CODE]) : [], eq, kind, fat, prof, rest };
   if (o.i) e.int = o.i;
+  if (o.h) e.h = o.h;
   if (o.bio) e.bio = o.bio;
   if (o.not) e.not = o.not;
   return e;

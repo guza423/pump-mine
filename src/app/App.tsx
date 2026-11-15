@@ -2,36 +2,43 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { BackupContext } from '../lib/store/BackupContext';
 import { AccountChip, AccountBody, ConsentBody, PrivacyBody } from '../features/hesap/Account';
-import { BackupPanel } from '../features/programlar/BackupPanel';
 import { BiomechTab, Tile } from '../features/lab/Biomekanik';
 import { CompactCtx, Icon, NeedleGauge, Range, STAGES, StageFatigue, StageRate, StageRecruit, StageSignal, Switch, clamp } from '../features/lab/Cns';
 import {
-  BENCH_IDS, EX_LIB, FAT, EQ, PLYO_INT, isPlyo, PLYO_W, PLYO_Q, libById, MONTHS, MUSCLES, PROF, SPEED,
+  BENCH_IDS, EX_LIB, FAT, EQ, PLYO_INT, isPlyo, isSkill, PLYO_W, PLYO_Q, SKILL_W, SKILL_Q, skillSetTxt, libById, MONTHS, MUSCLES, PROF, SPEED,
   WD_LONG, WD_SHORT, WEEK_ORDER, ItemEditor, Lane, SetReplay, Stepper, animVl,
-  bestE1, blankProgram, clone, dateTxt, durTxt, e1Ok, e1rm, entryFor,
+  bestE1, clone, dateTxt, durTxt, e1Ok, e1rm, entryFor,
   firstOpen, hasNum, itemFromEx, mmss, newId, nextPlanned, nf, normTr,
   repTxt, repVelocities, restTxt, rirFromSpeed, rirTxt, rpeLabel,
   rpeTxt, sameDay, sessionFromDay, sessionStats, targetTxt, vlColor,
 } from '../features/antrenman/core';
+import {
+  allPlans, dateKey, parseDateKey, plansOn, newPlanDoc, upsertPlan, removePlan,
+  addOnce, addWeekly, removeOn, weekProgram, normalizeDay, weekdaysOf,
+} from '../features/plan/plans';
+import {
+  SKILL_STAGES, readGoals, upsertGoal, removeGoal, advanceSkillStage, matchesSkillGoal, skillStats,
+} from '../features/bugun/goals';
 import { useLogStore } from '../lib/store/useLogStore';
 import { freeEntry, isFree, sessionName } from '../lib/models/session';
 import { changeRest, restDuration } from '../lib/models/rest';
 import { startRest, stopRest } from '../lib/native/restTimer';
 import { useAndroidBack, useBack } from './back';
-import { planStats, logStats, TAU_H, FRESH, proxW, costW, loadScore, hoursToFresh, decayK, setLoads, sleepInfo, sleepPts, fatigueAt, steadyWeek, simFromLogs, simFromPlan, simulatePlan, fatigueRecs, e1Series, prevPerf, sessionFatigue, periodMetrics, historyWarnings } from '../lib/models/fatigue';
+import { planStats, logStats, proxW, costW, loadScore, hoursToFresh, decayK, setLoads, sleepInfo, sleepPts, fatigueAt, steadyWeek, simFromLogs, simFromPlan, simulatePlan, fatigueRecs, e1Series, prevPerf, sessionFatigue, periodMetrics, historyWarnings } from '../lib/models/fatigue';
 import '../styles/cns.css';
 import '../styles/app.css';
 import '../styles/log.css';
 import '../styles/mobile.css';
 import '../styles/v7.css';
 
-/* ================= PERFORMANCE v0.5 · son kullanıcı uygulaması ================= */
+/* ================= PERFORMANCE · son kullanıcı uygulaması ================= */
 const TABS2 = [
-  { id: 'bugun', label: 'Bugün', icon: 'home' },
+  { id: 'bugun', label: 'Dashboard', icon: 'home' },
   { id: 'antrenman', label: 'Antrenman', icon: 'bolt' },
-  { id: 'programlar', label: 'Programlar', icon: 'list' },
+  { id: 'gozlem', label: 'Gözlem', icon: 'calendar' },
   { id: 'lab', label: 'Lab', icon: 'flask' },
 ];
+const MONTHS_LONG = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
 const MAIN_MUSCLES = ['Göğüs', 'Omuz (ön)', 'Omuz (yan)', 'Sırt', 'Trapez', 'Triceps', 'Hamstring', 'Quadriceps'];
 const SPEED_SHORT = ['Aynı', 'Hafif', 'Belirgin', 'Çok', 'Grind'];
 const NOTE_TAGS = ['Kolay geldi', 'Form bozuldu', 'Takıldı', 'Ağrı', 'Pump', 'Yardım aldım'];
@@ -43,18 +50,26 @@ function useNow(ms) {
   return now;
 }
 const dayKey = (ts) => { const d = new Date(ts); return 'c_' + d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
-const fullDate = (ts) => { const d = new Date(ts); return WD_LONG[d.getDay()] + ', ' + d.getDate() + ' ' + ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'][d.getMonth()]; };
+const fullDate = (ts) => { const d = new Date(ts); return WD_LONG[d.getDay()] + ', ' + d.getDate() + ' ' + MONTHS_LONG[d.getMonth()]; };
 const exMeta = (exId, name) => EX_LIB.find((e) => e.id === exId) || EX_LIB.find((e) => e.name === name) || null;
-const rpeMid = (a, b) => (hasNum(a) ? (hasNum(b) ? (Number(a) + Number(b)) / 2 : Number(a)) : 8);
-const repMid = (a, b) => (hasNum(a) ? (hasNum(b) ? (Number(a) + Number(b)) / 2 : Number(a)) : 8);
 const dayMinutes = (day) => Math.round(day.items.reduce((a, i) => a + Number(i.sets || 0) * ((i.rest || 120) + 45), 0) / 60);
 const hm = (ts) => { const d = new Date(ts); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
 const zoneOf = (score) => (score < 40 ? { k: 'Yönetilebilir', c: 'var(--ok)', cls: 'ok' } : score < 70 ? { k: 'Birikiyor', c: 'var(--warn)', cls: 'warn' } : { k: 'Yüksek', c: 'var(--bad)', cls: 'bad' });
 const tonTxt = (kg) => (kg >= 10000 ? nf(Math.round(kg / 100) / 10) + ' t' : nf(Math.round(kg)) + ' kg');
 const sessionNotes = (s) => s.items.reduce((a, it) => a + (it.memo ? 1 : 0) + it.sets.filter((x) => x.note || (x.tags && x.tags.length)).length, 0);
+const sessionSubTxt = (ss) => {
+  if (ss.tonnage > 0) return tonTxt(ss.tonnage);
+  if (ss.attempts > 0) return ss.attempts + ' deneme';
+  if (ss.contacts > 0) return ss.contacts + ' temas';
+  return tonTxt(0);
+};
+const isSkillHeavySession = (s) => {
+  const sets = (s.items || []).flatMap((it) => it.sets || []);
+  if (!sets.length) return false;
+  const sk = sets.filter((x) => x.skill).length;
+  return sk > sets.length / 2;
+};
 
-/* ---------- analizler ---------- */
-// Haftalık hacim: kas başına zor set sayısı (azalmasız, 7 gün). Hipertrofi için 10–20 aralığı izlenir.
 /* ---------- ortak parçalar ---------- */
 function ScreenHead({ title, sub, right, left }) {
   return (
@@ -120,10 +135,12 @@ function MuscleBars({ muscles, list, max = 24, compact }) {
 }
 function exDot(e) {
   if (!e) return null;
+  if (e.kind === 'beceri') return <span className="sdot" title="Beceri" />;
   return e.kind === 'plyo' ? <span className={'pdot i' + (e.int || 2)} title={'Yoğunluk: ' + PLYO_INT[e.int || 2]} /> : e.fat ? <span className={'fatdot f' + e.fat} title={'Yorgunluk: ' + FAT[e.fat]} /> : null;
 }
 function exLine(e) {
   if (!e.eq) return e.muscle;
+  if (e.kind === 'beceri') return e.muscle + ' · ' + EQ[e.eq] + ' · beceri' + (e.h ? ' · süre' : '');
   return e.muscle + ' · ' + EQ[e.eq] + ' · ' + (e.kind === 'plyo' ? 'yoğunluk ' + PLYO_INT[e.int || 2].split(' ')[0].toLocaleLowerCase('tr') : PROF[e.prof].k);
 }
 function FactChips({ ex }) {
@@ -132,15 +149,16 @@ function FactChips({ ex }) {
     <div className="facts">
       <span className="fact"><b>{ex.muscle}</b>{ex.sec && ex.sec.length ? ' + ' + ex.sec.join(', ') : ''}</span>
       {ex.eq ? <span className="fact">{EQ[ex.eq]}</span> : null}
-      {ex.kind && ex.kind !== 'kuvvet' ? <span className="fact kind">{ex.kind === 'plyo' ? 'Pliometrik' : 'Olimpik'}</span> : null}
+      {ex.kind && ex.kind !== 'kuvvet' ? <span className={'fact ' + (ex.kind === 'beceri' ? 'skill' : 'kind')}>{ex.kind === 'plyo' ? 'Pliometrik' : ex.kind === 'beceri' ? 'Beceri' : 'Olimpik'}</span> : null}
+      {ex.kind === 'beceri' && ex.h ? <span className="fact skill">Süreyle tutulur</span> : null}
       {ex.kind === 'plyo'
         ? <span className={'fact fat' + Math.min(3, ex.int || 2)}>Yoğunluk: {PLYO_INT[ex.int || 2]}</span>
         : <span className={'fact fat' + ex.fat}>Yorgunluk: {FAT[ex.fat]}</span>}
-      {ex.kind !== 'plyo' && ex.prof ? <span className="fact prof" title={PROF[ex.prof].d}>{PROF[ex.prof].k}</span> : null}
+      {ex.kind !== 'plyo' && ex.kind !== 'beceri' && ex.prof ? <span className="fact prof" title={PROF[ex.prof].d}>{PROF[ex.prof].k}</span> : null}
     </div>
   );
 }
-const EX_KINDS = [['all', 'Tümü'], ['kuvvet', 'Kuvvet'], ['olimpik', 'Olimpik'], ['plyo', 'Pliometrik']];
+const EX_KINDS = [['all', 'Tümü'], ['kuvvet', 'Kuvvet'], ['olimpik', 'Olimpik'], ['plyo', 'Pliometrik'], ['beceri', 'Beceri']];
 function useExFilter(all, initGrp) {
   const [q, setQ0] = useState('');
   const [kind, setKind0] = useState('all');
@@ -162,7 +180,7 @@ function ExFilterBar({ f, idp, placeholder }) {
   return (
     <div className="exf">
       <input id={idp + '-search'} className="search" type="search" placeholder={placeholder || 'Hareket ara (Türkçe ya da İngilizce)'} value={f.q} onChange={(e) => f.setQ(e.target.value)} autoComplete="off" />
-      <div className="segmented seg4" role="tablist" aria-label="Hareket türü">
+      <div className="segmented seg5-scroll" role="tablist" aria-label="Hareket türü">
         {f.kinds.map(([k, t]) => <button key={k} type="button" role="tab" id={idp + '-kind-' + k} aria-selected={f.kind === k} className={f.kind === k ? 'on' : ''} onClick={() => f.setKind(k)}>{t}</button>)}
       </div>
       <div className="chips-scroll" role="group" aria-label="Kas grubu">
@@ -177,17 +195,17 @@ function ExFilterBar({ f, idp, placeholder }) {
   );
 }
 
-/* ================= BUGÜN ================= */
+/* ================= DASHBOARD (eski BUGÜN) ================= */
 function WeekRow({ programs, sessions }) {
   const today = new Date();
   const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - ((today.getDay() + 6) % 7));
-  const planned = new Set();
-  programs.forEach((p) => p.days.forEach((d) => { if (d.weekday != null && d.items.length) planned.add(d.weekday); }));
   const done = sessions.filter((s) => s.status === 'done');
   const cells = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+    const key = dateKey(d);
     const n = done.filter((s) => sameDay(s.startedAt, d)).length;
-    return { d, wd: d.getDay(), n, plan: planned.has(d.getDay()), today: sameDay(d, today), past: d < new Date(today.getFullYear(), today.getMonth(), today.getDate()) };
+    const plan = plansOn(key, programs).length > 0;
+    return { d, wd: d.getDay(), n, plan, today: sameDay(d, today), past: d < new Date(today.getFullYear(), today.getMonth(), today.getDate()) };
   });
   return (
     <div className="week-row">
@@ -214,22 +232,27 @@ function Spark({ pts, goal, w = 120, h = 34 }) {
     </svg>
   );
 }
-function TodayScreen({ st, put, openSheet, startSession, createProgram, goTab, acct }) {
+function formatDue(due) {
+  if (!due) return '';
+  const d = parseDateKey(due);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.getDate() + ' ' + MONTHS[d.getMonth()] + "'ya kadar";
+}
+function TodayScreen({ st, put, openSheet, startSession, newPlan, practiceSkill, goTab, acct }) {
   const fz = fatigueAt(st, Date.now());
   const sl = fz.sleep;
   const active = st.sessions.find((s) => s.status === 'active');
+  const plans = allPlans(st.programs);
   const next = nextPlanned(st.programs, st.sessions);
-  const goal = st.settings.find((x) => x.key === 'goal')?.value ?? null;
-  const gEx = goal ? exMeta(goal.exId) : null;
-  const series = goal ? e1Series(st.sessions, goal.exId, gEx ? gEx.name : '') : [];
-  const cur = series.length ? series[series.length - 1].v : goal?.base;
+  const goals = readGoals(st.settings);
   const setSleep = (h) => put('checkins', { id: dayKey(Date.now()), sleep: h, at: Date.now() });
   const loading = st.status === 'loading' || !st.loaded.programs || !st.loaded.sessions;
   const short = sl.known && sl.last < 6.5;
+  let perfCount = 0;
 
   return (
     <div className="screen">
-      <ScreenHead title="Bugün" sub={fullDate(Date.now())} right={<AccountChip acct={acct} onClick={() => openSheet('account', {})} />} />
+      <ScreenHead title="Dashboard" sub={fullDate(Date.now())} right={<AccountChip acct={acct} onClick={() => openSheet('account', {})} />} />
       <div className="scr fit">
         {acct.mode === 'guest' && st.sessions.length ? (
           <button type="button" id="guest-banner" className="guest-banner" onClick={() => openSheet('account', {})}>
@@ -269,18 +292,30 @@ function TodayScreen({ st, put, openSheet, startSession, createProgram, goTab, a
             <h3>{sessionName(active)}</h3>
             <button type="button" id="resume-btn" className="btn fire full" onClick={() => goTab('antrenman')}>Devam et <Icon name="right" /></button>
           </section>
-        ) : next ? (
+        ) : next && next.off === 0 ? (
           <section className="hero-card">
-            <div className="hc-top"><span className="eyebrow">{next.off === 0 ? 'Bugün' : next.off === 1 ? 'Yarın' : WD_LONG[next.day.weekday]}</span><span className="hc-when mono">~{dayMinutes(next.day)} dk</span></div>
+            <div className="hc-top"><span className="eyebrow">Bugün</span><span className="hc-when mono">~{dayMinutes(next.day)} dk</span></div>
             <h3>{next.day.name}</h3>
             <p className="hc-sub">{next.day.items.slice(0, 3).map((i) => i.name).join(' · ')}{next.day.items.length > 3 ? ' +' + (next.day.items.length - 3) : ''}</p>
             <button type="button" id="start-next" className="btn primary full" onClick={() => startSession(next.program, next.day)}><Icon name="play" size={14} /> Başlat</button>
           </section>
+        ) : plans.length > 0 ? (
+          <section className="hero-card">
+            <h3>Bugün planlı antrenman yok</h3>
+            <p className="hc-sub">{next ? 'Sıradaki: ' + next.day.name + ' · ' + WD_LONG[next.weekday] : 'Takvimden istediğin güne plan ekleyebilirsin.'}</p>
+            <div className="hc-actions">
+              <button type="button" className="btn primary" onClick={() => startSession(null, null)}>Plansız antrenman</button>
+              <button type="button" className="btn ghost" onClick={() => goTab('gozlem')}>Takvim</button>
+            </div>
+          </section>
         ) : (
           <section className="hero-card">
-            <h3>Programın yok</h3>
-            <p className="hc-sub">İlk antrenman türünü oluştur ya da boş bir antrenmanla başla.</p>
-            <button type="button" className="btn primary full" onClick={() => createProgram(null, 'bugun')}>Program oluştur</button>
+            <h3>Planın yok</h3>
+            <p className="hc-sub">Plansız başla ya da ilk planını oluştur.</p>
+            <div className="hc-actions">
+              <button type="button" className="btn primary" onClick={() => startSession(null, null)}>Plansız antrenman</button>
+              <button type="button" className="btn ghost" onClick={() => newPlan('bugun')}>Plan oluştur</button>
+            </div>
           </section>
         )}
 
@@ -289,78 +324,180 @@ function TodayScreen({ st, put, openSheet, startSession, createProgram, goTab, a
           <WeekRow programs={st.programs} sessions={st.sessions} />
         </section>
 
-        {goal ? <button type="button" id="goal-card" className="tcard goal2" onClick={() => openSheet('goal', {})}>
-          <div className="goal2-l">
-            <span className="eyebrow fire">Hedef</span>
-            <span className="goal2-n">{gEx?.name || goal.name || goal.exId}</span>
-            <span className="goal2-v mono"><b>{nf(Math.round(cur * 2) / 2)}</b> → {nf(goal.target)} kg</span>
-          </div>
-          <div className="goal2-r">
-            {series.length > 1 ? <Spark pts={series.slice(-10)} goal={goal.target} /> : <span className="goal2-hint">Kayıtlar arttıkça eğri oluşur</span>}
-            <div className="goal-bar"><span style={{ width: clamp((cur - goal.base * 0.9) / (goal.target - goal.base * 0.9)) * 100 + '%' }} /></div>
-          </div>
-        </button> : <button type="button" id="goal-add" className="tcard goal-add" onClick={() => openSheet('goal', {})}>
-          <span className="goal2-l">
-            <span className="eyebrow fire">Hedef</span>
-            <span className="goal2-n">Hedef ekle</span>
-            <span className="goal-add-hint">Bir hareket seç, ulaşmak istediğin 1RM'i yaz.</span>
-          </span>
-          <span className="goal-add-plus"><Icon name="plus" size={18} /></span>
-        </button>}
+        <section className="goals-sec">
+          <div className="sec2-h"><span className="eyebrow">Hedefler</span>{goals.length ? <span className="mono">{goals.length}</span> : null}</div>
+          {goals.map((goal) => {
+            if (goal.type === 'perf') {
+              const isFirstPerf = perfCount === 0;
+              perfCount += 1;
+              const gEx = exMeta(goal.exId, goal.name);
+              const series = e1Series(st.sessions, goal.exId, gEx ? gEx.name : goal.name);
+              const cur = series.length ? series[series.length - 1].v : goal.base;
+              return (
+                <button key={goal.id} type="button" id={isFirstPerf ? 'goal-card' : undefined} data-goal={goal.id} className="tcard goal2 goal-card" onClick={() => openSheet('goal', { id: goal.id })}>
+                  <div className="goal2-l">
+                    <span className="eyebrow fire">Hedef</span>
+                    <span className="goal2-n">{gEx?.name || goal.name || goal.exId}</span>
+                    <span className="goal2-v mono"><b>{nf(Math.round(cur * 2) / 2)}</b> → {nf(goal.target)} kg</span>
+                  </div>
+                  <div className="goal2-r">
+                    {series.length > 1 ? <Spark pts={series.slice(-10)} goal={goal.target} /> : <span className="goal2-hint">Kayıtlar arttıkça eğri oluşur</span>}
+                    <div className="goal-bar"><span style={{ width: clamp((cur - goal.base * 0.9) / (goal.target - goal.base * 0.9)) * 100 + '%' }} /></div>
+                  </div>
+                </button>
+              );
+            }
+            const stats = skillStats(goal, st.sessions);
+            const daysAgo = stats.last != null ? Math.max(0, Math.floor((Date.now() - stats.last) / DAY_MS)) : null;
+            const statTxt = stats.n
+              ? stats.n + ' pratik · son ' + (daysAgo === 0 ? 'bugün' : daysAgo + ' gün önce')
+              : 'Henüz pratik yok';
+            const dueTxt = formatDue(goal.due);
+            const done = goal.stage === 3;
+            return (
+              <div
+                key={goal.id}
+                role="button"
+                tabIndex={0}
+                data-goal={goal.id}
+                className={'skill-card' + (done ? ' done' : '')}
+                onClick={() => openSheet('goal', { id: goal.id })}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSheet('goal', { id: goal.id }); } }}
+              >
+                <div className="skill-top">
+                  <span className="eyebrow skill">{done ? 'Öğrenildi ✓' : 'Öğrenme'}</span>
+                  <span className="mono" style={{ color: 'var(--muted)' }}>⋯</span>
+                </div>
+                <div className="skill-name">{goal.name}</div>
+                <div className="skill-stage-row">
+                  <div className="skill-bars" aria-hidden="true">
+                    {[0, 1, 2, 3].map((i) => <i key={i} className={i <= goal.stage ? 'on' : ''} />)}
+                  </div>
+                  <span>{done ? 'Öğrenildi ✓' : SKILL_STAGES[goal.stage]}</span>
+                </div>
+                <div className="skill-foot">
+                  <span className="skill-meta">{statTxt}{dueTxt ? ' · ' + dueTxt : ''}</span>
+                  <button
+                    type="button"
+                    className="btn ghost sm skill-go"
+                    onClick={(e) => { e.stopPropagation(); practiceSkill(goal); }}
+                  >
+                    Pratik et
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+          {goals.length === 0 ? (
+            <button type="button" id="goal-add" className="tcard goal-add" onClick={() => openSheet('goal', {})}>
+              <span className="goal2-l">
+                <span className="eyebrow fire">Hedef</span>
+                <span className="goal2-n">Hedef ekle</span>
+                <span className="goal-add-hint">Güç (1RM) ya da yeni bir beceri hedefi belirle.</span>
+              </span>
+              <span className="goal-add-plus"><Icon name="plus" size={18} /></span>
+            </button>
+          ) : (
+            <button type="button" id="goal-add" className="goal-add-sm" onClick={() => openSheet('goal', {})}>+ Hedef ekle</button>
+          )}
+        </section>
       </div>
     </div>
   );
 }
 
 /* ================= ANTRENMAN ================= */
-function StartView({ st, startSession, newWorkoutType, openSheet, onHistory, editDay }) {
-  const groups = st.programs.filter((p) => p.days.length);
-  const multi = groups.length > 1;
-  const next = nextPlanned(st.programs, st.sessions);
-  const done = st.sessions.filter((s) => s.status === 'done');
-  const lastOf = (d) => done.find((s) => s.dayId === d.id);
+function StartView({ st, startSession, newPlan, openSheet }) {
+  const [histLim, setHistLim] = useState(30);
+  const plans = allPlans(st.programs);
+  const done = useMemo(() => st.sessions.filter((s) => s.status === 'done').sort((a, b) => b.startedAt - a.startedAt), [st.sessions]);
   const last = done[0];
+  const visibleDone = done.slice(0, histLim);
+
+  // Ay başlıklarıyla grupla
+  const groups = [];
+  visibleDone.forEach((s) => {
+    const d = new Date(s.startedAt);
+    const label = MONTHS_LONG[d.getMonth()].toLocaleUpperCase('tr') + ' ' + d.getFullYear();
+    const g = groups[groups.length - 1];
+    if (!g || g.label !== label) groups.push({ label, items: [s] });
+    else g.items.push(s);
+  });
+
   return (
     <div className="screen">
       <ScreenHead
         title="Antrenman"
-        sub={last ? 'Son: ' + dateTxt(last.startedAt) + ' · ' + sessionName(last) : 'Bir antrenman türü seç ve başla'}
-        right={(
-          <button type="button" id="history-btn" className="hist-btn" onClick={onHistory} aria-label="Antrenman geçmişi">
-            <Icon name="history" size={16} /><span>Geçmiş</span>{done.length ? <b className="mono">{done.length}</b> : null}
-          </button>
-        )}
+        sub={last ? 'Son: ' + dateTxt(last.startedAt) + ' · ' + sessionName(last) : 'Bir antrenman planı seç ya da plansız başla'}
       />
       <div className="scr">
-        {groups.length ? groups.map((p) => (
-          <section key={p.id} className="wgroup">
-            {multi ? <div className="wgroup-h"><span>{p.name || 'Adsız program'}</span><span className="mono">{p.days.length} tür</span></div> : null}
-            <ul className="wtypes">
-              {p.days.map((d) => {
-                const empty = !d.items.length;
-                const isNext = !empty && next && next.day.id === d.id;
-                const l = lastOf(d);
+        <div className="start-actions">
+          <button type="button" id="free-session" className="btn ghost" onClick={() => startSession(null, null)}><Icon name="plus" size={14} /> Plansız antrenman</button>
+          <button type="button" id="new-plan" className="btn ghost" onClick={() => newPlan('antrenman')}><Icon name="plus" size={14} /> Yeni plan</button>
+        </div>
+
+        <section className="plan-sec">
+          <div className="sec2-h"><span className="eyebrow">Planlarım</span>{plans.length ? <span className="mono">{plans.length}</span> : null}</div>
+          {plans.length ? (
+            <ul className="wtypes plan-list">
+              {plans.map(({ programId, day: d }) => {
+                const wds = WEEK_ORDER.filter((w) => (d.weekdays || []).includes(w)).map((w) => WD_SHORT[w]).join(', ');
                 return (
-                  <li key={d.id} className={'wtype' + (isNext ? ' next' : '') + (empty ? ' empty' : '')}>
-                    <button type="button" id={'start-' + d.id} className="wtype-main" onClick={() => (empty ? editDay(p, d) : startSession(p, d))}>
-                      <span className={'pday-wd mono' + (d.weekday == null ? ' none' : '')}>{d.weekday == null ? '—' : WD_SHORT[d.weekday]}</span>
+                  <li key={d.id} className="wtype">
+                    <button type="button" id={'plan-' + d.id} className="wtype-main" onClick={() => openSheet('wtype', { pid: programId, did: d.id })}>
                       <span className="wtype-t">
-                        <span className="wtype-n"><strong>{d.name || 'Adsız'}</strong>{isNext ? <span className="badge new">sıradaki</span> : null}</span>
-                        <small>{empty ? 'Boş · hareket ekle' : d.items.length + ' hareket · ~' + dayMinutes(d) + ' dk' + (l ? ' · son ' + dateTxt(l.startedAt).split(' · ')[0] : '')}</small>
+                        <span className="wtype-n"><strong>{d.name || 'Adsız'}</strong></span>
+                        <small>{d.items.length + ' hareket' + (wds ? ' · ' + wds : '')}</small>
                       </span>
-                      <span className={'wtype-go' + (empty ? ' add' : '')}><Icon name={empty ? 'plus' : 'play'} size={15} /></span>
                     </button>
-                    <button type="button" className="wtype-more" aria-label={(d.name || 'Tür') + ' seçenekleri'} onClick={() => openSheet('wtype', { pid: p.id, did: d.id })}><Icon name="more" size={18} /></button>
+                    <button type="button" className="wtype-more" aria-label={(d.name || 'Plan') + ' seçenekleri'} onClick={() => openSheet('wtype', { pid: programId, did: d.id })}><Icon name="more" size={18} /></button>
                   </li>
                 );
               })}
             </ul>
-          </section>
-        )) : <div className="empty"><strong>Henüz antrenman türün yok</strong><p>Plansız antrenmanla hemen başla; istersen bitince antrenman türü olarak kaydet.</p></div>}
-        <div className="start-actions">
-          <button type="button" id="free-session" className="btn ghost" onClick={() => startSession(null, null)}><Icon name="plus" size={14} /> Plansız antrenman</button>
-          <button type="button" id="new-type" className="btn ghost" onClick={newWorkoutType}><Icon name="edit" size={14} /> Yeni antrenman türü</button>
-        </div>
+          ) : (
+            <p className="plan-empty">Planın yok. Plansız başla ya da bir plan oluştur.</p>
+          )}
+        </section>
+
+        <section className="hsec hist-inline">
+          <div className="sec2-h"><span className="eyebrow">Geçmiş</span><span className="mono">{done.length}</span></div>
+          {done.length ? (
+            <React.Fragment>
+              {groups.map((g) => (
+                <div key={g.label} className="hsec">
+                  <div className="hist-month">{g.label}</div>
+                  <ul className="hlist">
+                    {g.items.map((s) => {
+                      const ss = sessionStats(s);
+                      const d = new Date(s.startedAt);
+                      const f = sessionFatigue(s, st).post;
+                      const nn = sessionNotes(s);
+                      return (
+                        <li key={s.id}>
+                          <button type="button" className="hrow" onClick={() => openSheet('summary', { id: s.id })}>
+                            <span className="hrow-d"><b className="mono">{d.getDate()}</b><small>{MONTHS[d.getMonth()]}</small></span>
+                            <span className="hrow-t">
+                              <strong>{sessionName(s)}</strong>
+                              <small className="mono">{WD_SHORT[d.getDay()]} {hm(s.startedAt)}–{hm(s.endedAt || s.startedAt)} · {durTxt(ss.dur)}</small>
+                              <small className="mono">{ss.sets.length} set · {sessionSubTxt(ss)}{nn ? ' · ✎ ' + nn : ''}</small>
+                            </span>
+                            {f != null ? <span className="hrow-f mono" style={{ color: zoneOf(f).c, borderColor: zoneOf(f).c }}>{Math.round(f)}</span> : <span />}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+              {done.length > histLim ? (
+                <button type="button" id="hist-more" className="btn ghost full" onClick={() => setHistLim(histLim + 30)}>Daha fazla göster</button>
+              ) : null}
+            </React.Fragment>
+          ) : (
+            <p className="muted-p">Bitirdiğin antrenmanlar burada listelenir.</p>
+          )}
+        </section>
       </div>
     </div>
   );
@@ -368,45 +505,75 @@ function StartView({ st, startSession, newWorkoutType, openSheet, onHistory, edi
 
 function WtypeMenuBody({ st, pid, did, put, del, onStart, onEdit, onClose }) {
   const p = st.programs.find((x) => x.id === pid);
-  const d = p && p.days.find((x) => x.id === did);
+  const rawDay = p && p.days.find((x) => x.id === did);
+  const d = rawDay ? normalizeDay(rawDay) : null;
   const [name, setName] = useState(d ? d.name : '');
   const [confirm, setConfirm] = useState(false);
-  if (!d) return <p className="muted-p">Bu tür artık yok.</p>;
-  const save = (fn) => { const np = clone(p); fn(np.days.find((z) => z.id === did), np); np.updatedAt = Date.now(); put('programs', np); };
-  const rename = () => { const v = name.trim(); if (v && v !== d.name) save((x) => { x.name = v; }); };
+  if (!d) return <p className="muted-p">Bu plan artık yok.</p>;
+  const saveDay = (fn) => {
+    const nextDay = normalizeDay(clone(d));
+    fn(nextDay);
+    const updatedProg = upsertPlan(st.programs, p.id, nextDay);
+    put('programs', updatedProg);
+  };
+  const rename = () => { const v = name.trim(); if (v && v !== d.name) saveDay((x) => { x.name = v; }); };
   const runs = st.sessions.filter((s) => s.status === 'done' && s.dayId === d.id);
   const total = d.items.reduce((a, i) => a + Number(i.sets || 0), 0);
   const remove = () => {
-    if (p.days.length === 1) del('programs', p.id);
-    else save((x, np) => { np.days = np.days.filter((z) => z.id !== did); });
+    const res = removePlan(st.programs, p.id, d.id);
+    if (res.del) del('programs', res.del);
+    else if (res.put) put('programs', res.put);
+    onClose();
+  };
+  const copyPlan = () => {
+    const cp = newPlanDoc((d.name || 'Plan') + ' (kopya)');
+    cp.days[0].items = clone(d.items).map((it) => ({ ...it, id: newId('i') }));
+    cp.days[0].weekdays = [...(d.weekdays || [])];
+    put('programs', cp);
     onClose();
   };
   return (
     <div className="wmenu">
-      <input id="wtype-name" className="text-in" aria-label="Tür adı" value={name} onChange={(e) => setName(e.target.value)} onBlur={rename} onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }} />
+      <input id="wtype-name" className="text-in" aria-label="Plan adı" value={name} onChange={(e) => setName(e.target.value)} onBlur={rename} onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }} />
       <p className="wmenu-k mono">{d.items.length} hareket · {total} set · ~{dayMinutes(d)} dk{runs.length ? ' · ' + runs.length + ' kez yapıldı, son ' + dateTxt(runs[0].startedAt) : ''}</p>
       {d.items.length ? (
         <ol className="wmenu-items">
           {d.items.map((it) => <li key={it.id}><span>{it.name}</span><b className="mono">{it.sets} × {repTxt(it.repMin, it.repMax)}</b></li>)}
         </ol>
-      ) : <p className="muted-p">Bu türde henüz hareket yok.</p>}
-      <span className="st-k">Haftanın günü</span>
+      ) : <p className="muted-p">Bu planda henüz hareket yok.</p>}
+      <span className="st-k">Her hafta</span>
       <div className="wd-pick">
-        {WEEK_ORDER.map((w) => <button key={w} type="button" className={'wd-btn' + (d.weekday === w ? ' on' : '')} onClick={() => save((x) => { x.weekday = x.weekday === w ? null : w; })}>{WD_SHORT[w]}</button>)}
+        {WEEK_ORDER.map((w) => {
+          const on = (d.weekdays || []).includes(w);
+          return (
+            <button
+              key={w}
+              type="button"
+              className={'wd-btn' + (on ? ' on' : '')}
+              onClick={() => saveDay((x) => {
+                const cur = x.weekdays || [];
+                x.weekdays = cur.includes(w) ? cur.filter((z) => z !== w) : [...cur, w];
+              })}
+            >
+              {WD_SHORT[w]}
+            </button>
+          );
+        })}
       </div>
       <div className="wmenu-act">
         {d.items.length ? <button type="button" id="wtype-start" className="btn primary" onClick={() => onStart(p, d)}><Icon name="play" size={13} /> Başlat</button> : null}
-        <button type="button" id="wtype-edit" className="btn ghost" onClick={() => onEdit(p, d)}><Icon name="edit" size={14} /> {d.items.length ? 'Hareketleri düzenle' : 'Hareket ekle'}</button>
+        <button type="button" id="wtype-edit" className="btn ghost" onClick={() => onEdit(p, d)}><Icon name="edit" size={14} /> Düzenle</button>
+        <button type="button" id="wtype-copy" className="btn ghost" onClick={copyPlan}>Kopyala</button>
       </div>
       {confirm ? (
         <div className="pop flat">
-          <p>“{d.name || 'Adsız'}” silinsin mi?{p.days.length === 1 ? ' Programda başka tür olmadığı için program da silinir.' : ''} Geçmiş kayıtların kalır.</p>
+          <p>“{d.name || 'Adsız'}” planı silinsin mi? Geçmiş kayıtların kalır.</p>
           <div className="confirm-inline">
             <button type="button" id="wtype-del-yes" className="btn danger sm" onClick={remove}>Sil</button>
             <button type="button" className="btn ghost sm" onClick={() => setConfirm(false)}>Vazgeç</button>
           </div>
         </div>
-      ) : <button type="button" id="wtype-del" className="btn ghost danger-t wmenu-del" onClick={() => setConfirm(true)}><Icon name="trash" size={14} /> Türü sil</button>}
+      ) : <button type="button" id="wtype-del" className="btn ghost danger-t wmenu-del" onClick={() => setConfirm(true)}><Icon name="trash" size={14} /> Planı sil</button>}
     </div>
   );
 }
@@ -441,6 +608,7 @@ function SpeedStage({ reps, lvl, exId }) {
 }
 
 function SetTable({ item, entry, rpe, onOpen, bodyRef, free }) {
+  if (isSkill(item.exId)) return <SkillTable item={item} entry={entry} onOpen={onOpen} bodyRef={bodyRef} free={free} />;
   if (isPlyo(item.exId)) return <PlyoTable item={item} entry={entry} onOpen={onOpen} bodyRef={bodyRef} free={free} />;
   const t = item.target;
   const done = item.sets;
@@ -538,6 +706,59 @@ function PlyoTable({ item, entry, onOpen, bodyRef, free }) {
   );
 }
 
+function SkillTable({ item, entry, onOpen, bodyRef, free }) {
+  const t = item.target;
+  const done = item.sets;
+  const extra = done.length >= t.sets;
+  const lib = libById(item.exId);
+  const hasHold = !!(lib && lib.h);
+  const plan = [];
+  for (let j = done.length + 1; j < t.sets; j++) plan.push(j);
+  const q = (i) => SKILL_Q[i || 0] || SKILL_Q[0];
+  return (
+    <div className={'stable skill' + (hasHold ? ' has-hold' : '')}>
+      <div className="srow sh" aria-hidden="true">
+        <span>Set</span>
+        <span>Deneme</span>
+        {hasHold ? <span>Süre</span> : null}
+        <span>Kalite</span>
+        <span>Saat</span>
+      </div>
+      <div className="sbody" ref={bodyRef}>
+        {done.map((x, j) => (
+          <button key={x.at + '-' + j} type="button" className="srow done" onClick={() => onOpen(j)} aria-label={'Set ' + (j + 1) + ': ' + skillSetTxt(x) + '. Ayrıntı'}>
+            <span className="s-i mono"><Icon name="check" size={12} />{j + 1}</span>
+            <span className="s-v mono">{x.reps}</span>
+            {hasHold ? <span className="s-v mono">{Number(x.hold) > 0 ? nf(Number(x.hold)) + ' sn' : '–'}</span> : null}
+            <span className="s-sp" style={{ '--c': q(x.q).c }}><i />{q(x.q).k}</span>
+            <span className="s-t mono">{hm(x.at)}{x.note || (x.tags && x.tags.length) ? <em>✎</em> : null}</span>
+          </button>
+        ))}
+        {free && !done.length ? <div className="srow first-set">İlk setini kaydet</div> : null}
+        {!free && !extra ? (
+          <div className="srow now">
+            <span className="s-i mono">{done.length + 1}</span>
+            <span className="s-v mono">{entry.reps}</span>
+            {hasHold ? <span className="s-v mono">{Number(entry.hold) > 0 ? nf(Number(entry.hold)) + ' sn' : '–'}</span> : null}
+            <span className="s-sp" style={{ '--c': q(entry.q).c }}><i />{q(entry.q).k}</span>
+            <span className="s-t now-t">sırada</span>
+          </div>
+        ) : null}
+        {!free && plan.map((j) => (
+          <div key={'p' + j} className="srow plan">
+            <span className="s-i mono">{j + 1}</span>
+            <span className="s-v mono">{repTxt(t.repMin, t.repMax)}</span>
+            {hasHold ? <span className="s-v mono">–</span> : null}
+            <span className="s-sp none">–</span>
+            <span className="s-t" />
+          </div>
+        ))}
+        {!free && extra ? <div className="srow fin"><Icon name="check" size={13} /> Hedef tamam · kalite düşmeden bitir</div> : null}
+      </div>
+    </div>
+  );
+}
+
 function PlyoStage({ lib, item, session, compact }) {
   const total = sessionStats(session).contacts;
   const lastQ = item.sets.length ? item.sets[item.sets.length - 1].q || 0 : 0;
@@ -554,6 +775,19 @@ function PlyoStage({ lib, item, session, compact }) {
         <span className="ps-k">Seans teması</span>
         <b className={'mono' + (total > 140 ? ' over' : '')}>{total}</b>
       </div>
+    </div>
+  );
+}
+
+function SkillStage({ item, st, compact }) {
+  const goals = readGoals(st.settings);
+  const g = goals.find((x) => x.type === 'skill' && matchesSkillGoal(x, item));
+  const stats = g ? skillStats(g, st.sessions) : null;
+  return (
+    <div className={'skillstage' + (compact ? ' compact' : '')}>
+      {g
+        ? <span>Hedef: <b>{SKILL_STAGES[g.stage]}</b> · <span className="mono">{stats.n + 1}. pratik</span></span>
+        : <span>Kalite iki set üst üste düşerse bu hareketi bitir.</span>}
     </div>
   );
 }
@@ -577,6 +811,18 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
   const stripRef = useRef(null);
   const now = useNow(500);
   const mutate = (fn) => { const ns = clone(sRef.current); fn(ns); sRef.current = ns; setS(ns); put('sessions', ns); return ns; };
+
+  useEffect(() => {
+    // Dışarıdan aktif oturuma hareket eklendiyse (ör. Pratik et) senkronla
+    if (session.items.length > sRef.current.items.length) {
+      sRef.current = clone(session);
+      setS(sRef.current);
+      const nextIdx = sRef.current.items.length - 1;
+      setCur(nextIdx);
+      setEntry(getEntry(sRef.current.items[nextIdx]));
+    }
+  }, [session.items.length]);
+
   const item = s.items[cur];
   const n = s.items.length;
   const go = (i) => { const j = clamp(i, 0, Math.max(0, sRef.current.items.length - 1)); setCur(j); setEntry(getEntry(sRef.current.items[j])); };
@@ -590,7 +836,8 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
   const t = item ? item.target : null;
   const lib = item ? exMeta(item.exId, item.name) : null;
   const plyo = !!(lib && lib.kind === 'plyo');
-  const needsKg = free && !plyo && lib?.eq !== 'bw' && !(Number(entry.kg) > 0);
+  const skill = !!(lib && lib.kind === 'beceri');
+  const needsKg = free && !plyo && !skill && lib?.eq !== 'bw' && !(Number(entry.kg) > 0);
   useEffect(() => {
     const r = sRef.current.rest;
     if (r && r.start + r.total * 1000 > Date.now()) {
@@ -615,7 +862,6 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
       const minimum = fixed.reduce((sum, el) => sum + el.getBoundingClientRect().height, 0)
         + tableHead.getBoundingClientRect().height + parseFloat(getComputedStyle(tableBody).minHeight) + 2
         + parseFloat(css.rowGap) * (body.children.length - 1);
-      // Yazı, çentik ve gerçek içerik boyutunu ölç; viewport eşiğine güvenme.
       body.classList.toggle('compact-overflow', minimum > available);
       setCompactRest(minimum > available || body.querySelector('.ses2-mid').getBoundingClientRect().height < 72);
     };
@@ -626,7 +872,6 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
   }, [item?.id, !!rest, compactRest, needsKg]);
 
   useEffect(() => {
-    // sıradaki satır görünür kalsın (yalnızca tablonun kendi kaydırması)
     const b = bodyRef.current;
     if (!b) return;
     const row = free ? b.querySelector('.srow.done:last-child') : b.querySelector('.srow.now, .srow.fin');
@@ -635,9 +880,22 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
 
   const logSet = () => {
     if (!item || needsKg) return;
-    const set = plyo
-      ? { kg: Number(entry.kg) || 0, reps: Math.max(1, Math.round(entry.reps)), plyo: true, q: entry.q || 0, lvl: null, vl: 0, rpe: null, rir: 9, at: Date.now() }
-      : { kg: Number(entry.kg) || 0, reps: Math.max(1, Math.round(entry.reps)), lvl: entry.lvl, vl: SPEED[entry.lvl].vl, rpe, rir: rirFinal, rirEst: Math.round(rirEst * 10) / 10, at: Date.now() };
+    const set = skill
+      ? {
+          kg: 0,
+          reps: Math.max(1, Math.round(entry.reps)),
+          ...(lib?.h || Number(entry.hold) > 0 ? { hold: Math.max(0, Math.round(entry.hold || 0)) } : {}),
+          skill: true,
+          q: entry.q || 0,
+          lvl: null,
+          vl: 0,
+          rpe: null,
+          rir: 9,
+          at: Date.now(),
+        }
+      : plyo
+        ? { kg: Number(entry.kg) || 0, reps: Math.max(1, Math.round(entry.reps)), plyo: true, q: entry.q || 0, lvl: null, vl: 0, rpe: null, rir: 9, at: Date.now() }
+        : { kg: Number(entry.kg) || 0, reps: Math.max(1, Math.round(entry.reps)), lvl: entry.lvl, vl: SPEED[entry.lvl].vl, rpe, rir: rirFinal, rirEst: Math.round(rirEst * 10) / 10, at: Date.now() };
     if (entry.note) set.note = entry.note;
     if (entry.tags.length) set.tags = entry.tags;
     const nextRest = { start: set.at, total: restDuration(sRef.current, item, prefsRef.current), exId: item.exId, setNo: item.sets.length + 1 };
@@ -770,12 +1028,14 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
             <div className="tg-main">
               <span className="tg-k">Hedef</span>
               <span className="tg-big mono">{t.sets}<i>×</i>{repTxt(t.repMin, t.repMax)}</span>
-              <span className="tg-u">{plyo ? 'set × temas' : 'set × tekrar'}</span>
+              <span className="tg-u">{plyo ? 'set × temas' : skill ? 'set × deneme' : 'set × tekrar'}</span>
             </div>
-            <div className="tg-cell"><b className="mono">{hasNum(t.kg) && (Number(t.kg) || !plyo) ? nf(Number(t.kg)) : '–'}</b><small>{plyo ? 'ek kg' : 'kg'}</small></div>
+            <div className="tg-cell"><b className="mono">{!skill && hasNum(t.kg) && (Number(t.kg) || !plyo) ? nf(Number(t.kg)) : '–'}</b><small>{plyo ? 'ek kg' : 'kg'}</small></div>
             {plyo
               ? <div className="tg-cell"><b className="tg-int">{PLYO_INT[lib.int || 2].split(' ')[0]}</b><small>yoğunluk</small></div>
-              : <div className="tg-cell"><b className="mono">{hasNum(t.rpeMin) ? rpeTxt(t.rpeMin, t.rpeMax).replace('RPE ', '') : '–'}</b><small>RPE</small></div>}
+              : skill
+                ? <div className="tg-cell"><b style={{ color: 'var(--skill)', fontSize: '14px' }}>Beceri</b><small>kalite</small></div>
+                : <div className="tg-cell"><b className="mono">{hasNum(t.rpeMin) ? rpeTxt(t.rpeMin, t.rpeMax).replace('RPE ', '') : '–'}</b><small>RPE</small></div>}
             <div className="tg-cell"><b className="mono">{restTxt(t.rest || 120).replace(' dk', '')}</b><small>dk ara</small></div>
             {prev || item.memo || item.note ? (
               <div className="tg-foot">
@@ -789,48 +1049,79 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
           <SetTable item={item} entry={entry} rpe={rpe} onOpen={openSet} bodyRef={bodyRef} free={free} />
 
           <div className="ses2-mid">
-            {free && rest ? (!compactRest ? <RestBig rest={rest} now={now} onAdjust={adjustRest} onClose={skipRest} /> : null) : plyo ? <PlyoStage lib={lib} item={item} session={s} /> : !free ? <SpeedStage reps={entry.reps} lvl={entry.lvl} exId={item.exId} /> : null}
+            {free && rest
+              ? (!compactRest ? <RestBig rest={rest} now={now} onAdjust={adjustRest} onClose={skipRest} /> : null)
+              : skill
+                ? <SkillStage item={item} st={st} />
+                : plyo
+                  ? <PlyoStage lib={lib} item={item} session={s} />
+                  : !free
+                    ? <SpeedStage reps={entry.reps} lvl={entry.lvl} exId={item.exId} />
+                    : null}
           </div>
 
           <div className="dock">
             {free && plyo && compactRest ? <PlyoStage lib={lib} item={item} session={s} compact /> : null}
-            <div className="dock-steps">
-              <Stepper id={'kg-' + item.id} label={plyo ? 'Ek yük (kg)' : 'Kilo'} value={entry.kg} step={2.5} min={0} max={500} onChange={(v) => setEntry({ ...entry, kg: v, rpe: null })} />
-              <Stepper id={'reps-' + item.id} label={plyo ? 'Temas' : 'Tekrar'} value={entry.reps} step={1} min={1} max={60} decimals={0} onChange={(v) => setEntry({ ...entry, reps: Math.round(v), rpe: null })} />
-            </div>
-            {plyo ? (
-              <div className="spd">
-                <div className="spd-h"><span className="st-k">Son tekrarların kalitesi</span><span className="spd-v" style={{ color: PLYO_Q[entry.q || 0].c }}>{PLYO_Q[entry.q || 0].d}</span></div>
-                <div className="pq-row" role="radiogroup" aria-label="Sıçrama kalitesi">
-                  {PLYO_Q.map((pq, i) => (
-                    <button key={i} type="button" id={'pq-' + i} role="radio" aria-checked={(entry.q || 0) === i} className={'pq' + ((entry.q || 0) === i ? ' on' : '')} style={{ '--c': pq.c }} onClick={() => setEntry({ ...entry, q: i })}>{pq.k}</button>
-                  ))}
+            {free && skill && compactRest ? <SkillStage item={item} st={st} compact /> : null}
+            {skill ? (
+              <React.Fragment>
+                <div className="dock-steps" style={lib?.h ? undefined : { gridTemplateColumns: 'minmax(0, 1fr)' }}>
+                  <Stepper id={'reps-' + item.id} label="Deneme" value={entry.reps} step={1} min={1} max={30} decimals={0} onChange={(v) => setEntry({ ...entry, reps: Math.round(v) })} />
+                  {lib?.h ? (
+                    <Stepper id={'hold-' + item.id} label="En iyi süre (sn)" value={entry.hold || 0} step={1} min={0} max={300} decimals={0} onChange={(v) => setEntry({ ...entry, hold: Math.round(v) })} />
+                  ) : null}
+                </div>
+                <div className="spd">
+                  <div className="spd-h"><span className="st-k">Kalite</span><span className="spd-v" style={{ color: SKILL_Q[entry.q || 0].c }}>{SKILL_Q[entry.q || 0].d}</span></div>
+                  <div className="pq-row" role="radiogroup" aria-label="Beceri kalitesi">
+                    {SKILL_Q.map((sq, i) => (
+                      <button key={i} type="button" id={'sq-' + i} role="radio" aria-checked={(entry.q || 0) === i} className={'pq' + ((entry.q || 0) === i ? ' on' : '')} style={{ '--c': sq.c }} onClick={() => setEntry({ ...entry, q: i })}>{sq.k}</button>
+                    ))}
+                    <button type="button" id="note-btn" className={'note-btn' + (entry.note || entry.tags.length || item.memo ? ' has' : '')} onClick={openNote} aria-label="Not ekle"><Icon name="edit" size={17} /></button>
+                  </div>
+                </div>
+              </React.Fragment>
+            ) : (
+              <React.Fragment>
+                <div className="dock-steps">
+                  <Stepper id={'kg-' + item.id} label={plyo ? 'Ek yük (kg)' : 'Kilo'} value={entry.kg} step={2.5} min={0} max={500} onChange={(v) => setEntry({ ...entry, kg: v, rpe: null })} />
+                  <Stepper id={'reps-' + item.id} label={plyo ? 'Temas' : 'Tekrar'} value={entry.reps} step={1} min={1} max={60} decimals={0} onChange={(v) => setEntry({ ...entry, reps: Math.round(v), rpe: null })} />
+                </div>
+                {plyo ? (
+                  <div className="spd">
+                    <div className="spd-h"><span className="st-k">Son tekrarların kalitesi</span><span className="spd-v" style={{ color: PLYO_Q[entry.q || 0].c }}>{PLYO_Q[entry.q || 0].d}</span></div>
+                    <div className="pq-row" role="radiogroup" aria-label="Sıçrama kalitesi">
+                      {PLYO_Q.map((pq, i) => (
+                        <button key={i} type="button" id={'pq-' + i} role="radio" aria-checked={(entry.q || 0) === i} className={'pq' + ((entry.q || 0) === i ? ' on' : '')} style={{ '--c': pq.c }} onClick={() => setEntry({ ...entry, q: i })}>{pq.k}</button>
+                      ))}
+                      <button type="button" id="note-btn" className={'note-btn' + (entry.note || entry.tags.length || item.memo ? ' has' : '')} onClick={openNote} aria-label="Not ekle"><Icon name="edit" size={17} /></button>
+                    </div>
+                  </div>
+                ) : <React.Fragment>
+                <div className="spd">
+                  <div className="spd-h"><span className="st-k">Son tekrarın hızı</span><span className="spd-v" style={{ color: vlColor(SPEED[entry.lvl].vl) }}>{SPEED[entry.lvl].d}</span></div>
+                  <div className="seg5s" role="radiogroup" aria-label="Son tekrarın hızı">
+                    {SPEED.map((sp, i) => (
+                      <button key={i} type="button" id={'speed-' + i} role="radio" aria-checked={entry.lvl === i} className={'seg5' + (entry.lvl === i ? ' on' : '')} style={{ '--c': vlColor(sp.vl) }} onClick={() => setEntry({ ...entry, lvl: i, rpe: null })}>
+                        <i><b style={{ height: Math.round((1 - sp.vl) * 100) + '%' }} /></i>
+                        <span>{SPEED_SHORT[i]}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="dock-rpe">
+                  <div className="rpe-chips" role="radiogroup" aria-label="RPE">
+                    {[6, 7, 8, 9, 10].map((v) => (
+                      <button key={v} type="button" role="radio" aria-checked={rpe === v} className={'rchip' + (rpe === v ? ' on' : '') + (rpeEst === v ? ' est' : '')} onClick={() => setEntry({ ...entry, rpe: v })}>
+                        <span className="mono">{v === 6 ? '≤6' : v}</span>
+                      </button>
+                    ))}
+                  </div>
                   <button type="button" id="note-btn" className={'note-btn' + (entry.note || entry.tags.length || item.memo ? ' has' : '')} onClick={openNote} aria-label="Not ekle"><Icon name="edit" size={17} /></button>
                 </div>
-              </div>
-            ) : <React.Fragment>
-            <div className="spd">
-              <div className="spd-h"><span className="st-k">Son tekrarın hızı</span><span className="spd-v" style={{ color: vlColor(SPEED[entry.lvl].vl) }}>{SPEED[entry.lvl].d}</span></div>
-              <div className="seg5s" role="radiogroup" aria-label="Son tekrarın hızı">
-                {SPEED.map((sp, i) => (
-                  <button key={i} type="button" id={'speed-' + i} role="radio" aria-checked={entry.lvl === i} className={'seg5' + (entry.lvl === i ? ' on' : '')} style={{ '--c': vlColor(sp.vl) }} onClick={() => setEntry({ ...entry, lvl: i, rpe: null })}>
-                    <i><b style={{ height: Math.round((1 - sp.vl) * 100) + '%' }} /></i>
-                    <span>{SPEED_SHORT[i]}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="dock-rpe">
-              <div className="rpe-chips" role="radiogroup" aria-label="RPE">
-                {[6, 7, 8, 9, 10].map((v) => (
-                  <button key={v} type="button" role="radio" aria-checked={rpe === v} className={'rchip' + (rpe === v ? ' on' : '') + (rpeEst === v ? ' est' : '')} onClick={() => setEntry({ ...entry, rpe: v })}>
-                    <span className="mono">{v === 6 ? '≤6' : v}</span>
-                  </button>
-                ))}
-              </div>
-              <button type="button" id="note-btn" className={'note-btn' + (entry.note || entry.tags.length || item.memo ? ' has' : '')} onClick={openNote} aria-label="Not ekle"><Icon name="edit" size={17} /></button>
-            </div>
-            </React.Fragment>}
+                </React.Fragment>}
+              </React.Fragment>
+            )}
             {(() => {
               const two = !free && item.sets.length >= item.target.sets && cur < n - 1;
               const chip = rest && (!free || compactRest);
@@ -858,6 +1149,30 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
 
 function SetDetailBody({ set, idx, exId, onDelete, onClose }) {
   const [confirm, setConfirm] = useState(false);
+  if (set.skill) {
+    const lib = libById(exId);
+    const q = SKILL_Q[set.q || 0] || SKILL_Q[0];
+    return (
+      <div className="setd">
+        <div className="setd-top">
+          <span className="setd-n mono">Set {idx + 1}</span>
+          <span className="setd-v mono">{skillSetTxt(set)}</span>
+          <span className="setd-t mono">{hm(set.at)}</span>
+        </div>
+        <div className="setd-grid two">
+          <div><small>Kalite</small><b style={{ color: q.c }}>{q.k}</b></div>
+          <div><small>Süre</small><b className="mono">{Number(set.hold) > 0 ? nf(Number(set.hold)) + ' sn' : '–'}</b></div>
+          <div><small>Yorgunluk payı</small><b className="mono">{nf(Math.round(set.reps * SKILL_W[(lib && lib.fat) || 1] * 100) / 100)}</b></div>
+          <div><small>Zor set</small><b className="mono" style={{ color: 'var(--faint)' }}>hayır</b></div>
+        </div>
+        {set.tags && set.tags.length ? <div className="chips-wrap">{set.tags.map((x) => <span key={x} className="fchip on">{x}</span>)}</div> : null}
+        {set.note ? <p className="sd-note">{set.note}</p> : null}
+        {confirm ? (
+          <span className="confirm-inline"><button type="button" id="set-del-yes" className="btn danger sm" onClick={() => { onDelete(); onClose(); }}>Seti sil</button><button type="button" className="btn ghost sm" onClick={() => setConfirm(false)}>Vazgeç</button></span>
+        ) : <button type="button" id="set-del" className="btn ghost sm danger-t setd-del" onClick={() => setConfirm(true)}><Icon name="trash" size={13} /> Seti sil</button>}
+      </div>
+    );
+  }
   if (set.plyo) {
     const lib = libById(exId);
     const q = PLYO_Q[set.q || 0];
@@ -969,7 +1284,7 @@ function NoteSheetBody({ init, onSave, onClose }) {
       <label className="st-k" htmlFor="ex-memo">Hareket notu</label>
       <textarea id="ex-memo" className="text-area" rows={2} placeholder="örn. koltuk 4. kademe, gelecek hafta 77,5 kg" value={memo} onChange={(e) => setMemo(e.target.value)} />
       {init.canProgram ? (
-        <label className="check-row"><input id="memo-to-program" type="checkbox" checked={toProgram} onChange={(e) => setToProgram(e.target.checked)} /> Programdaki nota da kaydet, sonraki antrenmanda görünsün</label>
+        <label className="check-row"><input id="memo-to-program" type="checkbox" checked={toProgram} onChange={(e) => setToProgram(e.target.checked)} /> Plandaki nota da kaydet, sonraki antrenmanda görünsün</label>
       ) : null}
       <button type="button" id="note-save" className="btn primary full" onClick={() => { onSave({ note, tags, memo, toProgram }); onClose(); }}>Kaydet</button>
     </div>
@@ -996,12 +1311,16 @@ function ExListBody({ getSession, onGo, onAdd, onClose, openSheet }) {
   );
 }
 
-/* ---------- özet + antrenman türü ---------- */
-function SummaryBody({ session, st, openSheet, onDelete, onClose }) {
+/* ---------- özet + plan kaydı ---------- */
+function SummaryBody({ session, st, put, del, openSheet, onDelete, onClose }) {
   const [confirm, setConfirm] = useState(false);
   const ss = sessionStats(session);
   const all = st.sessions.some((x) => x.id === session.id) ? st.sessions.map((x) => (x.id === session.id ? session : x)) : [session, ...st.sessions];
   const ls = logStats(all, session.endedAt || Date.now());
+  const goals = readGoals(st.settings);
+  const matchingSkillGoals = goals.filter(
+    (g) => g.type === 'skill' && session.items.some((it) => it.sets.length > 0 && matchesSkillGoal(g, it))
+  );
   const notes = [];
   session.items.forEach((it) => {
     if (it.memo) notes.push(it.name + ': ' + it.memo);
@@ -1013,6 +1332,11 @@ function SummaryBody({ session, st, openSheet, onDelete, onClose }) {
     return b;
   };
   const sf = sessionFatigue(session, { ...st, sessions: all });
+  const advanceGoal = (id) => {
+    const next = advanceSkillStage(goals, id);
+    put('settings', { key: 'goals', value: next });
+    if (st.settings.some((x) => x.key === 'goal')) del('settings', 'goal');
+  };
   return (
     <div className="summary2">
       <p className="sum-when mono"><Icon name="clock" size={13} /> {fullDate(session.startedAt)} · {hm(session.startedAt)}–{hm(session.endedAt || Date.now())}</p>
@@ -1029,19 +1353,57 @@ function SummaryBody({ session, st, openSheet, onDelete, onClose }) {
       <ul className="sum-ex">
         {session.items.filter((it) => it.sets.length).map((it) => {
           const best = bestE1(it.sets), pb = best ? prevBest(it) : 0, d = pb ? best - pb : 0;
+          const skill = isSkill(it.exId) || it.sets.some((z) => z.skill);
           return (
             <li key={it.id}>
               <div className="se-top">
                 <strong>{it.name}</strong>
-                <span className="mono se-e1">{best ? <React.Fragment>e1RM {nf(Math.round(best * 2) / 2)}{pb ? <em className={d >= 0 ? 'up' : 'down'}> {d >= 0 ? '+' : '−'}{nf(Math.abs(Math.round(d * 2) / 2))}</em> : null}</React.Fragment> : isPlyo(it.exId) ? it.sets.reduce((a, z) => a + z.reps, 0) + ' temas' : 'e1RM –'}</span>
+                <span className="mono se-e1">
+                  {best
+                    ? <React.Fragment>e1RM {nf(Math.round(best * 2) / 2)}{pb ? <em className={d >= 0 ? 'up' : 'down'}> {d >= 0 ? '+' : '−'}{nf(Math.abs(Math.round(d * 2) / 2))}</em> : null}</React.Fragment>
+                    : skill
+                      ? it.sets.reduce((a, z) => a + z.reps, 0) + ' deneme'
+                      : isPlyo(it.exId)
+                        ? it.sets.reduce((a, z) => a + z.reps, 0) + ' temas'
+                        : 'e1RM –'}
+                </span>
               </div>
               <div className="se-sets">
-                {it.sets.map((z, j) => <span key={j} className="se-set"><span className="mono">{z.plyo ? (Number(z.kg) ? '+' + nf(Number(z.kg)) + '×' : '') + z.reps + (Number(z.kg) ? '' : ' temas') : nf(Number(z.kg)) + '×' + z.reps}</span><i style={z.plyo ? { background: PLYO_Q[z.q || 0].c, width: '100%' } : { background: vlColor(z.vl), width: Math.max(10, z.vl * 100) + '%' }} /><small className="mono">{hm(z.at)}</small></span>)}
+                {it.sets.map((z, j) => (
+                  <span key={j} className="se-set">
+                    <span className="mono">
+                      {z.skill
+                        ? skillSetTxt(z)
+                        : z.plyo
+                          ? (Number(z.kg) ? '+' + nf(Number(z.kg)) + '×' : '') + z.reps + (Number(z.kg) ? '' : ' temas')
+                          : nf(Number(z.kg)) + '×' + z.reps}
+                    </span>
+                    <i style={z.skill ? { background: (SKILL_Q[z.q || 0] || SKILL_Q[0]).c, width: '100%' } : z.plyo ? { background: PLYO_Q[z.q || 0].c, width: '100%' } : { background: vlColor(z.vl), width: Math.max(10, z.vl * 100) + '%' }} />
+                    <small className="mono">{hm(z.at)}</small>
+                  </span>
+                ))}
               </div>
             </li>
           );
         })}
       </ul>
+      {matchingSkillGoals.map((g) => {
+        const cleanAttempts = session.items
+          .filter((it) => matchesSkillGoal(g, it))
+          .flatMap((it) => it.sets)
+          .filter((z) => (z.q || 0) === 0)
+          .reduce((a, z) => a + Number(z.reps || 0), 0);
+        return (
+          <div key={g.id} className="sum-skill-goal">
+            <span><strong>{g.name}</strong> · <span className="mono">{cleanAttempts} temiz deneme</span></span>
+            {g.stage < 3 ? (
+              <button type="button" className="btn primary sm" onClick={() => advanceGoal(g.id)}>Aşamayı ilerlet</button>
+            ) : (
+              <span className="badge ok">Öğrenildi ✓</span>
+            )}
+          </div>
+        );
+      })}
       {notes.length ? <div className="sum-notes"><span className="st-k">Notlar</span>{notes.map((t, i) => <p key={i}>{t}</p>)}</div> : null}
       {Object.keys(ls.muscles).length ? (
         <div className="sum-week">
@@ -1050,7 +1412,7 @@ function SummaryBody({ session, st, openSheet, onDelete, onClose }) {
         </div>
       ) : null}
       <div className="sum-actions">
-        <button type="button" id="save-tmpl" className="btn ghost" onClick={() => openSheet('saveTemplate', { session })}><Icon name="plus" size={14} /> Antrenman türü olarak kaydet</button>
+        <button type="button" id="save-tmpl" className="btn ghost" onClick={() => openSheet('saveTemplate', { session })}><Icon name="plus" size={14} /> Plan olarak kaydet</button>
         {confirm ? (
           <span className="confirm-inline"><button type="button" className="btn danger sm" onClick={() => { onDelete(session.id); onClose(); }}>Kaydı sil</button><button type="button" className="btn ghost sm" onClick={() => setConfirm(false)}>Vazgeç</button></span>
         ) : <button type="button" className="btn ghost sm danger-t" onClick={() => setConfirm(true)}>Kaydı sil</button>}
@@ -1059,173 +1421,564 @@ function SummaryBody({ session, st, openSheet, onDelete, onClose }) {
   );
 }
 
-function SaveTemplateBody({ session, st, put, onClose, onSaved }) {
+function SaveTemplateBody({ session, put, onClose, onSaved }) {
   const [name, setName] = useState(isFree(session) ? '' : session.dayName + ' (yeni)');
-  const [target, setTarget] = useState(st.programs[0] ? st.programs[0].id : 'new');
-  const [wd, setWd] = useState(null);
+  const [wds, setWds] = useState([]);
   const items = session.items.filter((it) => it.sets.length).map((it) => {
-    const reps = it.sets.map((z) => z.reps), rpes = it.sets.map((z) => z.rpe);
-    return { id: newId('i'), exId: it.exId, name: it.name, muscle: it.muscle, sets: it.sets.length, repMin: Math.min(...reps), repMax: Math.max(...reps), kg: Number(it.sets[it.sets.length - 1].kg) || null, rpeMin: Math.min(...rpes), rpeMax: Math.max(...rpes), rest: it.target.rest || 120, note: it.memo || '' };
+    const reps = it.sets.map((z) => z.reps);
+    const rpes = it.sets.map((z) => z.rpe).filter((r) => r != null);
+    const sk = isSkill(it.exId);
+    const pl = isPlyo(it.exId);
+    return {
+      id: newId('i'),
+      exId: it.exId,
+      name: it.name,
+      muscle: it.muscle,
+      sets: it.sets.length,
+      repMin: Math.min(...reps),
+      repMax: Math.max(...reps),
+      kg: sk ? null : Number(it.sets[it.sets.length - 1].kg) || null,
+      rpeMin: sk || pl || !rpes.length ? null : Math.min(...rpes),
+      rpeMax: sk || pl || !rpes.length ? null : Math.max(...rpes),
+      rest: it.target.rest || (sk ? 90 : 120),
+      note: it.memo || '',
+    };
   });
   const save = () => {
-    const day = { id: newId('d'), name: name.trim() || 'Yeni antrenman', weekday: wd, items };
-    let p;
-    if (target === 'new') p = { id: newId('p'), name: 'Antrenmanlarım', createdAt: Date.now(), updatedAt: Date.now(), days: [day] };
-    else { p = clone(st.programs.find((x) => x.id === target)); p.days.push(day); p.updatedAt = Date.now(); }
+    const planName = name.trim() || 'Yeni plan';
+    const p = newPlanDoc(planName);
+    p.days[0].name = planName;
+    p.days[0].weekdays = [...wds];
+    p.days[0].items = items;
     put('programs', p);
-    onSaved(p, day);
+    onSaved(p, p.days[0]);
     onClose();
   };
   return (
     <div className="note-sheet">
       <label className="st-k" htmlFor="tmpl-name">Adı</label>
       <input id="tmpl-name" className="text-in" placeholder="örn. Omuz + kol" value={name} onChange={(e) => setName(e.target.value)} />
-      <span className="st-k">Program</span>
-      <div className="chips-wrap">
-        {st.programs.map((p) => <button key={p.id} type="button" className={'fchip' + (target === p.id ? ' on' : '')} onClick={() => setTarget(p.id)}>{p.name || 'Adsız'}</button>)}
-        <button type="button" className={'fchip' + (target === 'new' ? ' on' : '')} onClick={() => setTarget('new')}>+ Yeni program</button>
-      </div>
-      <span className="st-k">Haftanın günü</span>
+      <span className="st-k">Her hafta</span>
       <div className="wd-pick">
-        {WEEK_ORDER.map((w) => <button key={w} type="button" className={'wd-btn' + (wd === w ? ' on' : '')} onClick={() => setWd(wd === w ? null : w)}>{WD_SHORT[w]}</button>)}
+        {WEEK_ORDER.map((w) => {
+          const on = wds.includes(w);
+          return (
+            <button key={w} type="button" className={'wd-btn' + (on ? ' on' : '')} onClick={() => setWds(on ? wds.filter((x) => x !== w) : [...wds, w])}>
+              {WD_SHORT[w]}
+            </button>
+          );
+        })}
       </div>
-      <p className="muted-p">{items.length} hareket, yaptığın set, tekrar, kilo ve RPE değerleriyle kaydedilir.</p>
+      <p className="muted-p">{items.length} hareket, yaptığın set ve tekrar değerleriyle yeni bir plan olarak kaydedilir.</p>
       <button type="button" id="tmpl-save" className="btn primary full" onClick={save}>Kaydet</button>
     </div>
   );
 }
 
-/* ================= PROGRAMLAR ================= */
-function ProgramsList({ st, open, createProgram }) {
-  return (
-    <div className="screen">
-      <ScreenHead title="Programlar" sub="Antrenman türlerini ve haftanı kur" right={<button type="button" id="prog-new" className="icon-btn sm" aria-label="Yeni program" onClick={createProgram}><Icon name="plus" size={18} /></button>} />
-      <div className="scr">
-        {!st.programs.length ? (
-          <div className="empty"><strong>Henüz programın yok</strong><p>İlk programını oluştur; günlerini ve hareketlerini sen belirle.</p><button type="button" id="prog-empty-new" className="btn primary full" onClick={createProgram}>Program oluştur</button></div>
-        ) : st.programs.map((p) => {
-          const ps = planStats(p);
-          const sim = simulatePlan(p);
-          const r = sim ? { zone: zoneOf(sim.pre) } : null;
-          return (
-            <button key={p.id} type="button" id={'open-' + p.id} className="prog2" onClick={() => open(p)}>
-              <div className="prog2-h">
-                <strong>{p.name || 'Adsız program'}</strong>
-                {r ? <span className="zone-pill sm" style={{ color: r.zone.c, borderColor: r.zone.c }}>{r.zone.k}</span> : null}
-              </div>
-              <div className="prog2-days">
-                {p.days.map((d) => <span key={d.id} className="pchip"><b className="mono">{d.weekday == null ? '—' : WD_SHORT[d.weekday]}</b>{d.name}</span>)}
-              </div>
-              <span className="prog2-k mono">{p.days.reduce((a, d) => a + d.items.length, 0)} hareket · {Object.values(ps.muscles).reduce((a, b) => a + b, 0)} set/hafta · güncellendi {dateTxt(p.updatedAt || p.createdAt).split(' · ')[0]} {hm(p.updatedAt || p.createdAt)}</span>
-            </button>
-          );
-        })}
-        <BackupPanel />
-      </div>
-    </div>
-  );
-}
-
-function ProgramEditor2({ program, startDay, st, put, del, onBack, openSheet, startSession }) {
-  const [p, setP] = useState(() => clone(program));
-  const [di, setDi] = useState(() => Math.max(0, program.days.findIndex((d) => d.id === startDay)));
+/* ================= PLAN DÜZENLEYİCİ ================= */
+function PlanEditor({ program, dayId, st, put, del, onBack, openSheet, startSession }) {
+  const initDay = useMemo(() => {
+    const raw = program.days.find((d) => d.id === dayId) || program.days[0];
+    return normalizeDay(clone(raw));
+  }, [program.id, dayId]);
+  const [day, setDay] = useState(initDay);
   const [saved, setSaved] = useState(true);
-  const [confirm, setConfirm] = useState(null);
-  const latest = useRef(p);
+  const [confirm, setConfirm] = useState(false);
+  const latestDay = useRef(day);
+  const latestProg = useRef(clone(program));
   const timer = useRef(0);
   const pending = useRef(false);
-  const flush = () => { if (pending.current) { pending.current = false; put('programs', latest.current); setSaved(true); } };
-  useBack(true, () => { flush(); onBack(); });
-  useBack(!!confirm, () => setConfirm(null));
-  useEffect(() => () => { clearTimeout(timer.current); if (pending.current) { pending.current = false; put('programs', latest.current); } }, []);
-  const commit = (fn) => {
-    const np = clone(latest.current); fn(np); np.updatedAt = Date.now();
-    latest.current = np; setP(np); setSaved(false); pending.current = true;
-    clearTimeout(timer.current); timer.current = setTimeout(flush, 600);
+
+  const buildProgram = (d) => {
+    const base = st.programs.find((x) => x.id === program.id) || latestProg.current;
+    return upsertPlan([base], program.id, d);
   };
-  const dIdx = Math.min(di, p.days.length - 1);
-  const day = p.days[dIdx];
-  const ps = planStats(p);
-  const sim = simulatePlan(p);
-  const r = sim ? { score: sim.pre, zone: zoneOf(sim.pre) } : null;
-  const topM = Object.entries(ps.muscles).sort((a, b) => b[1] - a[1]).slice(0, 3);
+
+  const flush = () => {
+    clearTimeout(timer.current);
+    if (pending.current) {
+      pending.current = false;
+      const np = buildProgram(latestDay.current);
+      latestProg.current = np;
+      put('programs', np);
+      setSaved(true);
+    }
+  };
+
+  useBack(true, () => { flush(); onBack(); });
+  useBack(confirm, () => setConfirm(false));
+  useEffect(() => () => {
+    clearTimeout(timer.current);
+    if (pending.current) {
+      pending.current = false;
+      const np = buildProgram(latestDay.current);
+      put('programs', np);
+    }
+  }, []);
+
+  const commit = (fn) => {
+    const nd = normalizeDay(clone(latestDay.current));
+    fn(nd);
+    latestDay.current = nd;
+    setDay(nd);
+    setSaved(false);
+    pending.current = true;
+    clearTimeout(timer.current);
+    timer.current = setTimeout(flush, 600);
+  };
+
+  const wp = weekProgram(st.programs);
+  const ps = planStats(wp);
   const low = MAIN_MUSCLES.filter((m) => (ps.muscles[m] || 0) < 10);
 
   const editItem = (i) => openSheet('item', {
     it: day.items[i], idx: i, n: day.items.length,
-    onChange: (nit) => commit((np) => { np.days[dIdx].items[i] = nit; }),
-    onMove: (d) => commit((np) => { const a = np.days[dIdx].items; const j = i + d; if (j < 0 || j >= a.length) return; const t = a[i]; a[i] = a[j]; a[j] = t; }),
-    onRemove: () => commit((np) => { np.days[dIdx].items.splice(i, 1); }),
+    onChange: (nit) => commit((nd) => { nd.items[i] = nit; }),
+    onMove: (d) => commit((nd) => { const a = nd.items; const j = i + d; if (j < 0 || j >= a.length) return; const t = a[i]; a[i] = a[j]; a[j] = t; }),
+    onRemove: () => commit((nd) => { nd.items.splice(i, 1); }),
   });
   const addItem = () => openSheet('picker', {
     low,
-    onPick: (ex) => { const nit = itemFromEx(ex); commit((np) => { np.days[dIdx].items.push(nit); }); },
+    onPick: (ex) => { const nit = itemFromEx(ex); commit((nd) => { nd.items.push(nit); }); },
   });
+  const handleDelete = () => {
+    clearTimeout(timer.current);
+    pending.current = false;
+    const exists = st.programs.some((x) => x.id === program.id);
+    if (exists) {
+      const res = removePlan(st.programs, program.id, day.id);
+      if (res.del) del('programs', res.del);
+      else if (res.put) put('programs', res.put);
+    }
+    onBack();
+  };
 
   return (
     <div className="screen editor2">
       <header className="shead">
         <div className="shead-row">
-          <button type="button" id="ed-back" className="nav-arrow" aria-label="Programlar" onClick={() => { flush(); onBack(); }}><Icon name="left" size={18} /></button>
-          <input id="prog-name" className="prog-name2" placeholder="Program adı" value={p.name} onChange={(e) => commit((np) => { np.name = e.target.value; })} />
+          <button type="button" id="ed-back" className="nav-arrow" aria-label="Geri" onClick={() => { flush(); onBack(); }}><Icon name="left" size={18} /></button>
+          <div className="shead-t"><h1>Plan</h1></div>
           <span className={'save-st mono' + (saved ? ' ok' : '')}>{saved ? 'Kaydedildi' : '…'}</span>
+          <button type="button" id="plan-del" className="btn ghost sm danger-t" onClick={() => setConfirm(true)}>Sil</button>
         </div>
       </header>
-      <div className="day-tabs ed2-tabs" role="tablist">
-        {p.days.map((d, i) => (
-          <button key={d.id} type="button" role="tab" aria-selected={i === dIdx} className={'day-tab' + (i === dIdx ? ' on' : '')} onClick={() => setDi(i)}><span className="mono">{d.weekday == null ? '—' : WD_SHORT[d.weekday]}</span>{d.name || 'Adsız'}</button>
-        ))}
-        <button type="button" id="add-day" className="day-tab add" onClick={() => { commit((np) => { np.days.push({ id: newId('d'), name: 'Yeni tür', weekday: null, items: [] }); }); setDi(p.days.length); }}>+ Tür</button>
-      </div>
-      {day ? (
-        <div className="ed2-body">
-          <div className="ed2-dayhead">
-            <input id={'day-name-' + day.id} className="day-name" value={day.name} placeholder="Antrenman türü adı" onChange={(e) => commit((np) => { np.days[dIdx].name = e.target.value; })} />
-            <div className="wd-pick">
-              {WEEK_ORDER.map((w) => <button key={w} type="button" className={'wd-btn' + (day.weekday === w ? ' on' : '')} onClick={() => commit((np) => { np.days[dIdx].weekday = np.days[dIdx].weekday === w ? null : w; })}>{WD_SHORT[w]}</button>)}
-            </div>
-          </div>
-          <div className="ed2-list">
-            {day.items.length ? (
-              <ol className="items">
-                {day.items.map((it, i) => {
-                  const m = exMeta(it.exId, it.name);
-                  return (
-                    <li key={it.id} className="item">
-                      <button type="button" className="item-row" onClick={() => editItem(i)}>
-                        <span className="item-i mono">{i + 1}</span>
-                        <span className="item-t">
-                          <strong>{it.name}</strong>
-                          <small className="mono">{targetTxt(it, it.exId)} · {restTxt(it.rest)}</small>
-                          {it.note ? <em>{it.note}</em> : null}
-                        </span>
-                        {exDot(m)}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ol>
-            ) : <div className="empty sm"><strong>Boş sayfa</strong><p>Hareketleri tek tek ekle. Listede olmayanı adını yazarak ekleyebilirsin.</p></div>}
-            <button type="button" id="add-item" className="add-item" onClick={addItem}>+ Hareket ekle</button>
-            <div className="ed2-foot">
-              {day.items.length ? <button type="button" id="ed-start" className="btn primary sm" onClick={() => { flush(); startSession(latest.current, latest.current.days[dIdx]); }}><Icon name="play" size={12} /> Bu türü başlat</button> : null}
-              {confirm === 'day' ? (
-                <span className="confirm-inline"><button type="button" className="btn danger sm" onClick={() => { setConfirm(null); setDi(Math.max(0, dIdx - 1)); commit((np) => { np.days.splice(dIdx, 1); }); }}>Türü sil</button><button type="button" className="btn ghost sm" onClick={() => setConfirm(null)}>Vazgeç</button></span>
-              ) : p.days.length > 1 ? <button type="button" className="btn ghost sm danger-t" onClick={() => setConfirm('day')}>Türü sil</button> : null}
-              {confirm === 'prog' ? (
-                <span className="confirm-inline"><button type="button" className="btn danger sm" onClick={() => { pending.current = false; del('programs', p.id); onBack(); }}>Programı sil</button><button type="button" className="btn ghost sm" onClick={() => setConfirm(null)}>Vazgeç</button></span>
-              ) : <button type="button" className="btn ghost sm danger-t" onClick={() => setConfirm('prog')}>Programı sil</button>}
-            </div>
+      {confirm ? (
+        <div className="pop">
+          <p>Planı sil?</p>
+          <div className="confirm-inline">
+            <button type="button" id="plan-del-yes" className="btn danger sm" onClick={handleDelete}>Sil</button>
+            <button type="button" className="btn ghost sm" onClick={() => setConfirm(false)}>Vazgeç</button>
           </div>
         </div>
       ) : null}
-      <button type="button" id="plan-dock" className="plan-dock" onClick={() => openSheet('plan', { getProgram: () => latest.current })}>
-        <div className="pd-l">
-          <span className="st-k">Haftalık yük</span>
-          <span className="pd-m">{topM.length ? topM.map(([m, n]) => <span key={m}><b className="mono">{n}</b> {m}</span>) : 'Hareket ekledikçe hesaplanır'}</span>
+      <div className="ed2-body">
+        <div className="ed2-dayhead">
+          <input
+            id="plan-name"
+            className="day-name prog-name2"
+            aria-label="Plan adı"
+            value={day.name}
+            placeholder="Plan adı (örn. Push)"
+            onChange={(e) => commit((nd) => { nd.name = e.target.value; })}
+          />
         </div>
-        {r ? <div className="pd-r"><Ring score={r.score} zone={r.zone} size={44} label={'Yorgunluk ' + Math.round(r.score)} /><Icon name="right" size={14} /></div> : null}
-      </button>
+        <div className="ed2-sec">
+          <span className="st-k">Her hafta</span>
+          <div className="wd-pick" role="group" aria-label="Her hafta">
+            {WEEK_ORDER.map((w) => {
+              const on = (day.weekdays || []).includes(w);
+              return (
+                <button
+                  key={w}
+                  type="button"
+                  aria-pressed={on}
+                  className={'wd-btn' + (on ? ' on' : '')}
+                  onClick={() => commit((nd) => {
+                    const cur = nd.weekdays || [];
+                    nd.weekdays = cur.includes(w) ? cur.filter((x) => x !== w) : [...cur, w];
+                  })}
+                >
+                  {WD_SHORT[w]}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="ed2-list">
+          <span className="st-k">Hareketler</span>
+          {day.items.length ? (
+            <ol className="items">
+              {day.items.map((it, i) => {
+                const m = exMeta(it.exId, it.name);
+                return (
+                  <li key={it.id} className="item">
+                    <button type="button" className="item-row" onClick={() => editItem(i)}>
+                      <span className="item-i mono">{i + 1}</span>
+                      <span className="item-t">
+                        <strong>{it.name}</strong>
+                        <small className="mono">{targetTxt(it, it.exId)} · {restTxt(it.rest)}</small>
+                        {it.note ? <em>{it.note}</em> : null}
+                      </span>
+                      {exDot(m)}
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          ) : <div className="empty sm"><strong>Boş plan</strong><p>Hareketleri tek tek ekle. Listede olmayanı adını yazarak ekleyebilirsin.</p></div>}
+          <button type="button" id="add-item" className="add-item" onClick={addItem}>+ Hareket ekle</button>
+          <div className="ed2-foot">
+            {day.items.length ? (
+              <button
+                type="button"
+                id="ed-start"
+                className="btn primary full"
+                onClick={() => {
+                  flush();
+                  const np = buildProgram(latestDay.current);
+                  startSession(np, latestDay.current);
+                }}
+              >
+                <Icon name="play" size={13} /> Başlat
+              </button>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ================= GÖZLEM (Antrenman plan ve gözlem) ================= */
+function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
+  const today = new Date();
+  const todayKey = dateKey(today);
+  const [selKey, setSelKey] = useState(() => dateKey(new Date()));
+  const [viewYm, setViewYm] = useState(() => { const d = new Date(); return { y: d.getFullYear(), m: d.getMonth() }; });
+  const [menuDid, setMenuDid] = useState(null);
+
+  const goals = readGoals(st.settings);
+  const firstPerfGoal = goals.find((g) => g.type === 'perf') || null;
+  const [selEx, setSelEx] = useState(firstPerfGoal?.exId ?? null);
+
+  const done = useMemo(() => st.sessions.filter((s) => s.status === 'done'), [st.sessions]);
+  const isCurrentMonth = viewYm.y === today.getFullYear() && viewYm.m === today.getMonth();
+
+  // 42 hücrelik takvim (Pazartesi başlangıçlı, 6 satır sabit)
+  const cells = useMemo(() => {
+    const first = new Date(viewYm.y, viewYm.m, 1);
+    const offset = (first.getDay() + 6) % 7;
+    return Array.from({ length: 42 }, (_, i) => {
+      const d = new Date(viewYm.y, viewYm.m, 1 - offset + i);
+      const key = dateKey(d);
+      const inMonth = d.getFullYear() === viewYm.y && d.getMonth() === viewYm.m;
+      const isToday = key === todayKey;
+      const isPast = key < todayKey;
+      const daySessions = done.filter((s) => dateKey(s.startedAt) === key);
+      const dayPlans = plansOn(key, st.programs);
+      const markers = [];
+      daySessions.forEach((s) => {
+        markers.push({ type: 'done', skill: isSkillHeavySession(s) });
+      });
+      dayPlans.forEach(({ day: pDay }) => {
+        const doneForPlan = daySessions.some((s) => s.dayId === pDay.id);
+        if (!doneForPlan) {
+          markers.push({ type: isPast ? 'missed' : 'plan' });
+        }
+      });
+      const labelDate = d.getDate() + ' ' + MONTHS_LONG[d.getMonth()] + ' ' + WD_LONG[d.getDay()];
+      const parts = [];
+      if (daySessions.length) parts.push(daySessions.length + ' antrenman');
+      if (dayPlans.length) parts.push(dayPlans.length + ' plan');
+      const aria = parts.length ? labelDate + ': ' + parts.join(', ') : labelDate;
+      return { d, key, inMonth, isToday, isPast, daySessions, dayPlans, markers, aria };
+    });
+  }, [viewYm.y, viewYm.m, todayKey, done, st.programs]);
+
+  const changeMonth = (delta) => {
+    const nd = new Date(viewYm.y, viewYm.m + delta, 1);
+    setViewYm({ y: nd.getFullYear(), m: nd.getMonth() });
+  };
+  const goToday = () => {
+    const nowD = new Date();
+    setViewYm({ y: nowD.getFullYear(), m: nowD.getMonth() });
+    setSelKey(dateKey(nowD));
+  };
+  const selectCell = (c) => {
+    setSelKey(c.key);
+    setMenuDid(null);
+    if (!c.inMonth) setViewYm({ y: c.d.getFullYear(), m: c.d.getMonth() });
+  };
+
+  // Seçili gün verileri
+  const selDate = parseDateKey(selKey);
+  const selIsToday = selKey === todayKey;
+  const selIsPast = selKey < todayKey;
+  const selIsFuture = selKey > todayKey;
+  const selSessions = done.filter((s) => dateKey(s.startedAt) === selKey);
+  const selPlans = plansOn(selKey, st.programs);
+  const selCheckin = st.checkins.find((c) => c.id === 'c_' + selKey);
+  const selFatTs = selIsToday ? Date.now() : new Date(selDate.getFullYear(), selDate.getMonth(), selDate.getDate(), 23, 59, 59, 999).getTime();
+  const selFatScore = !selIsFuture ? Math.round(fatigueAt(st, selFatTs).score) : null;
+
+  const handleRemoveFromDay = (programId, dayObj) => {
+    const updatedDay = removeOn(dayObj, selKey);
+    const updatedProg = upsertPlan(st.programs, programId, updatedDay);
+    put('programs', updatedProg);
+    setMenuDid(null);
+  };
+
+  // Gözlem: takvimde görünen ayın özeti
+  const monthSessions = useMemo(
+    () => done.filter((s) => {
+      const d = new Date(s.startedAt);
+      return d.getFullYear() === viewYm.y && d.getMonth() === viewYm.m;
+    }),
+    [done, viewYm.y, viewYm.m]
+  );
+  const daysInMonth = new Date(viewYm.y, viewYm.m + 1, 0).getDate();
+  const m = periodMetrics(monthSessions, daysInMonth);
+  const scored = monthSessions.map((s) => { const f = sessionFatigue(s, st); return { s, v: f.post, pre: f.pre }; });
+  const avgF = scored.length ? scored.reduce((a, x) => a + x.pre, 0) / scored.length : null;
+  const avgPost = scored.length ? scored.reduce((a, x) => a + x.v, 0) / scored.length : null;
+  const fz = fatigueAt(st, Date.now());
+  const head = avgF != null ? avgF : fz.score;
+  const warns = historyWarnings(st, monthSessions);
+  const alerts = warns.filter((w) => w.lv !== 'info').length;
+
+  // Hareket gelişimi (tüm zamanlar)
+  const exs = [];
+  done.forEach((s) => s.items.forEach((it) => {
+    if (bestE1(it.sets) && !exs.some((e) => e.key === (it.exId || it.name))) {
+      exs.push({ key: it.exId || it.name, exId: it.exId, name: it.name });
+    }
+  }));
+  const curEx = exs.find((e) => e.key === selEx) || exs[0];
+  const pts = curEx ? e1Series(st.sessions, curEx.exId, curEx.name) : [];
+  const matchingPerfGoal = curEx ? goals.find((g) => g.type === 'perf' && g.exId === curEx.exId) : null;
+  const gLine = matchingPerfGoal ? matchingPerfGoal.target : null;
+
+  const wp = weekProgram(st.programs);
+  const hasWeekly = wp.days.length > 0;
+
+  return (
+    <div className="screen gozlem-screen">
+      <ScreenHead title="Antrenman plan ve gözlem" />
+      <div className="scr">
+        <section className="cal-sec">
+          <div className="cal-nav">
+            <div className="cal-nav-l">
+              <button type="button" id="cal-prev" className="nav-arrow" aria-label="Önceki ay" onClick={() => changeMonth(-1)}><Icon name="left" size={16} /></button>
+              <span className="cal-title">{MONTHS_LONG[viewYm.m]} {viewYm.y}</span>
+              <button type="button" id="cal-next" className="nav-arrow" aria-label="Sonraki ay" onClick={() => changeMonth(1)}><Icon name="right" size={16} /></button>
+            </div>
+            {!isCurrentMonth ? (
+              <button type="button" id="cal-today" className="btn ghost sm" onClick={goToday}>Bugün</button>
+            ) : null}
+          </div>
+          <div className="cal-wds" aria-hidden="true">
+            {WEEK_ORDER.map((w) => <span key={w}>{WD_SHORT[w]}</span>)}
+          </div>
+          <div className="cal" role="grid" aria-label="Aylık antrenman takvimi">
+            {cells.map((c) => {
+              const showMarkers = c.markers.length <= 3 ? c.markers : c.markers.slice(0, 2);
+              const extra = c.markers.length > 3;
+              return (
+                <button
+                  key={c.key}
+                  type="button"
+                  data-date={c.key}
+                  aria-label={c.aria}
+                  aria-pressed={c.key === selKey}
+                  className={'cal-d' + (c.isToday ? ' today' : '') + (c.key === selKey ? ' sel' : '') + (!c.inMonth ? ' out' : '')}
+                  onClick={() => selectCell(c)}
+                >
+                  <span>{c.d.getDate()}</span>
+                  <span className="cal-marks" aria-hidden="true">
+                    {showMarkers.map((mk, idx) => (
+                      <i key={idx} className={'cal-m ' + mk.type + (mk.skill ? ' skill' : '')} />
+                    ))}
+                    {extra ? <span className="cal-more">+</span> : null}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        <section id="day-panel" aria-label="Seçili gün ayrıntısı">
+          <div className="day-h">
+            {selDate.getDate()} {MONTHS_LONG[selDate.getMonth()]} {WD_LONG[selDate.getDay()]}{selIsToday ? ' · Bugün' : ''}
+          </div>
+          {selSessions.map((s) => {
+            const ss = sessionStats(s);
+            const f = sessionFatigue(s, st).post;
+            return (
+              <button key={s.id} type="button" className="hrow sm" onClick={() => openSheet('summary', { id: s.id })}>
+                <i className={'hrow-dot' + (isSkillHeavySession(s) ? ' skill' : '')} />
+                <span className="hrow-t">
+                  <strong>{sessionName(s)}</strong>
+                  <small className="mono">{durTxt(ss.dur)} · {ss.sets.length} set</small>
+                </span>
+                {f != null ? <span className="hrow-f mono" style={{ color: zoneOf(f).c, borderColor: zoneOf(f).c }}>{Math.round(f)}</span> : <span />}
+              </button>
+            );
+          })}
+          {selPlans.map(({ programId, day: pDay, src }) => {
+            const prog = st.programs.find((p) => p.id === programId);
+            const isDone = selSessions.some((s) => s.dayId === pDay.id);
+            const srcTxt = src === 'hafta' ? 'Her ' + WD_SHORT[selDate.getDay()] : 'Tek gün';
+            const openMenu = menuDid === pDay.id;
+            return (
+              <div key={pDay.id} className="day-plan-wrap">
+                <div className={'day-plan-row' + (isDone ? ' done' : '')}>
+                  <span className="day-plan-ic">{isDone ? '✓' : '○'}</span>
+                  <span className="day-plan-t">
+                    <strong>{pDay.name}</strong>
+                    <small>· {srcTxt}</small>
+                  </span>
+                  {selIsToday && !isDone ? (
+                    <button type="button" className="btn primary sm" onClick={() => startSession(prog, pDay)}>Başlat</button>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="day-plan-more"
+                    aria-label={pDay.name + ' menüsü'}
+                    onClick={() => setMenuDid(openMenu ? null : pDay.id)}
+                  >
+                    <Icon name="more" size={16} />
+                  </button>
+                </div>
+                {openMenu ? (
+                  <div className="day-plan-menu">
+                    <button type="button" className="btn ghost sm danger-t" onClick={() => handleRemoveFromDay(programId, pDay)}>Bu günden kaldır</button>
+                    <button type="button" className="btn ghost sm" onClick={() => { setMenuDid(null); if (prog) editPlan(prog, pDay, 'gozlem'); }}>Planı düzenle</button>
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+          {!selIsFuture ? (
+            <p className="day-meta mono">
+              {selCheckin ? 'Uyku ' + nf(Number(selCheckin.sleep)) + ' sa' : 'Uyku –'} · Yorgunluk {selFatScore}
+            </p>
+          ) : null}
+          {!selIsPast ? (
+            <button type="button" id="day-add-plan" className="add-item" onClick={() => openSheet('planPick', { dayKey: selKey })}>
+              + Bu güne plan ekle
+            </button>
+          ) : null}
+        </section>
+
+        <section className="hsec">
+          <div className="sec2-h"><span className="eyebrow">{MONTHS_LONG[viewYm.m].toLocaleUpperCase('tr')} ÖZETİ</span></div>
+          <div className="mgrid">
+            <Metric k="Antrenman" v={m.n} sub={nf(Math.round(m.perWeek * 10) / 10) + ' / hafta'} />
+            <Metric k="Toplam süre" v={m.n ? durTxt(m.dur) : '–'} sub={m.n ? 'ort. ' + durTxt(m.avgDur) : null} />
+            <Metric k="Set" v={m.sets} sub={m.hard + ' zor set'} />
+            <Metric k="Tonaj" v={m.sets ? tonTxt(m.ton) : '–'} sub={m.sets ? 'ort. RPE ' + nf(Math.round(m.avgRpe * 10) / 10) : null} />
+          </div>
+        </section>
+
+        <button type="button" id="obs-fatigue" className="fcard" onClick={() => openSheet('fatigue', {})}>
+          <Ring score={head} zone={zoneOf(head)} size={60} label="Seans başında ortalama yorgunluk" />
+          <span className="fcard-t">
+            <span className="st-k">{avgF != null ? 'Seans başında ort.' : 'Şu an'}</span>
+            <span className="zone-pill sm" style={{ color: zoneOf(head).c, borderColor: zoneOf(head).c }}>{zoneOf(head).k}</span>
+            <span className="fcard-s mono">{avgPost != null ? 'sonda ort. ' + Math.round(avgPost) + ' · ' : ''}şu an {Math.round(fz.score)}</span>
+          </span>
+          <FatigueBars pts={scored.slice().reverse().slice(-12)} />
+        </button>
+
+        <section className="warns" aria-label="Uyarılar">
+          <div className="sec2-h"><span className="eyebrow">Uyarılar</span><span className={'mono warn-n' + (alerts ? ' on' : '')}>{alerts ? alerts + ' uyarı' : 'temiz'}</span></div>
+          {warns.length ? warns.map((w, i) => (
+            <div key={i} className={'warn-row ' + w.lv}>
+              <i />
+              <span><strong>{w.t}</strong><small>{w.d}</small></span>
+            </div>
+          )) : (
+            <div className="warn-row ok"><i /><span><strong>Uyarı yok</strong><small>Hacim, yorgunluk ve uyku dengede görünüyor.</small></span></div>
+          )}
+        </section>
+
+        <section className="hsec">
+          <div className="sec2-h"><span className="eyebrow">Hareket gelişimi</span>{pts.length ? <span className="mono big-e1">{nf(Math.round(pts[pts.length - 1].v * 2) / 2)} kg</span> : null}</div>
+          {exs.length ? (
+            <React.Fragment>
+              <div className="chips-scroll">{exs.map((e) => <button key={e.key} type="button" className={'fchip' + (curEx && curEx.key === e.key ? ' on' : '')} onClick={() => setSelEx(e.key)}>{e.name}</button>)}</div>
+              {pts.length ? <E1Chart pts={pts} goal={gLine} /> : null}
+              <p className="chart-note">Tahmini 1RM · yalnızca tükenişe yakın (RIR ≤ 4) setlerden.</p>
+            </React.Fragment>
+          ) : <p className="muted-p">Tükenişe yakın setler kaydettikçe her hareketin 1RM eğrisi burada oluşur.</p>}
+        </section>
+
+        <button
+          type="button"
+          id="obs-week"
+          className="tcard obs-week"
+          disabled={!hasWeekly}
+          onClick={() => openSheet('plan', { getProgram: () => weekProgram(st.programs) })}
+        >
+          <span className="obs-week-l">
+            <strong>Haftalık yük</strong>
+            <small>{hasWeekly ? wp.days.length + ' planlı gün · kas başına haftalık set' : 'Haftalık tekrarlayan planın yok'}</small>
+          </span>
+          <Icon name="right" size={14} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PlanPickBody({ dayKey: targetKey, st, put, newPlan, onClose }) {
+  const plans = allPlans(st.programs);
+  const [selId, setSelId] = useState(plans[0]?.day.id ?? null);
+  const [repeat, setRepeat] = useState(false);
+  const d = parseDateKey(targetKey);
+  const wdName = WD_LONG[d.getDay()];
+
+  if (!plans.length) {
+    return (
+      <div className="note-sheet">
+        <p className="muted-p">Önce bir plan oluştur</p>
+        <button type="button" className="btn primary full" onClick={() => { onClose(); newPlan('gozlem'); }}>Yeni plan</button>
+      </div>
+    );
+  }
+
+  const chosen = plans.find((x) => x.day.id === selId) || plans[0];
+  const save = () => {
+    if (!chosen) return;
+    const nextDay = repeat ? addWeekly(chosen.day, d.getDay()) : addOnce(chosen.day, targetKey);
+    const updatedProg = upsertPlan(st.programs, chosen.programId, nextDay);
+    put('programs', updatedProg);
+    onClose();
+  };
+
+  return (
+    <div className="note-sheet">
+      <div className="plan-pick-list" role="radiogroup" aria-label="Plan seç">
+        {plans.map((x) => {
+          const on = chosen && chosen.day.id === x.day.id;
+          return (
+            <button
+              key={x.day.id}
+              type="button"
+              role="radio"
+              aria-checked={on}
+              className={'plan-pick-opt' + (on ? ' on' : '')}
+              onClick={() => setSelId(x.day.id)}
+            >
+              <strong>{x.day.name}</strong>
+              <span className="mono" style={{ fontSize: '12px', color: 'var(--muted)' }}>{x.day.items.length} hareket</span>
+            </button>
+          );
+        })}
+      </div>
+      <Switch id="plan-pick-repeat" label={'Her hafta ' + wdName + ' tekrarla'} on={repeat} onChange={setRepeat} />
+      <button type="button" id="plan-pick-save" className="btn primary full" onClick={save}>Ekle</button>
     </div>
   );
 }
@@ -1297,14 +2050,14 @@ function PlanBody({ getProgram, st, openSheet }) {
   const over = Object.entries(ps.muscles).filter(([, n]) => n > 20).map(([m]) => m);
   const recs = [];
   if (sim && sim.post >= 85) recs.push('En ağır günün sonunda yorgunluk çok yüksek. O günün setlerini iki güne böl ya da birkaç seti 2–3 tekrar kala bitir.');
-  if (sim && sim.pre >= 40) recs.push('Seanslara yorgun başlıyorsun. Türler arasında en az 48 sa bırak ya da toplam seti %20 azalt.');
+  if (sim && sim.pre >= 40) recs.push('Seanslara yorgun başlıyorsun. Planlar arasında en az 48 sa bırak ya da toplam seti %20 azalt.');
   if (over.length) recs.push(over.join(', ') + ': haftada 20 zor setin üstü. Fazlası toparlanmayı uzatır, ek kazanımı belirsiz.');
-  if (sim && sim.unplaced) recs.push(sim.unplaced + ' türün haftanın günü yok, hesaba katılmadı.');
+  if (sim && sim.unplaced) recs.push(sim.unplaced + ' planın haftanın günü yok, hesaba katılmadı.');
   if (sim && !recs.length) recs.push('Dağılım dengeli: seanslara toparlanmış başlıyorsun.');
   return (
     <div className="plan2">
       {sim ? (
-        <button type="button" className="plan2-meter" onClick={() => openSheet('fatigue', { sim: simFromPlan(p), source: 'Programına göre' })}>
+        <button type="button" className="plan2-meter" onClick={() => openSheet('fatigue', { sim: simFromPlan(p), source: 'Planına göre' })}>
           <Ring score={sim.pre} zone={zoneOf(sim.pre)} size={64} label="Seans başında yorgunluk" />
           <div className="pm-t">
             <span className="zone-pill" style={{ color: zoneOf(sim.pre).c, borderColor: zoneOf(sim.pre).c }}>{zoneOf(sim.pre).k}</span>
@@ -1312,10 +2065,10 @@ function PlanBody({ getProgram, st, openSheet }) {
             <span className="pm-link">Simüle et ›</span>
           </div>
         </button>
-      ) : <p className="muted-p">Hesap için türlere haftanın günü ve hareket ekle.</p>}
+      ) : <p className="muted-p">Hesap için planlara haftanın günü ve hareket ekle.</p>}
       {sim ? (
         <div className="pdays2">
-          <div className="pd2 sh"><span>Gün</span><span>Tür</span><span>Başta</span><span>Sonda</span></div>
+          <div className="pd2 sh"><span>Gün</span><span>Plan</span><span>Başta</span><span>Sonda</span></div>
           {sim.per.map((x, i) => (
             <div key={i} className="pd2">
               <span className="mono">{x.d.weekday == null ? '—' : WD_SHORT[x.d.weekday]}</span>
@@ -1403,13 +2156,17 @@ function ExerciseBody({ exId, name, st }) {
   const last = st.sessions.filter((s) => s.status === 'done').map((s) => ({ s, it: s.items.find((i) => (m && i.exId === m.id) || i.name === (m ? m.name : name)) })).filter((x) => x.it && x.it.sets.length).slice(0, 4);
   const latKind = m && m.id === 'band-yana-acis' ? 'band' : m && m.id === 'kablo-yana-acis' ? 'cable' : 'db';
   const plyo = m && m.kind === 'plyo';
-  const setTxt = (z) => (z.plyo ? (Number(z.kg) ? '+' + nf(Number(z.kg)) + '×' : '') + z.reps : nf(Number(z.kg)) + '×' + z.reps);
+  const skill = m && m.kind === 'beceri';
+  const setTxt = (z) => (z.skill ? skillSetTxt(z) : z.plyo ? (Number(z.kg) ? '+' + nf(Number(z.kg)) + '×' : '') + z.reps : nf(Number(z.kg)) + '×' + z.reps);
   return (
     <div className="exsheet">
       <FactChips ex={m} />
       {m && m.en ? <p className="ex-en">İngilizce: {m.en}</p> : null}
-      {m && !plyo && m.prof ? <p className="ex-prof">{PROF[m.prof].d}.</p> : null}
+      {m && !plyo && !skill && m.prof ? <p className="ex-prof">{PROF[m.prof].d}.</p> : null}
       {m && m.not ? <p className="ex-tip"><Icon name="info" size={13} /> {m.not}</p> : null}
+      {skill ? (
+        <p className="ex-skill-note">Beceri dinçken öğrenilir: antrenmanın başında, kalite düşünce bırak.</p>
+      ) : null}
       {plyo ? (
         <div className="ex-plyo">
           <span className="st-k">Pliometrik doz</span>
@@ -1433,39 +2190,174 @@ function ExerciseBody({ exId, name, st }) {
   );
 }
 
-function GoalBody({ st, put, del, onClose }) {
-  const g0 = st.settings.find((x) => x.key === 'goal')?.value ?? null;
-  const [g, setG] = useState(g0 || { exId: null, base: 0, target: 0 });
+function GoalBody({ id, st, put, del, addCustom, onClose }) {
+  const goals = readGoals(st.settings);
+  const existing = id ? goals.find((g) => g.id === id) : null;
+  const [type, setType] = useState(existing ? existing.type : 'perf');
   const [q, setQ] = useState('');
+
+  // Güç (1RM) durumu
+  const [perf, setPerf] = useState(() => (
+    existing && existing.type === 'perf'
+      ? { exId: existing.exId, name: existing.name, base: existing.base, target: existing.target }
+      : { exId: null, name: '', base: 0, target: 0 }
+  ));
+
+  // Öğrenme durumu
+  const [skill, setSkill] = useState(() => (
+    existing && existing.type === 'skill'
+      ? { exId: existing.exId, name: existing.name, stage: existing.stage, due: existing.due || '' }
+      : { exId: null, name: '', stage: 0, due: '' }
+  ));
+
   const toks = normTr(q).split(/\s+/).filter(Boolean);
-  const cur = libById(g.exId);
+
+  const persistGoals = (nextGoals) => {
+    put('settings', { key: 'goals', value: nextGoals });
+    if (st.settings.some((x) => x.key === 'goal')) del('settings', 'goal');
+  };
+
+  // Güç seçenekleri
+  const curPerfLib = libById(perf.exId);
   const recorded = st.sessions.filter(s => s.status === 'done').sort((a, b) => b.startedAt - a.startedAt)
     .flatMap(s => s.items.filter(it => bestE1(it.sets)).map(it => exMeta(it.exId, it.name)))
-    .filter(e => e && e.kind !== 'plyo');
-  const suggested = [...new Map([...recorded, ...EX_LIB.filter(e => e.kind !== 'plyo' && e.fat >= 2)].map(e => [e.id, e])).values()];
-  const opts = (toks.length ? EX_LIB.filter(e => e.kind !== 'plyo' && toks.every(t => normTr(e.name + ' ' + e.en).includes(t))) : suggested).slice(0, 8);
-  const valid = !!g.exId && Number(g.base) > 0 && Number(g.target) > Number(g.base);
-  const select = (e) => {
+    .filter(e => e && e.kind !== 'plyo' && e.kind !== 'beceri');
+  const suggestedPerf = [...new Map([...recorded, ...EX_LIB.filter(e => e.kind !== 'plyo' && e.kind !== 'beceri' && e.fat >= 2)].map(e => [e.id, e])).values()];
+  const perfOpts = (toks.length ? EX_LIB.filter(e => e.kind !== 'plyo' && e.kind !== 'beceri' && toks.every(t => normTr(e.name + ' ' + e.en).includes(t))) : suggestedPerf).slice(0, 8);
+  const perfValid = !!perf.exId && Number(perf.base) > 0 && Number(perf.target) > Number(perf.base);
+  const selectPerf = (e) => {
     const pts = e1Series(st.sessions, e.id, e.name);
-    setG({ ...g, exId: e.id, base: pts.length ? Math.round(pts[pts.length - 1].v / 2.5) * 2.5 : 0 });
+    setPerf({ ...perf, exId: e.id, name: e.name, base: pts.length ? Math.round(pts[pts.length - 1].v / 2.5) * 2.5 : 0 });
   };
+
+  // Öğrenme seçenekleri (önce beceri hareketleri, sonra diğerleri, en fazla 8)
+  const allSkillCandidates = useMemo(() => {
+    const skills = EX_LIB.filter((e) => e.kind === 'beceri');
+    const others = EX_LIB.filter((e) => e.kind !== 'beceri');
+    const customs = (st.custom || []).map((c) => ({ id: c.id, name: c.name, en: '', muscle: c.muscle, kind: 'kuvvet' }));
+    return [...skills, ...others, ...customs];
+  }, [st.custom]);
+  const skillMatches = toks.length
+    ? allSkillCandidates.filter((e) => toks.every((t) => normTr(e.name + ' ' + (e.en || '')).includes(t)))
+    : allSkillCandidates;
+  const skillOpts = skillMatches.slice(0, 8);
+  const exactSkill = allSkillCandidates.some((e) => normTr(e.name) === normTr(q));
+  const skillValid = !!skill.name;
+
+  const savePerf = () => {
+    if (!perfValid) return;
+    const draft = {
+      id: existing ? existing.id : newId('g'),
+      type: 'perf',
+      exId: perf.exId,
+      name: perf.name || (curPerfLib ? curPerfLib.name : perf.exId),
+      base: Number(perf.base),
+      target: Number(perf.target),
+      createdAt: existing ? existing.createdAt : Date.now(),
+    };
+    persistGoals(upsertGoal(goals, draft));
+    onClose();
+  };
+
+  const saveSkill = () => {
+    if (!skillValid) return;
+    const draft = {
+      id: existing ? existing.id : newId('g'),
+      type: 'skill',
+      exId: skill.exId,
+      name: skill.name,
+      stage: skill.stage,
+      ...(skill.due ? { due: skill.due } : {}),
+      createdAt: existing ? existing.createdAt : Date.now(),
+    };
+    persistGoals(upsertGoal(goals, draft));
+    onClose();
+  };
+
+  const handleRemove = () => {
+    if (!existing) return;
+    persistGoals(removeGoal(goals, existing.id));
+    onClose();
+  };
+
   return (
     <div className="note-sheet">
-      <span className="st-k">Hareket{cur ? ': ' + cur.name : ''}</span>
-      <input id="goal-search" className="search" type="search" placeholder="Hareket ara (ör. bench, squat)" value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" />
-      <div className="chips-wrap">{opts.map((e) => <button key={e.id} type="button" className={'fchip' + (g.exId === e.id ? ' on' : '')} onClick={() => select(e)}>{e.name}</button>)}</div>
-      <div className="entry-steps">
-        <Stepper id="goal-base" label="Başlangıç 1RM" value={g.base} step={2.5} min={0} max={400} onChange={(v) => setG({ ...g, base: v })} />
-        <Stepper id="goal-target" label="Hedef 1RM" value={g.target} step={2.5} min={0} max={400} onChange={(v) => setG({ ...g, target: v })} />
-      </div>
-      <button type="button" id="goal-save" className="btn primary full" disabled={!valid} onClick={() => { put('settings', { key: 'goal', value: { ...g, id: 'goal' } }); onClose(); }}>Kaydet</button>
-      {!valid ? <p className="goal-form-hint">{!g.exId ? 'Önce bir hareket seç' : Number(g.base) <= 0 ? 'Başlangıç 1RM değerini gir' : 'Hedef, başlangıçtan büyük olmalı'}</p> : null}
-      {g0 ? <button type="button" id="goal-remove" className="btn danger-t full" onClick={() => { del('settings', 'goal'); onClose(); }}>Hedefi kaldır</button> : null}
+      {!existing ? (
+        <div className="segmented seg2" role="tablist" aria-label="Hedef türü">
+          <button type="button" role="tab" id="goal-type-perf" aria-selected={type === 'perf'} className={type === 'perf' ? 'on' : ''} onClick={() => { setType('perf'); setQ(''); }}>Güç (1RM)</button>
+          <button type="button" role="tab" id="goal-type-skill" aria-selected={type === 'skill'} className={type === 'skill' ? 'on' : ''} onClick={() => { setType('skill'); setQ(''); }}>Öğrenme</button>
+        </div>
+      ) : null}
+
+      {type === 'perf' ? (
+        <React.Fragment>
+          <span className="st-k">Hareket{curPerfLib ? ': ' + curPerfLib.name : perf.name ? ': ' + perf.name : ''}</span>
+          <input id="goal-search" className="search" type="search" placeholder="Hareket ara (ör. bench, squat)" value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" />
+          <div className="chips-wrap">{perfOpts.map((e) => <button key={e.id} type="button" className={'fchip' + (perf.exId === e.id ? ' on' : '')} onClick={() => selectPerf(e)}>{e.name}</button>)}</div>
+          <div className="entry-steps">
+            <Stepper id="goal-base" label="Başlangıç 1RM" value={perf.base} step={2.5} min={0} max={400} onChange={(v) => setPerf({ ...perf, base: v })} />
+            <Stepper id="goal-target" label="Hedef 1RM" value={perf.target} step={2.5} min={0} max={400} onChange={(v) => setPerf({ ...perf, target: v })} />
+          </div>
+          <button type="button" id="goal-save" className="btn primary full" disabled={!perfValid} onClick={savePerf}>Kaydet</button>
+          {!perfValid ? <p className="goal-form-hint">{!perf.exId ? 'Önce bir hareket seç' : Number(perf.base) <= 0 ? 'Başlangıç 1RM değerini gir' : 'Hedef, başlangıçtan büyük olmalı'}</p> : null}
+        </React.Fragment>
+      ) : (
+        <React.Fragment>
+          <span className="st-k">Hareket{skill.name ? ': ' + skill.name : ''}</span>
+          <input id="goal-search" className="search" type="search" placeholder="Beceri ya da hareket ara (ör. kip-up, amut)" value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" />
+          <div className="chips-wrap">
+            {skillOpts.map((e) => (
+              <button
+                key={e.id}
+                type="button"
+                className={'fchip' + (skill.exId === e.id && skill.name === e.name ? ' on' : '')}
+                onClick={() => setSkill({ ...skill, exId: e.id, name: e.name })}
+              >
+                {e.name}
+              </button>
+            ))}
+          </div>
+          {q.trim() && !exactSkill && !skillOpts.length ? (
+            <button
+              type="button"
+              id="goal-custom-ex"
+              className="add-item"
+              onClick={() => {
+                const d = addCustom(q.trim(), 'Diğer');
+                setSkill({ ...skill, exId: d.id, name: d.name });
+              }}
+            >
+              + “{q.trim()}” adıyla özel hareket
+            </button>
+          ) : null}
+          <span className="st-k">Aşama</span>
+          <div className="chips-wrap" role="radiogroup" aria-label="Aşama">
+            {SKILL_STAGES.map((stLabel, idx) => (
+              <button
+                key={idx}
+                type="button"
+                role="radio"
+                aria-checked={skill.stage === idx}
+                className={'fchip' + (skill.stage === idx ? ' on' : '')}
+                onClick={() => setSkill({ ...skill, stage: idx })}
+              >
+                {stLabel}
+              </button>
+            ))}
+          </div>
+          <label className="st-k" htmlFor="goal-due">Hedef tarih (isteğe bağlı)</label>
+          <input id="goal-due" className="text-in" type="date" value={skill.due} onChange={(e) => setSkill({ ...skill, due: e.target.value })} />
+          <button type="button" id="goal-save" className="btn primary full" disabled={!skillValid} onClick={saveSkill}>Kaydet</button>
+          {!skillValid ? <p className="goal-form-hint">Önce bir hareket seç</p> : null}
+        </React.Fragment>
+      )}
+
+      {existing ? <button type="button" id="goal-remove" className="btn danger-t full" onClick={handleRemove}>Hedefi kaldır</button> : null}
     </div>
   );
 }
 
-/* ================= İLERLEME ================= */
+/* ================= İLERLEME / METRİKLER ================= */
 function E1Chart({ pts, goal }) {
   const W = 340, H = 190, m = { l: 36, r: 12, t: 14, b: 26 };
   const iw = W - m.l - m.r, ih = H - m.t - m.b;
@@ -1486,7 +2378,6 @@ function E1Chart({ pts, goal }) {
     </svg>
   );
 }
-/* ================= GEÇMİŞ ================= */
 function FatigueBars({ pts }) {
   const W = 132, H = 44, n = pts.length;
   if (!n) return null;
@@ -1513,112 +2404,6 @@ function Metric({ k, v, sub }) {
       <span className="metric-k">{k}</span>
       <span className="metric-v mono">{v}</span>
       {sub ? <span className="metric-s mono">{sub}</span> : null}
-    </div>
-  );
-}
-function HistoryView({ st, openSheet, onBack }) {
-  useBack(true, onBack);
-  const [per, setPer] = useState('30');
-  const goal = st.settings.find((x) => x.key === 'goal')?.value ?? null;
-  const [sel, setSel] = useState(goal?.exId ?? null);
-  const now = Date.now();
-  const done = st.sessions.filter((s) => s.status === 'done');
-  const days = per === 'all' ? 0 : Number(per);
-  const list = days ? done.filter((s) => s.startedAt >= now - days * DAY_MS) : done;
-  const m = periodMetrics(list, days);
-  const scored = list.map((s) => { const f = sessionFatigue(s, st); return { s, v: f.post, pre: f.pre }; });
-  const avgF = scored.length ? scored.reduce((a, x) => a + x.pre, 0) / scored.length : null;
-  const avgPost = scored.length ? scored.reduce((a, x) => a + x.v, 0) / scored.length : null;
-  const fz = fatigueAt(st, now);
-  const head = avgF != null ? avgF : fz.score;
-  const warns = historyWarnings(st, list);
-  const alerts = warns.filter((w) => w.lv !== 'info').length;
-  const fOf = (s) => { const x = scored.find((y) => y.s.id === s.id); return x ? x.v : null; };
-
-  const exs = [];
-  done.forEach((s) => s.items.forEach((it) => { if (bestE1(it.sets) && !exs.some((e) => e.key === (it.exId || it.name))) exs.push({ key: it.exId || it.name, exId: it.exId, name: it.name }); }));
-  const cur = exs.find((e) => e.key === sel) || exs[0];
-  const pts = cur ? e1Series(st.sessions, cur.exId, cur.name) : [];
-  const gLine = cur && goal && cur.exId === goal.exId ? goal.target : null;
-
-  return (
-    <div className="screen">
-      <ScreenHead
-        title="Geçmiş"
-        sub={done.length ? done.length + ' antrenman · ilk kayıt ' + dateTxt(done[done.length - 1].startedAt).split(' · ')[0] : 'Henüz kayıt yok'}
-        left={<button type="button" id="hist-back" className="nav-arrow" aria-label="Antrenmana dön" onClick={onBack}><Icon name="left" size={18} /></button>}
-      />
-      <div className="segmented seg3" role="tablist" aria-label="Dönem">
-        {[['7', 'Son 7 gün'], ['30', 'Son 30 gün'], ['all', 'Tümü']].map(([k, t]) => <button key={k} type="button" role="tab" id={'per-' + k} aria-selected={per === k} className={per === k ? 'on' : ''} onClick={() => setPer(k)}>{t}</button>)}
-      </div>
-      <div className="scr">
-        <div className="mgrid">
-          <Metric k="Antrenman" v={m.n} sub={nf(Math.round(m.perWeek * 10) / 10) + ' / hafta'} />
-          <Metric k="Toplam süre" v={m.n ? durTxt(m.dur) : '–'} sub={m.n ? 'ort. ' + durTxt(m.avgDur) : null} />
-          <Metric k="Set" v={m.sets} sub={m.hard + ' zor set'} />
-          <Metric k="Tonaj" v={m.sets ? tonTxt(m.ton) : '–'} sub={m.sets ? 'ort. RPE ' + nf(Math.round(m.avgRpe * 10) / 10) : null} />
-        </div>
-
-        <button type="button" id="hist-fatigue" className="fcard" onClick={() => openSheet('fatigue', {})}>
-          <Ring score={head} zone={zoneOf(head)} size={60} label="Seans başında ortalama yorgunluk" />
-          <span className="fcard-t">
-            <span className="st-k">{avgF != null ? 'Seans başında ort.' : 'Şu an'}</span>
-            <span className="zone-pill sm" style={{ color: zoneOf(head).c, borderColor: zoneOf(head).c }}>{zoneOf(head).k}</span>
-            <span className="fcard-s mono">{avgPost != null ? 'sonda ort. ' + Math.round(avgPost) + ' · ' : ''}şu an {Math.round(fz.score)}</span>
-          </span>
-          <FatigueBars pts={scored.slice().reverse().slice(-12)} />
-        </button>
-
-        <section className="warns" aria-label="Uyarılar">
-          <div className="sec2-h"><span className="eyebrow">Uyarılar</span><span className={'mono warn-n' + (alerts ? ' on' : '')}>{alerts ? alerts + ' uyarı' : 'temiz'}</span></div>
-          {warns.length ? warns.map((w, i) => (
-            <div key={i} className={'warn-row ' + w.lv}>
-              <i />
-              <span><strong>{w.t}</strong><small>{w.d}</small></span>
-            </div>
-          )) : (
-            <div className="warn-row ok"><i /><span><strong>Uyarı yok</strong><small>Hacim, yorgunluk ve uyku dengede görünüyor.</small></span></div>
-          )}
-        </section>
-
-        <section className="hsec">
-          <div className="sec2-h"><span className="eyebrow">Hareket gelişimi</span>{pts.length ? <span className="mono big-e1">{nf(Math.round(pts[pts.length - 1].v * 2) / 2)} kg</span> : null}</div>
-          {exs.length ? (
-            <React.Fragment>
-              <div className="chips-scroll">{exs.map((e) => <button key={e.key} type="button" className={'fchip' + (cur && cur.key === e.key ? ' on' : '')} onClick={() => setSel(e.key)}>{e.name}</button>)}</div>
-              {pts.length ? <E1Chart pts={pts} goal={gLine} /> : null}
-              <p className="chart-note">Tahmini 1RM · yalnızca tükenişe yakın (RIR ≤ 4) setlerden.</p>
-            </React.Fragment>
-          ) : <p className="muted-p">Tükenişe yakın setler kaydettikçe her hareketin 1RM eğrisi burada oluşur.</p>}
-        </section>
-
-        <section className="hsec">
-          <div className="sec2-h"><span className="eyebrow">Kayıtlar</span><span className="mono">{list.length}</span></div>
-          {list.length ? (
-            <ul className="hlist">
-              {list.map((s) => {
-                const ss = sessionStats(s);
-                const d = new Date(s.startedAt);
-                const f = fOf(s);
-                const nn = sessionNotes(s);
-                return (
-                  <li key={s.id}>
-                    <button type="button" className="hrow" onClick={() => openSheet('summary', { id: s.id })}>
-                      <span className="hrow-d"><b className="mono">{d.getDate()}</b><small>{MONTHS[d.getMonth()]}</small></span>
-                      <span className="hrow-t">
-                        <strong>{sessionName(s)}</strong>
-                        <small className="mono">{WD_SHORT[d.getDay()]} {hm(s.startedAt)}–{hm(s.endedAt || s.startedAt)} · {durTxt(ss.dur)}</small>
-                        <small className="mono">{ss.sets.length} set · {tonTxt(ss.tonnage)}{nn ? ' · ✎ ' + nn : ''}</small>
-                      </span>
-                      {f != null ? <span className="hrow-f mono" style={{ color: zoneOf(f).c, borderColor: zoneOf(f).c }}>{Math.round(f)}</span> : <span />}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : <p className="muted-p">Bu dönemde bitirilmiş antrenman yok.</p>}
-        </section>
-      </div>
     </div>
   );
 }
@@ -1664,7 +2449,7 @@ function LabScreen({ openSheet }) {
                 <button type="button" id={'labex-' + e.id} className="labrow" onClick={() => openSheet('exercise', { exId: e.id })}>
                   {exDot(e)}
                   <span className="labrow-t"><strong>{e.name}</strong><small>{exLine(e)}</small></span>
-                  {e.bio ? <span className="badge bio">tork</span> : e.kind === 'olimpik' ? <span className="badge kind">olimpik</span> : null}
+                  {e.bio ? <span className="badge bio">tork</span> : e.kind === 'beceri' ? <span className="badge skill">beceri</span> : e.kind === 'olimpik' ? <span className="badge kind">olimpik</span> : null}
                   <Icon name="right" size={14} />
                 </button>
               </li>
@@ -1731,19 +2516,44 @@ function MeasureBody({ openSheet }) {
   );
 }
 
-/* ================= HESAP ================= */
 /* ================= KABUK ================= */
-const SHEET_TITLES = { account: 'Hesap ve yedek', consent: 'Verilerin nasıl kullanılır', privacy: 'Gizlilik', fatigue: 'Yorgunluk ölçer', lesson: 'Sinir sistemi', exercise: 'Hareket', picker: 'Hareket ekle', item: 'Hareketi düzenle', note: 'Not', exlist: 'Hareketler', summary: 'Antrenman özeti', saveTemplate: 'Antrenman türü olarak kaydet', plan: 'Program analizi', goal: 'Hedef', measure: 'Yorgunluk nasıl ölçülür?', wtype: 'Antrenman türü', setdetail: 'Set' };
+const SHEET_TITLES = {
+  account: 'Hesap ve yedek',
+  consent: 'Verilerin nasıl kullanılır',
+  privacy: 'Gizlilik',
+  fatigue: 'Yorgunluk ölçer',
+  lesson: 'Sinir sistemi',
+  exercise: 'Hareket',
+  picker: 'Hareket ekle',
+  item: 'Hareketi düzenle',
+  note: 'Not',
+  exlist: 'Hareketler',
+  summary: 'Antrenman özeti',
+  saveTemplate: 'Plan olarak kaydet',
+  plan: 'Haftalık yük',
+  goal: 'Hedef',
+  measure: 'Yorgunluk nasıl ölçülür?',
+  wtype: 'Antrenman planı',
+  setdetail: 'Set',
+  planPick: 'Bu güne plan ekle',
+};
 
 function App() {
   const store = useLogStore();
   const [st, apiRef] = store;
   const acct = st.account;
   const actions = apiRef.current;
-  const [tab, setTab] = useState(() => { try { const h = (location.hash || '').slice(1); return TABS2.some((t) => t.id === h) ? h : 'bugun'; } catch (e) { return 'bugun'; } });
+  const [tab, setTab] = useState(() => {
+    try {
+      const h = (location.hash || '').slice(1);
+      if (h === 'programlar') return 'gozlem';
+      return TABS2.some((t) => t.id === h) ? h : 'bugun';
+    } catch (e) {
+      return 'bugun';
+    }
+  });
   const [sheets, setSheets] = useState([]);
-  const [prog, setProg] = useState({ name: 'list' });
-  const [antView, setAntView] = useState('start');
+  const [planEd, setPlanEd] = useState(null); // { id, dayId, draft?, back } | null
   const previousAccount = useRef(acct.mode + ':' + acct.uid);
   const put = (kind, obj) => (apiRef.current ? apiRef.current.put(kind, obj) : null);
   const del = (kind, id) => (apiRef.current ? apiRef.current.del(kind, id) : null);
@@ -1754,44 +2564,81 @@ function App() {
   const active = st.sessions.find((s) => s.status === 'active');
   const exitToast = useAndroidBack(tab, () => setTab('bugun'));
 
+  useEffect(() => {
+    const onHash = () => {
+      try {
+        const h = (location.hash || '').slice(1);
+        if (h === 'programlar') setTab('gozlem');
+      } catch (e) {}
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
   useEffect(() => { try { history.replaceState(null, '', '#' + tab); } catch (e) {} }, [tab]);
   useEffect(() => {
     const identity = acct.mode + ':' + acct.uid;
     if (previousAccount.current === identity) return;
     previousAccount.current = identity;
-    setSheets([]); setProg({ name: 'list' }); setAntView('start'); setTab('bugun');
+    setSheets([]); setPlanEd(null); setTab('bugun');
   }, [acct.mode, acct.uid]);
   useEffect(() => { if (acct.needsConsent) setSheets(a => a.some(s => s.type === 'consent') ? a : [...a, { key: newId('sh'), type: 'consent', props: {} }]); else setSheets(a => a.filter(s => s.type !== 'consent')); }, [acct.needsConsent]);
 
   const startSession = (program, day) => {
     closeAll();
-    setAntView('start');
+    setPlanEd(null);
     if (active) { setTab('antrenman'); return; }
     const s = sessionFromDay(program, day);
     put('sessions', s);
     setTab('antrenman');
   };
-  // Boş program ve yeni tür yalnızca ilk düzenlemede kaydedilir; dokunmadan çıkılırsa iz bırakmaz.
-  const createProgram = (_t, back) => {
-    const p = blankProgram();
-    p.days[0].name = 'Yeni tür';
-    setProg({ name: 'edit', id: p.id, draft: p, back });
-    setTab('programlar');
+
+  // Boş plan yalnızca ilk düzenlemede kaydedilir; dokunmadan çıkılırsa iz bırakmaz.
+  const newPlan = (backTab = tab) => {
+    closeAll();
+    const p = newPlanDoc('');
+    setPlanEd({ id: p.id, dayId: p.days[0].id, draft: p, back: backTab });
   };
-  const newWorkoutType = () => {
-    const p0 = st.programs[0];
-    if (!p0) { createProgram(null, 'antrenman'); return; }
-    const np = clone(p0);
-    const d = { id: newId('d'), name: 'Yeni tür', weekday: null, items: [] };
-    np.days.push(d);
-    setProg({ name: 'edit', id: np.id, draft: np, day: d.id, back: 'antrenman' });
-    setTab('programlar');
+
+  const editPlan = (p, d, backTab = tab) => {
+    closeAll();
+    setPlanEd({ id: p.id, dayId: d.id, back: backTab });
   };
-  const editDay = (p, d) => { closeAll(); setProg({ name: 'edit', id: p.id, day: d.id, back: tab }); setTab('programlar'); };
+
+  const practiceSkill = (goal) => {
+    closeAll();
+    setPlanEd(null);
+    const lib = exMeta(goal.exId, goal.name);
+    const ex = lib || { id: goal.exId || newId('x'), exId: goal.exId, name: goal.name, muscle: 'Diğer', rest: 90 };
+    const d = itemFromEx(ex);
+    const sessionItem = {
+      id: newId('e'),
+      srcId: null,
+      exId: d.exId,
+      name: d.name,
+      muscle: d.muscle,
+      note: '',
+      memo: '',
+      target: { sets: d.sets, repMin: d.repMin, repMax: d.repMax, kg: d.kg, rpeMin: d.rpeMin, rpeMax: d.rpeMax, rest: d.rest },
+      sets: [],
+    };
+    if (active) {
+      const ns = clone(active);
+      if (!ns.items.some((it) => matchesSkillGoal(goal, it))) {
+        ns.items.push(sessionItem);
+        put('sessions', ns);
+      }
+      setTab('antrenman');
+      return;
+    }
+    const s = sessionFromDay(null, null);
+    s.items.push(sessionItem);
+    put('sessions', s);
+    setTab('antrenman');
+  };
+
   const pick = (id) => {
-    if (id === 'programlar' && tab === 'programlar') setProg({ name: 'list' });
-    if (id === 'antrenman' && tab === 'antrenman') setAntView('start');
-    if (id === 'programlar' && prog.back) setProg({ name: 'list' });
+    setPlanEd(null);
     setTab(id);
   };
 
@@ -1811,11 +2658,12 @@ function App() {
       case 'note': return <NoteSheetBody init={p.init} onSave={p.onSave} onClose={close} />;
       case 'exlist': return <ExListBody {...p} onClose={close} openSheet={openSheet} />;
       case 'setdetail': return <SetDetailBody set={p.set} idx={p.idx} exId={p.exId} onDelete={p.onDelete} onClose={close} />;
-      case 'wtype': return <WtypeMenuBody st={st} pid={p.pid} did={p.did} put={put} del={del} onStart={startSession} onEdit={editDay} onClose={close} />;
-      case 'summary': { const s = p.draft || st.sessions.find((x) => x.id === p.id); return s ? <SummaryBody session={s} st={st} openSheet={openSheet} onDelete={(id) => del('sessions', id)} onClose={close} /> : <p className="muted-p">Kayıt bulunamadı.</p>; }
-      case 'saveTemplate': return <SaveTemplateBody session={p.session} st={st} put={put} onClose={close} onSaved={(pr, d) => { closeAll(); setProg({ name: 'edit', id: pr.id, draft: pr, day: d.id, back: 'antrenman' }); setTab('programlar'); }} />;
+      case 'wtype': return <WtypeMenuBody st={st} pid={p.pid} did={p.did} put={put} del={del} onStart={startSession} onEdit={(pr, d) => editPlan(pr, d, tab)} onClose={close} />;
+      case 'summary': { const s = p.draft || st.sessions.find((x) => x.id === p.id); return s ? <SummaryBody session={s} st={st} put={put} del={del} openSheet={openSheet} onDelete={(id) => del('sessions', id)} onClose={close} /> : <p className="muted-p">Kayıt bulunamadı.</p>; }
+      case 'saveTemplate': return <SaveTemplateBody session={p.session} st={st} put={put} onClose={close} onSaved={(pr, d) => { closeAll(); editPlan(pr, d, 'antrenman'); }} />;
       case 'plan': return <PlanBody getProgram={p.getProgram} st={st} openSheet={openSheet} />;
-      case 'goal': return <GoalBody st={st} put={put} del={del} onClose={close} />;
+      case 'goal': return <GoalBody id={p.id} st={st} put={put} del={del} addCustom={addCustom} onClose={close} />;
+      case 'planPick': return <PlanPickBody dayKey={p.dayKey} st={st} put={put} newPlan={newPlan} onClose={close} />;
       default: return null;
     }
   };
@@ -1829,24 +2677,30 @@ function App() {
   const sheetSize = (sh) => (['lesson', 'exercise', 'fatigue', 'summary', 'picker', 'measure'].includes(sh.type) ? 'full' : '');
 
   let screen = null;
-  if (tab === 'bugun') screen = <TodayScreen st={st} put={put} openSheet={openSheet} startSession={startSession} createProgram={createProgram} goTab={setTab} acct={acct} />;
-  if (tab === 'antrenman') {
-    screen = active
-      ? <SessionView2 key={active.id} session={active} st={st} put={put} del={del} openSheet={openSheet} onFinished={(ns) => openSheet('summary', { id: ns.id, draft: ns })} onDiscarded={() => setAntView('start')} />
-      : antView === 'history'
-        ? <HistoryView st={st} openSheet={openSheet} onBack={() => setAntView('start')} />
-        : <StartView st={st} startSession={startSession} newWorkoutType={newWorkoutType} openSheet={openSheet} onHistory={() => setAntView('history')} editDay={editDay} />;
+  if (planEd) {
+    const stored = st.programs.find((x) => x.id === planEd.id);
+    const p = stored && (!planEd.draft || (stored.updatedAt || 0) > (planEd.draft.updatedAt || 0)) ? stored : (planEd.draft || stored);
+    const back = () => {
+      const b2 = planEd.back;
+      setPlanEd(null);
+      if (b2 && TABS2.some((t) => t.id === b2)) setTab(b2);
+    };
+    if (p) {
+      screen = <PlanEditor key={p.id + ':' + planEd.dayId} program={p} dayId={planEd.dayId} st={st} put={put} del={del} onBack={back} openSheet={openSheet} startSession={startSession} />;
+    }
   }
-  if (tab === 'programlar') {
-    // Taslak yalnızca kayıtlı sürümden yeniyse kullanılır; sekme değişip dönünce eski taslak kaydı ezmesin.
-    const stored = prog.name === 'edit' ? st.programs.find((x) => x.id === prog.id) : null;
-    const p = prog.name !== 'edit' ? null : stored && (!prog.draft || (stored.updatedAt || 0) > (prog.draft.updatedAt || 0)) ? stored : (prog.draft || stored);
-    const back = () => { const b2 = prog.back; setProg({ name: 'list' }); if (b2 && b2 !== 'programlar') setTab(b2); };
-    screen = p
-      ? <ProgramEditor2 key={p.id} program={p} startDay={prog.day} st={st} put={put} del={del} onBack={back} openSheet={openSheet} startSession={startSession} />
-      : <ProgramsList st={st} open={(pr) => setProg({ name: 'edit', id: pr.id })} createProgram={() => createProgram()} />;
+  if (!screen) {
+    if (tab === 'bugun') screen = <TodayScreen st={st} put={put} openSheet={openSheet} startSession={startSession} newPlan={newPlan} practiceSkill={practiceSkill} goTab={setTab} acct={acct} />;
+    if (tab === 'antrenman') {
+      screen = active
+        ? <SessionView2 key={active.id} session={active} st={st} put={put} del={del} openSheet={openSheet} onFinished={(ns) => openSheet('summary', { id: ns.id, draft: ns })} onDiscarded={() => {}} />
+        : <StartView st={st} startSession={startSession} newPlan={newPlan} openSheet={openSheet} />;
+    }
+    if (tab === 'gozlem') {
+      screen = <GozlemScreen st={st} put={put} openSheet={openSheet} startSession={startSession} editPlan={editPlan} />;
+    }
+    if (tab === 'lab') screen = <LabScreen openSheet={openSheet} />;
   }
-  if (tab === 'lab') screen = <LabScreen openSheet={openSheet} />;
 
   return (
     <BackupContext.Provider value={{ readBackup: actions.readBackup, restoreBackup: actions.restoreBackup, cloud: acct.mode === 'user' }}>

@@ -40,25 +40,27 @@ Misafir veri katmanı Dexie'dir. Hesapta Firebase Auth ve Firestore kullanılır
 Prototip `window.claude.use('db')` kullanıyor; bu yalnızca Claude artifact ortamında var. Kaldır.
 
 Yerine cihazda IndexedDB (Dexie) kullan, veri modeli aynı kalsın:
-- `programs`: { id, name, createdAt, updatedAt, days: [{ id, name, weekday (0=Pazar … 6=Cumartesi | null), items: [{ id, exId, name, muscle, sets, repMin, repMax, kg, rpeMin, rpeMax, rest (sn), note }] }] }
-- `sessions`: { id, programId, programName, dayId, dayName, startedAt, endedAt, status: 'active' | 'done', items: [{ id, exId, name, muscle, note, target: { sets, repMin, repMax, kg, rpeMin, rpeMax, rest }, sets: [{ kg, reps, lvl (0–4), vl, rpe, rir, rirEst, at }] }] }
+- `programs`: plan belgelerini taşır: `{ id, name, createdAt, updatedAt, days: [{ id, name, weekdays: number[] (0=Pazar … 6=Cumartesi), dates?: string[] ('YYYY-MM-DD'), skip?: string[] ('YYYY-MM-DD'), weekday?: number | null (geriye uyumlu), items: [{ id, exId, name, muscle, sets, repMin, repMax, kg, rpeMin, rpeMax, rest (sn), note }] }] }`
+- `sessions`: `{ id, programId, programName, dayId, dayName, startedAt, endedAt, status: 'active' | 'done', items: [{ id, exId, name, muscle, note, target: { sets, repMin, repMax, kg, rpeMin, rpeMax, rest }, sets: [{ kg, reps, lvl (0–4), vl, rpe, rir, rirEst, plyo?, skill?, hold?, q?, at }] }] }`
 - `sessions` belgesinde isteğe bağlı `rest: { start, total, exId, setNo }` dinlenme sayacını saklar. `start` epoch ms, `total` saniye, `setNo` biten setin numarasıdır.
 - `settings` içinde `key: 'restPrefs'`, `value: { [exId]: saniye }` plansız hareketlerin dinlenme tercihleridir; hesapta buluta eşitlenir.
+- `settings` içinde `key: 'goals'`, `value: Goal[]` güç (`perf`) ve öğrenme (`skill`) hedeflerini tutar; eski tekil `key: 'goal'` kaydı okuma sırasında otomatik taşınır.
 - Plansız oturum tanımı `dayId == null` koşuludur (`isFree`); görünen ada göre belirlenmez.
-- `exercises`: kullanıcının eklediği özel hareketler { id, name, muscle, createdAt, pending: true }
+- `exercises`: kullanıcının eklediği özel hareketler `{ id, name, muscle, createdAt, pending: true }`
 
 Store arayüzü prototiptekiyle aynı mantıkta olsun (`put`, `del`, canlı liste). İlk açılışta veri yoktur; uygulama boş başlar (örnek program, şablon ve varsayılan hedef yok).
 
-Veri yalnızca telefonda tutulduğu için Programlar listesinin sonuna "Yedekle / Geri yükle" ekle: tüm veriyi JSON olarak dışa aktar, JSON'dan içe aktar. Android'de Capacitor Filesystem + Share kullan.
+Veri yedekleme/geri yükleme ("Yedekle / Geri yükle") **Hesap ve yedek** penceresinin altındadır: tüm veriyi JSON olarak dışa aktar, JSON'dan içe aktar. Android'de Capacitor Filesystem + Share kullan.
 
 ## Klasör yapısı
 ```
 src/
-  app/            kabuk, sekme çubuğu, yönlendirme
+  app/            kabuk, sekme çubuğu (Dashboard / Antrenman / Gözlem / Lab), yönlendirme
   features/
-    bugun/
+    bugun/        Dashboard ve hedefler (goals.ts)
     antrenman/
-    programlar/
+    plan/         plan modeli ve takvim yardımcıları (plans.ts)
+    programlar/   yedekleme bileşeni
     lab/
   lib/
     models/       biomech, hız/RIR/e1RM modeli (saf fonksiyonlar)
@@ -76,13 +78,13 @@ src/
   - `rirFromSpeed(20, 4)` = 0, `rirFromSpeed(20, 2)` = 2, `rirFromSpeed(5, 0)` = 5
   - `e1rm(75, 8, 2)` = 100
   - `bestE1([{ kg: 40, reps: 20, rir: 1 }])` = 0
-  - `simulatePlan(hipertrofiProgram())` (test fikstürü, `src/test/fixtures.ts`): seans başı ortalama ≈21, en yüksek tepe ≈76
+  - `simulatePlan(hipertrofiProgram())` ve `simulatePlan(weekProgram([hipertrofiProgram()]))` (test fikstürü, `src/test/fixtures.ts`): seans başı ortalama ≈21, en yüksek tepe ≈76
 - Her PR'da `npm run build` ve `npm test` geçmeli.
 
 ## Fazlar
 1. **Web uygulaması.** Vite + React + TS iskeleti, prototipin birebir taşınması, IndexedDB store, yedekleme, PWA. Her push'ta GitHub Pages'e deploy eden workflow (Vite `base` ayarını repo adına göre yap).
 2. **Android APK.** Capacitor Android projesi. Her push'ta debug APK üreten GitHub Actions workflow'u; APK, Actions çalıştırmasının "Artifacts" bölümünden indirilebilsin. Uygulama adı: OUTMOVE (eski adı PERFORMANCE). Paket adı `app.performance.training` **değişmez**: kurulu uygulama güncellenebilsin, Firebase kaydı ve yerel veriler korunsun. IndexedDB adı (`performance-training`) ve kod içindeki `Performance*` tip adları da aynı kalır.
-3. **v0.7 arayüzü.** Bugün, Antrenman, Programlar ve Lab; hedef, geçmiş, program analizi ve yorgunluk simülatörü.
+3. **Arayüz.** Sekmeler: **Dashboard** (`bugun`), **Antrenman** (`antrenman`), **Gözlem** (`gozlem`, başlık "Antrenman plan ve gözlem") ve **Lab** (`lab`); güç ve beceri hedefleri, satır içi geçmiş, aylık takvim, gözlem metrikleri ve yorgunluk simülatörü.
 
 ## Teslim
 Her fazın sonunda README'yi güncelle: yerelde nasıl çalıştırılır, canlı adres, APK nereden indirilir ve telefona nasıl kurulur.

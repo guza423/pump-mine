@@ -73,7 +73,7 @@ async function check(page, label, screen, { session = false, tablet = false, res
         errors.push(`#log-set: kaydırmadan görünmüyor (düğme ${br?.top.toFixed(1)}–${br?.bottom.toFixed(1)}, sekme ${tr?.top.toFixed(1)})`);
       }
       if (document.querySelector('.ses2-body').scrollTop !== 0) errors.push('.ses2-body: seans ana kabı kaydırılmış');
-      if (document.querySelector('.free-session .pq-row') && !document.querySelector('#rest-big') && ![...document.querySelectorAll('.ps-r')].some(visible)) errors.push('pliometrik: seans temas sayısı görünmüyor');
+      if (document.querySelector('.free-session #pq-0') && !document.querySelector('#rest-big') && ![...document.querySelectorAll('.ps-r')].some(visible)) errors.push('pliometrik: seans temas sayısı görünmüyor');
       if (rest) {
         const timer = [...document.querySelectorAll('#rest-big, .restchip')].find(visible);
         const rr = timer?.getBoundingClientRect();
@@ -131,18 +131,20 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
     screen = 'bugun-hedef';
     await check(page, label, screen);
 
-    screen = 'programlar';
-    await page.locator('#tab-programlar').click();
-    await page.locator('#prog-empty-new').waitFor();
-    await check(page, label, screen);
-    screen = 'program-editor';
-    await page.locator('#prog-new').click();
-    await page.locator('.editor2').waitFor();
+    screen = 'gozlem';
+    await page.locator('#tab-gozlem').click();
+    await page.locator('#day-panel').waitFor();
     await check(page, label, screen);
 
     screen = 'antrenman-bos';
     await page.locator('#tab-antrenman').click();
     await check(page, label, screen);
+    screen = 'plan-editor';
+    await page.locator('#new-plan').click();
+    await page.locator('.editor2').waitFor();
+    await check(page, label, screen);
+    await page.locator('#ed-back').click();
+
     await page.locator('#free-session').click();
     await page.locator('#ses-add-first').click();
     screen = 'hareket-sec';
@@ -173,25 +175,39 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
     await page.locator('#log-set').click();
     screen = 'seans-plyo-dinlenme';
     await check(page, label, screen, { session: true, rest: true });
+
+    await page.getByRole('button', { name: 'Atla', exact: true }).click();
+    await page.locator('#fx-add').click();
+    await page.locator('#ex-search').fill('kip-up');
+    await page.locator('.exr-main').first().click();
+    await page.locator('#sq-0').waitFor();
+    screen = 'seans-beceri';
+    await check(page, label, screen, { session: true });
+    await page.locator('#log-set').click();
+    screen = 'seans-beceri-dinlenme';
+    await check(page, label, screen, { session: true, rest: true });
+
     await page.locator('#finish-btn').click();
     await page.locator('#finish-yes').click();
     await page.getByRole('dialog', { name: 'Antrenman özeti' }).waitFor();
     await closeSheet(page);
 
-    screen = 'programli-editor';
-    await page.locator('#tab-programlar').click();
-    await page.locator('#tab-programlar').click();
-    await page.locator('#prog-new').click();
+    screen = 'antrenman-gecmis';
+    await page.locator('.hist-inline .hrow').first().waitFor();
+    await check(page, label, screen);
+
+    screen = 'planli-editor';
+    await page.locator('#new-plan').click();
     await page.locator('#add-item').click();
     await page.locator('#ex-search').fill('düz bench');
     await page.locator('.exr-main').first().click();
     await page.locator('#ed-start').click();
     await page.locator('.tgt2').waitFor();
-    screen = 'programli-seans';
+    screen = 'planli-seans';
     await check(page, label, screen, { session: true });
     await page.locator('#log-set').click();
     await page.locator('.restchip').waitFor();
-    screen = 'programli-dinlenme';
+    screen = 'planli-dinlenme';
     await check(page, label, screen, { session: true, rest: true });
 
     screen = 'lab-hareketler';

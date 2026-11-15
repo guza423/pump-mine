@@ -1,5 +1,6 @@
 // @ts-nocheck
-import { EX_LIB, PLYO_W, isPlyo, sessionStats, bestE1, hasNum, nf } from "../../features/antrenman/core";
+import { EX_LIB, PLYO_W, SKILL_W, isPlyo, isSkill, skillSetTxt, sessionStats, bestE1, hasNum, nf } from "../../features/antrenman/core";
+import { weekProgram } from "../../features/plan/plans";
 import { clamp } from "./training";
 const DAY_MS = 864e5;
 const MAIN_MUSCLES = ["Göğüs", "Omuz (ön)", "Omuz (yan)", "Sırt", "Trapez", "Triceps", "Hamstring", "Quadriceps"];
@@ -99,17 +100,20 @@ const repMid = (a, b) => (hasNum(a) ? (hasNum(b) ? (Number(a) + Number(b)) / 2 :
 const zoneOf = (score) => (score < 40 ? { k: 'Yönetilebilir', c: 'var(--ok)', cls: 'ok' } : score < 70 ? { k: 'Birikiyor', c: 'var(--warn)', cls: 'warn' } : { k: 'Yüksek', c: 'var(--bad)', cls: 'bad' });
 export function planStats(program) {
   const muscles = {};
-  (program ? program.days : []).forEach((d) => d.items.forEach((it) => {
-    if (isPlyo(it.exId) || 10 - rpeMid(it.rpeMin, it.rpeMax) > 4) return;
-    muscles[it.muscle] = (muscles[it.muscle] || 0) + Number(it.sets || 0);
-  }));
+  (program ? program.days : []).forEach((d) => {
+    const mult = d.weekday == null && Array.isArray(d.weekdays) && d.weekdays.length ? d.weekdays.length : 1;
+    d.items.forEach((it) => {
+      if (isPlyo(it.exId) || isSkill(it.exId) || 10 - rpeMid(it.rpeMin, it.rpeMax) > 4) return;
+      muscles[it.muscle] = (muscles[it.muscle] || 0) + Number(it.sets || 0) * mult;
+    });
+  });
   return { muscles };
 }
 export function logStats(sessions, endTs) {
   const from = endTs - 7 * DAY_MS;
   const muscles = {};
   sessions.filter((s) => (s.status === 'done' || s.status === 'active') && s.startedAt >= from && s.startedAt <= endTs + 1000).forEach((s) => s.items.forEach((it) => {
-    it.sets.forEach((x) => { if (x.rir <= 4) muscles[it.muscle] = (muscles[it.muscle] || 0) + 1; });
+    it.sets.forEach((x) => { if (!x.plyo && !x.skill && x.rir <= 4) muscles[it.muscle] = (muscles[it.muscle] || 0) + 1; });
   }));
   return { muscles };
 }
@@ -137,6 +141,7 @@ export function setLoads(sessions, t) {
       it.sets.forEach((x) => {
         if (!x.at || x.at > t || t - x.at >= 7 * DAY_MS) return;
         if (x.plyo) { out.push({ at: x.at, w: x.reps * PLYO_W[(lib && lib.int) || 2], plyo: true, contacts: x.reps }); return; }
+        if (x.skill) { out.push({ at: x.at, w: x.reps * SKILL_W[(lib && lib.fat) || 1], skill: true, attempts: x.reps }); return; }
         if (x.rir <= 4) out.push({ at: x.at, w: proxW(x.rir) * c, rir: x.rir, heavy: c >= 1.5 });
       });
     });
@@ -162,7 +167,7 @@ export function fatigueAt(st, t, sessions = st.sessions) {
   const score = clamp(train + sp, 0, 100);
   return {
     sum, train, sleep: sl, sleepPts: sp, score, zone: zoneOf(score), hrs: hoursToFresh(sum),
-    hard: loads.filter((x) => !x.plyo).length, fail: loads.filter((x) => !x.plyo && x.rir <= 0.5).length, contacts: loads.reduce((a, x) => a + (x.contacts || 0), 0),
+    hard: loads.filter((x) => !x.plyo && !x.skill).length, fail: loads.filter((x) => !x.plyo && !x.skill && x.rir <= 0.5).length, contacts: loads.reduce((a, x) => a + (x.contacts || 0), 0), attempts: loads.reduce((a, x) => a + (x.attempts || 0), 0),
   };
 }
 // Simülatör: haftalık düzen sabit kalırsa seans başında ve sonunda ulaşılan denge değerleri
@@ -180,7 +185,7 @@ export function steadyWeek(v) {
 }
 export function simFromLogs(st) {
   const t = Date.now();
-  const loads = setLoads(st.sessions, t).filter((x) => !x.plyo);
+  const loads = setLoads(st.sessions, t).filter((x) => !x.plyo && !x.skill);
   const sl = sleepInfo(st, t);
   const n = st.sessions.filter((s) => s.status === 'done' && t - s.startedAt < 7 * DAY_MS).length;
   const avg3 = sl.n ? (sl.avg3 * sl.n + 7.5 * (3 - sl.n)) / 3 : 7.5;
@@ -188,8 +193,10 @@ export function simFromLogs(st) {
   if (loads.length && n) {
     return { ...base, sets: Math.max(4, Math.round(loads.length / 2) * 2), rir: clamp(Math.round((loads.reduce((a, x) => a + x.rir, 0) / loads.length) * 2) / 2, 0, 4), n: clamp(n, 1, 6), heavy: Math.round((loads.filter((x) => x.heavy).length / loads.length) * 10) * 10, src: 'Son 7 günün kayıtlarından' };
   }
+  const wp = weekProgram(st.programs);
+  if (wp.days.length) return { ...simFromPlan(wp), ...base, src: 'Planına göre' };
   const p = st.programs.find((x) => x.days.some((d) => d.items.length));
-  if (p) return { ...simFromPlan(p), ...base, src: 'Programına göre' };
+  if (p) return { ...simFromPlan(p), ...base, src: 'Planına göre' };
   return { ...base, sets: 30, rir: 2, n: 3, heavy: 40, src: 'Örnek değerler' };
 }
 export function simFromPlan(p) {
@@ -197,7 +204,7 @@ export function simFromPlan(p) {
   const days = p.days.filter((d) => d.items.length);
   days.forEach((d) => d.items.forEach((it) => {
     const r = 10 - rpeMid(it.rpeMin, it.rpeMax);
-    if (isPlyo(it.exId) || r > 4) return;
+    if (isPlyo(it.exId) || isSkill(it.exId) || r > 4) return;
     const n = Number(it.sets || 0);
     sets += n; rir += r * n;
     const m = exMeta(it.exId, it.name);
@@ -212,6 +219,7 @@ export function simulatePlan(p) {
   const dayLoad = (d) => d.items.reduce((a, it) => {
     const lib = exMeta(it.exId, it.name);
     if (lib && lib.kind === 'plyo') return a + Number(it.sets || 0) * repMid(it.repMin, it.repMax) * PLYO_W[lib.int || 2];
+    if (lib && lib.kind === 'beceri') return a + Number(it.sets || 0) * repMid(it.repMin, it.repMax) * SKILL_W[lib.fat || 1];
     const r = 10 - rpeMid(it.rpeMin, it.rpeMax);
     return r > 4 ? a : a + Number(it.sets || 0) * proxW(r) * costW(it.exId, it.name);
   }, 0);
@@ -254,7 +262,7 @@ export function prevPerf(sessions, item, beforeTs) {
     .find((x) => x.items.some((it) => (item.exId && it.exId === item.exId) || it.name === item.name));
   if (!s) return null;
   const it = s.items.find((i) => (item.exId && i.exId === item.exId) || i.name === item.name);
-  return it && it.sets.length ? it.sets.map((z) => nf(Number(z.kg)) + '×' + z.reps).join(', ') : null;
+  return it && it.sets.length ? it.sets.map((z) => z.skill ? skillSetTxt(z) : z.plyo ? (Number(z.kg) ? '+' + nf(Number(z.kg)) + '×' : '') + z.reps : nf(Number(z.kg)) + '×' + z.reps).join(', ') : null;
 }
 
 // Antrenmana başlarken ve bitirirken yorgunluk (o günün uykusu dahil)
@@ -269,8 +277,8 @@ export function periodMetrics(list, days) {
   list.forEach((s) => {
     const ss = sessionStats(s);
     dur += ss.dur; sets += ss.sets.length; hard += ss.hard.length; ton += ss.tonnage;
-    rpe += ss.sets.reduce((a, x) => a + (x.plyo ? 0 : Number(x.rpe || 0)), 0);
-    rset += ss.sets.filter((x) => !x.plyo).length; contacts += ss.contacts;
+    rpe += ss.sets.reduce((a, x) => a + (x.plyo || x.skill ? 0 : Number(x.rpe || 0)), 0);
+    rset += ss.sets.filter((x) => !x.plyo && !x.skill).length; contacts += ss.contacts;
   });
   const n = list.length;
   const span = days || Math.max(7, n ? (Date.now() - list[n - 1].startedAt) / DAY_MS : 7);
@@ -288,7 +296,7 @@ export function historyWarnings(st, list) {
   const ls = logStats(st.sessions, now);
   Object.entries(ls.muscles).filter(([, n]) => n > 20).sort((a, b) => b[1] - a[1]).forEach(([m, n]) => w.push({ lv: 'bad', t: m + ' · 7 günde ' + n + ' zor set', d: '20 setin üstünde toparlanma uzar. Hacmi azalt ya da 2–3 güne böl.' }));
   const sets = [];
-  list.forEach((s) => s.items.forEach((it) => it.sets.forEach((x) => { if (!x.plyo) sets.push(x); })));
+  list.forEach((s) => s.items.forEach((it) => it.sets.forEach((x) => { if (!x.plyo && !x.skill) sets.push(x); })));
   if (sets.length >= 6) {
     const avgRpe = sets.reduce((a, x) => a + Number(x.rpe || 0), 0) / sets.length;
     if (avgRpe >= 9) w.push({ lv: 'warn', t: 'Ortalama RPE ' + nf(Math.round(avgRpe * 10) / 10), d: 'Setlerin çoğunu 1–3 tekrar kala bitir. Kazanım benzer, yorgunluk daha az.' });

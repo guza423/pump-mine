@@ -58,7 +58,7 @@ export function BackupPanel() {
   };
 
   const importData = async (file: File) => {
-    if (!window.confirm('Mevcut program ve antrenman kayıtları bu yedekle değiştirilsin mi?')) return;
+    if (!window.confirm('Mevcut plan ve antrenman kayıtları bu yedekle değiştirilsin mi?')) return;
     setBusy(true);
     try {
       const parsed = JSON.parse(await file.text()) as unknown;
@@ -76,10 +76,10 @@ export function BackupPanel() {
   return (
     <section className="hub-sec backup-card" aria-labelledby="backup-title">
       <div className="sec-h">
-        <h3 id="backup-title">Verilerim</h3>
+        <h3 id="backup-title">Yedek</h3>
         <span className="sec-k mono">{cloud ? 'hesap ve cihaz' : 'yalnızca bu cihazda'}</span>
       </div>
-      <p>Program, antrenman, uyku, hedef ve özel hareket kayıtlarını tek JSON dosyasında sakla.</p>
+      <p>Plan, antrenman, uyku, hedef ve özel hareket kayıtlarını tek JSON dosyasında sakla.</p>
       <div className="backup-actions">
         <button type="button" className="btn primary" onClick={exportData} disabled={busy}>Yedekle</button>
         <button type="button" className="btn ghost" onClick={() => input.current?.click()} disabled={busy}>Geri yükle</button>

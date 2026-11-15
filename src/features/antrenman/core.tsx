@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { clamp, Icon, reducedMotion } from '../lab/Cns';
 import { EX_LIB, MUS_CODE, EQ, PLYO_INT } from '../../lib/data/exlib';
+import { nextPlanned } from '../plan/plans';
 
 /* ================= GÜNLÜK: program yazma + antrenman kaydı ================= */
 const WD_LONG = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
@@ -22,12 +23,19 @@ const FAT = ['', 'Düşük', 'Orta', 'Yüksek'];
 const LIB_MAP = new Map(EX_LIB.map((e) => [e.id, e]));
 const libById = (id) => (id ? LIB_MAP.get(id) : undefined);
 const isPlyo = (exId) => { const e = libById(exId); return !!(e && e.kind === 'plyo'); };
+const isSkill = (exId) => { const e = libById(exId); return !!(e && e.kind === 'beceri'); };
 // Pliometrik yorgunluk: temas başına yük, yoğunluğa göre (düşük, orta, yüksek, şok). 100 orta temas ≈ 5 orta maliyetli zor set.
 const PLYO_W = [0, 0.03, 0.05, 0.08, 0.12];
 const PLYO_Q = [
   { k: 'Korundu', d: 'Yükseklik ve hız korundu', c: 'var(--neuro)' },
   { k: 'Biraz düştü', d: 'Son tekrarlar biraz alçaldı', c: 'var(--amber)' },
   { k: 'Belirgin düştü', d: 'Kalite bozuldu; seti bitir', c: 'var(--burn)' },
+];
+const SKILL_W = [0, 0.02, 0.04, 0.06];
+const SKILL_Q = [
+  { k: 'Temiz', d: 'Temiz tekrar', c: 'var(--ok)' },
+  { k: 'Kısmen', d: 'Kısmen çıktı', c: 'var(--warn)' },
+  { k: 'Olmadı', d: 'Henüz çıkmadı', c: 'var(--bad)' },
 ];
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
@@ -94,9 +102,10 @@ const e1rm = (kg, reps, rir) => Number(kg) * (1 + (reps + rir) / 30);
 const rpeLabel = (rpe, rir) => (rpe <= 6 && rir > 4 ? '≤6' : nf(Number(rpe)));
 // 1RM tahmini yalnızca tükenişe yakın setlerden (RIR ≤ 4): uzak setlerde Epley sapması büyür.
 // 1RM tahmini yalnızca tükenişe yakın (RIR ≤ 4) ve tükenişe kadar ≤ 12 tekrarlık setlerden; tekrar arttıkça formüller şişirir
-const e1Ok = (z) => !z.plyo && z.rir <= 4 && Number(z.kg) > 0 && z.reps + z.rir <= 12;
+const e1Ok = (z) => !z.plyo && !z.skill && z.rir <= 4 && Number(z.kg) > 0 && z.reps + z.rir <= 12;
 const bestE1 = (sets) => sets.filter(e1Ok).reduce((m, z) => Math.max(m, e1rm(z.kg, z.reps, z.rir)), 0);
 const vlColor = (vl) => (vl < 0.2 ? 'var(--neuro)' : vl < 0.35 ? 'var(--amber)' : vl < 0.5 ? 'var(--fire)' : 'var(--burn)');
+const skillSetTxt = (z) => z.reps + ' deneme · ' + (SKILL_Q[z.q || 0] ? SKILL_Q[z.q || 0].k : 'Temiz') + (Number(z.hold) > 0 ? ' · ' + nf(Number(z.hold)) + ' sn' : '');
 
 function blankProgram() {
   const now = Date.now();
@@ -117,6 +126,7 @@ function itemFromEx(ex) {
   const exId = ex.exId || ex.id || null;
   const lib = libById(exId);
   const base = { id: newId('i'), exId, name: ex.name, muscle: ex.muscle, kg: null, rest: ex.rest || (lib && lib.rest) || 120, note: '' };
+  if (lib && lib.kind === 'beceri') return { ...base, rest: ex.rest || 90, sets: 5, repMin: 3, repMax: 3, rpeMin: null, rpeMax: null };
   if (lib && lib.kind === 'plyo') return { ...base, sets: 3, repMin: 5, repMax: 5, rpeMin: null, rpeMax: null };
   if (lib && lib.kind === 'olimpik') return { ...base, sets: 4, repMin: 2, repMax: 3, rpeMin: 7, rpeMax: 8 };
   return { ...base, sets: 3, repMin: 8, repMax: 12, rpeMin: 7, rpeMax: 9 };
@@ -125,40 +135,30 @@ function repTxt(a, b) { return !hasNum(b) || Number(a) === Number(b) ? String(a)
 function rpeTxt(a, b) { if (!hasNum(a)) return null; return 'RPE ' + (!hasNum(b) || Number(a) === Number(b) ? nf(Number(a)) : nf(Number(a)) + '–' + nf(Number(b))); }
 function targetTxt(t, exId) {
   const plyo = isPlyo(exId);
-  const parts = [t.sets + ' × ' + repTxt(t.repMin, t.repMax) + (plyo ? ' temas' : '')];
-  if (hasNum(t.kg)) parts.push(kgTxt(t.kg));
-  const r = rpeTxt(t.rpeMin, t.rpeMax);
+  const skill = isSkill(exId);
+  const parts = [t.sets + ' × ' + repTxt(t.repMin, t.repMax) + (plyo ? ' temas' : skill ? ' deneme' : '')];
+  if (!skill && hasNum(t.kg)) parts.push(kgTxt(t.kg));
+  const r = skill ? null : rpeTxt(t.rpeMin, t.rpeMax);
   if (r) parts.push(r);
   return parts.join(' · ');
 }
 function sessionStats(s) {
   const sets = [];
-  s.items.forEach((it) => it.sets.forEach((x) => sets.push({ ...x, muscle: it.muscle, rest: it.target.rest })));
-  const hard = sets.filter((x) => !x.plyo && x.rir <= 4);
-  const tonnage = sets.reduce((a, x) => a + (x.plyo ? 0 : (Number(x.kg) || 0) * x.reps), 0);
+  s.items.forEach((it) => it.sets.forEach((x) => sets.push({ ...x, muscle: it.muscle, rest: it.target?.rest })));
+  const hard = sets.filter((x) => !x.plyo && !x.skill && x.rir <= 4);
+  const tonnage = sets.reduce((a, x) => a + (x.plyo || x.skill ? 0 : (Number(x.kg) || 0) * x.reps), 0);
   const contacts = sets.reduce((a, x) => a + (x.plyo ? x.reps : 0), 0);
-  return { sets, hard, tonnage, contacts, dur: (s.endedAt || Date.now()) - s.startedAt };
+  const attempts = sets.reduce((a, x) => a + (x.skill ? x.reps : 0), 0);
+  return { sets, hard, tonnage, contacts, attempts, dur: (s.endedAt || Date.now()) - s.startedAt };
 }
 function weeklyHard(sessions, endTs) {
   const from = endTs - 7 * 864e5;
   const map = {};
   sessions.filter((s) => s.status === 'done' && s.startedAt >= from && s.startedAt <= endTs + 1000).forEach((s) => s.items.forEach((it) => {
-    const h = it.sets.filter((x) => !x.plyo && x.rir <= 4).length;
+    const h = it.sets.filter((x) => !x.plyo && !x.skill && x.rir <= 4).length;
     if (h) map[it.muscle] = (map[it.muscle] || 0) + h;
   }));
   return Object.entries(map).sort((a, b) => b[1] - a[1]);
-}
-function nextPlanned(programs, sessions) {
-  // Tüm programlardaki, haftanın gününe atanmış ve içinde hareket olan türler arasından en yakını
-  const today = new Date();
-  const days = [];
-  programs.forEach((p) => p.days.forEach((d) => { if (d.weekday != null && d.items.length) days.push({ p, d }); }));
-  for (let off = 0; off < 7; off++) {
-    const wd = (today.getDay() + off) % 7;
-    const hit = days.find((x) => x.d.weekday === wd && !(off === 0 && sessions.some((s) => s.dayId === x.d.id && sameDay(s.startedAt, today))));
-    if (hit) return { program: hit.p, day: hit.d, off };
-  }
-  return null;
 }
 
 /* ---------- küçük parçalar ---------- */
@@ -190,6 +190,7 @@ function Stepper({ id, value, onChange, step, min, max, unit, label, decimals })
 function ItemEditor({ it, idx, n, onChange, onMove, onRemove }) {
   const [confirm, setConfirm] = useState(false);
   const plyo = isPlyo(it.exId);
+  const skill = isSkill(it.exId);
   const set = (k) => (v) => onChange({ ...it, [k]: v });
   const num = (k) => (e) => { const v = e.target.value.replace(',', '.'); onChange({ ...it, [k]: v === '' ? null : Number(v) }); };
   const pid = 'it-' + it.id;
@@ -198,20 +199,20 @@ function ItemEditor({ it, idx, n, onChange, onMove, onRemove }) {
       <div className="ied-grid">
         <Stepper id={pid + '-sets'} label="Set" value={it.sets} step={1} min={1} max={12} onChange={set('sets')} decimals={0} />
         <div className="field-pair">
-          <span className="st-k">{plyo ? 'Temas' : 'Tekrar'}</span>
+          <span className="st-k">{plyo ? 'Temas' : skill ? 'Deneme' : 'Tekrar'}</span>
           <div className="pair">
             <input id={pid + '-rmin'} className="mini-in mono" inputMode="numeric" value={hasNum(it.repMin) ? it.repMin : ''} onChange={num('repMin')} aria-label="En az tekrar" />
             <span>–</span>
             <input id={pid + '-rmax'} className="mini-in mono" inputMode="numeric" value={hasNum(it.repMax) ? it.repMax : ''} onChange={num('repMax')} aria-label="En çok tekrar" />
           </div>
         </div>
-        <div className="field-pair">
+        {skill ? null : <div className="field-pair">
           <span className="st-k">{plyo ? 'Ek yük (kg)' : 'Kg'}</span>
           <div className="pair">
             <input id={pid + '-kg'} className="mini-in mono wide" inputMode="decimal" placeholder="isteğe bağlı" value={hasNum(it.kg) ? String(it.kg).replace('.', ',') : ''} onChange={num('kg')} aria-label="Hedef kilo" />
           </div>
-        </div>
-        {plyo ? null : <div className="field-pair">
+        </div>}
+        {plyo || skill ? null : <div className="field-pair">
           <span className="st-k">RPE</span>
           <div className="pair">
             <input id={pid + '-pmin'} className="mini-in mono" inputMode="decimal" value={hasNum(it.rpeMin) ? String(it.rpeMin).replace('.', ',') : ''} onChange={num('rpeMin')} aria-label="En düşük RPE" />
@@ -354,9 +355,12 @@ function entryFor(item) {
   const last = item && item.sets[item.sets.length - 1];
   const t = item ? item.target : {};
   const plyo = item && isPlyo(item.exId);
+  const skill = item && isSkill(item.exId);
+  const lib = item && libById(item.exId);
   return {
-    kg: last ? Number(last.kg) || 0 : hasNum(t.kg) ? Number(t.kg) : plyo ? 0 : 20,
-    reps: last ? last.reps : hasNum(t.repMax) ? Number(t.repMax) : hasNum(t.repMin) ? Number(t.repMin) : plyo ? 5 : 8,
+    kg: skill ? 0 : last ? Number(last.kg) || 0 : hasNum(t.kg) ? Number(t.kg) : plyo ? 0 : 20,
+    reps: last ? last.reps : hasNum(t.repMax) ? Number(t.repMax) : hasNum(t.repMin) ? Number(t.repMin) : skill ? 3 : plyo ? 5 : 8,
+    hold: last && hasNum(last.hold) ? Number(last.hold) : lib && lib.h ? 5 : 0,
     lvl: last && last.lvl != null ? last.lvl : 1,
     q: 0,
     rpe: null,
@@ -389,7 +393,7 @@ function RestBar({ rest, now, onAdd, onClose }) {
 /* ---------- sekme ---------- */
 export {
   WD_LONG, WD_SHORT, WEEK_ORDER, MONTHS, MUSCLES, REST_OPTS,
-  EX_LIB, EQ, PLYO_INT, isPlyo, PLYO_W, PLYO_Q, PROF, FAT, libById, clone, rid, newId, nf, hasNum,
+  EX_LIB, EQ, PLYO_INT, isPlyo, isSkill, PLYO_W, PLYO_Q, SKILL_W, SKILL_Q, skillSetTxt, PROF, FAT, libById, clone, rid, newId, nf, hasNum,
   kgTxt, restTxt, mmss, durTxt, dateTxt, sameDay, normTr,
   SPEED, rirTxt, rirFromSpeed, animVl, BENCH_IDS, rpeFromRir, repVelocities,
   e1rm, rpeLabel, e1Ok, bestE1, vlColor,

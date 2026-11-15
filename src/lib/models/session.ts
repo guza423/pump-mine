@@ -12,8 +12,9 @@ export function freeEntry(item: SessionItem | undefined, sessions: Session[]) {
     .reduce<SessionItem['sets'][number] | undefined>((last, set) => !last || set.at > last.at ? set : last, undefined) : undefined;
   const last = current || previous;
   return {
-    kg: last ? Number(last.kg) || 0 : lib?.kind !== 'plyo' && lib?.eq === 'bb' ? 20 : 0,
-    reps: last ? last.reps : lib?.kind === 'plyo' ? 5 : lib?.kind === 'olimpik' ? 3 : 10,
+    kg: lib?.kind === 'beceri' ? 0 : last ? Number(last.kg) || 0 : lib?.kind !== 'plyo' && lib?.eq === 'bb' ? 20 : 0,
+    reps: last ? last.reps : lib?.kind === 'beceri' ? 3 : lib?.kind === 'plyo' ? 5 : lib?.kind === 'olimpik' ? 3 : 10,
+    hold: last && last.hold != null ? Number(last.hold) : lib?.h ? 5 : 0,
     lvl: last?.lvl ?? 1, q: 0, rpe: null,
   };
 }

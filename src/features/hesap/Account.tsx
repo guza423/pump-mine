@@ -1,8 +1,9 @@
 // @ts-nocheck
 import React, { useState } from 'react';
 import { Icon } from '../lab/Cns';
-import { exportBackup } from '../programlar/BackupPanel';
+import { BackupPanel, exportBackup } from '../programlar/BackupPanel';
 import { accountError } from '../../lib/cloud/errors';
+import { allPlans } from '../plan/plans';
 const hm = ts => new Date(ts).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 function AccountChip({ acct, onClick }) {
   const state = acct.mode === 'guest' ? 'guest' : acct.pending ? 'pending' : acct.online ? 'ok' : 'offline';
@@ -26,7 +27,7 @@ function AccountBody({ st, acct, actions, openSheet, onClose }) {
   const [password, setPassword] = useState('');
   const run = async (action, success) => { setBusy(true); setMessage(''); try { await action(); if (success) setMessage(success); } catch (error) { setMessage(accountError(error)); } finally { setBusy(false); } };
   const status = <>{message || st.error ? <p className="backup-status bad" role="status">{message || st.error}</p> : null}{busy || acct.busy || acct.migrating ? <p role="status">İşlem sürüyor…</p> : null}</>;
-  const n = { p: st.programs.length, s: st.sessions.filter((x) => x.status === 'done').length, c: st.checkins.length };
+  const n = { p: allPlans(st.programs).length, s: st.sessions.filter((x) => x.status === 'done').length, c: st.checkins.length };
   const valid = /.+@.+\..+/.test(email) && pass.length >= 6;
   if (acct.mode === 'guest') {
     return (
@@ -39,7 +40,7 @@ function AccountBody({ st, acct, actions, openSheet, onClose }) {
           </div>
         </div>
         {acct.waiting ? <div className="pop flat"><p>İnternete bağlanınca taşınacak. Yerel kayıtların korunuyor.</p><button type="button" className="btn primary" disabled={busy} onClick={() => run(actions.retryMigration)}>Yeniden dene</button></div> : null}
-        <p className="acct-move mono">Bu telefondaki {n.p} program, {n.s} antrenman ve {n.c} uyku kaydı hesabına taşınır.</p>
+        <p className="acct-move mono">Bu telefondaki {n.p} plan, {n.s} antrenman ve {n.c} uyku kaydı hesabına taşınır.</p>
         <button type="button" id="google-signin" className="btn google full" disabled={busy || !!acct.uid} onClick={() => run(actions.google)}><span className="g-mark">G</span> Google ile devam et</button>
         {mode === 'email' ? (
           <div className="acct-form">
@@ -52,6 +53,7 @@ function AccountBody({ st, acct, actions, openSheet, onClose }) {
             </div>
           </div>
         ) : <button type="button" id="email-signin" className="btn ghost full" onClick={() => setMode('email')}><Icon name="mail" size={15} /> E-posta ile devam et</button>}
+        <BackupPanel />
         <button type="button" className="linkbtn" onClick={() => openSheet('privacy', {})}><Icon name="shield" size={13} /> Verilerin nasıl saklanır?</button>
       </div>
     );
@@ -67,7 +69,8 @@ function AccountBody({ st, acct, actions, openSheet, onClose }) {
         <span>{acct.pending ? acct.pending + ' kayıt bekliyor; internet gelince gönderilecek' : acct.online ? 'Tüm kayıtlar bulutta' : 'Çevrimdışı · kayıtlar bu telefonda hazır'}</span>
         <small className="mono">{acct.lastSync ? 'son eşitleme ' + hm(acct.lastSync) : ''}</small>
       </div>
-      <p className="acct-move mono">{n.p} program · {n.s} antrenman · {n.c} uyku kaydı</p>
+      <p className="acct-move mono">{n.p} plan · {n.s} antrenman · {n.c} uyku kaydı</p>
+      <BackupPanel />
       <button type="button" className="btn ghost full" disabled={busy} onClick={() => run(() => exportBackup(actions.readBackup))}>Verilerimi dışa aktar (JSON)</button>
       <button type="button" className="linkbtn" onClick={() => openSheet('privacy', {})}><Icon name="shield" size={13} /> Gizlilik ve veri kullanımı</button>
       {confirm === 'out' ? (
@@ -105,7 +108,7 @@ function ConsentBody({ onAccept, onClose, busy: externalBusy }) {
   const [ok, setOk] = useState(false);
   return (
     <div className="acct">{status}
-      <p className="consent-p">Hesabına şunlar kaydedilir: programların, antrenman ve set kayıtların, notların, uyku saatlerin ve hedefin. Bunlar yalnızca sana gösterilir, yorgunluk ve gelişim hesapları için kullanılır, kimseyle paylaşılmaz ve satılmaz. Veriler Avrupa’daki (Frankfurt) sunucularda tutulur.</p>
+      <p className="consent-p">Hesabına şunlar kaydedilir: planların, antrenman ve set kayıtların, notların, uyku saatlerin ve hedeflerin. Bunlar yalnızca sana gösterilir, yorgunluk ve gelişim hesapları için kullanılır, kimseyle paylaşılmaz ve satılmaz. Veriler Avrupa’daki (Frankfurt) sunucularda tutulur.</p>
       <p className="consent-p">Uyku ve antrenman verisi sağlıkla ilgili sayılabileceği için açık rızan gerekir. Rızanı istediğin an hesabını silerek geri alabilirsin; o zaman tüm verilerin silinir.</p>
       <label className="check-row"><input id="consent-check" type="checkbox" checked={ok} onChange={(e) => setOk(e.target.checked)} /> Antrenman ve uyku verilerimin bu amaçla saklanmasına açık rıza veriyorum.</label>
       <button type="button" className="btn ghost full" disabled={busy || externalBusy} onClick={onClose}>Misafir olarak devam et</button>
@@ -116,7 +119,7 @@ function ConsentBody({ onAccept, onClose, busy: externalBusy }) {
 function PrivacyBody() {
   return (
     <div className="acct privacy">
-      <p><b>Ne saklanır:</b> e-posta adresin, programların, antrenman ve set kayıtların (saatleriyle), notların, uyku girişlerin, hedefin.</p>
+      <p><b>Ne saklanır:</b> e-posta adresin, planların, antrenman ve set kayıtların (saatleriyle), notların, uyku girişlerin, hedeflerin.</p>
       <p><b>Nerede:</b> Hesapsız kullanımda yalnızca bu telefonda. Giriş yapınca Google Firebase’in Avrupa (Frankfurt) sunucularında; telefonda da bir kopya kalır, internet yokken kayıt buraya yazılır.</p>
       <p><b>Kim görür:</b> Yalnızca sen. Her kullanıcı sadece kendi verisine erişebilir; bu kural sunucuda zorunlu.</p>
       <p><b>Silme:</b> Hesap › Hesabı sil ile hesabın ve tüm verilerin kalıcı silinir. Dışa aktar ile istediğin an JSON kopyasını alabilirsin.</p>

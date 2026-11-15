@@ -16,7 +16,10 @@ export interface ProgramItem {
 export interface ProgramDay {
   id: string;
   name: string;
-  weekday: 0 | 1 | 2 | 3 | 4 | 5 | 6 | null;
+  weekday?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | null;
+  weekdays?: number[];
+  dates?: string[];
+  skip?: string[];
   items: ProgramItem[];
 }
 
@@ -37,11 +40,36 @@ export interface RecordedSet {
   rir: number;
   rirEst?: number;
   plyo?: boolean;
+  skill?: boolean;
+  hold?: number;
   q?: 0 | 1 | 2;
   at: number;
   note?: string;
   tags?: string[];
 }
+
+export type PerfGoal = {
+  id: string;
+  type: 'perf';
+  exId: string;
+  name: string;
+  base: number;
+  target: number;
+  createdAt: number;
+};
+
+export type SkillGoal = {
+  id: string;
+  type: 'skill';
+  exId: string | null;
+  name: string;
+  stage: 0 | 1 | 2 | 3;
+  due?: string;
+  createdAt: number;
+  doneAt?: number;
+};
+
+export type Goal = PerfGoal | SkillGoal;
 
 export interface SessionItem {
   id: string;

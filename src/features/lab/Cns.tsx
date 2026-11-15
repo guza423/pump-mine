@@ -55,6 +55,7 @@ function Icon({ name, size = 16 }) {
     case 'trash': return <svg {...p}><path d="M4 7h16" /><path d="M9 7V4.5h6V7" /><path d="M6.5 7 7.5 20h9l1-13" /><path d="M10 11v5" /><path d="M14 11v5" /></svg>;
     case 'alert': return <svg {...p}><path d="M12 3.5 2.5 20h19L12 3.5z" /><path d="M12 10v4.5" /><path d="M12 17.5v.5" /></svg>;
     case 'history': return <svg {...p}><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1" /><path d="M3.5 4v4.5H8" /><path d="M12 7.5V12l3 2" /></svg>;
+    case 'calendar': return <svg {...p}><rect x="3" y="4.5" width="18" height="16.5" rx="2" /><path d="M8 3v3" /><path d="M16 3v3" /><path d="M3 10h18" /></svg>;
     default: return null;
   }
 }
