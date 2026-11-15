@@ -3,9 +3,10 @@
 Codex ya da Claude: önce `git pull --rebase origin main`, sonra `AGENTS.md`'yi, sonra bu dosyayı oku. "Bekleyen" listesindeki görevleri **sırayla** uygula. Her görev bitince satırını "Tamamlanan"a taşı (tarih + commit kısa kodu). `AGENTS.md`'deki "Her görevin sonunda" kuralı her görev için geçerli: test + build geçsin, doğrudan `main`'e push.
 
 ## Bekleyen
-1. [`docs/gorevler/V12-dashboard-plan-gozlem-beceri.md`](docs/gorevler/V12-dashboard-plan-gozlem-beceri.md): Bugün → Dashboard; antrenman türü → antrenman planı (program katmanı kalkar); Programlar → Gözlem (aylık takvim + gün paneli + ay özeti ve 1RM grafiği); Antrenman sekmesinde satır içi geçmiş; güç + öğrenme hedefleri; 28 beceri hareketi (deneme + kalite kaydı).
+Bekleyen görev yok.
 
 ## Tamamlanan
+- [V12 · Dashboard, antrenman planı, takvimli gözlem ve beceri öğrenme hedefleri](docs/gorevler/V12-dashboard-plan-gozlem-beceri.md): 2026-11-15 · `c2f274b`
 - [V11 · Plansız antrenman, bildirimli dinlenme sayacı ve geri tuşu](docs/gorevler/V11-plansiz-antrenman-dinlenme-geri.md): 2026-11-14 · `c5c588d`
 - [V10 · Ekran uyumu, boş hedef ve şablonsuz programlar](docs/gorevler/V10-ekran-uyumu-hedef-program.md): 2026-11-14 · `f7875cd`
 - V09 · Firebase hesap, açık rıza, veri taşıma ve çevrimdışı bulut eşitleme: 2026-11-14 · `b9c35e2`
