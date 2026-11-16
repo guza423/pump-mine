@@ -1,6 +1,6 @@
 # Görevler
 
-Codex ya da Claude: önce `git pull --rebase origin main`, sonra `AGENTS.md`'yi, sonra bu dosyayı oku. "Bekleyen" listesindeki görevleri **sırayla** uygula. Her görev bitince satırını "Tamamlanan"a taşı (tarih + commit kısa kodu). `AGENTS.md`'deki "Her görevin sonunda" kuralı her görev için geçerli: test + build geçsin, doğrudan `main`'e push.
+Hangi AI olursa olsun: önce `git pull --rebase origin main`, sonra `AGENTS.md`'yi (özellikle "Kayıt kuralı"), `docs/PROJE.md`'yi ve bu dosyayı oku. "Bekleyen" listesindeki görevleri **sırayla** uygula. Her görev bitince satırını "Tamamlanan"a taşı (tarih + commit kısa kodu) ve `docs/KONUSMA-KAYDI.md`'ye "uygulandı" satırı ekle. `AGENTS.md`'deki "Her görevin sonunda" kuralı her görev için geçerli: test + build + layout geçsin, doğrudan `main`'e push.
 
 ## Bekleyen
 Bekleyen görev yok.

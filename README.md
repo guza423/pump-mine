@@ -7,6 +7,14 @@ Android telefonları hedefleyen, çevrimdışı çalışan antrenman uygulaması
 - **Gözlem (Antrenman plan ve gözlem):** 42 hücreli aylık takvim, seçili gün paneli (tek günlük veya haftalık planlama), ay özeti, yorgunluk/uyarılar, hareket gelişimi (1RM eğrisi) ve haftalık yük analizi.
 - **Lab:** Temeller dersleri ve Türkçe/İngilizce arama, tür, kas, ekipman filtreleriyle 466 hareket (359 kuvvet, 28 olimpik, 51 pliometrik, 28 beceri).
 
+## Yapay zekâ ile çalışma
+
+Bu repo projenin tek hafızasıdır. Hangi AI çalışırsa çalışsın kullanıcı yalnızca şunu yazar: `AGENTS.md'yi oku ve uygula`.
+- Kurallar: [`AGENTS.md`](AGENTS.md), özellikle "Kayıt kuralı".
+- Proje belgesi (ne, neden, nasıl, kararlar): [`docs/PROJE.md`](docs/PROJE.md).
+- Konuşma kaydı: [`docs/KONUSMA-KAYDI.md`](docs/KONUSMA-KAYDI.md).
+- İşler: [`GOREV.md`](GOREV.md) ve [`docs/gorevler/`](docs/gorevler/).
+
 ## Yerelde çalıştırma
 
 Node.js 22 veya daha yenisi gerekir.

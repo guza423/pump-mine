@@ -2,11 +2,29 @@
 
 Android telefonda çalışan, sunucusuz, çevrimdışı bir antrenman uygulaması. Arayüz dili Türkçe.
 
+## Kayıt kuralı (her AI için zorunlu: Claude, Codex, Gemini/Antigravity, Cursor, Copilot…)
+Bu repo projenin **tek hafızası**. Sohbetler kaybolabilir, oturumlar değişir, AI değişir; repo kalır. Bu yüzden:
+
+1. **Başlarken oku**, bu sırayla:
+   1. `git pull --rebase origin main`
+   2. bu dosya
+   3. `docs/PROJE.md` (ürün, mimari, modeller, kararlar)
+   4. `GOREV.md`
+   5. `docs/KONUSMA-KAYDI.md`'nin son bölümü
+2. **Her kullanıcı mesajını kaydet.** `docs/KONUSMA-KAYDI.md`'nin sonuna dosyanın başındaki biçimde ekle: tarih, AI adı ve aracı, kullanıcının sözleri **birebir**, ne yapıldığı / karar, commit ya da görev dosyası. Ekran görüntüsündeki notları da birebir yaz. Yanıtın tamamını değil, özünü yaz.
+3. **Kalıcı kararı işle.** Ad, kapsam, mimari, veri modeli, kural, model ya da formül değiştiyse `docs/PROJE.md`'de ilgili bölümü güncelle ve §9 Karar günlüğüne tarihli satır ekle. Teknik şema değiştiyse bu dosyanın "Veri" bölümünü de güncelle.
+4. **Promptlar repoya, sohbete değil.** Başka bir AI'nın uygulayacağı her iş `docs/gorevler/Vxx-kisa-ad.md` olarak yazılır ve `GOREV.md` "Bekleyen"e eklenir. Prompt metni sohbete yazılmaz. Sohbette yalnızca dosya yolu ve kullanıcının kodlayan AI'ya yazacağı tek satır verilir: `AGENTS.md'yi oku ve uygula`.
+5. **Kaydet, sonra konuş.** İş bitince (kod, belge ya da sadece karar) kayıt dosyalarını güncelle, commit et ve `main`'e push et. Push edilmemiş hiçbir şey "kaydedildi" sayılmaz. Sadece soru-cevap olan konuşmalar da kayda girer; o zaman tek commit yeterli (`docs: konuşma kaydı`).
+6. **Gizli ve kişisel bilgi yazma.** Repo herkese açık. Şifre, token, kişisel sağlık/vücut verisi ve e-posta adresi kayda girmez.
+7. **Kodlayan AI olarak** görevi bitirince: `GOREV.md`'de görevi "Tamamlanan"a taşı (tarih + commit). `docs/KONUSMA-KAYDI.md`'ye "uygulandı" satırı ekle; görev dosyasından sapma ya da açık kalan iş varsa onu da yaz.
+
+Kullanıcı yeni bir AI'ya yalnızca şunu yazar: **`AGENTS.md'yi oku ve uygula`**. Bekleyen görev varsa onu uygula; yoksa kullanıcıya ne yapmak istediğini sor ve konuşmayı yukarıdaki kurala göre kaydet.
+
 ## Her görevin başında (zorunlu, kullanıcıya sorma)
 `git pull --rebase origin main` çalıştır. Claude repoya doğrudan görev, referans ve yapılandırma dosyası gönderiyor; yerel klasör geride olabilir. Çekme bitmeden hiçbir dosyayı okuma ya da değiştirme.
 
 ## Görevler
-Yapılacak işler `GOREV.md`'de sırayla listelidir; görev ayrıntıları `docs/gorevler/` altında. Kullanıcı "GOREV.md'yi uygula" dediğinde bekleyen ilk görevden başla.
+Yapılacak işler `GOREV.md`'de sırayla listelidir; görev ayrıntıları `docs/gorevler/` altında (eski görevler `docs/gorevler/arsiv/`). Kullanıcı "AGENTS.md'yi oku ve uygula" ya da "GOREV.md'yi uygula" dediğinde bekleyen ilk görevden başla.
 
 ## Referans prototip
 
@@ -93,6 +111,7 @@ Her fazın sonunda README'yi güncelle: yerelde nasıl çalıştırılır, canl�
 1. `npm test` ve `npm run build` çalıştır.
 2. İkisi de geçerse: `git add -A`, kısa ve anlamlı bir mesajla commit, ardından `git push origin HEAD:main`.
 3. PR veya ayrı branch açma; her zaman doğrudan `main`'e push et.
-4. Bitince `git log -1 --oneline`, push çıktısını ve `git status` çıktısını göster.
-5. Derleme çıktılarını asla commit etme: `dist/`, `android/app/build/`, `android/app/src/main/assets/public/`, `android/app/src/main/assets/capacitor.config.json`, `android/app/src/main/assets/capacitor.plugins.json`, `android/app/src/main/res/xml/config.xml`, `android/capacitor-cordova-android-plugins/`.
-6. Testler veya build geçmezse hatayı düzelt ve tekrar dene; geçmeyen kodu push etme.
+4. `GOREV.md` ve `docs/KONUSMA-KAYDI.md` güncel olsun (bkz. Kayıt kuralı); kalıcı karar varsa `docs/PROJE.md` de.
+5. Bitince `git log -1 --oneline`, push çıktısını ve `git status` çıktısını göster.
+6. Derleme çıktılarını asla commit etme: `dist/`, `android/app/build/`, `android/app/src/main/assets/public/`, `android/app/src/main/assets/capacitor.config.json`, `android/app/src/main/assets/capacitor.plugins.json`, `android/app/src/main/res/xml/config.xml`, `android/capacitor-cordova-android-plugins/`.
+7. Testler veya build geçmezse hatayı düzelt ve tekrar dene; geçmeyen kodu push etme.
