@@ -214,4 +214,4 @@ Bu dosya, OUTMOVE'u üretmek için yapılan bütün konuşmaların kronolojik ka
 - Eski görev promptları `docs/gorevler/arsiv/` altına alındı.
 - `AGENTS.md`'ye her AI için zorunlu **Kayıt kuralı** eklendi. Farklı AI araçları için yönlendirme dosyaları eklendi: `CLAUDE.md`, `GEMINI.md`, `.agent/rules/`, `.cursor/rules/`, `.github/copilot-instructions.md`.
 - Bundan sonra yeni bir AI'ya yazılacak tek satır: `AGENTS.md'yi oku ve uygula`.
-**Kayıt:** bu commit
+**Kayıt:** `65c6ae4`
