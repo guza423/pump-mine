@@ -1,6 +1,6 @@
 /* ================= V14 · Pixel tema katmanı =================
    Var olan ekranları YALNIZCA görünüm olarak pixel'e çevirir: DOM, kimlikler, metinler ve davranış aynı kalır.
-   - `.pxt` kökü: pixel'e geçmiş ekranlar (V14: Dashboard). Sıradaki sekmeler kök div'ine `pxt` ekleyerek katılır.
+   - `.pxt` kökü: pixel'e geçmiş ekranlar (V14 Dashboard, V15 Antrenman + alt pencereler, V16 Gözlem). Sıradaki sekmeler kök div'ine `pxt` ekleyerek katılır.
    - Alt sekme çubuğu (`.tabbar`) bütün uygulamada pixel.
    Dengeli doz (V13.1): Press Start 2P yalnızca büyük sayı ve büyük düğmede, yalnızca 8'in katı boyutlarda;
    başlıklar Saira, metin IBM Plex Sans.
@@ -557,6 +557,207 @@
 .pxt .hrow-t strong { font-family: var(--px-f-head); font-size: 16px; font-weight: 700; }
 .pxt .hrow-t small { font-size: 12.5px; color: var(--px-mt); }
 .pxt .hrow-f { border: 0; font-weight: 700; box-shadow: inset 0 0 0 2px currentColor; }
+
+/* ---------- Gözlem (V16): takvim, seçili gün, ay özeti, yorgunluk, uyarılar, 1RM grafiği ---------- */
+.pxt.gozlem-screen .shead h1 { font-size: clamp(17px, 5.6vw, 24px); letter-spacing: 0.01em; white-space: normal; line-height: 1.15; }
+.pxt .cal-sec { gap: 8px; }
+.pxt .cal-nav-l { gap: 8px; }
+.pxt .cal-title {
+  min-width: 136px;
+  font-family: var(--px-f-head);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.pxt .nav-arrow {
+  width: 44px;
+  height: 44px;
+  margin: 3px;
+  border: 0;
+  color: var(--px-tx);
+  background: var(--px-pn);
+  box-shadow: 0 -3px 0 0 var(--px-ln), 0 3px 0 0 var(--px-ln), -3px 0 0 0 var(--px-ln), 3px 0 0 0 var(--px-ln);
+}
+.pxt .nav-arrow:active { background: var(--px-pn2); }
+.pxt .nav-arrow:focus-visible { outline: 3px solid var(--px-gold); outline-offset: 4px; }
+.pxt .cal-wds { gap: 4px; padding: 2px 0; font: 600 12px var(--px-f-body); letter-spacing: 0; color: var(--px-mt); }
+.pxt .cal { grid-template-rows: repeat(6, 46px); gap: 4px; }
+.pxt .cal-d {
+  min-height: 46px;
+  padding: 6px 1px;
+  border: 0;
+  color: var(--px-tx);
+  font: 700 15px var(--px-f-body);
+  font-variant-numeric: tabular-nums;
+  background: var(--px-pn);
+  box-shadow: none;
+}
+.pxt .cal-d.out { opacity: 0.3; }
+.pxt .cal-d.today { color: var(--px-gold); box-shadow: inset 0 0 0 2px var(--px-gold); }
+.pxt .cal-d.sel { background: var(--px-pn2); box-shadow: inset 0 0 0 3px var(--px-tx); }
+.pxt .cal-d.today.sel { background: #2a2316; box-shadow: inset 0 0 0 3px var(--px-gold); }
+.pxt .cal-d:active { background: var(--px-pn2); }
+.pxt .cal-d:focus-visible { outline: 3px solid var(--px-gold); outline-offset: -3px; }
+.pxt .cal-marks { gap: 3px; min-height: 8px; }
+.pxt .cal-m.done { width: 8px; height: 8px; border: 0; background: var(--ok); }
+.pxt .cal-m.done.skill { background: var(--px-sk); }
+.pxt .cal-m.plan { width: 8px; height: 8px; border: 0; background: transparent; box-shadow: inset 0 0 0 2px var(--px-gold); }
+.pxt .cal-m.missed { width: 8px; height: 3px; border: 0; background: var(--bad); }
+.pxt .cal-more { font: 700 11px var(--px-f-body); color: var(--px-mt); }
+
+.pxt #day-panel {
+  gap: 10px;
+  margin: 3px;
+  padding: 14px;
+  border: 0;
+  background: var(--px-pn);
+  box-shadow: 0 -3px 0 0 var(--px-ln), 0 3px 0 0 var(--px-ln), -3px 0 0 0 var(--px-ln), 3px 0 0 0 var(--px-ln);
+}
+.pxt .day-h { font-family: var(--px-f-head); font-size: 18px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+.pxt #day-panel .hrow { background: var(--px-pn2); }
+.pxt .hrow.sm { grid-template-columns: 12px minmax(0, 1fr) auto; gap: 10px; padding: 9px 12px; }
+.pxt .hrow-dot { width: 10px; height: 10px; background: var(--ok); box-shadow: none; }
+.pxt .hrow-dot.skill { background: var(--px-sk); }
+.pxt .hrow.sm .hrow-f { min-width: 36px; padding: 4px 6px; text-align: center; }
+.pxt .day-plan-row {
+  min-height: 48px;
+  gap: 10px;
+  padding: 4px 4px 4px 12px;
+  border: 0;
+  background: #0b0914;
+  box-shadow: inset 0 0 0 2px var(--px-ln);
+}
+.pxt .day-plan-row.done { opacity: 0.6; }
+.pxt .day-plan-ic { font: 700 15px var(--px-f-body); color: var(--px-gold); }
+.pxt .day-plan-row.done .day-plan-ic { color: var(--ok); }
+.pxt .day-plan-t strong { flex: 0 0 auto; max-width: 100%; min-width: 0; font-family: var(--px-f-head); font-size: 16px; font-weight: 700; }
+/* Dar ekranda önce "· Her Sal" kısalır, plan adı görünür kalır. */
+.pxt .day-plan-t small { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 13px; color: var(--px-mt); }
+.pxt .day-plan-row .btn.sm { flex: none; min-height: 40px; padding: 0 10px; }
+.pxt .day-plan-more { width: 44px; height: 44px; color: var(--px-tx); }
+.pxt .day-plan-more:active { background: var(--px-pn2); }
+.pxt .day-plan-more:focus-visible { outline: 3px solid var(--px-gold); outline-offset: -3px; }
+.pxt .day-plan-menu { gap: 8px; padding: 4px 0 2px; }
+.pxt .day-meta { font-size: 13px; color: var(--px-mt); }
+
+.pxt .sec2-h { align-items: center; }
+.pxt .sec2-h .mono { font-size: 13px; color: var(--px-mt); }
+.pxt .warn-n.on { color: var(--px-gold) !important; font-weight: 700; }
+/* Ay özeti: tek panelde dört satır (RPG istatistik ekranı gibi); değer sağda, Press Start 16, kırılmaz. */
+.pxt .mgrid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  margin: 3px;
+  background: var(--px-pn);
+  box-shadow: 0 -3px 0 0 var(--px-ln), 0 3px 0 0 var(--px-ln), -3px 0 0 0 var(--px-ln), 3px 0 0 0 var(--px-ln);
+}
+.pxt .metric {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'k v' 's v';
+  align-items: center;
+  gap: 2px 12px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 0;
+  border-top: 2px solid var(--px-ln);
+  background: transparent;
+  box-shadow: none;
+}
+.pxt .metric:first-child { border-top: 0; }
+.pxt .metric-k { grid-area: k; font-size: 14px; font-weight: 600; color: var(--px-tx); }
+.pxt .metric-v {
+  grid-area: v;
+  font-family: var(--px-f-big);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: right;
+  color: var(--px-gold);
+  overflow: visible;
+  -webkit-font-smoothing: none;
+}
+.pxt .metric-s { grid-area: s; font-size: 12.5px; color: var(--px-mt); white-space: normal; }
+
+.pxt .fcard {
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 12px 14px;
+  margin: 3px;
+  padding: 14px;
+  border: 0;
+  background: var(--px-pn);
+  box-shadow: 0 -3px 0 0 var(--px-ln), 0 3px 0 0 var(--px-ln), -3px 0 0 0 var(--px-ln), 3px 0 0 0 var(--px-ln);
+}
+.pxt .fcard:active { background: var(--px-pn2); }
+.pxt .fcard:focus-visible { outline: 3px solid var(--px-gold); outline-offset: 4px; }
+.pxt .fcard .st-k { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--px-mt); }
+.pxt .fcard-s { font-size: 13px; color: var(--px-mt); white-space: normal; }
+.pxt .fcard .fbars { grid-column: 1 / -1; width: 100%; height: 48px; shape-rendering: crispEdges; }
+.pxt .fb-l { stroke: var(--px-ln); stroke-dasharray: 3 3; }
+
+.pxt .warns { gap: 6px; }
+.pxt .warn-row {
+  grid-template-columns: 10px minmax(0, 1fr);
+  gap: 12px;
+  margin: 3px;
+  padding: 12px 14px;
+  border: 0;
+  background: var(--px-pn);
+  box-shadow: 0 -3px 0 0 var(--px-ln), 0 3px 0 0 var(--px-ln), -3px 0 0 0 var(--px-ln), 3px 0 0 0 var(--px-ln);
+}
+.pxt .warn-row > i { width: 10px; height: 10px; margin-top: 5px; background: var(--px-sk); box-shadow: none; }
+.pxt .warn-row.bad { background: #2e1620; box-shadow: 0 -3px 0 0 var(--bad), 0 3px 0 0 var(--bad), -3px 0 0 0 var(--bad), 3px 0 0 0 var(--bad); }
+.pxt .warn-row.bad > i { background: var(--bad); box-shadow: none; }
+.pxt .warn-row.warn { background: #2a2316; box-shadow: 0 -3px 0 0 var(--px-gold), 0 3px 0 0 var(--px-gold), -3px 0 0 0 var(--px-gold), 3px 0 0 0 var(--px-gold); }
+.pxt .warn-row.warn > i { background: var(--px-gold); }
+.pxt .warn-row.ok > i { background: var(--ok); }
+.pxt .warn-row strong { font-family: var(--px-f-head); font-size: 16px; font-weight: 700; }
+.pxt .warn-row small { font-size: 13px; line-height: 1.45; color: var(--px-mt); }
+
+.pxt .sec2-h .big-e1 { font-family: var(--px-f-big); font-size: 16px; font-weight: 400; color: var(--px-fire); -webkit-font-smoothing: none; }
+.pxt .hsec .chart-svg { width: calc(100% - 6px); margin: 3px; background: var(--px-pn); box-shadow: 0 -3px 0 0 var(--px-ln), 0 3px 0 0 var(--px-ln), -3px 0 0 0 var(--px-ln), 3px 0 0 0 var(--px-ln); }
+.pxt .chart-svg .grid { stroke: var(--px-ln); stroke-width: 1; shape-rendering: crispEdges; }
+.pxt .chart-svg .tick { font-family: var(--px-f-body); font-size: 12px; font-weight: 600; fill: var(--px-mt); }
+.pxt .chart-svg .line { stroke-width: 3; stroke-linejoin: miter; stroke-linecap: square; shape-rendering: crispEdges; }
+.pxt .chart-svg .area { opacity: 0.18; shape-rendering: crispEdges; }
+.pxt .chart-svg .cursor-dot { fill: var(--px-bg); stroke-width: 3; shape-rendering: crispEdges; }
+.pxt .chart-svg .goal-line { stroke: var(--px-gold); stroke-width: 2; stroke-dasharray: 6 4; shape-rendering: crispEdges; }
+.pxt .chart-svg .goal-t { font-family: var(--px-f-body); font-size: 12px; font-weight: 700; fill: var(--px-gold); }
+.pxt .chart-note { font-size: 13px; color: var(--px-mt); }
+
+.pxt .obs-week { min-height: 64px; }
+.pxt .obs-week-l strong { font-family: var(--px-f-head); font-size: 17px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+.pxt .obs-week-l small { font-size: 13px; color: var(--px-mt); }
+
+/* Gözlem'den açılan alt pencereler: plan yükü ölçeri, kas çubukları, iğneli yorgunluk ölçeri */
+.pxt .plan2-meter {
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 14px;
+  margin: 3px;
+  padding: 14px;
+  border: 0;
+  background: var(--px-pn);
+  box-shadow: 0 -3px 0 0 var(--px-ln), 0 3px 0 0 var(--px-ln), -3px 0 0 0 var(--px-ln), 3px 0 0 0 var(--px-ln);
+}
+.pxt .plan2-meter:active { background: var(--px-pn2); }
+.pxt .pm-sub { font-size: 13px; color: var(--px-mt); }
+.pxt .pm-link { font-family: var(--px-f-head); font-size: 15px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--px-gold); }
+.pxt .pdays2 { margin: 3px; border: 0; background: var(--px-pn); box-shadow: 0 -3px 0 0 var(--px-ln), 0 3px 0 0 var(--px-ln), -3px 0 0 0 var(--px-ln), 3px 0 0 0 var(--px-ln); }
+.pxt .pd2 { font-size: 14px; border-top: 2px solid var(--px-ln); }
+.pxt .pd2.sh { border-top: 0; font: 600 12px var(--px-f-body); letter-spacing: 0.06em; color: var(--px-mt); background: #0b0914; }
+.pxt .pd2 > span:first-child { font-size: 13px; font-weight: 700; color: var(--px-gold); }
+.pxt .mbar-m { font-size: 13px; color: var(--px-mt); }
+.pxt .mbar-t { height: 12px; background: var(--px-dim); }
+.pxt .mbar-z { background: repeating-linear-gradient(90deg, rgba(82, 224, 124, 0.28) 0 4px, transparent 4px 8px); }
+.pxt .mbar-f { top: 3px; bottom: 3px; background: var(--px-gold); }
+.pxt .mbar.ok .mbar-f { background: var(--ok); }
+.pxt .mbar.high .mbar-f { background: var(--px-fire); }
+.pxt .mbar-n { font-size: 13px; font-weight: 700; }
+.pxt .needle-gauge path { stroke-linecap: butt; shape-rendering: crispEdges; }
+.pxt .ng-track { stroke: var(--px-dim); }
+.pxt .ng-zone { opacity: 1; }
+.pxt .ng-needle line { stroke-linecap: square; filter: none; shape-rendering: crispEdges; }
+.pxt .ng-lbl { font-family: var(--px-f-body); font-size: 12px; font-weight: 600; fill: var(--px-mt); }
 
 /* ---------- alt sekme çubuğu (bütün uygulama) ---------- */
 .tabbar {

@@ -118,7 +118,7 @@ function Ring({ score, zone, size = 76, label, pixel = false }) {
           const a = ((-90 + (i * 360) / N) * Math.PI) / 180;
           return <i key={i} style={{ left: Math.round(half + r * Math.cos(a) - seg / 2), top: Math.round(half + r * Math.sin(a) - seg / 2), width: seg, height: seg, background: i < lit ? zone.c : undefined }} />;
         })}
-        <b className="px-ring-n" style={{ color: zone.c }}>{Math.round(score)}</b>
+        <b className="px-ring-n" style={{ color: zone.c, fontSize: size >= 96 ? 24 : 16 }}>{Math.round(score)}</b>
       </span>
     );
   }
@@ -1782,15 +1782,15 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
   const hasWeekly = wp.days.length > 0;
 
   return (
-    <div className="screen gozlem-screen">
+    <div className="screen pxt gozlem-screen">
       <ScreenHead title="Antrenman plan ve gözlem" />
       <div className="scr">
         <section className="cal-sec">
           <div className="cal-nav">
             <div className="cal-nav-l">
-              <button type="button" id="cal-prev" className="nav-arrow" aria-label="Önceki ay" onClick={() => changeMonth(-1)}><Icon name="left" size={16} /></button>
+              <button type="button" id="cal-prev" className="nav-arrow" aria-label="Önceki ay" onClick={() => changeMonth(-1)}><PxIcon name="left" size={16} /></button>
               <span className="cal-title">{MONTHS_LONG[viewYm.m]} {viewYm.y}</span>
-              <button type="button" id="cal-next" className="nav-arrow" aria-label="Sonraki ay" onClick={() => changeMonth(1)}><Icon name="right" size={16} /></button>
+              <button type="button" id="cal-next" className="nav-arrow" aria-label="Sonraki ay" onClick={() => changeMonth(1)}><PxIcon name="right" size={16} /></button>
             </div>
             {!isCurrentMonth ? (
               <button type="button" id="cal-today" className="btn ghost sm" onClick={goToday}>Bugün</button>
@@ -1866,7 +1866,7 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
                     aria-label={pDay.name + ' menüsü'}
                     onClick={() => setMenuDid(openMenu ? null : pDay.id)}
                   >
-                    <Icon name="more" size={16} />
+                    <PxIcon name="more" size={18} />
                   </button>
                 </div>
                 {openMenu ? (
@@ -1901,7 +1901,7 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
         </section>
 
         <button type="button" id="obs-fatigue" className="fcard" onClick={() => openSheet('fatigue', {})}>
-          <Ring score={head} zone={zoneOf(head)} size={60} label="Seans başında ortalama yorgunluk" />
+          <Ring pixel score={head} zone={zoneOf(head)} size={72} label="Seans başında ortalama yorgunluk" />
           <span className="fcard-t">
             <span className="st-k">{avgF != null ? 'Seans başında ort.' : 'Şu an'}</span>
             <span className="zone-pill sm" style={{ color: zoneOf(head).c, borderColor: zoneOf(head).c }}>{zoneOf(head).k}</span>
@@ -1944,7 +1944,7 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
             <strong>Haftalık yük</strong>
             <small>{hasWeekly ? wp.days.length + ' planlı gün · kas başına haftalık set' : 'Haftalık tekrarlayan planın yok'}</small>
           </span>
-          <Icon name="right" size={14} />
+          <PxIcon name="right" size={16} />
         </button>
       </div>
     </div>
@@ -2077,7 +2077,7 @@ function PlanBody({ getProgram, st, openSheet }) {
     <div className="plan2">
       {sim ? (
         <button type="button" className="plan2-meter" onClick={() => openSheet('fatigue', { sim: simFromPlan(p), source: 'Planına göre' })}>
-          <Ring score={sim.pre} zone={zoneOf(sim.pre)} size={64} label="Seans başında yorgunluk" />
+          <Ring pixel score={sim.pre} zone={zoneOf(sim.pre)} size={72} label="Seans başında yorgunluk" />
           <div className="pm-t">
             <span className="zone-pill" style={{ color: zoneOf(sim.pre).c, borderColor: zoneOf(sim.pre).c }}>{zoneOf(sim.pre).k}</span>
             <span className="pm-sub mono">Seans başı ort. {Math.round(sim.pre)} · en yüksek tepe {Math.round(sim.post)}</span>
@@ -2391,7 +2391,7 @@ function E1Chart({ pts, goal }) {
       {goal ? <g><line x1={m.l} x2={W - m.r} y1={Y(goal)} y2={Y(goal)} className="goal-line" /><text x={W - m.r} y={Y(goal) - 5} textAnchor="end" className="goal-t">hedef {goal}</text></g> : null}
       <path d={'M' + pts.map((p) => X(p.t) + ',' + Y(p.v)).join(' L') + ` L${X(pts[pts.length - 1].t)},${m.t + ih} L${X(pts[0].t)},${m.t + ih} Z`} className="area" style={{ fill: 'var(--fire)' }} />
       <polyline points={pts.map((p) => X(p.t) + ',' + Y(p.v)).join(' ')} className="line" style={{ stroke: 'var(--fire)' }} />
-      {pts.map((p, i) => <circle key={i} cx={X(p.t)} cy={Y(p.v)} r={i === pts.length - 1 ? 4.5 : 3} className="cursor-dot" style={{ stroke: 'var(--fire)' }} />)}
+      {pts.map((p, i) => { const h = i === pts.length - 1 ? 5 : 3.5; return <rect key={i} x={X(p.t) - h} y={Y(p.v) - h} width={h * 2} height={h * 2} className="cursor-dot" style={{ stroke: 'var(--fire)' }} />; })}
       <text x={m.l} y={H - 6} className="tick">{dateTxt(t0)}</text>
       {pts.length > 1 ? <text x={W - m.r} y={H - 6} textAnchor="end" className="tick">{dateTxt(t1)}</text> : null}
     </svg>
@@ -2402,15 +2402,15 @@ function FatigueBars({ pts }) {
   if (!n) return null;
   const bw = Math.min(10, (W - (n - 1) * 3) / n);
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} className="fbars" aria-hidden="true">
+    <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} preserveAspectRatio="none" className="fbars" aria-hidden="true">
       <line x1="0" x2={W} y1={H - H * 0.4} y2={H - H * 0.4} className="fb-l" />
       <line x1="0" x2={W} y1={H - H * 0.7} y2={H - H * 0.7} className="fb-l" />
       {pts.map((p, i) => {
         const h = Math.max(3, (p.v / 100) * H), h0 = Math.max(2, ((p.pre || 0) / 100) * H), x = W - (n - i) * (bw + 3) + 3;
         return (
           <g key={i}>
-            <rect x={x} y={H - h} width={bw} height={h} rx="2" style={{ fill: zoneOf(p.v).c, opacity: 0.35 }} />
-            <rect x={x} y={H - h0} width={bw} height={h0} rx="2" style={{ fill: zoneOf(p.pre || 0).c }} />
+            <rect x={x} y={H - h} width={bw} height={h} style={{ fill: zoneOf(p.v).c, opacity: 0.35 }} />
+            <rect x={x} y={H - h0} width={bw} height={h0} style={{ fill: zoneOf(p.pre || 0).c }} />
           </g>
         );
       })}

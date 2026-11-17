@@ -16,5 +16,5 @@ Kural: **"herşey korunucak … sadece stil değişicek"**. DOM, kimlikler, meti
 `npm test` (15 dosya, 91 test), lint, `tsc -b`, build, `test:layout` (11 boyut) geçti. Gerçek tarayıcıda plan düzenleyici, planlı oturum, bitirme onayı, plan menüsü, hesap ve yorgunluk sheet'leri, 320 px Antrenman sekmesi ekran görüntüsüyle kontrol edildi.
 
 ## Kalan
-- Gözlem (V16): takvim, grafikler, oradaki halka hâlâ eski stil.
+- ~~Gözlem (V16)~~ → V16'da yapıldı.
 - Lab (V17): biyomekanik animasyonlar, uzun metin okunurluğu.
