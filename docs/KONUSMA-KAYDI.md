@@ -317,3 +317,10 @@ komple tüm uygulama biraz böyle pixel art gibi olsun istiyorum mesela ağırl�
   - `scripts/layout-check.mjs`: pixel listeleri, kartlar, "Hareket ekle" satırı ve seçici satırları ekran genişliğinin %70'inden darsa layout düşer.
 - `npm test` (15 dosya, 91 test), lint, build ve `test:layout` (11 boyut) geçti. Commit: `ee82981`.
 
+
+### 2026-11-17 · Claude (claude.ai, PERFORMANCE projesi)
+**Kullanıcı:** "aa sen mi yaptın mük basit bişidi heralde. neyse peki tüm sayfalar düzeldi demi"
+**Yanıt:**
+- Evet, düzeltmeyi Claude yaptı (`ee82981`).
+- Plansız idmanın bütün pixel ekranları gerçek tarayıcıda (393×873) tek tek açılıp ekran görüntüsüyle kontrol edildi. Hepsi düzgün: boş liste, seçici, dolu liste, set ekranı, dinlenme, gizlenmiş sayaç, set penceresi, bitirme onayı, özet.
+- Dashboard, Gözlem, Lab ve planlı oturum V13'te değişmedi; eski tasarımda kalıyorlar. Pixel dil onlara V14'te uygulanacak.
