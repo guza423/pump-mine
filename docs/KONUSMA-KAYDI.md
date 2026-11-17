@@ -283,4 +283,4 @@ komple tüm uygulama biraz böyle pixel art gibi olsun istiyorum mesela ağırl�
 - Görev dosyası yazıldı. Tasarım kaynağı repoya kopyalandı: `reference/v13-pixel/`.
 - Kararlar `docs/PROJE.md` §9'a işlendi.
 
-**Kayıt:** `docs/gorevler/V13-pixel-plansiz-idman.md`, `reference/v13-pixel/`
+**Kayıt:** `docs/gorevler/V13-pixel-plansiz-idman.md`, `reference/v13-pixel/` (`680af58`)
