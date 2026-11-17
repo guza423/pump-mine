@@ -301,3 +301,19 @@ komple tüm uygulama biraz böyle pixel art gibi olsun istiyorum mesela ağırl�
 **Kullanıcı:** "apk ver bana şimdi"
 **Yapılan / karar:** Yerelde Android SDK kurulu olmadığı için (`AGENTS.md` gereği APK GitHub Actions'ta üretilir), `9b1369d` commit'i için başarıyla tamamlanan **Build Android debug APK** çalıştırması (`44130869685`) ve **`outmove-29`** artifact bağlantısı kullanıcıya verildi.
 **Kayıt:** `docs: konuşma kaydı`
+
+### 2026-11-17 · Claude (claude.ai, PERFORMANCE projesi)
+**Kullanıcı** (ekran görüntüleri: boş plansız idman listesinde "HAREKET EKLE" satırı 30 px'lik dar bir sütuna sıkışmış; Dashboard'da "HAZIR · başlamadı" kartı): "bu ne ya goole hydrogen modeline yaptırdım böyle yaptı telefondaki son durum bu kurunca"
+**Yapılan / karar:**
+- Neden: V13'te pixel sınıfları konsepten aynı adlarla alındı ve uygulamadaki global sınıflarla çakıştı.
+  - `.sl` (v7.css, Dashboard uyku düğmesi: 30×30 px) hareket listesini, hareket seçiciyi ve özet listesini 30 px'e sıkıştırıyordu.
+  - `.chip` (cns.css) dinlenme çipini hap şekline sokuyordu.
+  - `.toast` (app.css / mobile.css) bildirime `bottom` ekliyordu.
+  - `.part` (cns.css) ROM kutusunun yazı boyunu değiştiriyordu.
+  - `.empty`, `.card`, `.scr`, `.pl`, `.fire`, `.warn` da çakışıyordu.
+- Düzeltme: çakışan bütün pixel sınıflarına `px-` öneki verildi: `px-scroll`, `px-rchip`, `px-toast`, `px-part`, `px-card`, `px-scr`, `px-empty`, `px-plate`, `px-pfire`, `px-warn`.
+- Tekrarlanmasın diye iki koruma eklendi:
+  - `src/styles/pixel-classes.test.mjs`: pixel.css'te global stillerde tek başına tanımlı bir sınıf adı kullanılırsa test düşer.
+  - `scripts/layout-check.mjs`: pixel listeleri, kartlar, "Hareket ekle" satırı ve seçici satırları ekran genişliğinin %70'inden darsa layout düşer.
+- `npm test` (15 dosya, 91 test), lint, build ve `test:layout` (11 boyut) geçti.
+

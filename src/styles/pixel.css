@@ -113,7 +113,7 @@
   outline-offset: 2px;
 }
 
-.px .scr {
+.px .px-scr {
   height: 100%;
   min-height: 0;
   display: flex;
@@ -234,7 +234,7 @@
   color: var(--mt);
 }
 
-.px .px-sets-grid.empty {
+.px .px-sets-grid.px-empty {
   display: flex;
   align-items: center;
 }
@@ -284,22 +284,22 @@
   line-height: 1;
 }
 
-.px .sl {
+.px .px-scroll {
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: var(--ln) transparent;
 }
 
-.px .sl::-webkit-scrollbar {
+.px .px-scroll::-webkit-scrollbar {
   width: 4px;
   height: 4px;
 }
 
-.px .sl::-webkit-scrollbar-thumb {
+.px .px-scroll::-webkit-scrollbar-thumb {
   background: var(--ln);
 }
 
-.px .sl.fade {
+.px .px-scroll.fade {
   -webkit-mask-image: linear-gradient(to bottom, #000 58%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 58%, transparent 100%);
 }
@@ -394,7 +394,7 @@
   left: calc(50% + 86px);
 }
 
-.px .pl {
+.px .px-plate {
   display: block;
   flex: 0 0 auto;
   transform-origin: 50% 50%;
@@ -646,7 +646,7 @@
   display: block;
 }
 
-.px .pt.fire { background: var(--fire); }
+.px .pt.px-pfire { background: var(--fire); }
 
 @keyframes pxNa { 0% { opacity: 1; transform: translateX(4px); } 100% { opacity: 0; transform: translateX(26px); } }
 @keyframes pxNb { 0% { opacity: 1; transform: translateX(4px); } 100% { opacity: 0; transform: translateX(26px); } }
@@ -876,7 +876,7 @@
   padding: 5px 9px;
 }
 
-.px .ro.ctl.part {
+.px .ro.ctl.px-part {
   box-shadow:
     0 -3px 0 0 var(--gold),
     0 3px 0 0 var(--gold),
@@ -948,7 +948,7 @@
   outline-offset: 6px;
 }
 
-.px .chip {
+.px .px-rchip {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -969,7 +969,7 @@
     0 10px 0 0 var(--sh);
 }
 
-.px .chip:active {
+.px .px-rchip:active {
   transform: translateY(5px);
 }
 
@@ -1073,7 +1073,7 @@
 }
 
 /* Liste ekranı */
-.px .card {
+.px .px-card {
   display: flex;
   align-items: stretch;
   width: 100%;
@@ -1087,7 +1087,7 @@
     3px 0 0 0 var(--ln);
 }
 
-.px .card.cur {
+.px .px-card.cur {
   box-shadow:
     0 -3px 0 0 var(--gold),
     0 3px 0 0 var(--gold),
@@ -1348,7 +1348,7 @@
 }
 
 /* Bildirim */
-.px .toast {
+.px .px-toast {
   position: absolute;
   left: 16px;
   right: 16px;
@@ -1374,8 +1374,8 @@
 
 @keyframes pxTa { 0% { transform: translateY(-70px); } 100% { transform: none; } }
 @keyframes pxTb { 0% { transform: translateY(-70px); } 100% { transform: none; } }
-.px .toast.tA { animation: pxTa 0.24s steps(4); }
-.px .toast.tB { animation: pxTb 0.24s steps(4); }
+.px .px-toast.tA { animation: pxTa 0.24s steps(4); }
+.px .px-toast.tB { animation: pxTb 0.24s steps(4); }
 
 /* Özet bölge çubuğu */
 .px .zb {
@@ -1411,7 +1411,7 @@
   flex: 0 0 auto;
 }
 
-.px .px-alt-stage.warn {
+.px .px-alt-stage.px-warn {
   box-shadow:
     0 -3px 0 0 var(--bad),
     0 3px 0 0 var(--bad),
@@ -1515,8 +1515,8 @@
   .px .px-vis-db {
     height: 46px;
   }
-  .px .px-vis-bar .pl,
-  .px .px-vis-db .pl,
+  .px .px-vis-bar .px-plate,
+  .px .px-vis-db .px-plate,
   .px .px-vis-db-cap {
     transform: scaleY(0.62);
   }
@@ -1556,7 +1556,7 @@
     overflow-x: auto;
     overflow-y: hidden;
   }
-  .px .sl.fade {
+  .px .px-scroll.fade {
     -webkit-mask-image: none;
     mask-image: none;
   }
@@ -1647,7 +1647,7 @@
   }
   .px .go,
   .px .bb,
-  .px .chip {
+  .px .px-rchip {
     height: 52px;
     font-size: 20px;
   }
@@ -1660,7 +1660,7 @@
 }
 
 @container (max-height: 605px) {
-  .px .scr {
+  .px .px-scr {
     padding-top: calc(4px + var(--sat, 0px));
     padding-bottom: 6px;
   }
@@ -1733,7 +1733,7 @@
   }
   .px .go,
   .px .bb,
-  .px .chip {
+  .px .px-rchip {
     height: 46px;
     font-size: 18px;
     box-shadow:
@@ -1752,7 +1752,7 @@
       0 6px 0 0 var(--sh);
   }
   .px .go.end,
-  .px .chip {
+  .px .px-rchip {
     box-shadow:
       0 -3px 0 0 var(--gold),
       0 3px 0 0 var(--gold),
@@ -1771,7 +1771,7 @@
 }
 
 @media (max-width: 360px) {
-  .px .scr {
+  .px .px-scr {
     padding-left: 10px;
     padding-right: 10px;
   }
@@ -1803,11 +1803,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .px .scr,
+  .px .px-scr,
   .px .ov,
   .px .win,
-  .px .toast.tA,
-  .px .toast.tB,
+  .px .px-toast.tA,
+  .px .px-toast.tB,
   .px .shA,
   .px .shB,
   .px .popA,

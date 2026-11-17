@@ -231,6 +231,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | 2026-11-17 | Sete **ROM** (%10–100, varsayılan 100) eklenir; **ROM < %90 olan set e1RM'e girmez** | Kullanıcı: "o set rom %100 kaçtı onu puanlayalım"; yarım tekrar 1RM tahminini şişirir |
 | 2026-11-17 | Dambılda tonaj iki el (`kg × tekrar × 2`); adı `Tek ` ile başlayanlar ×1 | Dambıl kilosu tek el giriliyor |
 | 2026-11-17 | Plansız idman: hareket listesi + çoklu seçim + İdmanı başlat / bitir; başlatılmazsa set ekranı açılınca ya da set kaydedilince süre kendiliğinden başlar ve bildirim çıkar | Kullanıcı: "unutsak bile … idman süresini başlatmış ol" |
+| 2026-11-17 | Pixel stillerinde sınıf adları `px-` önekli olur; global CSS'te tek başına tanımlı bir adı kullanmak yasak (`pixel-classes.test.mjs` denetler) | V13'te global `.sl` listeyi 30 px'e sıkıştırdı |
 
 ---
 

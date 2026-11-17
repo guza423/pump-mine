@@ -137,7 +137,7 @@ describe('ana ekran akışları', () => {
     await waitFor(async () => expect((await db.settings.get('restPrefs')).value).toEqual({ 'duz-bench': 195 }));
     fireEvent.click(screen.getByRole('button', { name: 'GİZLE' }));
     expect(container.querySelector('#rest-big')).toBeNull();
-    expect(container.querySelector('.chip')).toBeTruthy();
+    expect(container.querySelector('.px-rchip')).toBeTruthy();
 
     click('#log-set');
     await waitFor(() => expect(native.start).toHaveBeenCalledTimes(3));
@@ -146,8 +146,8 @@ describe('ana ekran akışları', () => {
 
     click('#tab-bugun');
     click('#tab-antrenman');
-    await waitFor(() => expect(container.querySelector('.chip')).toBeTruthy());
-    click('.chip');
+    await waitFor(() => expect(container.querySelector('.px-rchip')).toBeTruthy());
+    click('.px-rchip');
     await waitFor(() => expect(container.querySelector('#rest-big')).toBeTruthy());
     fireEvent.click(screen.getByRole('button', { name: 'GEÇ' }));
     await waitFor(async () => expect((await db.sessions.toArray())[0].rest).toBeUndefined());
@@ -157,10 +157,10 @@ describe('ana ekran akışları', () => {
     fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'Oturarak dumbbell omuz press' } });
     fireEvent.click(container.querySelector('.pk'));
     click('#pick-add');
-    expect(container.querySelectorAll('.card')).toHaveLength(2);
+    expect(container.querySelectorAll('.px-card')).toHaveLength(2);
     expect(container.querySelector('.card-del')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Oturarak dumbbell omuz press hareketini çıkar' }));
-    expect(container.querySelectorAll('.card')).toHaveLength(1);
+    expect(container.querySelectorAll('.px-card')).toHaveLength(1);
     expect(container.querySelector('.card-del')).toBeNull();
   });
 
@@ -668,7 +668,7 @@ describe('ana ekran akışları', () => {
     expect(container.querySelector('#pick-add').textContent).toBe('2 HAREKET EKLE');
     click('#pick-add');
 
-    await waitFor(() => expect(container.querySelectorAll('.card')).toHaveLength(2));
+    await waitFor(() => expect(container.querySelectorAll('.px-card')).toHaveLength(2));
     fireEvent.click(container.querySelectorAll('.card-main')[0]);
 
     const kgSlider = container.querySelector('[id^="kg-"]');

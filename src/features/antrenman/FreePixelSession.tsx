@@ -807,7 +807,7 @@ export const FreePixelSession: React.FC<Props> = ({
   // Render yardımcıları
   const renderToast = () =>
     toast ? (
-      <div className={'toast ' + (toast.n % 2 ? 'tA' : 'tB')} role="status">
+      <div className={'px-toast ' + (toast.n % 2 ? 'tA' : 'tB')} role="status">
         <span className="lbl" style={{ color: 'var(--btx)', fontSize: 13 }}>İDMAN BAŞLADI</span>
         <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--btx)' }}>{toast.t}</span>
       </div>
@@ -855,7 +855,7 @@ export const FreePixelSession: React.FC<Props> = ({
   if (scr === 'list') {
     return (
       <div className="screen px night">
-        <div className="scr">
+        <div className="px-scr">
           <div className="px-head">
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
               <span style={{ fontSize: 21, fontWeight: 700, letterSpacing: '0.04em', lineHeight: 1.1 }}>PLANSIZ ANTRENMAN</span>
@@ -901,7 +901,7 @@ export const FreePixelSession: React.FC<Props> = ({
             <span style={{ fontSize: 13, color: 'var(--mt)' }}>dokun: devam et</span>
           </div>
 
-          <div className="sl" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', marginTop: 8, padding: '4px 3px 8px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div className="px-scroll" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', marginTop: 8, padding: '4px 3px 8px', display: 'flex', flexDirection: 'column', gap: 12 }}>
             {s.items.map((it: any, k: number) => {
               const lib = exMeta(it.exId, it.name);
               const eqTxt = lib ? eqLabel(lib.eq) : 'Özel';
@@ -920,7 +920,7 @@ export const FreePixelSession: React.FC<Props> = ({
               const recent = it.sets.slice(-4).reverse();
 
               return (
-                <div key={it.id} className={'card' + (k === cur && s.items.length > 0 ? ' cur' : '')}>
+                <div key={it.id} className={'px-card' + (k === cur && s.items.length > 0 ? ' cur' : '')}>
                   <button
                     type="button"
                     className="card-main"
@@ -989,7 +989,7 @@ export const FreePixelSession: React.FC<Props> = ({
 
           <div className="px-actions" style={{ marginTop: 10 }}>
             {rest ? (
-              <button type="button" className="chip" onClick={restToLog} aria-label="Dinlenme sayacı: devam eden harekete dön">
+              <button type="button" className="px-rchip" onClick={restToLog} aria-label="Dinlenme sayacı: devam eden harekete dön">
                 <span className="nm" style={{ fontSize: 19 }}>{restTxt}</span>
                 <i style={{ position: 'absolute', left: 0, bottom: 0, height: 6, width: restPct + '%', background: 'var(--gold)' }} />
               </button>
@@ -1015,7 +1015,7 @@ export const FreePixelSession: React.FC<Props> = ({
 
     return (
       <div className="screen px night">
-        <div className="scr">
+        <div className="px-scr">
           <div className="px-head">
             <button type="button" className="ib" onClick={pickBack} aria-label="Geri: antrenman listesi">
               <svg width="22" height="22" viewBox="0 0 9 9" shapeRendering="crispEdges" aria-hidden="true">
@@ -1110,7 +1110,7 @@ export const FreePixelSession: React.FC<Props> = ({
             </div>
           ) : null}
 
-          <div className="sl" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', marginTop: 8, padding: '4px 3px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div className="px-scroll" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', marginTop: 8, padding: '4px 3px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             {pickerFiltered.list.slice(0, pickLim).map((e: any) => {
               const alreadyIn = inSesIds.includes(e.exId);
               const isOn = picked.includes(e.exId);
@@ -1226,7 +1226,7 @@ export const FreePixelSession: React.FC<Props> = ({
 
   return (
     <div className="screen px night">
-      <div className="scr">
+      <div className="px-scr">
         <div className={'px-log-inner ' + par(fxShake, 'shA', 'shB')}>
           {/* Üst başlık */}
           <div className="px-head">
@@ -1269,7 +1269,7 @@ export const FreePixelSession: React.FC<Props> = ({
               <div
                 ref={setListRef}
                 onScroll={onSetsScroll}
-                className={'sl px-sets-grid' + (hasMore && !listEnd ? ' fade' : '') + (sets.length === 0 ? ' empty' : '')}
+                className={'px-scroll px-sets-grid' + (hasMore && !listEnd ? ' fade' : '') + (sets.length === 0 ? ' px-empty' : '')}
               >
                 {rowsReversed.map(({ x, i }) => {
                   const isNewest = i === nS - 1;
@@ -1324,7 +1324,7 @@ export const FreePixelSession: React.FC<Props> = ({
             /* Pliometrik / Beceri: bugünkü giriş mantığı yeni .px kabuğunda */
             <React.Fragment>
               {isPlyoEx ? (
-                <div className={'pxb px-alt-stage' + (lastPlyoQ === 2 ? ' warn' : '')}>
+                <div className={'pxb px-alt-stage' + (lastPlyoQ === 2 ? ' px-warn' : '')}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <span className="lbl" style={{ fontSize: 12 }}>YOĞUNLUK</span>
                     <strong style={{ fontSize: 14, color: 'var(--gold)' }}>{PLYO_INT[(itemLib && itemLib.int) || 2]}</strong>
@@ -1544,7 +1544,7 @@ export const FreePixelSession: React.FC<Props> = ({
                     <div style={{ position: 'absolute', left: `${((reps - 0.5) / 30) * 100}%`, bottom: Math.round(14 + (38 * (reps - 1)) / 29) + 2, width: 0, height: 0 }}>
                       {burst(P_UP, fxRep).map((p, idx) => (
                         <div key={idx} className="rot" style={{ transform: `rotate(${p.a}deg)` }}>
-                          <i className={'pt fire ' + p.cls} />
+                          <i className={'pt px-pfire ' + p.cls} />
                         </div>
                       ))}
                     </div>
@@ -1621,7 +1621,7 @@ export const FreePixelSession: React.FC<Props> = ({
                   <span className={'nm ro-v ' + (e1okLive ? kgPop : '')} style={{ color: 'var(--gold)' }}>{e1Live}</span>
                 </div>
                 <div
-                  className={'ro ctl' + (rom < 100 ? ' part' : '')}
+                  className={'ro ctl' + (rom < 100 ? ' px-part' : '')}
                   role="slider"
                   tabIndex={0}
                   aria-label="Hareket açıklığı (ROM)"
@@ -1655,7 +1655,7 @@ export const FreePixelSession: React.FC<Props> = ({
           {/* Alt kaydet satırı */}
           <div className="px-actions">
             {rest && !restOpen ? (
-              <button type="button" className="chip" onClick={openRest} aria-label="Dinlenme sayacını büyüt">
+              <button type="button" className="px-rchip" onClick={openRest} aria-label="Dinlenme sayacını büyüt">
                 <span className="nm" style={{ fontSize: 19 }}>{restTxt}</span>
                 <i style={{ position: 'absolute', left: 0, bottom: 0, height: 6, width: restPct + '%', background: 'var(--gold)' }} />
               </button>

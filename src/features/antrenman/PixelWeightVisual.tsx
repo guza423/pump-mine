@@ -79,7 +79,7 @@ export const PixelWeightVisual: React.FC<Props> = ({ vis, eq, kg, kgPop, itemNam
             {plates.map((p, i) => (
               <i
                 key={i}
-                className={'pl ' + (i === plates.length - 1 ? kgPop : '')}
+                className={'px-plate ' + (i === plates.length - 1 ? kgPop : '')}
                 style={{ width: PL_DIM[p][0], height: PL_DIM[p][1], background: PL_COLORS[p] }}
               />
             ))}
@@ -88,7 +88,7 @@ export const PixelWeightVisual: React.FC<Props> = ({ vis, eq, kg, kgPop, itemNam
             {plates.map((p, i) => (
               <i
                 key={i}
-                className={'pl ' + (i === plates.length - 1 ? kgPop : '')}
+                className={'px-plate ' + (i === plates.length - 1 ? kgPop : '')}
                 style={{ width: PL_DIM[p][0], height: PL_DIM[p][1], background: PL_COLORS[p] }}
               />
             ))}
@@ -102,7 +102,7 @@ export const PixelWeightVisual: React.FC<Props> = ({ vis, eq, kg, kgPop, itemNam
             {Array.from({ length: nDisc }, (_, i) => (
               <i
                 key={i}
-                className={'pl ' + (i === nDisc - 1 ? kgPop : '')}
+                className={'px-plate ' + (i === nDisc - 1 ? kgPop : '')}
                 style={{ width: 9, height: dH, background: 'var(--barH)' }}
               />
             ))}
@@ -113,7 +113,7 @@ export const PixelWeightVisual: React.FC<Props> = ({ vis, eq, kg, kgPop, itemNam
             {Array.from({ length: nDisc }, (_, i) => (
               <i
                 key={i}
-                className={'pl ' + (i === nDisc - 1 ? kgPop : '')}
+                className={'px-plate ' + (i === nDisc - 1 ? kgPop : '')}
                 style={{ width: 9, height: dH, background: 'var(--barH)' }}
               />
             ))}

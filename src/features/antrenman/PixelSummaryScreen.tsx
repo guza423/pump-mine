@@ -65,13 +65,13 @@ export const PixelSummaryScreen: React.FC<Props> = ({ session, st, put, del, ope
 
   return (
     <div id="pixel-summary" className="screen px night" aria-label="Antrenman özeti">
-      <div className="scr">
+      <div className="px-scr">
         <div style={{ height: 52, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 2, padding: '0 3px', flex: '0 0 auto' }}>
           <span style={{ fontSize: 21, fontWeight: 700, letterSpacing: '.04em', lineHeight: 1.1, color: 'var(--gold)' }}>İDMAN BİTTİ</span>
           <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--mt)', letterSpacing: '.08em' }}>PLANSIZ ANTRENMAN · ÖZET</span>
         </div>
 
-        <div className="sl" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', marginTop: 8, padding: '4px 3px 8px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div className="px-scroll" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', marginTop: 8, padding: '4px 3px 8px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
             <div className="cell"><span className="k">SÜRE</span><span className="v" style={{ color: 'var(--tx)' }}>{hms(Math.round(ss.dur / 1000))}</span></div>
             <div className="cell"><span className="k">TONAJ</span><span className="v" style={{ color: 'var(--gold)' }}>{Math.round(ss.tonnage).toLocaleString('tr-TR')} kg</span></div>

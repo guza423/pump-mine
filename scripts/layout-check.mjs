@@ -60,8 +60,15 @@ async function check(page, label, screen, { session = false, tablet = false, res
       if ((rect.left < -1 || rect.right > innerWidth + 1) && !clipped(el)) errors.push(`${selector(el)}: yatay sınır dışında (${rect.left.toFixed(1)}–${rect.right.toFixed(1)})`);
     }
     // Kökün overflow:hidden olması içerik taşmasını gizlemesin.
-    for (const el of document.querySelectorAll('.scr, .sheet-body, .ses2-body, .dock, .tabbar, .s-t.now-t, .px .px-sets-box, .px .px-ro-grid')) {
+    for (const el of document.querySelectorAll('.scr, .px .px-scr, .sheet-body, .ses2-body, .dock, .tabbar, .s-t.now-t, .px .px-sets-box, .px .px-ro-grid')) {
       if (visible(el) && el.scrollWidth > el.clientWidth + 1) errors.push(`${selector(el)}: içerik yatay taşıyor (${el.scrollWidth} > ${el.clientWidth})`);
+    }
+    // Pixel listeleri ekran genişliğinde olmalı (V13'te global `.sl` sınıfı listeyi 30 px'e sıkıştırmıştı).
+    for (const el of document.querySelectorAll('.px .px-scroll, .px .addrow, .px .px-card, .px .pk')) {
+      if (!visible(el)) continue;
+      const root = el.closest('.px').getBoundingClientRect();
+      const w = el.getBoundingClientRect().width;
+      if (w < root.width * 0.7) errors.push(`${selector(el)}: pixel öğesi dar (${w.toFixed(1)} < ${(root.width * 0.7).toFixed(1)})`);
     }
     const tab = document.querySelector('.tabbar');
     const tr = tab?.getBoundingClientRect();
@@ -74,11 +81,11 @@ async function check(page, label, screen, { session = false, tablet = false, res
       }
       const sesBody = document.querySelector('.ses2-body');
       if (sesBody && sesBody.scrollTop !== 0) errors.push('.ses2-body: seans ana kabı kaydırılmış');
-      const pxScr = document.querySelector('.px .scr');
-      if (pxScr && pxScr.scrollTop !== 0) errors.push('.px .scr: pixel ekranı kaydırılmış');
+      const pxScr = document.querySelector('.px .px-scr');
+      if (pxScr && pxScr.scrollTop !== 0) errors.push('.px .px-scr: pixel ekranı kaydırılmış');
       if ((document.querySelector('.free-session #pq-0') || document.querySelector('.px #pq-0')) && !document.querySelector('#rest-big') && ![...document.querySelectorAll('.ps-r')].some(visible)) errors.push('pliometrik: seans temas sayısı görünmüyor');
       if (rest) {
-        const timer = [...document.querySelectorAll('#rest-big, .restchip, .px .chip')].find(visible);
+        const timer = [...document.querySelectorAll('#rest-big, .restchip, .px .px-rchip')].find(visible);
         const rr = timer?.getBoundingClientRect();
         if (!rr || rr.top < 0 || rr.bottom >= tr.top || rr.left < 0 || rr.right > innerWidth) errors.push('dinlenme sayacı: tamamı kaydırmadan görünmüyor');
         for (const control of timer?.querySelectorAll('button') || []) {
@@ -181,7 +188,7 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
     screen = 'seans-uzun-tablo';
     await check(page, label, screen, { session: true, rest: true });
 
-    await page.locator('.px .chip').click();
+    await page.locator('.px .px-rchip').click();
     await page.getByRole('button', { name: 'GEÇ' }).click();
     await page.getByRole('button', { name: 'Geri: antrenman listesi' }).click();
     await page.locator('#fx-add').click();
