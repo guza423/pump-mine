@@ -324,3 +324,15 @@ komple tüm uygulama biraz böyle pixel art gibi olsun istiyorum mesela ağırl�
 - Evet, düzeltmeyi Claude yaptı (`ee82981`).
 - Plansız idmanın bütün pixel ekranları gerçek tarayıcıda (393×873) tek tek açılıp ekran görüntüsüyle kontrol edildi. Hepsi düzgün: boş liste, seçici, dolu liste, set ekranı, dinlenme, gizlenmiş sayaç, set penceresi, bitirme onayı, özet.
 - Dashboard, Gözlem, Lab ve planlı oturum V13'te değişmedi; eski tasarımda kalıyorlar. Pixel dil onlara V14'te uygulanacak.
+
+### 2026-11-17 · Claude (claude.ai, PERFORMANCE projesi)
+**Kullanıcı:** "tamam oldu ama diğer tüm arayüzleri nası böyle pixel yapıcaz. mümkün mü şimdi yapmayalım ama soruyorum . önce"
+**Yanıt (öneri, karar yok):**
+- Mümkün. Önce her sekmenin pixel hali Design tuvalinde çizilip onaylanır, sonra görev yazılır.
+- Teknik yol: ortak pixel bileşenleri (panel, düğme, sürüklemeli bar, sheet, grafik) + tek jeton dosyası; `.px` kapsamı uygulama köküne taşınır; eski stiller ekran ekran kaldırılır.
+- Önerilen sıra:
+  - V14: Dashboard + sekme çubuğu + sheet'ler
+  - V15: Antrenman sekmesi, planlı oturum, plan editörü
+  - V16: Gözlem (takvim ve grafikler)
+  - V17: Lab
+- Zor kısımlar: Lab'daki biyomekanik animasyonlar, grafikler, uzun metinlerin okunurluğu.
