@@ -345,3 +345,11 @@ komple tüm uygulama biraz böyle pixel art gibi olsun istiyorum mesela ağırl�
 - **Hafif:** pixel font yok; büyük sayılar ve başlıklar Saira, metinler IBM Plex Sans. Pixel his yalnızca çentikli kenarlıklarda, segmentli barlarda ve efektlerde.
 
 Her iki font da uygulamada zaten paketli. Seçimden sonra uygulamadaki `pixel.css` font jetonları buna göre değişecek.
+
+### 2026-11-17 · Claude (claude.ai, PERFORMANCE projesi · Design tuvali)
+**Kullanıcı** (ekran görüntüsü: Dengeli dozda set kutucukları): "şu setler kısmı belirgin olsun ve set eklenince buraya eklediği belli olsun animasyonla. set3 kaydet gibi yazı değilde "set 3 bitti" yazsın. ve buton rengi son tekrar hızı ile aynı renk olsun."
+**Yapılan (konsept; uygulamaya henüz geçmedi):**
+- Setler kutusu belirginleşti: başlık altın, kutucuklar daha açık zeminli ve çerçeveli, `kilo×tekrar` 17 px. RPE, kutucuğun sağ üst köşesinde hız renginde küçük bir rozet.
+- Set ekleme animasyonu: kaydet düğmesinden `kilo×tekrar` yazan altın bir blok Setler kutusuna uçar. Yeni kutucuk altın parlayarak yerine oturur, kutunun çerçevesi bir kez yanar ve iniş sesi çalar. Dinlenme ekranı ancak bu iniş bittikten sonra (~0,9 sn) açılır.
+- Düğme metni `SET n BİTTİ`; dinlenme kartında da `SET n BİTTİ`.
+- Düğmenin rengi seçili son tekrar hızının rengi (Aynı yeşil … Zar zor kırmızı).
