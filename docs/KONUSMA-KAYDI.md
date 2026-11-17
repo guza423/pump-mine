@@ -408,5 +408,5 @@ Her iki font da uygulamada zaten paketli. Seçimden sonra uygulamadaki `pixel.cs
 **Kullanıcı:** "buda iyi . sıradakine geçek. bide bu lab kısmına gelince ordaki öğretilen şeyler animasyonlar falan . pixel art olamaz ya demi onu nası ypaarız bilmiom onu zamanı gelince bi düşünelim"
 **Yapılan:**
 - **V16 uygulandı** (`docs/gorevler/V16-pixel-gozlem.md`): Gözlem sekmesi pixel temaya geçti. Değişenler: takvim, seçili gün paneli, ay özeti (tek panelde istatistik satırları), yorgunluk kartı (pixel halka + tam genişlik çubuklar), uyarılar, 1RM grafiği (kare noktalar), haftalık yük ve sheet'i. Sadece stil değişti.
-- Commit: `HASH`. Kontroller: `npm test` (91 test), lint, `tsc -b`, build, `test:layout` (11 boyut) geçti.
+- Commit: `cc057e8`. Kontroller: `npm test` (91 test), lint, `tsc -b`, build, `test:layout` (11 boyut) geçti.
 - Lab sorusuna yanıt: animasyonlar pixel olabilir. Üç yol var: kare kare sprite, vektörü pixel paletiyle çizmek, ya da yalnızca çerçeveyi pixel yapmak. Karar V17'de verilecek; açık soru olarak `docs/PROJE.md` §8'e yazıldı.
