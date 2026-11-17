@@ -315,5 +315,5 @@ komple tüm uygulama biraz böyle pixel art gibi olsun istiyorum mesela ağırl�
 - Tekrarlanmasın diye iki koruma eklendi:
   - `src/styles/pixel-classes.test.mjs`: pixel.css'te global stillerde tek başına tanımlı bir sınıf adı kullanılırsa test düşer.
   - `scripts/layout-check.mjs`: pixel listeleri, kartlar, "Hareket ekle" satırı ve seçici satırları ekran genişliğinin %70'inden darsa layout düşer.
-- `npm test` (15 dosya, 91 test), lint, build ve `test:layout` (11 boyut) geçti.
+- `npm test` (15 dosya, 91 test), lint, build ve `test:layout` (11 boyut) geçti. Commit: `ee82981`.
 
