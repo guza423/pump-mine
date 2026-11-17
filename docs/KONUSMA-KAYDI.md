@@ -395,5 +395,5 @@ Her iki font da uygulamada zaten paketli. Seçimden sonra uygulamadaki `pixel.cs
 - **V14 uygulandı (Dashboard + alt sekme çubuğu):**
   - `px-theme.css` tema katmanı + `.pxt` kökü; pixel halka; pixel ikonlar (`PxIcon`).
   - Sadece stil değişti; DOM, kimlikler ve davranış aynı.
-- Kontroller: `npm test` (15 dosya, 91 test), lint, build, `test:layout` (11 boyut) geçti. Gerçek tarayıcıda Dashboard dört durumda, set ekranı uçuş/iniş/dinlenme anlarında ekran görüntüsüyle kontrol edildi.
+- Commit: `cb32a9b`. Kontroller: `npm test` (15 dosya, 91 test), lint, build, `test:layout` (11 boyut) geçti. Gerçek tarayıcıda Dashboard dört durumda, set ekranı uçuş/iniş/dinlenme anlarında ekran görüntüsüyle kontrol edildi.
 
