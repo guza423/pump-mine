@@ -362,3 +362,14 @@ Her iki font da uygulamada zaten paketli. Seçimden sonra uygulamadaki `pixel.cs
   - Pixel font (Press Start 2P) yalnızca 8'in katı boyutlarda kullanılıyor: kilo 40, tekrar 24, dinlenme 64/32, düğmeler 16 px. Böylece pikseller tam oturuyor.
   - Dengeli dozda başlıklar artık Saira (net). Bulanıklığın nedeni Pixelify Sans'ın keyfi boyutlarda yumuşak çizilmesiydi.
 - Özet ekranındaki `İDMANA DÖN` düğmesi 16 px pixel fonta sığsın diye `GERİ DÖN` oldu.
+
+### 2026-11-17 · Claude (claude.ai, PERFORMANCE projesi)
+**Kullanıcı:** "tamam mük oldu. dengeli doz kalsın. şimdi yavaştan biz her tarafı böyle pixel art yapalım. herşey korunucak unutma . herşey aynı pixel art olucak sadece stil değişicek ."
+**Yapılan / karar:**
+- Doz: **Dengeli**.
+- Son set ekranı değişiklikleri (doz, belirgin setler, iniş animasyonu, `SET n BİTTİ` + hız rengi, dinlenme çubuğu) uygulama için görev olarak yazıldı.
+- Referans güncellendi: `reference/v13-pixel/Main.dc.html`.
+- Tüm uygulamanın pixel'e geçişi başlıyor: yalnızca stil değişecek, her özellik korunacak. Sıra Dashboard ile başlıyor; önce tuvalde tasarım, onaydan sonra V14 görevi.
+
+**Kayıt:** `docs/gorevler/V13.1-dengeli-doz-set-animasyon.md`
+

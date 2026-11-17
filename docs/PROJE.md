@@ -232,6 +232,9 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | 2026-11-17 | Dambılda tonaj iki el (`kg × tekrar × 2`); adı `Tek ` ile başlayanlar ×1 | Dambıl kilosu tek el giriliyor |
 | 2026-11-17 | Plansız idman: hareket listesi + çoklu seçim + İdmanı başlat / bitir; başlatılmazsa set ekranı açılınca ya da set kaydedilince süre kendiliğinden başlar ve bildirim çıkar | Kullanıcı: "unutsak bile … idman süresini başlatmış ol" |
 | 2026-11-17 | Pixel stillerinde sınıf adları `px-` önekli olur; global CSS'te tek başına tanımlı bir adı kullanmak yasak (`pixel-classes.test.mjs` denetler) | V13'te global `.sl` listeyi 30 px'e sıkıştırdı |
+| 2026-11-17 | **Dengeli pixel dozu:** Press Start 2P yalnızca büyük sayılarda ve büyük düğmelerde, yalnızca 8'in katı boyutlarda; başlıklar Saira, metin ve küçük sayılar IBM Plex Sans; Pixelify Sans kalkar | Kullanıcı: "yazılar okunmuyor … daha düzgün pikseller olsun"; "dengeli doz kalsın" |
+| 2026-11-17 | Plansız set düğmesi `SET n BİTTİ`, rengi son tekrar hızının rengi; dinlenme sürerken düğme yerine dinlenme çubuğu (iptal büyük sayaçtan) | Kullanıcı isteği |
+| 2026-11-17 | Pixel dil tüm uygulamaya yayılacak: **yalnızca stil değişir, her özellik ve akış korunur**; sekme sekme, önce tuvalde tasarım | Kullanıcı: "herşey korunucak … sadece stil değişicek" |
 
 ---
 

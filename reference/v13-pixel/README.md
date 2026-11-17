@@ -24,6 +24,6 @@ Dosya bir "Design Component" (`.dc.html`). Tuvalin kendi çalıştırıcısı (`
 - `LIB`, varsayılan kilolar ve örnek setler **demo verisidir**. Uygulamada gerçek kütüphane (`src/lib/data/exlib.ts`) ve kullanıcının kendi geçmişi kullanılır.
 - Konseptteki yorgunluk özeti yalnızca bu idmanın payıdır. Uygulamada mevcut `fatigue: { pre, post }` ve `recoveryHours()` kullanılır (bkz. görev dosyası §2.4).
 - RIR 5+ için RPE konseptte `≤5` görünür; uygulamada `training.ts` eşlemesi (`Aynı = 6`) geçerlidir.
-- Game Boy teması ve tasarım ayarları (Tweaks) uygulamaya girmez.
+- Game Boy teması ve tasarım ayarları (Tweaks) uygulamaya girmez. `doz` ayarından yalnızca **Dengeli** (`.d2`) uygulanır; `ekran` ayarı demo içindir.
 
-Uygulanacak görev: `docs/gorevler/V13-pixel-plansiz-idman.md`. Görev dosyası bu referansla çelişirse görev dosyası geçerlidir.
+Uygulanan görevler: `docs/gorevler/V13-pixel-plansiz-idman.md`, `docs/gorevler/V13.1-dengeli-doz-set-animasyon.md`. Görev dosyası bu referansla çelişirse görev dosyası geçerlidir.
