@@ -378,3 +378,22 @@ Her iki font da uygulamada zaten paketli. Seçimden sonra uygulamadaki `pixel.cs
   - Öğelerin hepsi ve metinleri aynı kaldı: hesap düğmesi, misafir yedek uyarısı, yorgunluk halkası + bölge + kırılım, uyku 5–9, kısa uyku uyarısı, plan/oturum kartı (4 durum), bu hafta şeridi, güç ve öğrenme hedefleri, hedef ekle, alt sekme çubuğu.
   - Halka 24 kare segmentli; sayılar Press Start 16/24; ikonlar pixel çizim.
   - Onaydan sonra V14 görevi yazılacak.
+
+### 2026-11-17 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** "Tamam dashboardu yapalım bunu sen mi yapcan yoksa agente mi verelim"
+**Yanıt:** Claude'un yapması önerildi. Gerekçe: görsel doğrulama (gerçek tarayıcıda ekran görüntüsü) ve ilk pixel sekmede ortak temelin sağlam kurulması. V13.1'in başka bir agent'ta olup olmadığı soruldu.
+
+**Kullanıcı:** "Yok vermedim. Basit bişi ise sen yap ozmn"
+**Yapılan:**
+- **V13.1 uygulandı:**
+  - Dengeli doz: Press Start yalnızca 8'in katı boyutlarda; başlıklar Saira Variable, metin IBM Plex Sans; Pixelify Sans paketten kaldırıldı.
+  - Setler kutusu belirgin, RPE rozeti.
+  - Set iniş animasyonu: uçan blok, kutucuk inişi, çerçeve parlaması, ses; dinlenme ekranı 900 ms sonra açılır.
+  - `SET n BİTTİ` düğmesi hız renginde.
+  - Dinlenme sürerken düğme yerine dinlenme çubuğu (`.px-restbar`); iptal büyük sayaçtan.
+  - Testler ve `layout-check` yeni akışa uyarlandı.
+- **V14 uygulandı (Dashboard + alt sekme çubuğu):**
+  - `px-theme.css` tema katmanı + `.pxt` kökü; pixel halka; pixel ikonlar (`PxIcon`).
+  - Sadece stil değişti; DOM, kimlikler ve davranış aynı.
+- Kontroller: `npm test` (15 dosya, 91 test), lint, build, `test:layout` (11 boyut) geçti. Gerçek tarayıcıda Dashboard dört durumda, set ekranı uçuş/iniş/dinlenme anlarında ekran görüntüsüyle kontrol edildi.
+

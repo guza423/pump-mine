@@ -33,6 +33,8 @@ import '../styles/log.css';
 import '../styles/mobile.css';
 import '../styles/v7.css';
 import '../styles/pixel.css';
+import '../styles/px-theme.css';
+import { PxIcon } from './PxIcon';
 
 /* ================= PERFORMANCE · son kullanıcı uygulaması ================= */
 const TABS2 = [
@@ -105,7 +107,21 @@ function SheetFrame({ title, onClose, children, size, z, head, top }) {
     </div>
   );
 }
-function Ring({ score, zone, size = 76, label }) {
+function Ring({ score, zone, size = 76, label, pixel = false }) {
+  if (pixel) {
+    // V14 · pixel halka: 24 kare segment, dolanlar bölge renginde
+    const N = 24, lit = Math.round(Math.min(1, Math.max(0, score / 100)) * N);
+    const half = size / 2, seg = Math.max(6, Math.round(size / 11)), r = half - seg / 2 - 2;
+    return (
+      <span className="px-ring" role="img" aria-label={label} style={{ width: size, height: size }}>
+        {Array.from({ length: N }, (_, i) => {
+          const a = ((-90 + (i * 360) / N) * Math.PI) / 180;
+          return <i key={i} style={{ left: Math.round(half + r * Math.cos(a) - seg / 2), top: Math.round(half + r * Math.sin(a) - seg / 2), width: seg, height: seg, background: i < lit ? zone.c : undefined }} />;
+        })}
+        <b className="px-ring-n" style={{ color: zone.c }}>{Math.round(score)}</b>
+      </span>
+    );
+  }
   const r = 30, L = 2 * Math.PI * r;
   return (
     <svg viewBox="0 0 76 76" width={size} height={size} className="ring" role="img" aria-label={label}>
@@ -254,19 +270,19 @@ function TodayScreen({ st, put, openSheet, startSession, newPlan, practiceSkill,
   let perfCount = 0;
 
   return (
-    <div className="screen">
+    <div className="screen pxt">
       <ScreenHead title="Dashboard" sub={fullDate(Date.now())} right={<AccountChip acct={acct} onClick={() => openSheet('account', {})} />} />
       <div className="scr fit">
         {acct.mode === 'guest' && st.sessions.length ? (
           <button type="button" id="guest-banner" className="guest-banner" onClick={() => openSheet('account', {})}>
-            <Icon name="cloud" size={16} />
+            <PxIcon name="cloud" size={18} />
             <span>Kayıtlar yalnızca bu telefonda · <b>Yedekle</b></span>
-            <Icon name="right" size={14} />
+            <PxIcon name="right" size={14} />
           </button>
         ) : null}
         <section className="ready">
           <button type="button" id="ready-ring" className="ready-ring" onClick={() => openSheet('fatigue', {})} aria-label="Yorgunluk ayrıntısı">
-            <Ring score={fz.score} zone={fz.zone} label={'Yorgunluk ' + Math.round(fz.score)} />
+            <Ring pixel size={104} score={fz.score} zone={fz.zone} label={'Yorgunluk ' + Math.round(fz.score)} />
           </button>
           <div className="ready-r">
             <div className="ready-top">
@@ -293,14 +309,14 @@ function TodayScreen({ st, put, openSheet, startSession, newPlan, practiceSkill,
           <section className="hero-card live">
             <div className="hc-top"><span className="live-dot" /><span className="eyebrow fire">{active.ready ? 'Hazır' : 'Antrenman sürüyor'}</span><span className="hc-when mono">{active.ready ? 'başlamadı' : active.items.reduce((a, it) => a + it.sets.length, 0) + ' set'}</span></div>
             <h3>{sessionName(active)}</h3>
-            <button type="button" id="resume-btn" className="btn fire full" onClick={() => goTab('antrenman')}>Devam et <Icon name="right" /></button>
+            <button type="button" id="resume-btn" className="btn fire full" onClick={() => goTab('antrenman')}>Devam et <PxIcon name="right" size={16} /></button>
           </section>
         ) : next && next.off === 0 ? (
           <section className="hero-card">
             <div className="hc-top"><span className="eyebrow">Bugün</span><span className="hc-when mono">~{dayMinutes(next.day)} dk</span></div>
             <h3>{next.day.name}</h3>
             <p className="hc-sub">{next.day.items.slice(0, 3).map((i) => i.name).join(' · ')}{next.day.items.length > 3 ? ' +' + (next.day.items.length - 3) : ''}</p>
-            <button type="button" id="start-next" className="btn primary full" onClick={() => startSession(next.program, next.day)}><Icon name="play" size={14} /> Başlat</button>
+            <button type="button" id="start-next" className="btn primary full" onClick={() => startSession(next.program, next.day)}><PxIcon name="play" size={16} /> Başlat</button>
           </section>
         ) : plans.length > 0 ? (
           <section className="hero-card">
@@ -398,7 +414,7 @@ function TodayScreen({ st, put, openSheet, startSession, newPlan, practiceSkill,
                 <span className="goal2-n">Hedef ekle</span>
                 <span className="goal-add-hint">Güç (1RM) ya da yeni bir beceri hedefi belirle.</span>
               </span>
-              <span className="goal-add-plus"><Icon name="plus" size={18} /></span>
+              <span className="goal-add-plus"><PxIcon name="plus" size={18} /></span>
             </button>
           ) : (
             <button type="button" id="goal-add" className="goal-add-sm" onClick={() => openSheet('goal', {})}>+ Hedef ekle</button>
@@ -2755,7 +2771,7 @@ function App() {
           <nav className="tabbar tb4" aria-label="Ana gezinme" inert={acct.migrating || acct.busy}>
             {TABS2.map((t) => (
               <button key={t.id} id={'tab-' + t.id} type="button" className={'tab' + (t.id === tab ? ' on' : '')} aria-label={t.label} aria-current={t.id === tab ? 'page' : undefined} onClick={() => pick(t.id)}>
-                <span className="tab-ic"><Icon name={t.icon} size={20} />{t.id === 'antrenman' && active ? <i className="tab-live" /> : null}</span>
+                <span className="tab-ic"><PxIcon name={t.icon} size={24} />{t.id === 'antrenman' && active ? <i className="tab-live" /> : null}</span>
                 <span className="tab-l">{t.label}</span>
               </button>
             ))}

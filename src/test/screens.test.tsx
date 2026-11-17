@@ -120,7 +120,8 @@ describe('ana ekran akışları', () => {
     expect(container.querySelector('[id^="kg-"]').getAttribute('aria-valuenow')).toBe('20');
     expect(container.querySelector('[id^="reps-"]').getAttribute('aria-valuenow')).toBe('10');
     expect(container.querySelector('.tgt2, .exprog, .exnav, .srow.plan, .srow.now, .spwrap, .rpe-chips')).toBeNull();
-    expect(container.querySelector('#log-set').textContent).toBe('SET 1 · KAYDET');
+    expect(container.querySelector('#log-set').textContent).toBe('SET 1 BİTTİ');
+    expect(container.querySelector('#log-set').className).toContain('px-lv1');
     expect(screen.getByText('İlk setini kaydet')).toBeTruthy();
 
     click('#log-set');
@@ -137,7 +138,14 @@ describe('ana ekran akışları', () => {
     await waitFor(async () => expect((await db.settings.get('restPrefs')).value).toEqual({ 'duz-bench': 195 }));
     fireEvent.click(screen.getByRole('button', { name: 'GİZLE' }));
     expect(container.querySelector('#rest-big')).toBeNull();
-    expect(container.querySelector('.px-rchip')).toBeTruthy();
+    // V13.1: dinlenme sürerken kaydet düğmesi yerine dinlenme çubuğu; iptal büyük sayaçtan
+    expect(container.querySelector('#log-set')).toBeNull();
+    expect(container.querySelector('.px-restbar')).toBeTruthy();
+    click('.px-restbar');
+    await waitFor(() => expect(container.querySelector('#rest-big')).toBeTruthy());
+    fireEvent.click(screen.getByRole('button', { name: 'GEÇ' }));
+    await waitFor(() => expect(container.querySelector('#log-set')).toBeTruthy());
+    expect(container.querySelector('#log-set').textContent).toBe('SET 2 BİTTİ');
 
     click('#log-set');
     await waitFor(() => expect(native.start).toHaveBeenCalledTimes(3));
@@ -518,7 +526,7 @@ describe('ana ekran akışları', () => {
     click('#pq-1');
     click('#log-set');
     click('#log-set');
-    fireEvent.click(screen.getByRole('button', { name: 'GİZLE' }));
+    fireEvent.click(screen.getByRole('button', { name: 'GEÇ' }));
     fireEvent.click(screen.getByRole('button', { name: 'Set 1: 5 temas. Ayrıntı' }));
     expect(within(screen.getByRole('dialog', { name: 'Set ayrıntısı' })).getByText('Biraz düştü')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'KAPAT' }));
@@ -676,7 +684,7 @@ describe('ana ekran akışları', () => {
 
     // Set 1: 20 kg
     click('#log-set');
-    fireEvent.click(screen.getByRole('button', { name: 'GİZLE' }));
+    fireEvent.click(screen.getByRole('button', { name: 'GEÇ' }));
 
     // Set 2: 22.5 kg, Belirgin hız (RIR 2 -> 10+2=12) ve ROM %85
     fireEvent.keyDown(kgSlider, { key: 'ArrowRight' });

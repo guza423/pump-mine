@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { PxIcon } from '../../app/PxIcon';
 import React, { useState } from 'react';
 import { Icon, Switch } from '../lab/Cns';
 import { BackupPanel, exportBackup } from '../programlar/BackupPanel';
@@ -11,7 +12,7 @@ function AccountChip({ acct, onClick }) {
   const label = acct.mode === 'guest' ? 'Misafir: kayıtlar yalnızca bu telefonda' : acct.pending ? acct.pending + ' kayıt buluta gönderilmeyi bekliyor' : acct.online ? 'Tüm kayıtlar bulutta' : 'Çevrimdışı: kayıtlar bu telefonda hazır';
   return (
     <button type="button" id="account-btn" className={'acct-chip ' + state} onClick={onClick} aria-label={'Hesap. ' + label} title={label}>
-      <Icon name={acct.mode === 'guest' ? 'user' : 'cloud'} size={17} />
+      <PxIcon name={acct.mode === 'guest' ? 'user' : 'cloud'} size={22} />
       <i className="acct-dot" />
     </button>
   );

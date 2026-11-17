@@ -1,0 +1,414 @@
+/* ================= V14 · Pixel tema katmanı =================
+   Var olan ekranları YALNIZCA görünüm olarak pixel'e çevirir: DOM, kimlikler, metinler ve davranış aynı kalır.
+   - `.pxt` kökü: pixel'e geçmiş ekranlar (V14: Dashboard). Sıradaki sekmeler kök div'ine `pxt` ekleyerek katılır.
+   - Alt sekme çubuğu (`.tabbar`) bütün uygulamada pixel.
+   Dengeli doz (V13.1): Press Start 2P yalnızca büyük sayı ve büyük düğmede, yalnızca 8'in katı boyutlarda;
+   başlıklar Saira, metin IBM Plex Sans.
+   Not: Bu dosya global sınıfları bilerek `.pxt` altında yeniden çizer; `pixel-classes.test.mjs` yalnızca pixel.css'i denetler. */
+
+.pxt,
+.tabbar {
+  --px-f-big: 'Press Start 2P', monospace;
+  --px-f-head: 'Saira Variable', 'Saira', system-ui, sans-serif;
+  --px-f-body: 'IBM Plex Sans', system-ui, sans-serif;
+  --px-bg: #100e1b;
+  --px-pn: #1b1830;
+  --px-pn2: #252140;
+  --px-ln: #3c3660;
+  --px-tx: #f5f1e8;
+  --px-mt: #aaa4ca;
+  --px-fire: #ff5b3a;
+  --px-fireD: #a32e1a;
+  --px-gold: #ffc53d;
+  --px-dim: #302b4c;
+  --px-btx: #160f0c;
+  --px-sh: #07060d;
+  --px-sk: #4fa8ff;
+}
+
+/* ---------- kök ---------- */
+.pxt {
+  --ok: #52e07c;
+  --warn: #ffc53d;
+  --bad: #ff3b4e;
+  font-family: var(--px-f-body);
+  color: var(--px-tx);
+  background-color: var(--px-bg);
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 12px 12px;
+}
+.pxt .mono { font-family: var(--px-f-body); font-variant-numeric: tabular-nums; }
+.pxt .px-icon { display: block; flex: none; }
+
+/* ---------- başlık ---------- */
+.pxt .shead { background: transparent; border-bottom: 0; box-shadow: none; }
+.pxt .shead h1 {
+  font-family: var(--px-f-head);
+  font-stretch: normal;
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.pxt .shead-sub { font-size: 14px; color: var(--px-mt); }
+.pxt .acct-chip {
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 0;
+  margin: 3px;
+  color: var(--px-tx);
+  background: var(--px-pn);
+  box-shadow: 0 -3px 0 0 var(--px-ln), 0 3px 0 0 var(--px-ln), -3px 0 0 0 var(--px-ln), 3px 0 0 0 var(--px-ln);
+}
+.pxt .acct-chip.ok, .pxt .acct-chip.pending { color: var(--px-tx); }
+.pxt .acct-dot {
+  right: -3px;
+  bottom: -3px;
+  width: 10px;
+  height: 10px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: 0 0 0 3px var(--px-bg);
+}
+.pxt .acct-chip.ok .acct-dot { background: var(--ok); }
+.pxt .acct-chip.pending .acct-dot { background: var(--px-gold); animation: pxtBlink 1s steps(2) infinite; }
+.pxt .acct-chip.guest .acct-dot { background: var(--px-gold); }
+.pxt .acct-chip.offline .acct-dot { background: var(--px-mt); }
+.pxt .acct-chip:focus-visible { outline: 3px solid var(--px-gold); outline-offset: 4px; }
+
+.pxt .guest-banner {
+  grid-template-columns: 18px minmax(0, 1fr) 14px;
+  gap: 10px;
+  min-height: 48px;
+  margin: 3px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 0;
+  font-size: 14px;
+  color: var(--px-tx);
+  background: #2a2316;
+  box-shadow: 0 -3px 0 0 var(--px-gold), 0 3px 0 0 var(--px-gold), -3px 0 0 0 var(--px-gold), 3px 0 0 0 var(--px-gold);
+}
+.pxt .guest-banner .px-icon:first-child { color: var(--px-gold); }
+.pxt .guest-banner b { color: var(--px-gold); font-weight: 700; }
+
+/* ---------- ortak pixel kartlar ---------- */
+.pxt .ready,
+.pxt .hero-card,
+.pxt .tcard,
+.pxt .skill-card {
+  border: 0;
+  border-radius: 0;
+  margin: 3px;
+  background: var(--px-pn);
+  box-shadow: 0 -3px 0 0 var(--px-ln), 0 3px 0 0 var(--px-ln), -3px 0 0 0 var(--px-ln), 3px 0 0 0 var(--px-ln);
+}
+.pxt .eyebrow {
+  font-family: var(--px-f-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--px-gold);
+}
+.pxt .eyebrow.fire { color: var(--px-fire); }
+.pxt .eyebrow.skill { color: var(--px-sk); }
+.pxt h3 { font-family: var(--px-f-head); font-stretch: normal; font-weight: 700; }
+
+/* ---------- yorgunluk kartı ---------- */
+.pxt .ready {
+  grid-template-columns: 104px minmax(0, 1fr);
+  gap: 12px 14px;
+  padding: 14px;
+}
+.pxt .ready-r { display: contents; }
+.pxt .ready-ring { grid-column: 1; grid-row: 1 / span 2; border-radius: 0; }
+.pxt .ready-ring:focus-visible { outline: 3px solid var(--px-gold); outline-offset: 4px; }
+.pxt .ready-top { grid-column: 2; grid-row: 1; align-self: end; flex-wrap: wrap; gap: 8px; }
+.pxt .ready-parts { grid-column: 2; grid-row: 2; align-self: start; flex-direction: column; gap: 4px; font-size: 14px; color: var(--px-mt); }
+.pxt .ready-parts b { color: var(--px-tx); font-weight: 700; }
+.pxt .ready-parts .bad b { color: var(--bad); }
+.pxt .ready-parts .ask b { color: var(--px-gold); }
+.pxt .sleep-row { grid-column: 1 / -1; grid-row: 3; gap: 9px; margin: 0; }
+.pxt .ready-warn { grid-column: 1 / -1; grid-row: 4; }
+.pxt .ready-k {
+  font-family: var(--px-f-head);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.pxt .zone-pill {
+  font-family: var(--px-f-body);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 4px 9px;
+  border: 0;
+  border-radius: 0;
+  background: var(--px-pn2);
+  box-shadow: inset 0 0 0 2px currentColor;
+}
+.px-ring { position: relative; display: block; }
+.px-ring i { position: absolute; display: block; background: var(--px-dim, #302b4c); }
+.px-ring-n {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Press Start 2P', monospace;
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 1;
+  -webkit-font-smoothing: none;
+  text-rendering: optimizeSpeed;
+}
+.pxt .sleep-k {
+  min-width: 0;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--px-mt);
+}
+.pxt .sleep-row .sl {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+  height: 44px;
+  margin: 0 2px;
+  border: 0;
+  border-radius: 0;
+  font-family: var(--px-f-big);
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--px-tx);
+  background: var(--px-pn2);
+  -webkit-font-smoothing: none;
+  box-shadow: 0 -3px 0 0 var(--px-ln), 0 3px 0 0 var(--px-ln), -3px 0 0 0 var(--px-ln), 3px 0 0 0 var(--px-ln);
+}
+.pxt .sleep-row .sl.on {
+  color: var(--px-btx);
+  background: var(--px-gold);
+  box-shadow: 0 -3px 0 0 var(--px-gold), 0 3px 0 0 var(--px-gold), -3px 0 0 0 var(--px-gold), 3px 0 0 0 var(--px-gold);
+}
+.pxt .sleep-row .sl:focus-visible { outline: 3px solid var(--px-gold); outline-offset: 4px; }
+.pxt .sleep-u { font-size: 13px; color: var(--px-mt); }
+.pxt .ready-warn {
+  font-size: 13px;
+  color: var(--px-tx);
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 0;
+  background: #2e1620;
+  box-shadow: inset 4px 0 0 0 var(--bad);
+}
+
+/* ---------- plan / oturum kartı ---------- */
+.pxt .hero-card { gap: 12px; padding: 16px; }
+.pxt .hero-card.live {
+  background: #2a1a1c;
+  box-shadow: 0 -3px 0 0 var(--px-fire), 0 3px 0 0 var(--px-fire), -3px 0 0 0 var(--px-fire), 3px 0 0 0 var(--px-fire);
+}
+.pxt .hero-card h3 { font-size: 23px; }
+.pxt .hc-when { font-size: 14px; font-weight: 700; color: var(--px-tx); }
+.pxt .hc-sub { font-size: 14px; color: var(--px-mt); }
+.pxt .hc-actions { display: flex; flex-direction: column; gap: 20px; padding-bottom: 10px; }
+.pxt .live-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--px-fire);
+  animation: pxtBlink 1s steps(2) infinite;
+}
+
+/* ---------- düğmeler ---------- */
+.pxt .btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 56px;
+  margin: 4px 4px 10px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 0;
+  font-family: var(--px-f-big);
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  -webkit-font-smoothing: none;
+  text-rendering: optimizeSpeed;
+  color: var(--px-tx);
+  background: var(--px-pn2);
+  box-shadow: 0 -4px 0 0 var(--px-ln), 0 4px 0 0 var(--px-ln), -4px 0 0 0 var(--px-ln), 4px 0 0 0 var(--px-ln), 0 10px 0 0 var(--px-sh);
+  transition: none;
+}
+.pxt .btn:active { transform: translateY(5px); }
+.pxt .btn.full { width: calc(100% - 8px); }
+.pxt .btn.primary,
+.pxt .btn.fire {
+  color: var(--px-btx);
+  background: var(--px-fire);
+  box-shadow: 0 -4px 0 0 var(--px-fire), 0 4px 0 0 var(--px-fire), -4px 0 0 0 var(--px-fire), 4px 0 0 0 var(--px-fire), 0 10px 0 0 var(--px-fireD);
+}
+.pxt .btn:focus-visible { outline: 3px solid var(--px-gold); outline-offset: 6px; }
+.pxt .btn.sm {
+  min-height: 44px;
+  margin: 3px;
+  padding: 0 16px;
+  font-family: var(--px-f-head);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  -webkit-font-smoothing: auto;
+  box-shadow: 0 -3px 0 0 var(--px-ln), 0 3px 0 0 var(--px-ln), -3px 0 0 0 var(--px-ln), 3px 0 0 0 var(--px-ln);
+}
+.pxt .btn.sm:active { transform: none; background: var(--px-ln); }
+.pxt .skill-go.btn.sm {
+  color: var(--px-sk);
+  box-shadow: 0 -3px 0 0 var(--px-sk), 0 3px 0 0 var(--px-sk), -3px 0 0 0 var(--px-sk), 3px 0 0 0 var(--px-sk);
+}
+
+/* ---------- bu hafta ---------- */
+.pxt .tcard { gap: 12px; padding: 14px; }
+.pxt .tcard-k { font-size: 14px; color: var(--px-tx); }
+.pxt .week-row { gap: 7px; padding: 3px; }
+.pxt .wd {
+  gap: 7px;
+  padding: 9px 0 10px;
+  border: 0;
+  border-radius: 0;
+  background: var(--px-pn2);
+  box-shadow: none;
+}
+.pxt .wd-k { font-size: 12px; font-weight: 600; letter-spacing: 0; color: var(--px-mt); }
+.pxt .wd-d {
+  font-family: var(--px-f-big);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--px-tx);
+  -webkit-font-smoothing: none;
+}
+.pxt .wd-dot { width: 10px; height: 10px; margin: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.pxt .wd.done { background: #183526; }
+.pxt .wd.done .wd-dot { background: var(--ok); box-shadow: none; }
+.pxt .wd.plan .wd-dot { border: 0; box-shadow: inset 0 0 0 2px var(--px-gold); }
+.pxt .wd.missed .wd-dot { height: 3px; margin: 3px 0 4px; border: 0; background: var(--bad); }
+.pxt .wd.today { box-shadow: 0 -3px 0 0 var(--px-gold), 0 3px 0 0 var(--px-gold), -3px 0 0 0 var(--px-gold), 3px 0 0 0 var(--px-gold); }
+.pxt .wd.today .wd-k { color: var(--px-gold); }
+
+/* ---------- hedefler ---------- */
+.pxt .goals-sec { gap: 14px; }
+.pxt .sec2-h { padding: 0 3px; }
+.pxt .sec2-h .eyebrow { color: var(--px-gold); }
+.pxt .sec2-h .mono { font-size: 14px; color: var(--px-mt); }
+.pxt .goal2 { gap: 12px; padding: 14px; }
+.pxt .goal2-l { gap: 7px; }
+.pxt .goal2-n, .pxt .skill-name {
+  font-family: var(--px-f-head);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.pxt .goal2-v { font-size: 13px; color: var(--px-mt); }
+.pxt .goal2-v b {
+  font-family: var(--px-f-big);
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--px-tx);
+  -webkit-font-smoothing: none;
+}
+.pxt .goal2-hint { font-size: 12px; color: var(--px-mt); }
+.pxt .spark-l { stroke: var(--px-fire); stroke-width: 3; stroke-linejoin: miter; stroke-linecap: square; shape-rendering: crispEdges; }
+.pxt .spark-d { fill: var(--px-gold); }
+.pxt .spark-goal { stroke: var(--px-gold); stroke-dasharray: 4 4; shape-rendering: crispEdges; }
+.pxt .goal-bar {
+  height: 10px;
+  border-radius: 0;
+  background: repeating-linear-gradient(90deg, var(--px-dim) 0 6px, transparent 6px 8px);
+}
+.pxt .goal-bar span {
+  border-radius: 0;
+  background: repeating-linear-gradient(90deg, var(--px-fire) 0 6px, transparent 6px 8px);
+}
+.pxt .skill-card { gap: 10px; padding: 14px; }
+.pxt .skill-card.done { opacity: 0.8; }
+.pxt .skill-stage-row { grid-template-columns: 132px minmax(0, 1fr); gap: 12px; font-size: 14px; font-weight: 600; }
+.pxt .skill-bars { gap: 4px; }
+.pxt .skill-bars i { height: 10px; border-radius: 0; background: var(--px-dim); box-shadow: none; }
+.pxt .skill-bars i.on { background: var(--px-sk); box-shadow: none; }
+.pxt .skill-meta { font-size: 13px; color: var(--px-mt); }
+.pxt .goal-add,
+.pxt .goal-add-sm {
+  border: 0;
+  border-radius: 0;
+  background-color: transparent;
+  background-image:
+    linear-gradient(90deg, var(--px-ln) 50%, transparent 50%),
+    linear-gradient(90deg, var(--px-ln) 50%, transparent 50%),
+    linear-gradient(0deg, var(--px-ln) 50%, transparent 50%),
+    linear-gradient(0deg, var(--px-ln) 50%, transparent 50%);
+  background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+  background-size: 12px 3px, 12px 3px, 3px 12px, 3px 12px;
+  background-position: 0 0, 0 100%, 0 0, 100% 0;
+  box-shadow: none;
+}
+.pxt .goal-add { grid-template-columns: minmax(0, 1fr) 44px; padding: 14px; }
+.pxt .goal-add-hint { font-size: 13px; color: var(--px-mt); white-space: normal; }
+.pxt .goal-add-plus { width: 44px; height: 44px; border: 0; border-radius: 0; color: var(--px-btx); background: var(--px-gold); }
+.pxt .goal-add-sm {
+  min-height: 48px;
+  font-family: var(--px-f-head);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--px-gold);
+}
+.pxt .goal-add:active, .pxt .goal-add-sm:active { background-color: var(--px-pn); }
+.pxt .skeleton span { border-radius: 0; }
+
+/* ---------- alt sekme çubuğu (bütün uygulama) ---------- */
+.tabbar {
+  border-top: 0;
+  background: #0b0914;
+  box-shadow: 0 -3px 0 0 var(--px-ln);
+}
+.tabbar .tab {
+  gap: 6px;
+  border-radius: 0;
+  color: var(--px-mt);
+  font-family: var(--px-f-body);
+}
+.tabbar .tab-ic { width: 44px; height: 32px; border-radius: 0; transition: none; }
+.tabbar .tab-l { font-size: 12px; font-weight: 600; letter-spacing: 0.02em; }
+.tabbar .tab.on { color: var(--px-gold); }
+.tabbar .tab.on .tab-ic {
+  color: var(--px-gold);
+  background: var(--px-pn2);
+  box-shadow: 0 -3px 0 0 var(--px-gold), 0 3px 0 0 var(--px-gold), -3px 0 0 0 var(--px-gold), 3px 0 0 0 var(--px-gold);
+}
+.tabbar .tab-live {
+  top: 2px;
+  right: 3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--px-fire);
+  animation: pxtBlink 1s steps(2) infinite;
+}
+.tabbar .tab:focus-visible { outline: 3px solid var(--px-gold); outline-offset: -6px; }
+
+@keyframes pxtBlink { 50% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) {
+  .pxt .live-dot, .pxt .acct-chip.pending .acct-dot, .tabbar .tab-live { animation: none; }
+}

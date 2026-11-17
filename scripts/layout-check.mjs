@@ -74,10 +74,11 @@ async function check(page, label, screen, { session = false, tablet = false, res
     const tr = tab?.getBoundingClientRect();
     if (!tr || tr.top < 0 || tr.bottom > innerHeight + 1 || tr.left < 0 || tr.right > innerWidth + 1) errors.push('.tabbar: tamamı ekranda değil');
     if (session) {
-      const button = document.querySelector('#log-set');
+      // V13.1: dinlenme sürerken (büyük sayaç gizliyse) kaydet düğmesinin yerinde dinlenme çubuğu durur.
+      const button = document.querySelector('#log-set') || document.querySelector('.px .px-restbar');
       const br = button?.getBoundingClientRect();
       if (!br || !visible(button) || br.top < 0 || br.bottom >= tr.top || br.left < 0 || br.right > innerWidth) {
-        errors.push(`#log-set: kaydırmadan görünmüyor (düğme ${br?.top.toFixed(1)}–${br?.bottom.toFixed(1)}, sekme ${tr?.top.toFixed(1)})`);
+        errors.push(`#log-set / .px-restbar: kaydırmadan görünmüyor (düğme ${br?.top.toFixed(1)}–${br?.bottom.toFixed(1)}, sekme ${tr?.top.toFixed(1)})`);
       }
       const sesBody = document.querySelector('.ses2-body');
       if (sesBody && sesBody.scrollTop !== 0) errors.push('.ses2-body: seans ana kabı kaydırılmış');
@@ -85,7 +86,7 @@ async function check(page, label, screen, { session = false, tablet = false, res
       if (pxScr && pxScr.scrollTop !== 0) errors.push('.px .px-scr: pixel ekranı kaydırılmış');
       if ((document.querySelector('.free-session #pq-0') || document.querySelector('.px #pq-0')) && !document.querySelector('#rest-big') && ![...document.querySelectorAll('.ps-r')].some(visible)) errors.push('pliometrik: seans temas sayısı görünmüyor');
       if (rest) {
-        const timer = [...document.querySelectorAll('#rest-big, .restchip, .px .px-rchip')].find(visible);
+        const timer = [...document.querySelectorAll('#rest-big, .restchip, .px .px-rchip, .px .px-restbar')].find(visible);
         const rr = timer?.getBoundingClientRect();
         if (!rr || rr.top < 0 || rr.bottom >= tr.top || rr.left < 0 || rr.right > innerWidth) errors.push('dinlenme sayacı: tamamı kaydırmadan görünmüyor');
         for (const control of timer?.querySelectorAll('button') || []) {
@@ -180,7 +181,7 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
 
     // Uzun set listesi yalnızca kendi içinde kaymalı; ana eylem yerinde kalmalı.
     for (let i = 0; i < 6; i++) {
-      await page.getByRole('button', { name: 'GİZLE' }).click();
+      await page.getByRole('button', { name: 'GEÇ' }).click();
       await page.locator('#log-set').click();
       await page.locator('#rest-big').waitFor();
     }
@@ -188,7 +189,7 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
     screen = 'seans-uzun-tablo';
     await check(page, label, screen, { session: true, rest: true });
 
-    await page.locator('.px .px-rchip').click();
+    await page.locator('.px .px-restbar').click();
     await page.getByRole('button', { name: 'GEÇ' }).click();
     await page.getByRole('button', { name: 'Geri: antrenman listesi' }).click();
     await page.locator('#fx-add').click();

@@ -87,6 +87,12 @@ export const FreePixelSession: React.FC<Props> = ({
 
   // Pencereler ve akış
   const [restOpen, setRestOpen] = useState(false);
+  // V13.1: set iniş animasyonu; dinlenme ekranı iniş bitince açılır
+  const [fly, setFly] = useState<null | { n: number; x: number; y: number; w: number; h: number; dx: number; dy: number; txt: string }>(null);
+  const landT = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const logBtnRef = useRef<HTMLButtonElement | null>(null);
+  const scrNow = useRef<string>('');
+  scrNow.current = scr;
   const [selIdx, setSelIdx] = useState<number | null>(null);
   const [confirmDelSet, setConfirmDelSet] = useState(false);
   const [confirmModal, setConfirmModal] = useState<null | 'finish' | 'discard'>(null);
@@ -308,6 +314,8 @@ export const FreePixelSession: React.FC<Props> = ({
     setRestOpen(false);
     pixelFx.hideRest(fxRef.current);
   };
+
+  useEffect(() => () => { if (landT.current) clearTimeout(landT.current); }, []);
 
   // Android geri tuşu zinciri (üste açık pencereden aşağı)
   useBack(!!confirmModal, () => setConfirmModal(null));
@@ -701,10 +709,40 @@ export const FreePixelSession: React.FC<Props> = ({
     setEntryNote('');
     setEntryTags([]);
     setSelIdx(null);
-    setRestOpen(true);
     setFxLog((x) => x + 1);
     setNow(t);
     pixelFx.logSet(fxRef.current);
+
+    // Uçan blok kaydet düğmesinden ilk set hücresine iner; dinlenme ekranı inişten sonra açılır.
+    const reduce = typeof window === 'undefined' || !window.matchMedia || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const btn = logBtnRef.current;
+    const grid = setListRef.current as HTMLElement | null;
+    const root = btn ? (btn.closest('.px') as HTMLElement | null) : null;
+    if (reduce || !btn || !grid || !root) {
+      setRestOpen(true);
+      return;
+    }
+    try { grid.scrollTop = 0; grid.scrollLeft = 0; } catch { /* yok say */ }
+    const rr = root.getBoundingClientRect();
+    const br = btn.getBoundingClientRect();
+    const gr = grid.getBoundingClientRect();
+    const cs = getComputedStyle(grid);
+    const first = grid.querySelector('.st') as HTMLElement | null;
+    const fr = first ? first.getBoundingClientRect() : null;
+    const gap = parseFloat(cs.columnGap || '8') || 8;
+    const w = fr ? fr.width : Math.max(80, (gr.width - (parseFloat(cs.paddingRight) || 0) - 2 * gap) / 3);
+    const h = fr ? fr.height : 34;
+    const x = (fr ? fr.left : gr.left + (parseFloat(cs.paddingLeft) || 0)) - rr.left;
+    const y = (fr ? fr.top : gr.top + (parseFloat(cs.paddingTop) || 0)) - rr.top;
+    const txt = isSkillEx ? `${set.reps}d` : isPlyoEx ? `${set.reps}t` : `${fk(Number(set.kg))}×${set.reps}`;
+    setFly({ n: t, x, y, w, h, dx: br.left + br.width / 2 - (rr.left + x + w / 2), dy: br.top + br.height / 2 - (rr.top + y + h / 2), txt });
+    pixelFx.land(fxRef.current);
+    if (landT.current) clearTimeout(landT.current);
+    landT.current = setTimeout(() => {
+      landT.current = null;
+      setFly(null);
+      if (sRef.current.rest && scrNow.current === 'log') setRestOpen(true);
+    }, 900);
   };
 
   const openNote = () => {
@@ -829,7 +867,7 @@ export const FreePixelSession: React.FC<Props> = ({
               : `${totalSets} set · tonaj ${Math.round(ss.tonnage).toLocaleString('tr-TR')} kg`}
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
-            <button type="button" className="bb" style={{ fontSize: 17 }} onClick={() => setConfirmModal(null)}>İDMANA DÖN</button>
+            <button type="button" className="bb" style={{ fontSize: 17 }} onClick={() => setConfirmModal(null)}>GERİ DÖN</button>
             {noSets ? (
               <button type="button" id="discard-yes" className="go" style={{ fontSize: 17 }} onClick={discard}>Kaydetmeden çık</button>
             ) : (
@@ -1227,6 +1265,16 @@ export const FreePixelSession: React.FC<Props> = ({
   return (
     <div className="screen px night">
       <div className="px-scr">
+        {fly ? (
+          <div
+            key={fly.n}
+            className="px-fly nm"
+            aria-hidden="true"
+            style={{ left: fly.x, top: fly.y, width: fly.w, height: fly.h, ['--fx' as string]: fly.dx + 'px', ['--fy' as string]: fly.dy + 'px' } as React.CSSProperties}
+          >
+            {fly.txt}
+          </div>
+        ) : null}
         <div className={'px-log-inner ' + par(fxShake, 'shA', 'shB')}>
           {/* Üst başlık */}
           <div className="px-head">
@@ -1254,7 +1302,7 @@ export const FreePixelSession: React.FC<Props> = ({
           </div>
 
           {/* Setler kutusu */}
-          <div className="pxb px-sets-box">
+          <div className={'pxb px-sets-box ' + par(fxLog, 'px-pnlA', 'px-pnlB')}>
             <div className="px-sets-head">
               <span className="lbl">SETLER</span>
               <span className="px-sets-sum">
@@ -1298,12 +1346,12 @@ export const FreePixelSession: React.FC<Props> = ({
                     <button
                       key={x.at + '-' + i}
                       type="button"
-                      className={'st' + (isNewest ? ' new ' + par(fxLog, 'popA', 'popB') : '')}
+                      className={'st' + (isNewest ? ' new ' + par(fxLog, 'px-landA', 'px-landB') : '')}
                       aria-label={aria}
                       onClick={() => { setSelIdx(i); setConfirmDelSet(false); pixelFx.openSel(fxRef.current); }}
                     >
                       <span className="nm st-main">{mainTxt}</span>
-                      <span className="nm st-rpe" style={{ color: c }}>{rightBadge}</span>
+                      <span className="nm st-rpe" style={{ background: c }}>{rightBadge}</span>
                     </button>
                   );
                 })}
@@ -1655,14 +1703,25 @@ export const FreePixelSession: React.FC<Props> = ({
           {/* Alt kaydet satırı */}
           <div className="px-actions">
             {rest && !restOpen ? (
-              <button type="button" className="px-rchip" onClick={openRest} aria-label="Dinlenme sayacını büyüt">
-                <span className="nm" style={{ fontSize: 19 }}>{restTxt}</span>
+              <button type="button" className="px-restbar" onClick={openRest} aria-label="Dinlenme sürüyor: sayacı aç">
+                <span className="px-restbar-l">
+                  <span className="lbl" style={{ color: 'var(--gold)' }}>DİNLENİYOR</span>
+                  <span className="px-restbar-h">dokun: sayacı aç</span>
+                </span>
+                <span className="num px-restbar-t">{restTxt}</span>
                 <i style={{ position: 'absolute', left: 0, bottom: 0, height: 6, width: restPct + '%', background: 'var(--gold)' }} />
               </button>
-            ) : null}
-            <button type="button" id="log-set" className="go" onClick={logSet}>
-              SET {sets.length + 1} · KAYDET
-            </button>
+            ) : (
+              <button
+                ref={logBtnRef}
+                type="button"
+                id="log-set"
+                className={'go' + (!isPlyoEx && !isSkillEx ? ' px-lv' + lvl : '')}
+                onClick={logSet}
+              >
+                SET {sets.length + 1} BİTTİ
+              </button>
+            )}
             <div style={{ position: 'absolute', left: '50%', top: 28, width: 0, height: 0, pointerEvents: 'none' }}>
               {burst(P_ALL, fxLog).map((p, idx) => (
                 <div key={idx} className="rot" style={{ transform: `rotate(${p.a}deg)` }}>
@@ -1678,7 +1737,7 @@ export const FreePixelSession: React.FC<Props> = ({
           <div id="rest-big" className="ov" role="timer" aria-label="Dinlenme sayacı">
             <div className="pxb" style={{ margin: '3px 3px 0', padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6, flex: '0 0 auto' }}>
               <span className="lbl" style={{ color: 'var(--gold)' }}>
-                SET {sets.length} KAYDEDİLDİ{!lastLogged.plyo && !lastLogged.skill && (lastLogged.rom ?? 100) < 100 ? ` · %${lastLogged.rom} ROM` : ''}
+                SET {sets.length} BİTTİ{!lastLogged.plyo && !lastLogged.skill && (lastLogged.rom ?? 100) < 100 ? ` · %${lastLogged.rom} ROM` : ''}
               </span>
               <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                 <span className="nm" style={{ fontSize: 21, color: 'var(--tx)' }}>

@@ -148,6 +148,13 @@ class PixelFxEngine {
     this.buzz(fx, [12, 40, 24]);
   }
 
+  /** Set kutucuğu yerine indiğinde (kayıttan ~0,45 sn sonra). */
+  land(fx: FxSettings) {
+    this.blip(fx, 196, 0.08, 'square', 0.055, 0.42);
+    this.blip(fx, 392, 0.06, 'square', 0.04, 0.48);
+    this.buzz(fx, [12, 40, 24, 300, 30]);
+  }
+
   skipRest(fx: FxSettings) {
     this.blip(fx, 392, 0.05, 'square', 0.04);
   }

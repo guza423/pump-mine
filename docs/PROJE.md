@@ -193,7 +193,8 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 - **Ad kontrolü:** OUTMOVE için alan adı ve TÜRKPATENT marka kontrolü.
 
 **Tasarım (pixel):**
-- V14: V13'teki pixel dili tüm sekmelere (Dashboard, Antrenman listeleri, planlı oturum, Gözlem, Lab, sheet'ler) uygula. Kaynak: `reference/v13-pixel/`, kararlar §9.
+- V14 tamam: Dashboard + alt sekme çubuğu. Sırada: alt pencereler (sheet'ler), V15 Antrenman sekmesi + planlı oturum + plan düzenleyici, V16 Gözlem, V17 Lab. Yöntem: tuvalde tasarım → onay → ekranın kök div'ine `pxt` + `px-theme.css` kuralları. Kaynak: `reference/v13-pixel/`, `reference/v14-pixel/`.
+- Teknik borç: `app.css`'teki `--f-display: "Saira"` paketli fontun adıyla (`Saira Variable`) eşleşmiyor; pixel'e geçmemiş ekranlarda başlıklar yedek fonta düşüyor. Pixel jetonları doğru adı kullanıyor.
 - Açık soru: salona göre değişen makine plakası (5 / 7 kg, libre) için hareket başına plaka değeri mi tutulsun, yoksa yalnızca pim numarası mı kaydedilsin?
 
 **Teknik borç:**
@@ -235,6 +236,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | 2026-11-17 | **Dengeli pixel dozu:** Press Start 2P yalnızca büyük sayılarda ve büyük düğmelerde, yalnızca 8'in katı boyutlarda; başlıklar Saira, metin ve küçük sayılar IBM Plex Sans; Pixelify Sans kalkar | Kullanıcı: "yazılar okunmuyor … daha düzgün pikseller olsun"; "dengeli doz kalsın" |
 | 2026-11-17 | Plansız set düğmesi `SET n BİTTİ`, rengi son tekrar hızının rengi; dinlenme sürerken düğme yerine dinlenme çubuğu (iptal büyük sayaçtan) | Kullanıcı isteği |
 | 2026-11-17 | Pixel dil tüm uygulamaya yayılacak: **yalnızca stil değişir, her özellik ve akış korunur**; sekme sekme, önce tuvalde tasarım | Kullanıcı: "herşey korunucak … sadece stil değişicek" |
+| 2026-11-17 | Pixel'e geçiş bir **tema katmanıyla** yapılır (`px-theme.css`, kök sınıf `.pxt`): var olan DOM ve kimlikler aynen kalır, yalnızca görünüm değişir. Yeni pixel bileşenleri `pixel.css`'te `px-` önekiyle yazılır | "sadece stil değişicek"; testler ve akışlar bozulmasın |
 
 ---
 
