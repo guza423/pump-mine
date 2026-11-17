@@ -16,7 +16,6 @@ Kullanıcının kuralı: **"herşey korunucak … sadece stil değişicek"**. DO
 - `Ring` bileşenine `pixel` seçeneği eklendi. Gözlem'deki halka V16'ya kadar eski haliyle kalır.
 
 ## Kalan (sonraki adımlar)
-- Alt pencereler (sheet'ler: hesap, yorgunluk ayrıntısı, hedef, not, hareket bilgisi …)
-- Antrenman sekmesi listeleri, planlı oturum, plan düzenleyici (V15)
+- ~~Alt pencereler; Antrenman sekmesi, planlı oturum, plan düzenleyici~~ → V15'te yapıldı
 - Gözlem (V16)
 - Lab (V17)

@@ -6,6 +6,7 @@ Hangi AI olursa olsun: önce `git pull --rebase origin main`, sonra `AGENTS.md`'
 (Yok)
 
 ## Tamamlanan
+- [V15 · Pixel tema: Antrenman sekmesi, planlı oturum, plan düzenleyici, alt pencereler](docs/gorevler/V15-pixel-antrenman-alt-pencereler.md): 2026-11-17 · `HASH`
 - [V14 · Pixel tema: Dashboard ve alt sekme çubuğu](docs/gorevler/V14-pixel-dashboard-sekme-cubugu.md): 2026-11-17 · `cb32a9b`
 - [V13.1 · Dengeli pixel dozu, belirgin setler, set iniş animasyonu, dinlenme çubuğu](docs/gorevler/V13.1-dengeli-doz-set-animasyon.md): 2026-11-17 · `cb32a9b`
 - [V13 · Pixel arayüz: plansız idman akışı ve sürüklemeli set kaydı](docs/gorevler/V13-pixel-plansiz-idman.md): 2026-11-17 · `5366058`

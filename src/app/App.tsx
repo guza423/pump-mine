@@ -93,7 +93,7 @@ function ScreenHead({ title, sub, right, left }) {
 function SheetFrame({ title, onClose, children, size, z, head, top }) {
   useBack(top, onClose);
   return (
-    <div className="sheet-wrap" style={{ zIndex: z }} role="dialog" aria-modal="true" aria-label={title}>
+    <div className="sheet-wrap pxt" style={{ zIndex: z }} role="dialog" aria-modal="true" aria-label={title}>
       <button type="button" className="sheet-bg" aria-label="Kapat" onClick={onClose} />
       <div className={'sheet ' + (size || '')}>
         <div className="sheet-grab" aria-hidden="true" />
@@ -444,15 +444,15 @@ function StartView({ st, startSession, newPlan, openSheet }) {
   });
 
   return (
-    <div className="screen">
+    <div className="screen pxt">
       <ScreenHead
         title="Antrenman"
         sub={last ? 'Son: ' + dateTxt(last.startedAt) + ' · ' + sessionName(last) : 'Bir antrenman planı seç ya da plansız başla'}
       />
       <div className="scr">
         <div className="start-actions">
-          <button type="button" id="free-session" className="btn ghost" onClick={() => startSession(null, null)}><Icon name="plus" size={14} /> Plansız antrenman</button>
-          <button type="button" id="new-plan" className="btn ghost" onClick={() => newPlan('antrenman')}><Icon name="plus" size={14} /> Yeni plan</button>
+          <button type="button" id="free-session" className="btn ghost" onClick={() => startSession(null, null)}><PxIcon name="plus" size={16} /> Plansız antrenman</button>
+          <button type="button" id="new-plan" className="btn ghost" onClick={() => newPlan('antrenman')}><PxIcon name="plus" size={16} /> Yeni plan</button>
         </div>
 
         <section className="plan-sec">
@@ -976,7 +976,7 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
   };
 
   return (
-    <div className={'screen ses2' + (free ? ' free-session' : '')}>
+    <div className={'screen pxt ses2' + (free ? ' free-session' : '')}>
       <header className="shead ses2-head">
         <div className="shead-row">
           <span className="live-dot" />
@@ -1573,7 +1573,7 @@ function PlanEditor({ program, dayId, st, put, del, onBack, openSheet, startSess
   };
 
   return (
-    <div className="screen editor2">
+    <div className="screen pxt editor2">
       <header className="shead">
         <div className="shead-row">
           <button type="button" id="ed-back" className="nav-arrow" aria-label="Geri" onClick={() => { flush(); onBack(); }}><Icon name="left" size={18} /></button>

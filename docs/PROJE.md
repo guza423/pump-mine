@@ -193,7 +193,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 - **Ad kontrolü:** OUTMOVE için alan adı ve TÜRKPATENT marka kontrolü.
 
 **Tasarım (pixel):**
-- V14 tamam: Dashboard + alt sekme çubuğu. Sırada: alt pencereler (sheet'ler), V15 Antrenman sekmesi + planlı oturum + plan düzenleyici, V16 Gözlem, V17 Lab. Yöntem: tuvalde tasarım → onay → ekranın kök div'ine `pxt` + `px-theme.css` kuralları. Kaynak: `reference/v13-pixel/`, `reference/v14-pixel/`.
+- V14 tamam: Dashboard + alt sekme çubuğu. V15 tamam: alt pencereler (sheet'ler), Antrenman sekmesi, planlı oturum, plan düzenleyici. Sırada: V16 Gözlem, V17 Lab. Yöntem: tuvalde tasarım → onay → ekranın kök div'ine `pxt` + `px-theme.css` kuralları. Kaynak: `reference/v13-pixel/`, `reference/v14-pixel/`.
 - Teknik borç: `app.css`'teki `--f-display: "Saira"` paketli fontun adıyla (`Saira Variable`) eşleşmiyor; pixel'e geçmemiş ekranlarda başlıklar yedek fonta düşüyor. Pixel jetonları doğru adı kullanıyor.
 - Açık soru: salona göre değişen makine plakası (5 / 7 kg, libre) için hareket başına plaka değeri mi tutulsun, yoksa yalnızca pim numarası mı kaydedilsin?
 

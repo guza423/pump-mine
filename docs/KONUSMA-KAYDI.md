@@ -397,3 +397,10 @@ Her iki font da uygulamada zaten paketli. Seçimden sonra uygulamadaki `pixel.cs
   - Sadece stil değişti; DOM, kimlikler ve davranış aynı.
 - Commit: `cb32a9b`. Kontroller: `npm test` (15 dosya, 91 test), lint, build, `test:layout` (11 boyut) geçti. Gerçek tarayıcıda Dashboard dört durumda, set ekranı uçuş/iniş/dinlenme anlarında ekran görüntüsüyle kontrol edildi.
 
+
+**Kullanıcı:** "Tamam olmuş sıradakilere geçelim"
+**Yapılan:**
+- **V15 uygulandı** (`docs/gorevler/V15-pixel-antrenman-alt-pencereler.md`): alt pencerelerin hepsi, Antrenman sekmesi, planlı oturum ve plan düzenleyici pixel temaya geçti. Sadece stil değişti.
+- Düğme yazı tipi kuralı: küçük/yan yana düğmeler Saira, tam genişlik/büyük düğmeler Press Start 16. Taşma ve turkuaz hover sorunları ekran görüntüsünde görülüp düzeltildi.
+- Commit: `HASH`. Kontroller: `npm test` (91 test), lint, `tsc -b`, build, `test:layout` (11 boyut) geçti.
+- Sırada: V16 Gözlem.
