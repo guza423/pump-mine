@@ -108,44 +108,60 @@ describe('ana ekran akışları', () => {
     expect(container.querySelector('#free-session').textContent).toContain('Plansız antrenman');
     click('#free-session');
     await waitFor(() => expect(container.querySelector('#ses-add-first')).toBeTruthy());
+    expect(screen.getByText('başlamadı')).toBeTruthy();
     click('#ses-add-first');
     fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'düz bench' } });
-    fireEvent.click(container.querySelector('.exr-main'));
-    expect(container.querySelector('.dock input[id^="kg-"]').value).toBe('20');
-    expect(container.querySelector('.dock input[id^="reps-"]').value).toBe('10');
-    expect(container.querySelector('.tgt2, .exprog, .exnav, .srow.plan, .srow.now, .spwrap')).toBeNull();
-    expect(container.querySelector('#log-set').textContent).toBe('Seti kaydet');
+    fireEvent.click(container.querySelector('.pk'));
+    expect(container.querySelector('#pick-add').textContent).toBe('1 HAREKET EKLE');
+    click('#pick-add');
+    await waitFor(() => expect(container.querySelector('.card-main')).toBeTruthy());
+    fireEvent.click(container.querySelector('.card-main'));
+
+    expect(container.querySelector('[id^="kg-"]').getAttribute('aria-valuenow')).toBe('20');
+    expect(container.querySelector('[id^="reps-"]').getAttribute('aria-valuenow')).toBe('10');
+    expect(container.querySelector('.tgt2, .exprog, .exnav, .srow.plan, .srow.now, .spwrap, .rpe-chips')).toBeNull();
+    expect(container.querySelector('#log-set').textContent).toBe('SET 1 · KAYDET');
     expect(screen.getByText('İlk setini kaydet')).toBeTruthy();
+
     click('#log-set');
-    expect(container.querySelectorAll('.srow.done')).toHaveLength(1);
-    expect(container.querySelector('#rest-big, .restchip')).toBeTruthy();
+    expect(container.querySelectorAll('.st')).toHaveLength(1);
+    expect(container.querySelector('#rest-big')).toBeTruthy();
     await waitFor(() => expect(native.start).toHaveBeenCalledTimes(1));
     const saved = (await db.sessions.toArray())[0];
     expect(saved.rest).toMatchObject({ total: 180, exId: 'duz-bench', setNo: 1, start: saved.items[0].sets[0].at });
+    expect(saved.items[0].sets[0]).toMatchObject({ rom: 100, rpe: null });
     expect(native.start).toHaveBeenLastCalledWith(expect.objectContaining({ endAt: saved.rest.start + 180000, body: '2. set sırada' }));
     expect(native.stop.mock.invocationCallOrder[0]).toBeLessThan(native.start.mock.invocationCallOrder[0]);
+
     fireEvent.click(screen.getByRole('button', { name: '15 saniye ekle' }));
     await waitFor(async () => expect((await db.settings.get('restPrefs')).value).toEqual({ 'duz-bench': 195 }));
+    fireEvent.click(screen.getByRole('button', { name: 'GİZLE' }));
+    expect(container.querySelector('#rest-big')).toBeNull();
+    expect(container.querySelector('.chip')).toBeTruthy();
+
     click('#log-set');
     await waitFor(() => expect(native.start).toHaveBeenCalledTimes(3));
     expect(native.stop.mock.invocationCallOrder.at(-1)).toBeLessThan(native.start.mock.invocationCallOrder.at(-1));
     await waitFor(async () => expect((await db.sessions.toArray())[0].rest.total).toBe(195));
+
     click('#tab-bugun');
     click('#tab-antrenman');
-    await waitFor(() => expect(container.querySelector('#rest-big, .restchip')).toBeTruthy());
-    fireEvent.click(screen.getByRole('button', { name: 'Atla' }));
+    await waitFor(() => expect(container.querySelector('.chip')).toBeTruthy());
+    click('.chip');
+    await waitFor(() => expect(container.querySelector('#rest-big')).toBeTruthy());
+    fireEvent.click(screen.getByRole('button', { name: 'GEÇ' }));
     await waitFor(async () => expect((await db.sessions.toArray())[0].rest).toBeUndefined());
+
+    fireEvent.click(screen.getByRole('button', { name: 'Geri: antrenman listesi' }));
     click('#fx-add');
     fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'Oturarak dumbbell omuz press' } });
-    fireEvent.click(container.querySelector('.exr-main'));
-    expect(container.querySelectorAll('.fx-chip')).toHaveLength(2);
-    expect(container.querySelector('.fx-chip.on').textContent).toContain('dumbbell');
-    expect(container.querySelector('#log-set').disabled).toBe(true);
-    expect(screen.getByText('Kiloyu gir')).toBeTruthy();
-    fireEvent.click(container.querySelector('.fx-chip.on .fx-remove'));
-    expect(container.querySelectorAll('.fx-chip')).toHaveLength(1);
-    expect(container.querySelector('.fx-chip .fx-remove')).toBeNull();
-    expect(container.querySelector('.s-v.off')).toBeNull();
+    fireEvent.click(container.querySelector('.pk'));
+    click('#pick-add');
+    expect(container.querySelectorAll('.card')).toHaveLength(2);
+    expect(container.querySelector('.card-del')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Oturarak dumbbell omuz press hareketini çıkar' }));
+    expect(container.querySelectorAll('.card')).toHaveLength(1);
+    expect(container.querySelector('.card-del')).toBeNull();
   });
 
   it('plansız hareketin kilosunu, tekrarını ve hızını en yeni bitmiş setten alır', async () => {
@@ -164,9 +180,11 @@ describe('ana ekran akışları', () => {
     await waitFor(() => expect(container.querySelector('#ses-add-first')).toBeTruthy());
     click('#ses-add-first');
     fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'düz bench' } });
-    fireEvent.click(container.querySelector('.exr-main'));
-    expect(container.querySelector('input[id^="kg-"]').value).toBe('60');
-    expect(container.querySelector('input[id^="reps-"]').value).toBe('10');
+    fireEvent.click(container.querySelector('.pk'));
+    click('#pick-add');
+    fireEvent.click(container.querySelector('.card-main'));
+    expect(container.querySelector('[id^="kg-"]').getAttribute('aria-valuenow')).toBe('60');
+    expect(container.querySelector('[id^="reps-"]').getAttribute('aria-valuenow')).toBe('10');
     expect(container.querySelector('#speed-3').getAttribute('aria-checked')).toBe('true');
     expect((await db.sessions.get('new-session')).dayName).toBe('Boş antrenman');
   });
@@ -180,10 +198,14 @@ describe('ana ekran akışları', () => {
     await waitFor(() => expect(container.querySelector('#ses-add-first')).toBeTruthy());
     click('#ses-add-first');
     fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'düz bench' } });
-    fireEvent.click(container.querySelector('.exr-main'));
+    fireEvent.click(container.querySelector('.pk'));
+    click('#pick-add');
+    fireEvent.click(container.querySelector('.card-main'));
     click('#log-set');
     await waitFor(() => expect(native.start).toHaveBeenCalled());
     await waitFor(async () => expect((await db.sessions.toArray())[0].items[0].sets).toHaveLength(1));
+    fireEvent.click(screen.getByRole('button', { name: 'GİZLE' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Geri: antrenman listesi' }));
     click('#finish-btn');
     act(() => { backStack.dispatch(); });
     expect(container.querySelector('#finish-yes')).toBeNull();
@@ -193,6 +215,7 @@ describe('ana ekran akışları', () => {
       const s = (await db.sessions.toArray())[0];
       expect(s.status).toBe('done'); expect(s.rest).toBeUndefined();
     });
+    expect(container.querySelector('#pixel-summary')).toBeTruthy();
   });
 
   it('yeni misafir boş başlar, Plan oluştur doğrudan düzenleyiciyi açar ve dokunmadan çıkılırsa kaydedilmez', async () => {
@@ -400,20 +423,25 @@ describe('ana ekran akışları', () => {
 
     fireEvent.click(container.querySelector('.skill-card .skill-go'));
     await waitFor(() => expect(container.querySelector('#sq-0')).toBeTruthy());
-    expect(container.querySelector('.fx-chip.on').textContent).toContain('Kip-up');
+    expect(container.querySelector('.px-head-title').textContent).toContain('KIP-UP');
 
-    fireEvent.change(container.querySelector('.dock input[id^="reps-"]'), { target: { value: '2' } });
-    fireEvent.blur(container.querySelector('.dock input[id^="reps-"]'));
+    fireEvent.change(container.querySelector('input[id^="reps-"]'), { target: { value: '2' } });
     click('#sq-0');
     click('#log-set');
+    fireEvent.click(screen.getByRole('button', { name: 'GİZLE' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Geri: antrenman listesi' }));
 
     click('#finish-btn');
     click('#finish-yes');
-    const summaryDialog = await screen.findByRole('dialog', { name: 'Antrenman özeti' });
-    expect(summaryDialog.textContent).toContain('Kip-up');
-    expect(summaryDialog.textContent).toContain('2 temiz deneme');
-    fireEvent.click(within(summaryDialog).getByRole('button', { name: 'Aşamayı ilerlet' }));
-    fireEvent.click(within(summaryDialog).getAllByRole('button', { name: 'Kapat' }).at(-1));
+    const summaryEl = await waitFor(() => {
+      const el = container.querySelector('#pixel-summary');
+      expect(el).toBeTruthy();
+      return el!;
+    });
+    expect(summaryEl.textContent).toContain('Kip-up');
+    expect(summaryEl.textContent).toContain('2 temiz deneme');
+    fireEvent.click(within(summaryEl).getByRole('button', { name: 'Aşamayı ilerlet' }));
+    click('#summary-done');
 
     click('#tab-bugun');
     await waitFor(() => expect(container.querySelector('.skill-card')).toBeTruthy());
@@ -480,25 +508,33 @@ describe('ana ekran akışları', () => {
     close();
     click('#tab-antrenman');
     click('#free-session');
-    await waitFor(() => expect(container.querySelector('#finish-btn')).toBeTruthy());
-    fireEvent.click(screen.getByRole('button', { name: /Hareket ekle/ }));
+    await waitFor(() => expect(container.querySelector('#ses-add-first')).toBeTruthy());
+    click('#ses-add-first');
     fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'box jump' } });
-    fireEvent.click(container.querySelector('.exr-main'));
+    fireEvent.click(container.querySelector('.pk'));
+    click('#pick-add');
+    fireEvent.click(container.querySelector('.card-main'));
     await waitFor(() => expect(container.querySelector('#pq-1')).toBeTruthy());
     click('#pq-1');
     click('#log-set');
     click('#log-set');
+    fireEvent.click(screen.getByRole('button', { name: 'GİZLE' }));
     fireEvent.click(screen.getByRole('button', { name: 'Set 1: 5 temas. Ayrıntı' }));
-    expect(within(screen.getAllByRole('dialog').at(-1)).getByText('Biraz düştü')).toBeTruthy();
-    close();
+    expect(within(screen.getByRole('dialog', { name: 'Set ayrıntısı' })).getByText('Biraz düştü')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'KAPAT' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Geri: antrenman listesi' }));
     click('#fx-add');
     fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'düz bench' } });
-    fireEvent.click(container.querySelector('.exr-main'));
+    fireEvent.click(container.querySelector('.pk'));
+    click('#pick-add');
+    fireEvent.click(container.querySelectorAll('.card-main')[1]);
     await waitFor(() => expect(container.querySelector('#pq-1')).toBeNull());
     click('#log-set');
+    fireEvent.click(screen.getByRole('button', { name: 'GİZLE' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Geri: antrenman listesi' }));
     click('#finish-btn');
-    fireEvent.click(screen.getByRole('button', { name: 'Bitir ve özetle' }));
-    expect(await screen.findByRole('dialog', { name: 'Antrenman özeti' })).toBeTruthy();
+    click('#finish-yes');
+    await waitFor(() => expect(container.querySelector('#pixel-summary')).toBeTruthy());
     await waitFor(async () => {
       const done = (await db.sessions.toArray()).find(s => s.status === 'done');
       expect(done.items[0].sets).toHaveLength(2);
@@ -563,8 +599,8 @@ describe('ana ekran akışları', () => {
     closeTopSheet();
 
     click('#free-session');
-    await waitFor(() => expect(container.querySelector('#finish-btn')).toBeTruthy());
-    click('#finish-btn');
+    await waitFor(() => expect(container.querySelector('#start-ses-btn')).toBeTruthy());
+    click('#discard-ready-btn');
     fireEvent.click(await screen.findByRole('button', { name: 'Kaydetmeden çık' }));
     await waitFor(() => expect(container.querySelector('#tab-antrenman')?.getAttribute('aria-current')).toBe('page'));
 
@@ -589,5 +625,101 @@ describe('ana ekran akışları', () => {
     await act(async () => {
       await Promise.resolve();
     });
+  });
+
+  it('set ekranı açılınca hazır oturum başlar ve bildirim çıkar; geri tuşu listeye döner', async () => {
+    const { container } = render(<App />);
+    const click = (s) => fireEvent.click(container.querySelector(s));
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    click('#tab-antrenman');
+    click('#free-session');
+    await waitFor(() => expect(container.querySelector('#ses-add-first')).toBeTruthy());
+    expect((await db.sessions.toArray())[0].ready).toBe(true);
+
+    click('#ses-add-first');
+    fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'düz bench' } });
+    fireEvent.click(container.querySelector('.pk'));
+    click('#pick-add');
+    expect((await db.sessions.toArray())[0].ready).toBe(true);
+
+    fireEvent.click(container.querySelector('.card-main'));
+    expect(screen.getByText('İDMAN BAŞLADI')).toBeTruthy();
+    expect(screen.getByText('Set ekranını açtın, süreyi başlattım')).toBeTruthy();
+    await waitFor(async () => expect((await db.sessions.toArray())[0].ready).toBeUndefined());
+
+    act(() => { backStack.dispatch(); });
+    await waitFor(() => expect(container.querySelector('#finish-btn')).toBeTruthy());
+    expect(container.querySelector('.card-main')).toBeTruthy();
+  });
+
+  it('çoklu seçimle iki hareket eklenince listeye dönülür; ROM sıfırlanır ve setler yeniden eskiye sıralanır', async () => {
+    const { container } = render(<App />);
+    const click = (s) => fireEvent.click(container.querySelector(s));
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    click('#tab-antrenman');
+    click('#free-session');
+    await waitFor(() => expect(container.querySelector('#ses-add-first')).toBeTruthy());
+    click('#ses-add-first');
+
+    fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'bench' } });
+    const rows = container.querySelectorAll('.pk');
+    fireEvent.click(rows[0]);
+    fireEvent.click(rows[1]);
+    expect(container.querySelector('#pick-add').textContent).toBe('2 HAREKET EKLE');
+    click('#pick-add');
+
+    await waitFor(() => expect(container.querySelectorAll('.card')).toHaveLength(2));
+    fireEvent.click(container.querySelectorAll('.card-main')[0]);
+
+    const kgSlider = container.querySelector('[id^="kg-"]');
+    const romSlider = screen.getByRole('slider', { name: 'Hareket açıklığı (ROM)' });
+
+    // Set 1: 20 kg
+    click('#log-set');
+    fireEvent.click(screen.getByRole('button', { name: 'GİZLE' }));
+
+    // Set 2: 22.5 kg, Belirgin hız (RIR 2 -> 10+2=12) ve ROM %85
+    fireEvent.keyDown(kgSlider, { key: 'ArrowRight' });
+    expect(kgSlider.getAttribute('aria-valuenow')).toBe('22.5');
+    click('#speed-2');
+    fireEvent.keyDown(romSlider, { key: 'ArrowLeft' });
+    fireEvent.keyDown(romSlider, { key: 'ArrowLeft' });
+    fireEvent.keyDown(romSlider, { key: 'ArrowLeft' });
+    expect(romSlider.getAttribute('aria-valuenow')).toBe('85');
+    click('#log-set');
+
+    // Kaydet sonrası ROM %100'e döner
+    expect(romSlider.getAttribute('aria-valuenow')).toBe('100');
+    fireEvent.click(screen.getByRole('button', { name: 'GİZLE' }));
+
+    // Set kutucukları yeniden eskiye sıralanır
+    const tiles = [...container.querySelectorAll('.px-sets-grid .st .st-main')].map((el) => el.textContent);
+    expect(tiles).toEqual(['22,5×10', '20×10']);
+
+    // ROM %85 olan sette e1RM yok
+    fireEvent.click(container.querySelectorAll('.px-sets-grid .st')[0]);
+    expect(screen.getByRole('dialog', { name: 'Set ayrıntısı' }).textContent).toContain('ROM %90 altı');
+  });
+
+  it('kilo barı klavye okuyla barbell için 2,5 kg, makinede 5 kg adım atar', async () => {
+    const { container } = render(<App />);
+    const click = (s) => fireEvent.click(container.querySelector(s));
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    click('#tab-antrenman');
+    click('#free-session');
+    await waitFor(() => expect(container.querySelector('#ses-add-first')).toBeTruthy());
+    click('#ses-add-first');
+
+    fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'leg extension' } });
+    fireEvent.click(container.querySelector('.pk'));
+    click('#pick-add');
+
+    fireEvent.click(container.querySelector('.card-main'));
+    const mkSlider = container.querySelector('[id^="kg-"]');
+    expect(mkSlider.getAttribute('aria-valuenow')).toBe('0');
+    fireEvent.keyDown(mkSlider, { key: 'ArrowRight' });
+    expect(mkSlider.getAttribute('aria-valuenow')).toBe('5');
+    fireEvent.keyDown(mkSlider, { key: 'PageUp' });
+    expect(mkSlider.getAttribute('aria-valuenow')).toBe('25');
   });
 });

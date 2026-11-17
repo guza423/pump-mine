@@ -8,7 +8,7 @@
 > Konuşmaların kronolojik kaydı `docs/KONUSMA-KAYDI.md`'de. Kalıcı her karar bu dosyaya da işlenir (bkz. §9 Karar günlüğü).
 > Repo **herkese açık**. Buraya şifre, token ya da kişisel sağlık/vücut verisi yazılmaz.
 
-Son güncelleme: 2026-11-16 · V12 sonrası durum.
+Son güncelleme: 2026-11-17 · V13 sonrası durum.
 
 ---
 
@@ -30,27 +30,31 @@ Son güncelleme: 2026-11-16 · V12 sonrası durum.
 
 ---
 
-## 2) Bugünkü uygulama (V12 sonrası)
+## 2) Bugünkü uygulama (V13 sonrası)
 
 Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 
 | Sekme (id) | İçerik |
 |---|---|
-| **Dashboard** (`bugun`) | Hesap düğmesi (eşitleme durumu: sarı bekleyen, yeşil eşit, gri çevrimdışı). Yorgunluk halkası + kırılım, uyku girişi (5–9 sa), plan kartı (bugün plan var / sıradaki / plan yok), bu hafta şeridi. **Hedefler:** güç (1RM) ve öğrenme (beceri, 4 aşama, "Pratik et"). |
+| **Dashboard** (`bugun`) | Hesap düğmesi (eşitleme durumu: sarı bekleyen, yeşil eşit, gri çevrimdışı). Yorgunluk halkası + kırılım, uyku girişi (5–9 sa), plan kartı (bugün plan var / sıradaki / plan yok; hazır plansız oturumda `başlamadı`), bu hafta şeridi. **Hedefler:** güç (1RM) ve öğrenme (beceri, 4 aşama, "Pratik et"). |
 | **Antrenman** (`antrenman`) | `Plansız antrenman` ve `Yeni plan` düğmeleri; **Planlarım**; ay başlıklı, kaydırılabilir **geçmiş**. Aktif oturum ekranı da burada. |
 | **Gözlem** (`gozlem`, başlık "Antrenman plan ve gözlem") | Aylık takvim (yapılan ●, planlı ○, kaçırılan ·). Gün paneli: yapılanlar, planlar, uyku, yorgunluk, "Bu güne plan ekle" (tek gün ya da her hafta). Ay özeti, uyarılar, 1RM gelişimi, haftalık yük. |
 | **Lab** (`lab`) | 01 Temeller: sinir sistemi dersleri, "Yorgunluk nasıl ölçülür?", yorgunluk ölçer. 02 Hareketler: 466 hareket, arama + tür + kas + ekipman filtresi, biyomekanik kartlar. |
 
 **Oturum ekranları:**
-- **Plansız oturum** (`dayId == null`): yalnızca yapılan setler, kilo/tekrar, son tekrar hızı, RPE, not, `Seti kaydet`. Eklenen hareketler çip şeridinde. Kilo/tekrar o hareketin son kaydından gelir.
-- **Planlı oturum:** hedef kartı ("Hedef 4×6–8 · 80 kg · RPE 8"), planlı set satırları, "Set 1/4 kaydet".
-- **Pliometrik dock:** ek yük + temas + kalite (Korundu / Biraz düştü / Belirgin düştü), seans temas sayacı (140 üstü uyarı).
-- **Beceri dock:** deneme + (tutulan becerilerde) süre + kalite (Temiz / Kısmen / Olmadı).
-- **Dinlenme sayacı:** set kaydında kendiliğinden başlar; −15/+15, Atla. Plansızda süre hareket başına hatırlanır. Oturum belgesinde saklanır, sekme değişince kaybolmaz. Android'de kilit ekranında canlı geri sayım bildirimi, bitince ses + titreşim.
-- **Android geri tuşu:** sheet'i kapatır → alt ekrandan geri döner → oturumdan Dashboard'a (oturum sürer) → sekmeden Dashboard'a → Dashboard'da iki kez basınca çıkar.
+- **Plansız oturum** (`dayId == null`, V13 pixel arayüz `.px`):
+  - **Hazır akışı ve liste:** oturum `ready: true` (`HAZIR · başlamadı`) açılır; hareket listesi + çoklu seçimli hareket seçici (`N HAREKET EKLE`) + `İDMANI BAŞLAT` / `İDMANI BİTİR`. Set ekranı açılınca ya da ilk set kaydedilince süre kendiliğinden başlar ve altın bildirim çıkar.
+  - **Set ekranı (kuvvet / olimpik):** ekipmana göre ağırlık görseli (bar plakaları, makine/kablo yığını ve pim, dambıl), sürüklemeli kilo barı (kenarda hızlanma, bırakınca ortalama), 1–30 merdiven tekrar barı, 5 bölgeli sürüklemeli hız seçici (RPE çipleri yok; RIR/RPE hızdan), canlı `RIR · RPE · e1RM · ROM` (%10–100 sürüklenebilir, sonraki sette %100'e döner). Setler yeniden eskiye 3 sütunlu kutucuklarda; dokununca set ayrıntısı penceresi açılır.
+  - **Pliometrik / Beceri:** plansız oturumda `.px` kabuğunun içinde mevcut temas/ek yük/deneme/süre/kalite girişleriyle çalışır.
+  - **Büyük dinlenme ekranı (`#rest-big`):** set kaydında açılır; sürükleyerek ve `-15 SN`/`+15 SN` düğmeleriyle ayarlanır, `GİZLE` ile kaydet düğmesinin solunda küçük çipe küçülür, `GEÇ` ile biter.
+  - **Ses ve titreşim:** her adımda WebAudio kare/testere dalga sesleri, parçacık/pop/sarsıntı efektleri ve titreşim; **Hesap ve yedek** penceresinden (`Sesler`, `Titreşim`) kapatılabilir.
+  - **Pixel özet:** süre, tonaj (dambılda iki el; `Tek ` ile başlayanlar tek el), set · zor set, 25 parçalı yorgunluk çubuğu, `recoveryHours()`, hareket başına e1RM (`ROM ≥ %90`), `Plan olarak kaydet`.
+- **Planlı oturum:** hedef kartı ("Hedef 4×6–8 · 80 kg · RPE 8"), planlı set satırları, "Set 1/4 kaydet", hız animasyonu.
+- **Android geri tuşu:** sheet'i / pixel pencereyi kapatır → büyük dinlenmeyi küçültür → set ekranından listeye döner → oturumdan Dashboard'a (oturum sürer) → sekmeden Dashboard'a → Dashboard'da iki kez basınca çıkar.
 
 **Hesap ve yedek** (Dashboard sağ üst):
 - Misafir ya da Google / e-posta hesabı. İlk girişte açık rıza.
+- Sesler / Titreşim anahtarları (`settings.fx`).
 - Verilerimi dışa aktar (JSON), Yedekle / Geri yükle.
 - Gizlilik sayfası, hesap silme ("SİL" onayı).
 
@@ -102,12 +106,12 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 - **Plan** = program belgesinin günü. Yeni plan = tek günlük program belgesi.
   - Takvim alanları: `weekdays: number[]` (JS `getDay()`, 0 = Pazar), `dates: string[]` ve `skip: string[]` (`'YYYY-MM-DD'`, yerel).
   - Eski `weekday` okunurken diziye çevrilir.
-- **Oturum:** `{ id, programId, dayId, dayName, startedAt, endedAt, status, items[{ exId, name, target, sets[] }], rest? }`. Plansız = `dayId == null`.
+- **Oturum:** `{ id, programId, dayId, dayName, startedAt, endedAt, status, ready?, items[{ exId, name, target, sets[] }], rest? }`. Plansız = `dayId == null`. `ready: true` iken süre başlamamıştır (`dur = 0`).
 - **Set:**
-  - Kuvvet: `{ kg, reps, lvl 0–4, vl, rpe, rir, at }`
+  - Kuvvet: `{ kg, reps, lvl 0–4, vl, rpe, rir, rom?, at }` (`rom` yoksa 100 sayılır)
   - Pliometrik: `{ kg, reps (temas), plyo: true, q 0–2, rir: 9 }`
   - Beceri: `{ kg: 0, reps (deneme), hold?, skill: true, q 0–2, rir: 9 }`
-- **Ayarlar:** `goals: Goal[]` (`perf` / `skill`; eski tekil `goal` otomatik taşınır), `restPrefs: { [exId]: sn }`.
+- **Ayarlar:** `goals: Goal[]` (`perf` / `skill`; eski tekil `goal` otomatik taşınır), `restPrefs: { [exId]: sn }`, `fx: { sound: boolean, haptic: boolean }`.
 - **Misafir → hesap taşıma kuralları:**
   - Programlarda `updatedAt` yeni olan, oturumlarda seti fazla olan (eşitse bulut) kazanır.
   - Uyku girişlerinde `at` yeni olan kazanır. Özel hareketler birleşir, ayarlarda bulut kazanır.
@@ -131,7 +135,8 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
   | Zar zor | 0 | 10 |
 
   m/s değeri yalnızca bench hareketlerinde gösterilir; diğerlerinde temsili yüzde.
-- **e1RM:** Epley, `kg × (1 + (tekrar + RIR) / 30)`. Yalnızca RIR ≤ 4 ve tekrar + RIR ≤ 12 setlerden. Kontrol: `e1rm(75, 8, 2) = 100`.
+- **e1RM:** Epley, `kg × (1 + (tekrar + RIR) / 30)`. Yalnızca RIR ≤ 4, tekrar + RIR ≤ 12 ve `ROM ≥ %90` (eski setlerde varsayılan 100) setlerden. Kontrol: `e1rm(75, 8, 2) = 100`.
+- **Tonaj:** tek kaynak `sessionStats().tonnage`. Dambıl (`eq === 'db'`) setlerinde iki el (`kg × tekrar × 2`), adı `Tek ` ile başlayanlar ×1.
 - **Antrenman yorgunluğu:**
   - Kapsam: son 7 günün zor setleri (RIR ≤ 4).
   - Set ağırlığı = yakınlık (RIR 0…4 → 1,6 / 1,3 / 1,1 / 1 / 0,8) × hareket maliyeti (fat 3/2/1 → 1,5 / 1 / 0,6).
@@ -168,6 +173,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | V10 | 2026-11-14 | Android beyaz üst şerit düzeltmesi, her telefona oturma + `test:layout`, varsayılan hedef ve hazır şablonlar kaldırıldı | `f7875cd` |
 | V11 | 2026-11-14 | Sade plansız antrenman, bildirimli dinlenme sayacı, Android geri tuşu | `c5c588d` |
 | V12 | 2026-11-15 | Dashboard, antrenman planları (program katmanı kalktı), Gözlem takvimi, satır içi geçmiş, öğrenme hedefleri, 28 beceri hareketi | `c2f274b` (Antigravity) |
+| V13 | 2026-11-17 | Plansız idman pixel arayüzü (liste, çoklu seçici, sürüklemeli kilo/tekrar/hız/ROM, ekipman görselleri, dinlenme ekranı, ses/titreşim, pixel özet), `ROM ≥ %90` e1RM, dambıl iki el tonaj, `ready` otomatik başlatma | (Antigravity) |
 
 ---
 

@@ -32,4 +32,10 @@ describe('e1RM modeli', () => {
   it('20 tekrarlı uzak seti e1RM hesabına almaz', () => {
     expect(bestE1([{ kg: 40, reps: 20, rir: 1 }])).toBe(0);
   });
+
+  it('ROM 85 olan set e1RM hesabına girmez, ROM belirtilmemiş eski set girer', () => {
+    expect(bestE1([{ kg: 75, reps: 8, rir: 2, rom: 85 }])).toBe(0);
+    expect(bestE1([{ kg: 75, reps: 8, rir: 2, rom: 90 }])).toBe(100);
+    expect(bestE1([{ kg: 75, reps: 8, rir: 2 }])).toBe(100);
+  });
 });

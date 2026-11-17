@@ -24,12 +24,15 @@ import { freeEntry, isFree, sessionName } from '../lib/models/session';
 import { changeRest, restDuration } from '../lib/models/rest';
 import { startRest, stopRest } from '../lib/native/restTimer';
 import { useAndroidBack, useBack } from './back';
+import { FreePixelSession } from '../features/antrenman/FreePixelSession';
+import { PixelSummaryScreen } from '../features/antrenman/PixelSummaryScreen';
 import { planStats, logStats, proxW, costW, loadScore, hoursToFresh, decayK, setLoads, sleepInfo, sleepPts, fatigueAt, steadyWeek, simFromLogs, simFromPlan, simulatePlan, fatigueRecs, e1Series, prevPerf, sessionFatigue, periodMetrics, historyWarnings } from '../lib/models/fatigue';
 import '../styles/cns.css';
 import '../styles/app.css';
 import '../styles/log.css';
 import '../styles/mobile.css';
 import '../styles/v7.css';
+import '../styles/pixel.css';
 
 /* ================= PERFORMANCE · son kullanıcı uygulaması ================= */
 const TABS2 = [
@@ -199,7 +202,7 @@ function ExFilterBar({ f, idp, placeholder }) {
 function WeekRow({ programs, sessions }) {
   const today = new Date();
   const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - ((today.getDay() + 6) % 7));
-  const done = sessions.filter((s) => s.status === 'done');
+  const done = sessions.filter((s) => s.status === 'done' && !s.ready);
   const cells = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
     const key = dateKey(d);
@@ -288,7 +291,7 @@ function TodayScreen({ st, put, openSheet, startSession, newPlan, practiceSkill,
 
         {loading ? <div className="skeleton"><span /><span /></div> : active ? (
           <section className="hero-card live">
-            <div className="hc-top"><span className="live-dot" /><span className="eyebrow fire">Antrenman sürüyor</span><span className="hc-when mono">{active.items.reduce((a, it) => a + it.sets.length, 0)} set</span></div>
+            <div className="hc-top"><span className="live-dot" /><span className="eyebrow fire">{active.ready ? 'Hazır' : 'Antrenman sürüyor'}</span><span className="hc-when mono">{active.ready ? 'başlamadı' : active.items.reduce((a, it) => a + it.sets.length, 0) + ' set'}</span></div>
             <h3>{sessionName(active)}</h3>
             <button type="button" id="resume-btn" className="btn fire full" onClick={() => goTab('antrenman')}>Devam et <Icon name="right" /></button>
           </section>
@@ -320,7 +323,7 @@ function TodayScreen({ st, put, openSheet, startSession, newPlan, practiceSkill,
         )}
 
         <section className="tcard">
-          <div className="tcard-h"><span className="eyebrow">Bu hafta</span><span className="mono tcard-k">{st.sessions.filter((s) => s.status === 'done' && Date.now() - s.startedAt < 7 * DAY_MS).length} antrenman</span></div>
+          <div className="tcard-h"><span className="eyebrow">Bu hafta</span><span className="mono tcard-k">{st.sessions.filter((s) => s.status === 'done' && !s.ready && Date.now() - s.startedAt < 7 * DAY_MS).length} antrenman</span></div>
           <WeekRow programs={st.programs} sessions={st.sessions} />
         </section>
 
@@ -2554,6 +2557,8 @@ function App() {
   });
   const [sheets, setSheets] = useState([]);
   const [planEd, setPlanEd] = useState(null); // { id, dayId, draft?, back } | null
+  const [pixelSummary, setPixelSummary] = useState(null);
+  const [jumpExId, setJumpExId] = useState(null);
   const previousAccount = useRef(acct.mode + ':' + acct.uid);
   const put = (kind, obj) => (apiRef.current ? apiRef.current.put(kind, obj) : null);
   const del = (kind, id) => (apiRef.current ? apiRef.current.del(kind, id) : null);
@@ -2587,6 +2592,8 @@ function App() {
   const startSession = (program, day) => {
     closeAll();
     setPlanEd(null);
+    setPixelSummary(null);
+    setJumpExId(null);
     if (active) { setTab('antrenman'); return; }
     const s = sessionFromDay(program, day);
     put('sessions', s);
@@ -2608,6 +2615,7 @@ function App() {
   const practiceSkill = (goal) => {
     closeAll();
     setPlanEd(null);
+    setPixelSummary(null);
     const lib = exMeta(goal.exId, goal.name);
     const ex = lib || { id: goal.exId || newId('x'), exId: goal.exId, name: goal.name, muscle: 'Diğer', rest: 90 };
     const d = itemFromEx(ex);
@@ -2622,6 +2630,7 @@ function App() {
       target: { sets: d.sets, repMin: d.repMin, repMax: d.repMax, kg: d.kg, rpeMin: d.rpeMin, rpeMax: d.rpeMax, rest: d.rest },
       sets: [],
     };
+    setJumpExId(d.exId || d.name);
     if (active) {
       const ns = clone(active);
       if (!ns.items.some((it) => matchesSkillGoal(goal, it))) {
@@ -2639,6 +2648,7 @@ function App() {
 
   const pick = (id) => {
     setPlanEd(null);
+    if (id !== 'antrenman') setPixelSummary(null);
     setTab(id);
   };
 
@@ -2646,7 +2656,7 @@ function App() {
     const p = sh.props;
     const close = closeTop;
     switch (sh.type) {
-      case 'account': return <AccountBody st={st} acct={acct} actions={actions} openSheet={openSheet} onClose={close} />;
+      case 'account': return <AccountBody st={st} acct={acct} actions={actions} openSheet={openSheet} onClose={close} put={put} />;
       case 'consent': return <ConsentBody onAccept={actions.acceptConsent} onClose={actions.rejectConsent} busy={acct.busy} />;
       case 'privacy': return <PrivacyBody />;
       case 'fatigue': { const init = p.sim || simFromLogs(st); return <FatigueBody st={st} init={init} source={p.source || init.src} showNow={!p.sim} openSheet={openSheet} />; }
@@ -2660,7 +2670,7 @@ function App() {
       case 'setdetail': return <SetDetailBody set={p.set} idx={p.idx} exId={p.exId} onDelete={p.onDelete} onClose={close} />;
       case 'wtype': return <WtypeMenuBody st={st} pid={p.pid} did={p.did} put={put} del={del} onStart={startSession} onEdit={(pr, d) => editPlan(pr, d, tab)} onClose={close} />;
       case 'summary': { const s = p.draft || st.sessions.find((x) => x.id === p.id); return s ? <SummaryBody session={s} st={st} put={put} del={del} openSheet={openSheet} onDelete={(id) => del('sessions', id)} onClose={close} /> : <p className="muted-p">Kayıt bulunamadı.</p>; }
-      case 'saveTemplate': return <SaveTemplateBody session={p.session} st={st} put={put} onClose={close} onSaved={(pr, d) => { closeAll(); editPlan(pr, d, 'antrenman'); }} />;
+      case 'saveTemplate': return <SaveTemplateBody session={p.session} st={st} put={put} onClose={close} onSaved={(pr, d) => { closeAll(); setPixelSummary(null); editPlan(pr, d, 'antrenman'); }} />;
       case 'plan': return <PlanBody getProgram={p.getProgram} st={st} openSheet={openSheet} />;
       case 'goal': return <GoalBody id={p.id} st={st} put={put} del={del} addCustom={addCustom} onClose={close} />;
       case 'planPick': return <PlanPickBody dayKey={p.dayKey} st={st} put={put} newPlan={newPlan} onClose={close} />;
@@ -2692,9 +2702,40 @@ function App() {
   if (!screen) {
     if (tab === 'bugun') screen = <TodayScreen st={st} put={put} openSheet={openSheet} startSession={startSession} newPlan={newPlan} practiceSkill={practiceSkill} goTab={setTab} acct={acct} />;
     if (tab === 'antrenman') {
-      screen = active
-        ? <SessionView2 key={active.id} session={active} st={st} put={put} del={del} openSheet={openSheet} onFinished={(ns) => openSheet('summary', { id: ns.id, draft: ns })} onDiscarded={() => {}} />
-        : <StartView st={st} startSession={startSession} newPlan={newPlan} openSheet={openSheet} />;
+      if (active && isFree(active)) {
+        screen = (
+          <FreePixelSession
+            key={active.id}
+            session={active}
+            st={st}
+            put={put}
+            del={del}
+            addCustom={addCustom}
+            openSheet={openSheet}
+            jumpExId={jumpExId}
+            onJumpHandled={() => setJumpExId(null)}
+            onFinished={(ns) => setPixelSummary(ns)}
+            onDiscarded={() => { setJumpExId(null); setPixelSummary(null); }}
+          />
+        );
+      } else if (active) {
+        screen = <SessionView2 key={active.id} session={active} st={st} put={put} del={del} openSheet={openSheet} onFinished={(ns) => openSheet('summary', { id: ns.id, draft: ns })} onDiscarded={() => {}} />;
+      } else if (pixelSummary) {
+        const latestSummary = st.sessions.find((x) => x.id === pixelSummary.id) || pixelSummary;
+        screen = (
+          <PixelSummaryScreen
+            key={latestSummary.id}
+            session={latestSummary}
+            st={st}
+            put={put}
+            del={del}
+            openSheet={openSheet}
+            onDone={() => setPixelSummary(null)}
+          />
+        );
+      } else {
+        screen = <StartView st={st} startSession={startSession} newPlan={newPlan} openSheet={openSheet} />;
+      }
     }
     if (tab === 'gozlem') {
       screen = <GozlemScreen st={st} put={put} openSheet={openSheet} startSession={startSession} editPlan={editPlan} />;

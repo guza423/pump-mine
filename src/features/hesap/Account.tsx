@@ -1,8 +1,9 @@
 // @ts-nocheck
 import React, { useState } from 'react';
-import { Icon } from '../lab/Cns';
+import { Icon, Switch } from '../lab/Cns';
 import { BackupPanel, exportBackup } from '../programlar/BackupPanel';
 import { accountError } from '../../lib/cloud/errors';
+import { readFxSettings } from '../../lib/native/fx';
 import { allPlans } from '../plan/plans';
 const hm = ts => new Date(ts).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 function AccountChip({ acct, onClick }) {
@@ -15,7 +16,7 @@ function AccountChip({ acct, onClick }) {
     </button>
   );
 }
-function AccountBody({ st, acct, actions, openSheet, onClose }) {
+function AccountBody({ st, acct, actions, openSheet, onClose, put }) {
   const [mode, setMode] = useState(null); // null | 'email'
   const [isNew, setIsNew] = useState(false);
   const [email, setEmail] = useState('');
@@ -29,6 +30,13 @@ function AccountBody({ st, acct, actions, openSheet, onClose }) {
   const status = <>{message || st.error ? <p className="backup-status bad" role="status">{message || st.error}</p> : null}{busy || acct.busy || acct.migrating ? <p role="status">İşlem sürüyor…</p> : null}</>;
   const n = { p: allPlans(st.programs).length, s: st.sessions.filter((x) => x.status === 'done').length, c: st.checkins.length };
   const valid = /.+@.+\..+/.test(email) && pass.length >= 6;
+  const fx = readFxSettings(st.settings);
+  const fxSection = put ? (
+    <div className="acct-fx" style={{ display: 'grid', gap: '8px' }}>
+      <Switch id="fx-sound" label="Sesler" on={fx.sound} onChange={(v) => put('settings', { key: 'fx', value: { ...fx, sound: v } })} />
+      <Switch id="fx-haptic" label="Titreşim" on={fx.haptic} onChange={(v) => put('settings', { key: 'fx', value: { ...fx, haptic: v } })} />
+    </div>
+  ) : null;
   if (acct.mode === 'guest') {
     return (
       <div className="acct">{status}
@@ -54,6 +62,7 @@ function AccountBody({ st, acct, actions, openSheet, onClose }) {
           </div>
         ) : <button type="button" id="email-signin" className="btn ghost full" onClick={() => setMode('email')}><Icon name="mail" size={15} /> E-posta ile devam et</button>}
         <BackupPanel />
+        {fxSection}
         <button type="button" className="linkbtn" onClick={() => openSheet('privacy', {})}><Icon name="shield" size={13} /> Verilerin nasıl saklanır?</button>
       </div>
     );
@@ -71,6 +80,7 @@ function AccountBody({ st, acct, actions, openSheet, onClose }) {
       </div>
       <p className="acct-move mono">{n.p} plan · {n.s} antrenman · {n.c} uyku kaydı</p>
       <BackupPanel />
+      {fxSection}
       <button type="button" className="btn ghost full" disabled={busy} onClick={() => run(() => exportBackup(actions.readBackup))}>Verilerimi dışa aktar (JSON)</button>
       <button type="button" className="linkbtn" onClick={() => openSheet('privacy', {})}><Icon name="shield" size={13} /> Gizlilik ve veri kullanımı</button>
       {confirm === 'out' ? (

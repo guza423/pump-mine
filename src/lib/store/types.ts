@@ -39,6 +39,7 @@ export interface RecordedSet {
   rpe: number | null;
   rir: number;
   rirEst?: number;
+  rom?: number;
   plyo?: boolean;
   skill?: boolean;
   hold?: number;
@@ -46,6 +47,11 @@ export interface RecordedSet {
   at: number;
   note?: string;
   tags?: string[];
+}
+
+export interface FxSettings {
+  sound: boolean;
+  haptic: boolean;
 }
 
 export type PerfGoal = {
@@ -99,6 +105,7 @@ export interface Session {
   startedAt: number;
   endedAt: number | null;
   status: 'active' | 'done';
+  ready?: boolean;
   fatigue?: { v: 2; pre: number; post: number | null };
   rest?: SessionRest;
   items: SessionItem[];

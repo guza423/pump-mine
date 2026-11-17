@@ -59,9 +59,10 @@ Prototip `window.claude.use('db')` kullanıyor; bu yalnızca Claude artifact ort
 
 Yerine cihazda IndexedDB (Dexie) kullan, veri modeli aynı kalsın:
 - `programs`: plan belgelerini taşır: `{ id, name, createdAt, updatedAt, days: [{ id, name, weekdays: number[] (0=Pazar … 6=Cumartesi), dates?: string[] ('YYYY-MM-DD'), skip?: string[] ('YYYY-MM-DD'), weekday?: number | null (geriye uyumlu), items: [{ id, exId, name, muscle, sets, repMin, repMax, kg, rpeMin, rpeMax, rest (sn), note }] }] }`
-- `sessions`: `{ id, programId, programName, dayId, dayName, startedAt, endedAt, status: 'active' | 'done', items: [{ id, exId, name, muscle, note, target: { sets, repMin, repMax, kg, rpeMin, rpeMax, rest }, sets: [{ kg, reps, lvl (0–4), vl, rpe, rir, rirEst, plyo?, skill?, hold?, q?, at }] }] }`
+- `sessions`: `{ id, programId, programName, dayId, dayName, startedAt, endedAt, status: 'active' | 'done', ready?: true, items: [{ id, exId, name, muscle, note, target: { sets, repMin, repMax, kg, rpeMin, rpeMax, rest }, sets: [{ kg, reps, lvl (0–4), vl, rpe, rir, rirEst, rom?, plyo?, skill?, hold?, q?, at }] }] }`
 - `sessions` belgesinde isteğe bağlı `rest: { start, total, exId, setNo }` dinlenme sayacını saklar. `start` epoch ms, `total` saniye, `setNo` biten setin numarasıdır.
 - `settings` içinde `key: 'restPrefs'`, `value: { [exId]: saniye }` plansız hareketlerin dinlenme tercihleridir; hesapta buluta eşitlenir.
+- `settings` içinde `key: 'fx'`, `value: { sound: boolean, haptic: boolean }` ses ve titreşim tercihleridir (varsayılan ikisi de `true`).
 - `settings` içinde `key: 'goals'`, `value: Goal[]` güç (`perf`) ve öğrenme (`skill`) hedeflerini tutar; eski tekil `key: 'goal'` kaydı okuma sırasında otomatik taşınır.
 - Plansız oturum tanımı `dayId == null` koşuludur (`isFree`); görünen ada göre belirlenmez.
 - `exercises`: kullanıcının eklediği özel hareketler `{ id, name, muscle, createdAt, pending: true }`

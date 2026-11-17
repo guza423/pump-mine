@@ -284,3 +284,15 @@ komple tüm uygulama biraz böyle pixel art gibi olsun istiyorum mesela ağırl�
 - Kararlar `docs/PROJE.md` §9'a işlendi.
 
 **Kayıt:** `docs/gorevler/V13-pixel-plansiz-idman.md`, `reference/v13-pixel/` (`680af58`)
+
+### 2026-11-17 · Gemini 4 Hydrogen (Google Antigravity)
+**Kullanıcı:** "AGENTS.md'yi oku ve uygula"
+**Yapılan / karar:**
+- V13 (`docs/gorevler/V13-pixel-plansiz-idman.md`) uygulandı:
+  - `@fontsource/pixelify-sans` ve `@fontsource/press-start-2p` eklendi; `.px` sınıfı altında `src/styles/pixel.css` yazıldı (diğer ekranlar ve planlı oturum değişmedi).
+  - Plansız oturum akışı: `ready: true` başlangıç, hareket listesi (`scrList`), çoklu seçimli hareket seçici (`scrPick`), set ekranı (`scrLog` — barbell/makine/dambıl ağırlık görseli, sürüklemeli kilo/tekrar/hız/ROM kontrolleri; pliometrik ve beceri girişleri `.px` kabuğunda), büyük dinlenme ekranı (`#rest-big`, sürükleme + `GİZLE`/`GEÇ`), set penceresi ve pixel özet ekranı (`PixelSummaryScreen`).
+  - Otomatik başlatma (`Set ekranını açtın, süreyi başlattım` / `İlk setini kaydettin, süreyi başlattım`), WebAudio kare/testere ses ve `navigator.vibrate` titreşim motoru (`src/lib/native/fx.ts`) ve **Hesap ve yedek** içinde `Sesler` / `Titreşim` anahtarları (`settings.fx`).
+  - Model güncellemeleri: `e1Ok` için `ROM ≥ %90`, `sessionStats().tonnage` için dambılda ×2 (`Tek ` ile başlayanlar ×1), `ready` oturumda `dur = 0` ve yorgunluk dışı bırakma.
+  - Sapma / notlar: RIR 5+ (`Aynı`) için `README.md`'de belirtildiği gibi `training.ts` eşlemesi (`≤6`) ve görev dosyasındaki `Zar zor` etiketi kullanıldı; `ready` oturumdan vazgeçebilmek için liste başlığına `#discard-ready-btn` eklendi; sekme çubuğu üstündeki alana tam oturmak için `.px` üzerinde `@container (max-height: ...)` kırılımları kullanıldı.
+- Vitest (14 dosya, 90 test), `npm run build`, `npm run lint` ve `npm run test:layout` (11 boyut/ölçek/inset senaryosu) geçti.
+**Kayıt:** `docs/gorevler/V13-pixel-plansiz-idman.md` uygulandı

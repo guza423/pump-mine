@@ -112,7 +112,7 @@ export function planStats(program) {
 export function logStats(sessions, endTs) {
   const from = endTs - 7 * DAY_MS;
   const muscles = {};
-  sessions.filter((s) => (s.status === 'done' || s.status === 'active') && s.startedAt >= from && s.startedAt <= endTs + 1000).forEach((s) => s.items.forEach((it) => {
+  sessions.filter((s) => (s.status === 'done' || s.status === 'active') && !s.ready && s.startedAt >= from && s.startedAt <= endTs + 1000).forEach((s) => s.items.forEach((it) => {
     it.sets.forEach((x) => { if (!x.plyo && !x.skill && x.rir <= 4) muscles[it.muscle] = (muscles[it.muscle] || 0) + 1; });
   }));
   return { muscles };
@@ -134,7 +134,7 @@ export const decayK = (h) => Math.exp(-h / TAU_H);
 export function setLoads(sessions, t) {
   const out = [];
   sessions.forEach((s) => {
-    if (s.status !== 'done' && s.status !== 'active') return;
+    if ((s.status !== 'done' && s.status !== 'active') || s.ready) return;
     s.items.forEach((it) => {
       const c = costW(it.exId, it.name);
       const lib = exMeta(it.exId, it.name);
@@ -187,7 +187,7 @@ export function simFromLogs(st) {
   const t = Date.now();
   const loads = setLoads(st.sessions, t).filter((x) => !x.plyo && !x.skill);
   const sl = sleepInfo(st, t);
-  const n = st.sessions.filter((s) => s.status === 'done' && t - s.startedAt < 7 * DAY_MS).length;
+  const n = st.sessions.filter((s) => s.status === 'done' && !s.ready && t - s.startedAt < 7 * DAY_MS).length;
   const avg3 = sl.n ? (sl.avg3 * sl.n + 7.5 * (3 - sl.n)) / 3 : 7.5;
   const base = { sleepLast: sl.last != null ? sl.last : 7.5, sleepAvg: Math.round(avg3 * 2) / 2, deload: false };
   if (loads.length && n) {

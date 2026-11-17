@@ -109,4 +109,58 @@ describe('v0.7 yorgunluk modeli', () => {
     expect(fat.hard).toBe(0);
     expect(fat.attempts).toBe(100);
   });
+
+  it('dambıl setlerinde tonajı iki el sayar, Tek ile başlayanları tek el bırakır', () => {
+    const now = Date.UTC(2026, 0, 8, 12, 0, 0);
+    const session = {
+      id: 's_db',
+      status: 'done',
+      startedAt: now - 600_000,
+      endedAt: now,
+      items: [
+        {
+          id: 'i1',
+          exId: 'egimli-db-press',
+          name: 'Eğimli dumbbell press',
+          muscle: 'Göğüs',
+          sets: [{ kg: 20, reps: 10, rir: 2, at: now }],
+        },
+        {
+          id: 'i2',
+          exId: 'db-row',
+          name: 'Tek kol dumbbell row',
+          muscle: 'Sırt',
+          sets: [{ kg: 25, reps: 10, rir: 2, at: now }],
+        },
+      ],
+    };
+    const stats = sessionStats(session);
+    // 20*10*2 (400) + 25*10*1 (250) = 650
+    expect(stats.tonnage).toBe(650);
+  });
+
+  it('hazır oturumda süreyi 0 döndürür ve yorgunluğa dahil etmez', () => {
+    const now = Date.UTC(2026, 0, 8, 12, 0, 0);
+    const readySession = {
+      id: 's_ready',
+      dayId: null,
+      status: 'active',
+      ready: true,
+      startedAt: now - 300_000,
+      endedAt: null,
+      items: [
+        {
+          id: 'i1',
+          exId: 'duz-bench',
+          name: 'Düz bench press',
+          muscle: 'Göğüs',
+          sets: [{ kg: 80, reps: 8, rir: 1, at: now }],
+        },
+      ],
+    };
+    expect(sessionStats(readySession).dur).toBe(0);
+    expect(setLoads([readySession], now)).toHaveLength(0);
+    expect(fatigueAt({ sessions: [readySession], checkins: [] }, now).sum).toBe(0);
+    expect(logStats([readySession], now).muscles).toEqual({});
+  });
 });

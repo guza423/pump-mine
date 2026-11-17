@@ -60,7 +60,7 @@ async function check(page, label, screen, { session = false, tablet = false, res
       if ((rect.left < -1 || rect.right > innerWidth + 1) && !clipped(el)) errors.push(`${selector(el)}: yatay sınır dışında (${rect.left.toFixed(1)}–${rect.right.toFixed(1)})`);
     }
     // Kökün overflow:hidden olması içerik taşmasını gizlemesin.
-    for (const el of document.querySelectorAll('.scr, .sheet-body, .ses2-body, .dock, .tabbar, .s-t.now-t')) {
+    for (const el of document.querySelectorAll('.scr, .sheet-body, .ses2-body, .dock, .tabbar, .s-t.now-t, .px .px-sets-box, .px .px-ro-grid')) {
       if (visible(el) && el.scrollWidth > el.clientWidth + 1) errors.push(`${selector(el)}: içerik yatay taşıyor (${el.scrollWidth} > ${el.clientWidth})`);
     }
     const tab = document.querySelector('.tabbar');
@@ -72,10 +72,13 @@ async function check(page, label, screen, { session = false, tablet = false, res
       if (!br || !visible(button) || br.top < 0 || br.bottom >= tr.top || br.left < 0 || br.right > innerWidth) {
         errors.push(`#log-set: kaydırmadan görünmüyor (düğme ${br?.top.toFixed(1)}–${br?.bottom.toFixed(1)}, sekme ${tr?.top.toFixed(1)})`);
       }
-      if (document.querySelector('.ses2-body').scrollTop !== 0) errors.push('.ses2-body: seans ana kabı kaydırılmış');
-      if (document.querySelector('.free-session #pq-0') && !document.querySelector('#rest-big') && ![...document.querySelectorAll('.ps-r')].some(visible)) errors.push('pliometrik: seans temas sayısı görünmüyor');
+      const sesBody = document.querySelector('.ses2-body');
+      if (sesBody && sesBody.scrollTop !== 0) errors.push('.ses2-body: seans ana kabı kaydırılmış');
+      const pxScr = document.querySelector('.px .scr');
+      if (pxScr && pxScr.scrollTop !== 0) errors.push('.px .scr: pixel ekranı kaydırılmış');
+      if ((document.querySelector('.free-session #pq-0') || document.querySelector('.px #pq-0')) && !document.querySelector('#rest-big') && ![...document.querySelectorAll('.ps-r')].some(visible)) errors.push('pliometrik: seans temas sayısı görünmüyor');
       if (rest) {
-        const timer = [...document.querySelectorAll('#rest-big, .restchip')].find(visible);
+        const timer = [...document.querySelectorAll('#rest-big, .restchip, .px .chip')].find(visible);
         const rr = timer?.getBoundingClientRect();
         if (!rr || rr.top < 0 || rr.bottom >= tr.top || rr.left < 0 || rr.right > innerWidth) errors.push('dinlenme sayacı: tamamı kaydırmadan görünmüyor');
         for (const control of timer?.querySelectorAll('button') || []) {
@@ -146,51 +149,77 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
     await page.locator('#ed-back').click();
 
     await page.locator('#free-session').click();
+    await page.locator('#ses-add-first').waitFor();
+    screen = 'plansiz-liste-bos';
+    await check(page, label, screen);
     await page.locator('#ses-add-first').click();
     screen = 'hareket-sec';
     await page.locator('#ex-search').fill('bench');
     await check(page, label, screen);
-    await page.locator('.exr-main').filter({ hasText: 'Eğimli bench press' }).first().click();
+    await page.locator('.pk').filter({ hasText: 'Eğimli bench press' }).first().click();
+    await page.locator('#pick-add').click();
+    await page.locator('.card-main').first().waitFor();
+    screen = 'plansiz-liste';
+    await check(page, label, screen);
+    await page.locator('.card-main').first().click();
     await page.locator('#log-set').waitFor();
     screen = 'seans-kuvvet';
     await check(page, label, screen, { session: true });
 
     await page.locator('#log-set').click();
-    await page.locator('.srow.done').waitFor();
+    await page.locator('#rest-big').waitFor();
     screen = 'seans-set-kayitli';
     await check(page, label, screen, { session: true, rest: true });
 
     // Uzun set listesi yalnızca kendi içinde kaymalı; ana eylem yerinde kalmalı.
-    for (let i = 0; i < 5; i++) await page.locator('#log-set').click();
+    for (let i = 0; i < 6; i++) {
+      await page.getByRole('button', { name: 'GİZLE' }).click();
+      await page.locator('#log-set').click();
+      await page.locator('#rest-big').waitFor();
+    }
+    await page.getByRole('button', { name: 'GİZLE' }).click();
     screen = 'seans-uzun-tablo';
     await check(page, label, screen, { session: true, rest: true });
 
-    await page.getByRole('button', { name: 'Atla', exact: true }).click();
+    await page.locator('.px .chip').click();
+    await page.getByRole('button', { name: 'GEÇ' }).click();
+    await page.getByRole('button', { name: 'Geri: antrenman listesi' }).click();
     await page.locator('#fx-add').click();
     await page.locator('#ex-search').fill('box jump');
-    await page.locator('.exr-main').first().click();
+    await page.locator('.pk').first().click();
+    await page.locator('#pick-add').click();
+    await page.locator('.card-main').nth(1).click();
     await page.locator('#pq-0').waitFor();
     screen = 'seans-plyo';
     await check(page, label, screen, { session: true });
     await page.locator('#log-set').click();
+    await page.locator('#rest-big').waitFor();
     screen = 'seans-plyo-dinlenme';
     await check(page, label, screen, { session: true, rest: true });
 
-    await page.getByRole('button', { name: 'Atla', exact: true }).click();
+    await page.getByRole('button', { name: 'GEÇ' }).click();
+    await page.getByRole('button', { name: 'Geri: antrenman listesi' }).click();
     await page.locator('#fx-add').click();
     await page.locator('#ex-search').fill('kip-up');
-    await page.locator('.exr-main').first().click();
+    await page.locator('.pk').first().click();
+    await page.locator('#pick-add').click();
+    await page.locator('.card-main').nth(2).click();
     await page.locator('#sq-0').waitFor();
     screen = 'seans-beceri';
     await check(page, label, screen, { session: true });
     await page.locator('#log-set').click();
+    await page.locator('#rest-big').waitFor();
     screen = 'seans-beceri-dinlenme';
     await check(page, label, screen, { session: true, rest: true });
 
+    await page.getByRole('button', { name: 'GEÇ' }).click();
+    await page.getByRole('button', { name: 'Geri: antrenman listesi' }).click();
     await page.locator('#finish-btn').click();
     await page.locator('#finish-yes').click();
-    await page.getByRole('dialog', { name: 'Antrenman özeti' }).waitFor();
-    await closeSheet(page);
+    await page.locator('#pixel-summary').waitFor();
+    screen = 'plansiz-ozet';
+    await check(page, label, screen);
+    await page.locator('#summary-done').click();
 
     screen = 'antrenman-gecmis';
     await page.locator('.hist-inline .hrow').first().waitFor();

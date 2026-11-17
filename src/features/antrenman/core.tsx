@@ -2,6 +2,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { clamp, Icon, reducedMotion } from '../lab/Cns';
 import { EX_LIB, MUS_CODE, EQ, PLYO_INT } from '../../lib/data/exlib';
+import { e1Ok, bestE1 } from '../../lib/models/training';
+import { dbMultiplier } from '../../lib/models/session';
 import { nextPlanned } from '../plan/plans';
 
 /* ================= GÜNLÜK: program yazma + antrenman kaydı ================= */
@@ -100,10 +102,6 @@ function repVelocities(reps, rir, vl) {
 }
 const e1rm = (kg, reps, rir) => Number(kg) * (1 + (reps + rir) / 30);
 const rpeLabel = (rpe, rir) => (rpe <= 6 && rir > 4 ? '≤6' : nf(Number(rpe)));
-// 1RM tahmini yalnızca tükenişe yakın setlerden (RIR ≤ 4): uzak setlerde Epley sapması büyür.
-// 1RM tahmini yalnızca tükenişe yakın (RIR ≤ 4) ve tükenişe kadar ≤ 12 tekrarlık setlerden; tekrar arttıkça formüller şişirir
-const e1Ok = (z) => !z.plyo && !z.skill && z.rir <= 4 && Number(z.kg) > 0 && z.reps + z.rir <= 12;
-const bestE1 = (sets) => sets.filter(e1Ok).reduce((m, z) => Math.max(m, e1rm(z.kg, z.reps, z.rir)), 0);
 const vlColor = (vl) => (vl < 0.2 ? 'var(--neuro)' : vl < 0.35 ? 'var(--amber)' : vl < 0.5 ? 'var(--fire)' : 'var(--burn)');
 const skillSetTxt = (z) => z.reps + ' deneme · ' + (SKILL_Q[z.q || 0] ? SKILL_Q[z.q || 0].k : 'Temiz') + (Number(z.hold) > 0 ? ' · ' + nf(Number(z.hold)) + ' sn' : '');
 
@@ -115,6 +113,7 @@ function sessionFromDay(program, day) {
   return {
     id: newId('s'), programId: program ? program.id : null, programName: program ? program.name : '', dayId: day ? day.id : null,
     dayName: day ? day.name : 'Plansız antrenman', startedAt: Date.now(), endedAt: null, status: 'active',
+    ...(day ? {} : { ready: true }),
     items: (day ? day.items : []).map((it) => ({
       id: newId('e'), srcId: it.id || null, exId: it.exId || null, name: it.name, muscle: it.muscle, note: it.note || '', memo: '',
       target: { sets: it.sets, repMin: it.repMin, repMax: it.repMax, kg: hasNum(it.kg) ? Number(it.kg) : null, rpeMin: it.rpeMin, rpeMax: it.rpeMax, rest: it.rest || 120 },
@@ -144,12 +143,18 @@ function targetTxt(t, exId) {
 }
 function sessionStats(s) {
   const sets = [];
-  s.items.forEach((it) => it.sets.forEach((x) => sets.push({ ...x, muscle: it.muscle, rest: it.target?.rest })));
+  let tonnage = 0;
+  s.items.forEach((it) => {
+    const mult = dbMultiplier(it.exId, it.name);
+    it.sets.forEach((x) => {
+      sets.push({ ...x, muscle: it.muscle, rest: it.target?.rest });
+      if (!x.plyo && !x.skill) tonnage += (Number(x.kg) || 0) * x.reps * mult;
+    });
+  });
   const hard = sets.filter((x) => !x.plyo && !x.skill && x.rir <= 4);
-  const tonnage = sets.reduce((a, x) => a + (x.plyo || x.skill ? 0 : (Number(x.kg) || 0) * x.reps), 0);
   const contacts = sets.reduce((a, x) => a + (x.plyo ? x.reps : 0), 0);
   const attempts = sets.reduce((a, x) => a + (x.skill ? x.reps : 0), 0);
-  return { sets, hard, tonnage, contacts, attempts, dur: (s.endedAt || Date.now()) - s.startedAt };
+  return { sets, hard, tonnage, contacts, attempts, dur: s.ready ? 0 : (s.endedAt || Date.now()) - s.startedAt };
 }
 function weeklyHard(sessions, endTs) {
   const from = endTs - 7 * 864e5;
