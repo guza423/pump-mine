@@ -1,0 +1,1095 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>OUTMOVE · Set kaydı</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&amp;family=Press+Start+2P&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#ffc53d}a:hover{color:#ffe08a}
+.om{font-family:'Pixelify Sans',system-ui,sans-serif;color:var(--tx);background-color:var(--bg);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:12px 12px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+.night{--bg:#100e1b;--pn:#1b1830;--pn2:#252140;--ln:#3c3660;--tx:#f5f1e8;--mt:#aaa4ca;--fire:#ff5b3a;--fireD:#a32e1a;--gold:#ffc53d;--dim:#302b4c;--btx:#160f0c;--grid:rgba(255,255,255,.03);--sh:#07060d;--bar:#8f8aa8;--barH:#d3cfe4}
+.gb{--bg:#0d1f0e;--pn:#163418;--pn2:#1f4621;--ln:#3b6e2c;--tx:#dcf09a;--mt:#a7c66a;--fire:#b9d832;--fireD:#557515;--gold:#eefaa6;--dim:#264b2b;--btx:#0d1f0e;--grid:rgba(200,240,120,.045);--sh:#07120a;--bar:#7aa521;--barH:#c3df4e}
+.num{font-family:'Press Start 2P',monospace;display:inline-block}
+.nm{font-family:'Pixelify Sans',system-ui,sans-serif;font-weight:700;display:inline-block;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.lbl{font-size:14px;font-weight:600;letter-spacing:.08em;color:var(--mt)}
+.pxb{background:var(--pn);box-shadow:0 -3px 0 0 var(--ln),0 3px 0 0 var(--ln),-3px 0 0 0 var(--ln),3px 0 0 0 var(--ln)}
+.ib{width:44px;height:44px;border:0;padding:0;display:flex;align-items:center;justify-content:center;color:var(--tx);cursor:pointer;background:var(--pn);box-shadow:0 -3px 0 0 var(--ln),0 3px 0 0 var(--ln),-3px 0 0 0 var(--ln),3px 0 0 0 var(--ln)}
+.ib:active{background:var(--pn2)}
+.ctl{touch-action:none;cursor:ew-resize;outline:none}
+.ctl:focus-visible{box-shadow:0 -3px 0 0 var(--gold),0 3px 0 0 var(--gold),-3px 0 0 0 var(--gold),3px 0 0 0 var(--gold)}
+.tk{position:absolute;bottom:24px;width:2px;margin-left:-1px;background:var(--dim)}
+.tk.mn{height:10px}.tk.md{height:16px}.tk.mj{height:26px;width:4px;margin-left:-2px}
+.tk.on{background:var(--fire)}
+.lb{position:absolute;bottom:5px;transform:translateX(-50%);font-family:'Pixelify Sans',system-ui,sans-serif;font-weight:600;font-size:13px;color:var(--mt);white-space:nowrap}
+.lb.cur{color:var(--gold)}
+.fill{position:absolute;left:0;bottom:24px;height:34px;background:var(--fire);opacity:.15}
+.thumb{position:absolute;bottom:20px;width:8px;height:44px;margin-left:-4px;background:var(--gold);box-shadow:-3px 0 0 0 var(--gold),3px 0 0 0 var(--gold),0 4px 0 0 var(--fireD);transform-origin:50% 100%}
+.ghost{position:absolute;top:4px;width:8px;height:4px;margin-left:-4px;background:var(--mt);box-shadow:0 4px 0 -1px var(--mt)}
+.eg{position:absolute;top:7px;font-family:'Press Start 2P',monospace;font-size:9px;color:var(--ln)}
+.eg.on{color:var(--gold);animation:blink .18s steps(2) infinite}
+@keyframes blink{50%{opacity:.2}}
+.rot{position:absolute;left:0;top:0;width:0;height:0}
+.pt{position:absolute;left:0;top:-3px;width:6px;height:6px;background:var(--gold);opacity:0;display:block}
+.pt.fire{background:var(--fire)}
+@keyframes nA{0%{opacity:1;transform:translateX(4px)}100%{opacity:0;transform:translateX(26px)}}
+@keyframes nB{0%{opacity:1;transform:translateX(4px)}100%{opacity:0;transform:translateX(26px)}}
+@keyframes fA{0%{opacity:1;transform:translateX(6px)}100%{opacity:0;transform:translateX(44px)}}
+@keyframes fB{0%{opacity:1;transform:translateX(6px)}100%{opacity:0;transform:translateX(44px)}}
+.nA{animation:nA .36s steps(5) forwards}.nB{animation:nB .36s steps(5) forwards}
+.fA{animation:fA .44s steps(6) forwards}.fB{animation:fB .44s steps(6) forwards}
+@keyframes popA{0%{transform:scale(1.25)}55%{transform:scale(.94)}100%{transform:scale(1)}}
+@keyframes popB{0%{transform:scale(1.25)}55%{transform:scale(.94)}100%{transform:scale(1)}}
+.popA{animation:popA .2s steps(4)}.popB{animation:popB .2s steps(4)}
+@keyframes flA{0%{opacity:.4}100%{opacity:0}}
+@keyframes flB{0%{opacity:.4}100%{opacity:0}}
+.fl{position:absolute;left:0;top:0;right:0;bottom:0;background:var(--gold);opacity:0;pointer-events:none}
+.flA{animation:flA .3s steps(3) forwards}.flB{animation:flB .3s steps(3) forwards}
+@keyframes shA{0%,100%{transform:translate(0,0)}20%{transform:translate(-5px,2px)}40%{transform:translate(5px,-2px)}60%{transform:translate(-4px,1px)}80%{transform:translate(3px,-1px)}}
+@keyframes shB{0%,100%{transform:translate(0,0)}20%{transform:translate(-5px,2px)}40%{transform:translate(5px,-2px)}60%{transform:translate(-4px,1px)}80%{transform:translate(3px,-1px)}}
+.shA{animation:shA .3s steps(5)}.shB{animation:shB .3s steps(5)}
+@keyframes inA{0%{transform:translateX(-30px);opacity:0}60%{transform:translateX(3px);opacity:1}100%{transform:none}}
+@keyframes inB{0%{transform:translateX(-30px);opacity:0}60%{transform:translateX(3px);opacity:1}100%{transform:none}}
+.inA{animation:inA .32s steps(5)}.inB{animation:inB .32s steps(5)}
+.sg{flex:1 1 0;min-width:0;background:var(--dim);transform-origin:50% 100%}
+.sg.five{background:var(--ln)}
+.sg.on{background:var(--fire)}
+.sg.top{background:var(--gold)}
+.sc{position:absolute;top:-2px;transform:translateX(-50%);font-family:'Pixelify Sans',system-ui,sans-serif;font-weight:600;font-size:13px;color:var(--mt)}
+.sc.cur{color:var(--gold)}
+.sb{flex:1 1 0;min-width:0;display:flex;flex-direction:column;background:var(--pn);box-shadow:0 -3px 0 0 var(--ln),0 3px 0 0 var(--ln),-3px 0 0 0 var(--ln),3px 0 0 0 var(--ln)}
+.sb.sel{background:var(--pn2);box-shadow:0 -3px 0 0 var(--gold),0 3px 0 0 var(--gold),-3px 0 0 0 var(--gold),3px 0 0 0 var(--gold)}
+.sbl{height:22px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--mt)}
+.sb.sel .sbl{color:var(--tx)}
+.sbw{flex:1;position:relative;margin:0 8px 6px}
+.sbf{position:absolute;left:0;right:0;bottom:0;opacity:.35}
+.sb.sel .sbf{opacity:1}
+.rs{display:block;flex:1 1 0;background:var(--dim)}
+.rs.on{background:var(--gold)}
+.restb{width:100%;height:28px;border:0;padding:0;margin:0;background:none;color:inherit;font:inherit;display:flex;align-items:center;gap:8px;cursor:pointer}
+.ro{padding:6px 10px;display:flex;flex-direction:column;gap:3px;background:var(--pn);box-shadow:0 -3px 0 0 var(--ln),0 3px 0 0 var(--ln),-3px 0 0 0 var(--ln),3px 0 0 0 var(--ln)}
+.ov{position:absolute;left:0;right:0;top:64px;bottom:0;z-index:5;display:flex;flex-direction:column;gap:12px;padding:10px 18px 14px;box-sizing:border-box;background-color:var(--bg);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:12px 12px;animation:ovIn .22s steps(4)}
+@keyframes ovIn{0%{transform:translateY(48px);opacity:0}100%{transform:none;opacity:1}}
+.bb{display:block;flex:1 1 0;min-width:0;height:64px;border:0;padding:0;background:var(--pn2);color:var(--tx);font-family:'Pixelify Sans',system-ui,sans-serif;font-size:22px;font-weight:700;letter-spacing:.06em;cursor:pointer;box-shadow:0 -4px 0 0 var(--ln),0 4px 0 0 var(--ln),-4px 0 0 0 var(--ln),4px 0 0 0 var(--ln),0 10px 0 0 var(--sh)}
+.bb:active{transform:translateY(5px);box-shadow:0 -4px 0 0 var(--ln),0 4px 0 0 var(--ln),-4px 0 0 0 var(--ln),4px 0 0 0 var(--ln),0 5px 0 0 var(--sh)}
+.bb:focus-visible{outline:3px solid var(--gold);outline-offset:6px}
+.chip{display:block;flex:0 0 100px;height:64px;border:0;padding:0;position:relative;overflow:hidden;background:var(--pn2);color:var(--gold);cursor:pointer;box-shadow:0 -4px 0 0 var(--gold),0 4px 0 0 var(--gold),-4px 0 0 0 var(--gold),4px 0 0 0 var(--gold),0 10px 0 0 var(--sh)}
+.chip:active{transform:translateY(5px)}
+.go{display:block;flex:1 1 0;min-width:0;height:64px;border:0;padding:0;background:var(--fire);color:var(--btx);font-family:'Pixelify Sans',system-ui,sans-serif;font-size:24px;font-weight:700;letter-spacing:.06em;cursor:pointer;box-shadow:0 -4px 0 0 var(--fire),0 4px 0 0 var(--fire),-4px 0 0 0 var(--fire),4px 0 0 0 var(--fire),0 10px 0 0 var(--fireD);position:relative}
+.go:active{transform:translateY(5px);box-shadow:0 -4px 0 0 var(--fire),0 4px 0 0 var(--fire),-4px 0 0 0 var(--fire),4px 0 0 0 var(--fire),0 5px 0 0 var(--fireD)}
+.go:focus-visible{outline:3px solid var(--gold);outline-offset:6px}
+.go:disabled{opacity:.35;cursor:default;transform:none}
+.scr{animation:scrIn .18s steps(3)}
+@keyframes scrIn{0%{transform:translateX(26px);opacity:0}100%{transform:none;opacity:1}}
+.card{display:flex;flex-direction:column;gap:8px;width:100%;margin:0;padding:12px 14px;border:0;text-align:left;font:inherit;color:inherit;cursor:pointer;background:var(--pn);box-shadow:0 -3px 0 0 var(--ln),0 3px 0 0 var(--ln),-3px 0 0 0 var(--ln),3px 0 0 0 var(--ln)}
+.card:active{background:var(--pn2)}
+.addrow{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:60px;margin:0;padding:0;border:0;cursor:pointer;background:transparent;color:var(--gold);font-family:'Pixelify Sans',system-ui,sans-serif;font-size:17px;font-weight:700;letter-spacing:.06em;background-image:linear-gradient(90deg,var(--ln) 50%,transparent 50%),linear-gradient(90deg,var(--ln) 50%,transparent 50%),linear-gradient(0deg,var(--ln) 50%,transparent 50%),linear-gradient(0deg,var(--ln) 50%,transparent 50%);background-repeat:repeat-x,repeat-x,repeat-y,repeat-y;background-size:12px 3px,12px 3px,3px 12px,3px 12px;background-position:0 0,0 100%,0 0,100% 0}
+.addrow:active{background-color:var(--pn)}
+.addrow:focus-visible{outline:3px solid var(--gold);outline-offset:4px}
+.go.end{background:var(--gold);box-shadow:0 -4px 0 0 var(--gold),0 4px 0 0 var(--gold),-4px 0 0 0 var(--gold),4px 0 0 0 var(--gold),0 10px 0 0 var(--fireD)}
+.go.end:active{box-shadow:0 -4px 0 0 var(--gold),0 4px 0 0 var(--gold),-4px 0 0 0 var(--gold),4px 0 0 0 var(--gold),0 5px 0 0 var(--fireD)}
+.toast{position:absolute;left:18px;right:18px;top:12px;z-index:12;display:flex;flex-direction:column;gap:3px;padding:10px 14px;background:var(--gold);box-shadow:0 -3px 0 0 var(--gold),0 3px 0 0 var(--gold),-3px 0 0 0 var(--gold),3px 0 0 0 var(--gold),0 9px 0 0 var(--fireD);pointer-events:none}
+@keyframes tA{0%{transform:translateY(-70px)}100%{transform:none}}
+@keyframes tB{0%{transform:translateY(-70px)}100%{transform:none}}
+.toast.tA{animation:tA .24s steps(4)}.toast.tB{animation:tB .24s steps(4)}
+.zb{position:relative;display:flex;gap:2px;height:16px}
+.zb i{display:block;flex:1 1 0;background:var(--dim)}
+.zm{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--tx);opacity:.5}
+.card.cur{box-shadow:0 -3px 0 0 var(--gold),0 3px 0 0 var(--gold),-3px 0 0 0 var(--gold),3px 0 0 0 var(--gold)}
+.card:focus-visible{outline:3px solid var(--gold);outline-offset:5px}
+.chp{display:block;flex:0 0 auto;padding:5px 8px;background:var(--pn2);font-size:14px;line-height:1}
+.q{flex:1;min-width:0;height:44px;border:0;outline:none;background:transparent;color:var(--tx);font-family:'Pixelify Sans',system-ui,sans-serif;font-size:16px}
+.q::placeholder{color:var(--mt);opacity:1}
+.pk{display:flex;align-items:center;gap:12px;width:100%;min-height:60px;margin:0;padding:8px 12px;border:0;text-align:left;font:inherit;color:inherit;cursor:pointer;background:var(--pn);box-shadow:0 -3px 0 0 var(--ln),0 3px 0 0 var(--ln),-3px 0 0 0 var(--ln),3px 0 0 0 var(--ln)}
+.pk:active{background:var(--pn2)}
+.pk:focus-visible{outline:3px solid var(--gold);outline-offset:5px}
+.pk .box{display:block;flex:0 0 auto;width:18px;height:18px;background:var(--bg);box-shadow:0 0 0 3px var(--ln)}
+.pk.on{background:var(--pn2);box-shadow:0 -3px 0 0 var(--gold),0 3px 0 0 var(--gold),-3px 0 0 0 var(--gold),3px 0 0 0 var(--gold)}
+.pk.on .box{background:var(--gold);box-shadow:0 0 0 3px var(--gold),inset 0 0 0 4px var(--bg)}
+.pk.in .box{display:none}
+.pk:disabled{cursor:default;opacity:.6}
+.pk:disabled:active{background:var(--pn)}
+.mp{position:absolute;left:20px;width:80px;height:4px;background:var(--dim)}
+.mp.on{background:var(--fire)}
+.pin{position:absolute;left:56px;width:64px;height:4px;transition:top .1s steps(2);transform-origin:0 50%}
+.st{position:relative;display:flex;align-items:flex-end;padding:0 6px 7px 8px;margin:0;border:0;background:var(--pn2);color:inherit;font:inherit;text-align:left;min-width:0;cursor:pointer}
+.st:active{background:var(--ln)}
+.st:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.st.new{box-shadow:inset 0 0 0 2px var(--gold)}
+.bd{position:absolute;left:0;top:0;right:0;bottom:0;z-index:8;margin:0;padding:0;border:0;background:rgba(5,4,10,.72);cursor:pointer}
+.win{position:absolute;left:30px;right:30px;top:200px;z-index:9;display:flex;flex-direction:column;gap:14px;padding:16px;background:var(--pn);box-shadow:0 -4px 0 0 var(--gold),0 4px 0 0 var(--gold),-4px 0 0 0 var(--gold),4px 0 0 0 var(--gold),0 12px 0 0 var(--sh);animation:winIn .2s steps(4)}
+@keyframes winIn{0%{transform:scale(.85);opacity:0}100%{transform:none;opacity:1}}
+.cell{display:flex;flex-direction:column;gap:6px;padding:8px 10px;background:var(--pn2)}
+.cell .k{font-size:13px;font-weight:600;letter-spacing:.08em;color:var(--mt)}
+.cell .v{font-family:'Pixelify Sans',system-ui,sans-serif;font-weight:700;font-size:18px;line-height:1.1}
+.sl.fade{-webkit-mask-image:linear-gradient(to bottom,#000 58%,transparent 100%);mask-image:linear-gradient(to bottom,#000 58%,transparent 100%)}
+.more{position:absolute;left:50%;bottom:0;transform:translateX(-50%);display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--gold);white-space:nowrap;pointer-events:none;animation:bob .9s steps(2) infinite}
+@keyframes bob{50%{transform:translate(-50%,-3px)}}
+.ro.ctl{gap:4px;padding:5px 9px}
+.ro.ctl.part{box-shadow:0 -3px 0 0 var(--gold),0 3px 0 0 var(--gold),-3px 0 0 0 var(--gold),3px 0 0 0 var(--gold)}
+.sl{overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--ln) transparent}
+.sl::-webkit-scrollbar{width:4px}.sl::-webkit-scrollbar-thumb{background:var(--ln)}
+.pl{display:block;flex:0 0 auto;transform-origin:50% 50%;box-shadow:inset 2px 0 0 0 rgba(255,255,255,.28),inset -2px 0 0 0 rgba(0,0,0,.25)}
+</style>
+</helmet>
+<div class="om {{themeCls}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; box-sizing: border-box">
+<sc-if value="{{scrLog}}" hint-placeholder-val="{{ true }}">
+<div class="scr" style="height: 100%; position: relative">
+<div class="{{shakeCls}}" style="height: 100%; display: flex; flex-direction: column; padding: 6px 18px 14px; box-sizing: border-box">
+
+<div style="height: 52px; display: flex; align-items: center; gap: 12px; padding: 0 3px; flex: 0 0 auto">
+<button type="button" class="ib" onClick="{{goList}}" aria-label="Geri: antrenman listesi">
+<svg width="22" height="22" viewBox="0 0 9 9" shape-rendering="crispEdges" aria-hidden="true"><path d="M5 1h2v1H5zM4 2h2v1H4zM3 3h2v1H3zM2 4h2v1H2zM3 5h2v1H3zM4 6h2v1H4zM5 7h2v1H5z" fill="currentColor"></path></svg>
+</button>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 19px; font-weight: 700; letter-spacing: .04em; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{title}}</span>
+<span style="font-size: 13px; font-weight: 500; color: var(--mt); letter-spacing: .08em">PLANSIZ · SET {{setNo}} · <span style="color: var(--gold)">{{eqName}}</span></span>
+</div>
+<button type="button" class="ib" aria-label="Not ekle">
+<svg width="22" height="22" viewBox="0 0 9 9" shape-rendering="crispEdges" aria-hidden="true"><path d="M6 1h2v2H6zM5 3h2v1H5zM4 4h2v1H4zM3 5h2v1H3zM2 6h1v1H2zM1 8h7v1H1z" fill="currentColor"></path></svg>
+</button>
+</div>
+
+<div class="pxb" style="height: 124px; margin: 8px 3px 0; padding: 6px 10px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px; flex: 0 0 auto">
+<div style="height: 26px; display: flex; align-items: center; justify-content: space-between; padding: 0 2px">
+<span class="lbl">SETLER</span>
+<span style="font-size: 13px; color: var(--mt)">{{setSum}}</span>
+</div>
+<div style="position: relative; height: 82px">
+<div class="{{listCls}}" ref="{{listRef}}" onScroll="{{listScroll}}" style="height: 82px; overflow-y: auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 32px; gap: 6px 8px; align-content: start">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="3">
+<button type="button" class="{{r.cls}}" onClick="{{r.open}}" aria-label="{{r.aria}}">
+<span class="nm" style="font-size: 15px; line-height: 1; color: var(--tx)">{{r.kg}}×{{r.reps}}</span>
+<span class="nm" style="position: absolute; top: 4px; right: 5px; font-size: 14px; line-height: 1; color: {{r.c}}">{{r.rpe}}</span>
+</button>
+</sc-for>
+<sc-if value="{{noSets}}" hint-placeholder-val="{{ false }}"><div style="grid-column: 1 / -1; align-self: center; font-size: 14px; color: var(--mt)">İlk setini kaydet</div></sc-if>
+</div>
+<sc-if value="{{showMore}}" hint-placeholder-val="{{ false }}">
+<span class="more"><svg width="10" height="10" viewBox="0 0 6 6" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 1h6v1H0zM1 2h4v1H1zM2 3h2v1H2z" fill="currentColor"></path></svg>{{moreTxt}}</span>
+</sc-if>
+</div>
+</div>
+
+<div style="margin-top: 8px; height: 136px; flex: 0 0 auto">
+<sc-if value="{{isBar}}" hint-placeholder-val="{{ true }}">
+<div style="position: relative; height: 76px" aria-hidden="true">
+<div style="position: absolute; left: 0; right: 0; top: 34px; height: 8px; background: var(--bar); box-shadow: inset 0 2px 0 0 var(--barH)"></div>
+<div style="position: absolute; left: 140px; width: 74px; top: 34px; height: 8px; background-image: linear-gradient(90deg, rgba(0,0,0,.3) 2px, transparent 2px); background-size: 4px 8px"></div>
+<div style="position: absolute; left: 92px; top: 27px; width: 6px; height: 22px; background: var(--barH)"></div>
+<div style="position: absolute; left: 256px; top: 27px; width: 6px; height: 22px; background: var(--barH)"></div>
+<div style="position: absolute; right: 264px; top: 0; height: 76px; display: flex; flex-direction: row-reverse; align-items: center; gap: 2px">
+<sc-for list="{{plates}}" as="p" hint-placeholder-count="2"><i class="pl {{p.cls}}" style="width: {{p.w}}px; height: {{p.h}}px; background: {{p.c}}"></i></sc-for>
+</div>
+<div style="position: absolute; left: 264px; top: 0; height: 76px; display: flex; align-items: center; gap: 2px">
+<sc-for list="{{plates}}" as="p" hint-placeholder-count="2"><i class="pl {{p.cls}}" style="width: {{p.w}}px; height: {{p.h}}px; background: {{p.c}}"></i></sc-for>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{isDb}}" hint-placeholder-val="{{ false }}">
+<div style="height: 76px; display: flex; align-items: center; justify-content: center" aria-hidden="true">
+<div style="display: flex; flex-direction: row-reverse; align-items: center; gap: 2px">
+<sc-for list="{{dbDiscs}}" as="d" hint-placeholder-count="3"><i class="pl {{d.cls}}" style="width: 9px; height: {{d.h}}px; background: var(--barH)"></i></sc-for>
+<i style="display: block; width: 5px; height: {{dbCap}}px; background: var(--bar)"></i>
+</div>
+<div style="width: 64px; height: 8px; background-color: var(--bar); background-image: linear-gradient(90deg, rgba(0,0,0,.3) 2px, transparent 2px); background-size: 4px 8px"></div>
+<div style="display: flex; align-items: center; gap: 2px">
+<sc-for list="{{dbDiscs}}" as="d" hint-placeholder-count="3"><i class="pl {{d.cls}}" style="width: 9px; height: {{d.h}}px; background: var(--barH)"></i></sc-for>
+<i style="display: block; width: 5px; height: {{dbCap}}px; background: var(--bar)"></i>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{notMk}}" hint-placeholder-val="{{ true }}">
+<div style="height: 42px; display: flex; align-items: flex-end; justify-content: center; gap: 10px">
+<span class="num {{kgPop}}" style="font-size: 38px; line-height: 1; color: var(--tx); transform-origin: 50% 100%">{{kgTxt}}</span>
+<span class="nm" style="font-size: 18px; color: var(--mt); padding-bottom: 3px">KG</span>
+</div>
+<div style="height: 16px; margin-top: 2px; text-align: center; font-size: 13px; color: var(--mt)">{{sideTxt}}</div>
+</sc-if>
+<sc-if value="{{isMk}}" hint-placeholder-val="{{ false }}">
+<div style="height: 136px; display: flex; align-items: center; gap: 18px; padding-left: 6px">
+<div style="position: relative; width: 120px; height: 136px; flex: 0 0 auto" aria-hidden="true">
+<i style="position: absolute; left: 10px; top: 0; width: 100px; height: 4px; background: var(--bar)"></i>
+<i style="position: absolute; left: 14px; top: 4px; width: 3px; height: 130px; background: var(--ln)"></i>
+<i style="position: absolute; left: 103px; top: 4px; width: 3px; height: 130px; background: var(--ln)"></i>
+<i style="position: absolute; left: 59px; top: 4px; width: 2px; height: {{rodH}}px; background: var(--barH)"></i>
+<sc-for list="{{stack}}" as="m" hint-placeholder-count="20"><i class="{{m.cls}}" style="top: {{m.y}}px"></i></sc-for>
+<div class="pin {{kgPop}}" style="top: {{pinY}}px">
+<i style="position: absolute; left: 0; top: 0; width: 58px; height: 4px; background: var(--gold)"></i>
+<i style="position: absolute; left: 56px; top: -3px; width: 8px; height: 10px; background: var(--gold)"></i>
+</div>
+</div>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: flex-end; gap: 10px">
+<span class="num {{kgPop}}" style="font-size: 38px; line-height: 1; color: var(--tx); transform-origin: 0 100%">{{kgTxt}}</span>
+<span class="nm" style="font-size: 18px; color: var(--mt); padding-bottom: 3px">KG</span>
+</div>
+<div style="font-size: 15px; font-weight: 600; color: var(--gold)">pim: {{pinNo}}. plaka</div>
+<div style="font-size: 13px; color: var(--mt)">{{stackTxt}}</div>
+</div>
+</div>
+</sc-if>
+</div>
+
+<div style="margin-top: 8px; flex: 0 0 auto">
+<div style="height: 20px; display: flex; align-items: center; justify-content: space-between; padding: 0 3px">
+<span class="lbl">KİLO</span>
+<span style="font-size: 13px; color: var(--mt)">dokun · sürükle · kenarda tut</span>
+</div>
+<div class="ctl pxb" role="slider" tabIndex="0" aria-label="Kilo" aria-valuemin="{{kgMin}}" aria-valuemax="{{kgMax}}" aria-valuenow="{{kg}}" aria-valuetext="{{kgAria}}" onPointerDown="{{kgDown}}" onPointerMove="{{kgMove}}" onPointerUp="{{kgUp}}" onPointerCancel="{{kgUp}}" onLostPointerCapture="{{kgUp}}" onKeyDown="{{kgKey}}" style="position: relative; height: 70px; margin: 6px 3px 0; overflow: hidden">
+<div style="position: absolute; left: 0; top: 0; bottom: 0; width: {{trackW}}px; transform: translateX({{tapeX}}px); transition: {{tapeT}}">
+<div class="fill" style="width: {{thumbX}}px"></div>
+<sc-for list="{{ticks}}" as="t" hint-placeholder-count="20"><i class="tk {{t.cls}}" style="left: {{t.x}}px"></i></sc-for>
+<sc-for list="{{labels}}" as="l" hint-placeholder-count="6"><span class="{{l.cls}}" style="left: {{l.x}}px">{{l.t}}</span></sc-for>
+<i class="ghost" style="left: {{ghostX}}px"></i>
+<i class="thumb {{kgPop}}" style="left: {{thumbX}}px"></i>
+<div style="position: absolute; left: {{thumbX}}px; bottom: 66px; width: 0; height: 0">
+<sc-for list="{{kgParts}}" as="p" hint-placeholder-count="8"><div class="rot" style="transform: rotate({{p.a}}deg)"><i class="pt {{p.cls}}"></i></div></sc-for>
+</div>
+</div>
+<span class="{{edgeL}}" style="left: 6px">&lt;&lt;</span>
+<span class="{{edgeR}}" style="right: 6px">&gt;&gt;</span>
+<div class="fl {{majFl}}"></div>
+</div>
+</div>
+
+<div style="margin-top: 10px; flex: 0 0 auto">
+<div style="height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 3px">
+<span class="lbl">TEKRAR</span>
+<span class="num {{repPop}}" style="font-size: 22px; color: var(--tx); transform-origin: 100% 100%">{{reps}}</span>
+</div>
+<div class="ctl pxb" role="slider" tabIndex="0" aria-label="Tekrar" aria-valuemin="1" aria-valuemax="30" aria-valuenow="{{reps}}" onPointerDown="{{repDown}}" onPointerMove="{{repMove}}" onPointerUp="{{repUp}}" onPointerCancel="{{repUp}}" onLostPointerCapture="{{repUp}}" onKeyDown="{{repKey}}" style="height: 70px; margin: 4px 3px 0; padding: 7px 8px 5px; box-sizing: border-box">
+<div style="position: relative; height: 100%; display: flex; align-items: flex-end; gap: 2px">
+<sc-for list="{{segs}}" as="g" hint-placeholder-count="30"><i class="sg {{g.cls}}" style="height: {{g.h}}px"></i></sc-for>
+<div style="position: absolute; left: {{repX}}%; bottom: {{repH}}px; width: 0; height: 0">
+<sc-for list="{{repParts}}" as="p" hint-placeholder-count="8"><div class="rot" style="transform: rotate({{p.a}}deg)"><i class="pt fire {{p.cls}}"></i></div></sc-for>
+</div>
+</div>
+</div>
+<div style="position: relative; height: 14px; margin: 6px 11px 0" aria-hidden="true">
+<sc-for list="{{repScale}}" as="n" hint-placeholder-count="7"><span class="{{n.cls}}" style="left: {{n.x}}%">{{n.t}}</span></sc-for>
+</div>
+</div>
+
+<div style="margin-top: 10px; flex: 0 0 auto">
+<div style="height: 20px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 3px">
+<span class="lbl">SON TEKRARIN HIZI</span>
+<span style="font-size: 13px; font-weight: 600; color: {{lvC}}; white-space: nowrap">{{lvD}}</span>
+</div>
+<div class="ctl" role="slider" tabIndex="0" aria-label="Son tekrarın hızı" aria-valuemin="0" aria-valuemax="4" aria-valuenow="{{lvl}}" aria-valuetext="{{lvD}}" onPointerDown="{{lvDown}}" onPointerMove="{{lvMove}}" onPointerUp="{{lvUp}}" onPointerCancel="{{lvUp}}" onLostPointerCapture="{{lvUp}}" onKeyDown="{{lvKey}}" style="position: relative; height: 66px; margin: 6px 3px 0; display: flex; gap: 9px">
+<sc-for list="{{spd}}" as="x" hint-placeholder-count="5">
+<div class="{{x.cls}}">
+<span class="sbl">{{x.k}}</span>
+<span class="sbw"><i class="sbf" style="height: {{x.fill}}%; background: {{x.c}}"></i></span>
+</div>
+</sc-for>
+<div style="position: absolute; left: {{lvX}}%; top: 30px; width: 0; height: 0">
+<sc-for list="{{lvParts}}" as="p" hint-placeholder-count="8"><div class="rot" style="transform: rotate({{p.a}}deg)"><i class="pt {{p.cls}}" style="background: {{lvC}}"></i></div></sc-for>
+</div>
+</div>
+</div>
+
+<div style="margin-top: 8px; padding: 0 3px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1.5fr); gap: 10px; flex: 0 0 auto">
+<div class="ro">
+<span style="font-size: 13px; font-weight: 600; letter-spacing: .08em; color: var(--mt)">RIR</span>
+<span class="nm" style="font-size: 17px; color: {{lvC}}">{{rirTxt}}</span>
+</div>
+<div class="ro">
+<span style="font-size: 13px; font-weight: 600; letter-spacing: .08em; color: var(--mt)">RPE</span>
+<span class="nm" style="font-size: 17px; color: var(--tx)">{{rpeTxt}}</span>
+</div>
+<div class="ro">
+<span style="font-size: 13px; font-weight: 600; letter-spacing: .08em; color: var(--mt)">e1RM</span>
+<span class="nm {{e1Pop}}" style="font-size: 17px; color: var(--gold)">{{e1Txt}}</span>
+</div>
+<div class="ro ctl {{romCls}}" role="slider" tabIndex="0" aria-label="Hareket açıklığı (ROM)" aria-valuemin="10" aria-valuemax="100" aria-valuenow="{{rom}}" aria-valuetext="{{romAria}}" onPointerDown="{{romDown}}" onPointerMove="{{romMove}}" onPointerUp="{{romUp}}" onPointerCancel="{{romUp}}" onLostPointerCapture="{{romUp}}" onKeyDown="{{romKey}}">
+<span style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; letter-spacing: .08em; color: var(--mt)">ROM<span style="letter-spacing: 0">&lt;&gt;</span></span>
+<span class="nm {{romPop}}" style="font-size: 17px; color: {{romC}}; transform-origin: 0 100%">{{romTxt}}</span>
+<span style="display: flex; gap: 2px; height: 4px">
+<sc-for list="{{romSegs}}" as="g" hint-placeholder-count="10"><i class="rs {{g.cls}}"></i></sc-for>
+</span>
+</div>
+</div>
+
+<div style="flex: 1 1 auto; min-height: 8px"></div>
+
+<div style="position: relative; flex: 0 0 auto; padding: 0 4px 10px; display: flex; gap: 18px">
+<sc-if value="{{restMini}}" hint-placeholder-val="{{ false }}">
+<button type="button" class="chip" onClick="{{openRest}}" aria-label="Dinlenme sayacını büyüt">
+<span class="nm" style="font-size: 19px">{{restTxt}}</span>
+<i style="position: absolute; left: 0; bottom: 0; height: 6px; width: {{restPct}}%; background: var(--gold)"></i>
+</button>
+</sc-if>
+<button type="button" class="go" onClick="{{logSet}}">SET {{setNo}} · KAYDET</button>
+<div style="position: absolute; left: 50%; top: 32px; width: 0; height: 0">
+<sc-for list="{{logParts}}" as="p" hint-placeholder-count="14"><div class="rot" style="transform: rotate({{p.a}}deg)"><i class="pt {{p.cls}}"></i></div></sc-for>
+</div>
+</div>
+
+</div>
+
+<sc-if value="{{restBig}}" hint-placeholder-val="{{ false }}">
+<div class="ov">
+<div class="pxb" style="margin: 3px 3px 0; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; flex: 0 0 auto">
+<span class="lbl" style="color: var(--gold)">SET {{lastNo}} KAYDEDİLDİ{{lastRom}}</span>
+<span style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+<span class="nm" style="font-size: 21px; color: var(--tx)">{{lastKg}} × {{lastReps}}</span>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--mt)"><i style="display: block; width: 10px; height: 10px; background: {{lastC}}"></i>{{lastSp}}</span>
+</span>
+</div>
+<div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 18px">
+<div class="lbl" style="text-align: center; font-size: 18px; color: var(--gold)">DİNLEN</div>
+<div class="ctl" role="slider" tabIndex="0" aria-label="Dinlenme süresi" aria-valuemin="0" aria-valuemax="600" aria-valuenow="{{restSec}}" aria-valuetext="{{restTxt}}" onPointerDown="{{rtDown}}" onPointerMove="{{rtMove}}" onPointerUp="{{rtUp}}" onPointerCancel="{{rtUp}}" onLostPointerCapture="{{rtUp}}" onKeyDown="{{rtKey}}" style="position: relative; padding: 20px 3px 10px; display: flex; flex-direction: column; align-items: center; gap: 20px">
+<span class="num {{rtPop}}" style="font-size: 64px; line-height: 1; color: var(--tx); transform-origin: 50% 60%">{{restTxt}}</span>
+<span style="display: flex; gap: 3px; width: 100%; height: 18px">
+<sc-for list="{{restSegs}}" as="g" hint-placeholder-count="30"><i class="rs {{g.cls}}"></i></sc-for>
+</span>
+<span style="display: flex; justify-content: space-between; width: 100%; font-size: 13px; color: var(--mt)"><span>&lt;&lt; -15 sn</span><span>sürükle</span><span>+15 sn &gt;&gt;</span></span>
+<div style="position: absolute; left: 50%; top: 52px; width: 0; height: 0">
+<sc-for list="{{rtParts}}" as="p" hint-placeholder-count="8"><div class="rot" style="transform: rotate({{p.a}}deg)"><i class="pt {{p.cls}}"></i></div></sc-for>
+</div>
+</div>
+<div style="display: flex; gap: 18px; padding: 0 4px">
+<button type="button" class="bb" onClick="{{restMinus}}">-15 SN</button>
+<button type="button" class="bb" onClick="{{restPlus}}">+15 SN</button>
+</div>
+<div style="text-align: center; font-size: 14px; color: var(--mt)">sıradaki: SET {{setNo}} · {{kgTxt}} kg</div>
+</div>
+<div style="display: flex; gap: 18px; padding: 0 4px 10px; flex: 0 0 auto">
+<button type="button" class="bb" onClick="{{hideRest}}">GİZLE</button>
+<button type="button" class="go" onClick="{{skipRest}}">GEÇ</button>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{selOpen}}" hint-placeholder-val="{{ false }}">
+<button type="button" class="bd" onClick="{{closeSel}}" aria-label="Pencereyi kapat"></button>
+<div class="win" role="dialog" aria-label="Set ayrıntısı">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<span class="lbl" style="color: var(--gold); font-size: 15px">{{selN}}</span>
+<span style="font-size: 13px; color: var(--mt)">{{selEq}}</span>
+</div>
+<div style="display: flex; align-items: flex-end; gap: 10px">
+<span class="num" style="font-size: 24px; line-height: 1; color: var(--tx)">{{selKg}} × {{selReps}}</span>
+<span style="font-size: 13px; color: var(--mt); padding-bottom: 2px">kg × tekrar</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<div class="cell"><span class="k">HIZ</span><span class="v" style="color: {{selC}}">{{selSp}}</span></div>
+<div class="cell"><span class="k">TONAJ</span><span class="v" style="color: var(--gold)">{{selTon}}</span></div>
+<div class="cell"><span class="k">RIR</span><span class="v" style="color: var(--tx)">{{selRir}}</span></div>
+<div class="cell"><span class="k">RPE</span><span class="v" style="color: var(--tx)">{{selRpe}}</span></div>
+<div class="cell"><span class="k">ROM</span><span class="v" style="color: var(--tx)">{{selRom}}</span></div>
+<div class="cell"><span class="k">e1RM</span><span class="v" style="color: var(--tx)">{{selE1}}</span></div>
+</div>
+<div style="font-size: 13px; color: var(--mt)">{{selNote}}</div>
+<div style="display: flex; padding: 0 4px 10px"><button type="button" class="bb" onClick="{{closeSel}}">KAPAT</button></div>
+</div>
+</sc-if>
+</div>
+</sc-if>
+<sc-if value="{{scrList}}" hint-placeholder-val="{{ false }}">
+<div class="scr" style="height: 100%; display: flex; flex-direction: column; padding: 6px 18px 14px; box-sizing: border-box">
+<div style="height: 52px; display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 0 3px; flex: 0 0 auto">
+<span style="font-size: 21px; font-weight: 700; letter-spacing: .04em; line-height: 1.1">PLANSIZ ANTRENMAN</span>
+<span style="font-size: 13px; font-weight: 500; color: var(--mt); letter-spacing: .08em">{{sesState}} <span class="nm" style="font-size: 15px; color: var(--gold)">{{sesTime}}</span></span>
+</div>
+<div class="pxb" style="margin: 8px 3px 0; padding: 10px 12px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; flex: 0 0 auto">
+<span style="display: flex; flex-direction: column; gap: 6px"><span class="lbl" style="font-size: 13px">HAREKET</span><span class="nm" style="font-size: 18px">{{sesEx}}</span></span>
+<span style="display: flex; flex-direction: column; gap: 6px"><span class="lbl" style="font-size: 13px">SET</span><span class="nm" style="font-size: 18px">{{sesSets}}</span></span>
+<span style="display: flex; flex-direction: column; gap: 6px"><span class="lbl" style="font-size: 13px">TONAJ</span><span class="nm" style="font-size: 17px; color: var(--gold)">{{sesTon}}</span></span>
+</div>
+<div style="height: 22px; margin-top: 16px; display: flex; align-items: center; justify-content: space-between; padding: 0 3px; flex: 0 0 auto">
+<span class="lbl">HAREKETLER</span>
+<span style="font-size: 13px; color: var(--mt)">dokun: devam et</span>
+</div>
+<div class="sl" style="flex: 1 1 auto; min-height: 0; overflow-y: auto; margin-top: 8px; padding: 4px 3px 8px; display: flex; flex-direction: column; gap: 14px">
+<sc-for list="{{cards}}" as="c" hint-placeholder-count="2">
+<button type="button" class="{{c.cls}}" onClick="{{c.open}}" aria-label="{{c.aria}}">
+<span style="display: flex; align-items: center; justify-content: space-between; gap: 10px">
+<span style="font-size: 17px; font-weight: 700; letter-spacing: .03em; color: var(--tx); white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.name}}</span>
+<svg width="14" height="14" viewBox="0 0 9 9" shape-rendering="crispEdges" aria-hidden="true" style="flex: 0 0 auto; color: var(--mt)"><path d="M2 1h2v1H2zM3 2h2v1H3zM4 3h2v1H4zM5 4h2v1H5zM4 5h2v1H4zM3 6h2v1H3zM2 7h2v1H2z" fill="currentColor"></path></svg>
+</span>
+<span style="display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--mt)">
+<span>{{c.meta}}</span><span style="color: {{c.sumC}}">{{c.sum}}</span>
+</span>
+<sc-if value="{{c.hasSets}}" hint-placeholder-val="{{ true }}">
+<span style="display: flex; gap: 6px; flex-wrap: nowrap; overflow: hidden">
+<sc-for list="{{c.chips}}" as="h" hint-placeholder-count="3"><span class="chp nm" style="color: {{h.c}}">{{h.t}}</span></sc-for>
+</span>
+</sc-if>
+</button>
+</sc-for>
+<button type="button" class="addrow" onClick="{{goPick}}">
+<svg width="16" height="16" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path d="M3 0h2v8H3zM0 3h8v2H0z" fill="currentColor"></path></svg>
+HAREKET EKLE
+</button>
+</div>
+<div style="position: relative; flex: 0 0 auto; margin-top: 12px; padding: 0 4px 10px; display: flex; gap: 18px">
+<sc-if value="{{restMini}}" hint-placeholder-val="{{ false }}">
+<button type="button" class="chip" onClick="{{restToLog}}" aria-label="Dinlenme sayacı: devam eden harekete dön">
+<span class="nm" style="font-size: 19px">{{restTxt}}</span>
+<i style="position: absolute; left: 0; bottom: 0; height: 6px; width: {{restPct}}%; background: var(--gold)"></i>
+</button>
+</sc-if>
+<sc-if value="{{sesIdle}}" hint-placeholder-val="{{ false }}"><button type="button" class="go" onClick="{{startSes}}">İDMANI BAŞLAT</button></sc-if>
+<sc-if value="{{sesRun}}" hint-placeholder-val="{{ true }}"><button type="button" class="go end" onClick="{{endSes}}">İDMANI BİTİR</button></sc-if>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{scrPick}}" hint-placeholder-val="{{ false }}">
+<div class="scr" style="height: 100%; display: flex; flex-direction: column; padding: 6px 18px 14px; box-sizing: border-box">
+<div style="height: 52px; display: flex; align-items: center; gap: 12px; padding: 0 3px; flex: 0 0 auto">
+<button type="button" class="ib" onClick="{{pickBack}}" aria-label="Geri: antrenman listesi">
+<svg width="22" height="22" viewBox="0 0 9 9" shape-rendering="crispEdges" aria-hidden="true"><path d="M5 1h2v1H5zM4 2h2v1H4zM3 3h2v1H3zM2 4h2v1H2zM3 5h2v1H3zM4 6h2v1H4zM5 7h2v1H5z" fill="currentColor"></path></svg>
+</button>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 19px; font-weight: 700; letter-spacing: .04em; line-height: 1.1">HAREKET EKLE</span>
+<span style="font-size: 13px; font-weight: 500; color: var(--mt); letter-spacing: .08em">TEK TEK YA DA BİRKAÇ TANE SEÇ</span>
+</div>
+</div>
+<label class="pxb" style="margin: 10px 3px 0; height: 48px; display: flex; align-items: center; gap: 10px; padding: 0 12px; flex: 0 0 auto">
+<svg width="18" height="18" viewBox="0 0 9 9" shape-rendering="crispEdges" aria-hidden="true" style="flex: 0 0 auto; color: var(--mt)"><path d="M2 1h3v1H2zM1 2h1v3H1zM5 2h1v3H5zM2 5h3v1H2zM5 6h1v1H5zM6 7h1v1H6zM7 8h1v1H7z" fill="currentColor"></path></svg>
+<span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Hareket ara</span>
+<input class="q" type="search" value="{{q}}" onChange="{{onQ}}" placeholder="Hareket ara: bench, curl, omuz…" autocomplete="off">
+</label>
+<div class="sl" style="flex: 1 1 auto; min-height: 0; overflow-y: auto; margin-top: 14px; padding: 4px 3px 8px; display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{pickRows}}" as="p" hint-placeholder-count="6">
+<button type="button" class="{{p.cls}}" onClick="{{p.toggle}}" disabled="{{p.dis}}" aria-pressed="{{p.on}}" aria-label="{{p.aria}}">
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px">
+<span style="font-size: 16px; font-weight: 700; color: var(--tx); white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{p.name}}</span>
+<span style="font-size: 13px; color: var(--mt)">{{p.meta}}</span>
+</span>
+<span style="flex: 0 0 auto; font-size: 13px; font-weight: 600; color: {{p.tagC}}">{{p.tag}}</span>
+<i class="box"></i>
+</button>
+</sc-for>
+<sc-if value="{{noMatch}}" hint-placeholder-val="{{ false }}">
+<div style="padding: 24px 10px; text-align: center; font-size: 14px; color: var(--mt)">Eşleşen hareket yok.</div>
+</sc-if>
+</div>
+<div style="flex: 0 0 auto; margin-top: 12px; padding: 0 4px 10px; display: flex">
+<button type="button" class="go" onClick="{{addPicked}}" disabled="{{pickNone}}">{{pickBtn}}</button>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{scrStats}}" hint-placeholder-val="{{ false }}">
+<div class="scr" style="height: 100%; display: flex; flex-direction: column; padding: 6px 18px 14px; box-sizing: border-box">
+<div style="height: 52px; display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 0 3px; flex: 0 0 auto">
+<span style="font-size: 21px; font-weight: 700; letter-spacing: .04em; line-height: 1.1; color: var(--gold)">İDMAN BİTTİ</span>
+<span style="font-size: 13px; font-weight: 500; color: var(--mt); letter-spacing: .08em">PLANSIZ ANTRENMAN · ÖZET</span>
+</div>
+<div class="sl" style="flex: 1 1 auto; min-height: 0; overflow-y: auto; margin-top: 8px; padding: 4px 3px 8px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<div class="cell"><span class="k">SÜRE</span><span class="v" style="color: var(--tx)">{{stTime}}</span></div>
+<div class="cell"><span class="k">TONAJ</span><span class="v" style="color: var(--gold)">{{sesTon}}</span></div>
+<div class="cell"><span class="k">HAREKET</span><span class="v" style="color: var(--tx)">{{sesEx}}</span></div>
+<div class="cell"><span class="k">SET · ZOR SET</span><span class="v" style="color: var(--tx)">{{stSets}}</span></div>
+</div>
+<div class="pxb" style="padding: 14px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<span class="lbl">BU İDMANIN YORGUNLUĞU</span>
+<span style="font-size: 14px; font-weight: 700; color: {{fatC}}">{{fatLbl}}</span>
+</div>
+<div style="display: flex; align-items: flex-end; gap: 10px">
+<span class="num" style="font-size: 40px; line-height: 1; color: {{fatC}}">{{fatScore}}</span>
+<span style="font-size: 15px; color: var(--mt); padding-bottom: 2px">/ 100</span>
+</div>
+<div class="zb">
+<sc-for list="{{fatSegs}}" as="z" hint-placeholder-count="25"><i style="background: {{z.c}}"></i></sc-for>
+<span class="zm" style="left: 40%"></span><span class="zm" style="left: 70%"></span>
+</div>
+<div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--mt)"><span>0</span><span>40</span><span>70</span><span>100</span></div>
+<div style="font-size: 15px; color: var(--tx)">Toparlanma: <span class="nm" style="font-size: 17px; color: var(--gold)">{{fatRec}}</span></div>
+<div style="font-size: 13px; color: var(--mt); line-height: 1.35">Zor setler (RIR ≤ 4) × yakınlık × hareket maliyeti. Uyku ve önceki günler Dashboard'daki toplam skora eklenir.</div>
+</div>
+<span class="lbl" style="padding: 0 3px">HAREKETLER</span>
+<sc-for list="{{stRows}}" as="x" hint-placeholder-count="3">
+<div class="pxb" style="padding: 12px 14px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 16px; font-weight: 700; color: var(--tx)">{{x.name}}</span>
+<span style="display: flex; justify-content: space-between; gap: 10px; font-size: 14px; color: var(--mt)"><span>{{x.sets}}</span><span>{{x.ton}}</span></span>
+<span style="font-size: 14px; color: var(--mt)">en iyi e1RM: <span class="nm" style="font-size: 16px; color: var(--gold)">{{x.e1}}</span></span>
+</div>
+</sc-for>
+</div>
+<div style="flex: 0 0 auto; margin-top: 12px; padding: 0 4px 10px; display: flex; gap: 18px">
+<button type="button" class="bb" onClick="{{resumeSes}}">İDMANA DÖN</button>
+<button type="button" class="go" onClick="{{newSes}}">TAMAM</button>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{toastOn}}" hint-placeholder-val="{{ false }}">
+<div class="{{toastCls}}" role="status">
+<span class="lbl" style="color: var(--btx); font-size: 13px">İDMAN BAŞLADI</span>
+<span style="font-size: 15px; font-weight: 600; color: var(--btx)">{{toastTxt}}</span>
+</div>
+</sc-if>
+<div class="fl {{readyFl}}"></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"tema":{"editor":"enum","options":["Gece","Game Boy"],"default":"Gece","section":"Görünüm"},"ses":{"editor":"boolean","default":true,"section":"Geri bildirim"},"titresim":{"editor":"boolean","default":true,"section":"Geri bildirim"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(...a) {
+    super(...a);
+    this.EQT = {
+      bar: { step: 2.5, min: 0, max: 300, W: 50 },
+      mk: { step: 5, min: 5, max: 100, W: 100 },
+      db: { step: 2.5, min: 2.5, max: 80, W: 50 }
+    };
+    this.EQN = { bb: 'Barbell', db: 'Dumbbell', mk: 'Makine', cb: 'Kablo' };
+    this.VIS = { bb: 'bar', db: 'db', mk: 'mk', cb: 'mk' };
+    this.LIB = [
+      ['egimli-bench', 'Eğimli bench press', 'Incline barbell bench press', 'Göğüs', 'bb', 60, 10, 180, 3],
+      ['duz-bench', 'Düz bench press', 'Barbell bench press', 'Göğüs', 'bb', 60, 10, 180, 3],
+      ['egimli-db-press', 'Eğimli dumbbell press', 'Incline dumbbell press', 'Göğüs', 'db', 22.5, 10, 120, 2],
+      ['db-omuz-press', 'Oturarak dumbbell omuz press', 'Seated dumbbell shoulder press', 'Omuz (ön)', 'db', 20, 10, 120, 2],
+      ['yana-acis', 'Yana açış', 'Dumbbell lateral raise', 'Omuz (yan)', 'db', 10, 15, 75, 1],
+      ['kablo-yana-acis', 'Kablo yana açış', 'Cable lateral raise', 'Omuz (yan)', 'cb', 10, 15, 75, 1],
+      ['lat-pulldown', 'Lat pulldown (geniş tutuş)', 'Wide-grip lat pulldown', 'Sırt', 'cb', 50, 10, 120, 2],
+      ['bb-shrug', 'Barbell shrug', 'Barbell shrug', 'Trapez', 'bb', 100, 12, 90, 2],
+      ['shrug', 'Shrug', 'Dumbbell shrug', 'Trapez', 'db', 30, 15, 90, 1],
+      ['rdl', 'Romanian deadlift', 'Romanian deadlift', 'Hamstring', 'bb', 80, 8, 150, 3],
+      ['leg-curl', 'Yatarak leg curl', 'Lying leg curl', 'Hamstring', 'mk', 40, 12, 90, 1],
+      ['oturarak-leg-curl', 'Oturarak leg curl', 'Seated leg curl', 'Hamstring', 'mk', 45, 12, 90, 1],
+      ['leg-extension', 'Leg extension', 'Leg extension', 'Quadriceps', 'mk', 45, 12, 90, 1]
+    ].map(([id, name, en, mus, eq, kg, reps, rest, fat]) => ({ id, name, en, mus, eq, kg, reps, rest, fat, vis: this.VIS[eq] }));
+    this.SPEED = [
+      { k: 'Aynı', d: 'İlki kadar hızlı · 5+ kaldı', rir: 5, vl: 0.05 },
+      { k: 'Hafif', d: 'Biraz yavaşladı · ~3 kaldı', rir: 3, vl: 0.18 },
+      { k: 'Belirgin', d: 'Belirgin yavaş · ~2 kaldı', rir: 2, vl: 0.32 },
+      { k: 'Çok', d: 'Çok yavaş · ~1 kaldı', rir: 1, vl: 0.47 },
+      { k: 'Grind', d: 'Zar zor çıktı · tükeniş', rir: 0, vl: 0.62 }
+    ];
+    const fan = (n, from, to) => Array.from({ length: n }, (_, i) => ({ a: Math.round(from + (to - from) * i / (n - 1)), far: i % 2 === 1 }));
+    this.P_UP = fan(8, -168, -12);
+    this.P_ALL = fan(14, -180, 154);
+    const now = Date.now();
+    this.setup('bar');
+    this.cur = { kg: 65, lo: this.center(65), reps: 10, lvl: 1, rom: 100 };
+    this.state = {
+      toast: null, scr: 'list', cur: 0, ses: 'run', startedAt: now - 24 * 60000, endedAt: null, fxAdd: 0,
+      items: [{ lid: 'egimli-bench', sets: [{ kg: 65, reps: 12, lvl: 0, rom: 100 }, { kg: 65, reps: 11, lvl: 1, rom: 90 }] }],
+      q: '', picked: [],
+      kg: 65, lo: this.cur.lo, reps: 10, lvl: 1, rom: 100, fxRom: 0, listEnd: false, sel: null,
+      fxKg: 0, fxMaj: 0, fxRep: 0, fxLvl: 0, fxShake: 0, fxLog: 0, fxRt: 0, fxReady: 0,
+      kgDrag: false, edge: 0, rest: null, restOpen: false, now
+    };
+  }
+
+  lib(id) { return this.LIB.find((x) => x.id === id) || this.LIB[0]; }
+  up(t) { return String(t).split(' ').map((w) => (/[ğüşöçıİĞÜŞÖÇ]/.test(w) ? w.toLocaleUpperCase('tr') : w.toUpperCase())).join(' '); }
+  setup(k) {
+    const e = this.EQT[k];
+    this.eq = k; this.STEP = e.step; this.MIN = e.min; this.MAX = e.max; this.W = e.W; this.PPK = 354 / e.W;
+    this.TICKS = []; this.LABELS = [];
+    for (let v = 0; v <= e.max + 1e-9; v += e.step) {
+      const r = Math.round(v * 100) / 100;
+      const x = +(r * this.PPK).toFixed(2);
+      this.TICKS.push({ v: r, x, kind: r % 10 === 0 ? 'mj' : (r % 5 === 0 ? 'md' : 'mn') });
+      if (r % 10 === 0) this.LABELS.push({ v: r, x, t: String(r) });
+    }
+  }
+  curSets() { const it = this.state.items[this.state.cur]; return it ? it.sets : []; }
+  enterEx(i, items) {
+    const list = items || this.state.items;
+    const it = list[i];
+    if (!it) return;
+    const L = this.lib(it.lid);
+    this.kgD = null; this.repD = null; this.lvD = null; this.romD = null; clearTimeout(this.edgeT);
+    this.setup(L.vis);
+    const last = it.sets[it.sets.length - 1];
+    const kg = last ? last.kg : L.kg, reps = last ? last.reps : L.reps, lvl = last ? last.lvl : 1;
+    const lo = this.center(kg);
+    this.cur = { kg, lo, reps, lvl, rom: 100 };
+    this.setState({ scr: 'log', cur: i, kg, lo, reps, lvl, rom: 100, sel: null, listEnd: false, kgDrag: false, edge: 0 });
+    if (this.state.ses === 'idle') this.autoStart('Set ekranını açtın');
+    this.blip(523, 0.05, 'square', 0.04); this.blip(784, 0.06, 'square', 0.04, 0.06);
+    this.buzz(8);
+  }
+  goList = () => {
+    this.kgD = null; clearTimeout(this.edgeT);
+    this.setState({ scr: 'list', sel: null, restOpen: false, kgDrag: false, edge: 0 });
+    this.blip(440, 0.04, 'square', 0.035);
+  };
+  goPick = () => { this.unlock(); this.setState({ scr: 'pick', q: '', picked: [] }); this.blip(587, 0.04, 'square', 0.035); };
+  pickBack = () => { this.setState({ scr: 'list', picked: [] }); this.blip(440, 0.04, 'square', 0.035); };
+  startSes = () => {
+    this.unlock();
+    this.setState({ ses: 'run', startedAt: Date.now(), now: Date.now() });
+    [392, 523, 659, 784].forEach((f, k) => this.blip(f, 0.08, 'square', 0.05, k * 0.08));
+    this.buzz([20, 40, 20]);
+  };
+  autoStart(why) {
+    const now = Date.now();
+    this.setState((s) => ({ ses: 'run', startedAt: now, now, toast: { t: why + ', süreyi başlattım', n: (s.toast ? s.toast.n : 0) + 1 } }));
+    clearTimeout(this.toastT);
+    this.toastT = setTimeout(() => this.setState({ toast: null }), 3600);
+    [392, 523, 659].forEach((f, k) => this.blip(f, 0.07, 'square', 0.045, 0.25 + k * 0.07));
+  }
+  endSes = () => {
+    this.unlock();
+    const now = Date.now();
+    this.rtD = null;
+    this.setState({ scr: 'stats', endedAt: now, rest: null, restOpen: false, now });
+    [784, 659, 523, 784, 1047].forEach((f, k) => this.blip(f, 0.1, 'square', 0.05, k * 0.09));
+    this.buzz([30, 50, 30, 50, 60]);
+  };
+  resumeSes = () => { this.setState({ scr: 'list', endedAt: null, now: Date.now() }); this.blip(440, 0.05, 'square', 0.04); };
+  newSes = () => {
+    this.setState({ scr: 'list', ses: 'idle', items: [], cur: -1, startedAt: null, endedAt: null, rest: null, restOpen: false, sel: null, now: Date.now() });
+    this.blip(523, 0.06, 'square', 0.04);
+  };
+  restToLog = () => { this.unlock(); this.enterEx(this.state.cur); this.setState({ restOpen: true }); };
+  onQ = (e) => { this.setState({ q: e.target.value }); };
+  togglePick(id) {
+    this.unlock();
+    const on = this.state.picked.includes(id);
+    this.setState((s) => ({ picked: on ? s.picked.filter((x) => x !== id) : [...s.picked, id] }));
+    this.blip(on ? 392 : 659, 0.04, 'square', 0.035);
+    this.buzz(6);
+  }
+  addPicked = () => {
+    const ids = this.state.picked;
+    if (!ids.length) return;
+    const items = [...this.state.items, ...ids.map((id) => ({ lid: id, sets: [] }))];
+    this.setState({ items, picked: [], scr: 'list', fxAdd: this.state.fxAdd + 1 });
+    [523, 659, 784].forEach((f, k) => this.blip(f, 0.07, 'square', 0.045, k * 0.07));
+    this.buzz([10, 30, 10]);
+  };
+  norm(t) { return String(t || '').toLocaleLowerCase('tr').replace(/ı/g, 'i').normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+  componentDidUpdate(pp, ps) {
+    const a = ps && ps.items && ps.items[ps.cur], b = this.state.items[this.state.cur];
+    if (a && b && ps.cur === this.state.cur && a.sets.length !== b.sets.length && this.listEl) {
+      try { this.listEl.scrollTop = 0; } catch (_) {}
+      if (this.state.listEnd) this.setState({ listEnd: false });
+    }
+  }
+  listRef = (el) => { this.listEl = el; };
+  openSel(i) { this.unlock(); this.setState({ sel: i }); this.blip(587, 0.04, 'square', 0.035); this.buzz(6); }
+  closeSel = () => { this.setState({ sel: null }); this.blip(392, 0.04, 'square', 0.03); };
+  rpeOf(lvl) { const r = this.SPEED[lvl].rir; return r >= 5 ? '≤5' : String(10 - r); }
+  e1Of(x) {
+    const rir = this.SPEED[x.lvl].rir;
+    return (rir <= 4 && x.reps + rir <= 12 && (x.rom ?? 100) >= 90) ? this.fk(Math.round(x.kg * (1 + (x.reps + rir) / 30) * 2) / 2) : '—';
+  }
+  listScroll = (e) => {
+    const el = e.currentTarget;
+    const end = el.scrollTop + el.clientHeight >= el.scrollHeight - 4;
+    if (end !== this.state.listEnd) this.setState({ listEnd: end });
+  };
+  setRom(v) {
+    const n = Math.min(100, Math.max(10, Math.round(v / 5) * 5));
+    if (n === this.cur.rom) return;
+    this.cur.rom = n;
+    this.setState((s) => ({ rom: n, fxRom: s.fxRom + 1 }));
+    this.blip(220 + n * 4.4, 0.04, 'square', 0.035);
+    this.buzz(n === 100 ? 12 : 5);
+  }
+  romDown = (e) => { const r = this.grab(e); this.unlock(); this.romD = { x0: e.clientX, w: r.width, base: this.cur.rom }; };
+  romMove = (e) => {
+    const d = this.romD;
+    if (!d) return;
+    this.setRom(d.base + 5 * Math.trunc((e.clientX - d.x0) / (d.w / 7)));
+  };
+  romUp = () => { this.romD = null; };
+  romKey = (e) => {
+    const k = e.key;
+    const d = (k === 'ArrowRight' || k === 'ArrowUp') ? 5 : (k === 'ArrowLeft' || k === 'ArrowDown') ? -5 : 0;
+    if (!d) return;
+    e.preventDefault(); this.unlock(); this.setRom(this.cur.rom + d);
+  };
+
+  componentDidMount() {
+    this.tickN = 0;
+    this.iv = setInterval(() => {
+      const r = this.state.rest;
+      this.tickN++;
+      if (!r) { if (this.state.scr === 'list' && this.tickN % 4 === 0) this.setState({ now: Date.now() }); return; }
+      const now = Date.now();
+      if (now - r.start >= r.total * 1000) { this.rtD = null; this.setState((s) => ({ rest: null, restOpen: false, fxReady: s.fxReady + 1, now })); this.chime(); }
+      else this.setState({ now });
+    }, 250);
+  }
+
+  componentWillUnmount() { clearInterval(this.iv); clearTimeout(this.edgeT); clearTimeout(this.toastT); }
+
+  fk(v) { return String(Math.round(v * 100) / 100).replace('.', ','); }
+  frac(e, r) { return Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)); }
+  center(kg) { return Math.min(this.MAX - this.W, Math.max(0, Math.round((kg - this.W / 2) / this.STEP) * this.STEP)); }
+  grab(e) { const el = e.currentTarget; try { el.setPointerCapture(e.pointerId); } catch (_) {} return el.getBoundingClientRect(); }
+
+  unlock() {
+    if ((this.props.ses ?? true) === false) return;
+    try {
+      if (!this.ac) { const AC = window.AudioContext || window.webkitAudioContext; if (AC) this.ac = new AC(); }
+      if (this.ac && this.ac.state === 'suspended') this.ac.resume();
+    } catch (_) {}
+  }
+  blip(f, dur, type, vol, delay) {
+    if ((this.props.ses ?? true) === false || !this.ac) return;
+    try {
+      const ac = this.ac, t = ac.currentTime + (delay || 0);
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = type || 'square';
+      o.frequency.setValueAtTime(f, t);
+      g.gain.setValueAtTime(vol || 0.04, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(ac.destination);
+      o.start(t); o.stop(t + dur + 0.03);
+    } catch (_) {}
+  }
+  buzz(p) {
+    if ((this.props.titresim ?? true) === false) return;
+    try { if (navigator.vibrate) navigator.vibrate(p); } catch (_) {}
+  }
+  chime() { [784, 988, 1175].forEach((f, i) => this.blip(f, 0.12, 'square', 0.05, i * 0.12)); this.buzz([30, 60, 30]); }
+
+  setKg(v) {
+    const nk = Math.min(this.MAX, Math.max(this.MIN, Math.round(Math.round(v / this.STEP) * this.STEP * 100) / 100));
+    if (nk === this.cur.kg) return;
+    this.cur.kg = nk;
+    const maj = nk % 10 === 0;
+    this.setState((s) => ({ kg: nk, fxKg: s.fxKg + 1, fxMaj: maj ? s.fxMaj + 1 : s.fxMaj }));
+    const n = Math.round(nk / this.STEP);
+    const semis = [0, 2, 4, 7, 9][n % 5] + 12 * (Math.floor(n / 5) % 3);
+    this.blip(262 * Math.pow(2, semis / 12), maj ? 0.08 : 0.04, 'square', maj ? 0.06 : 0.035);
+    if (maj) this.blip(262 * Math.pow(2, (semis + 12) / 12), 0.06, 'square', 0.035, 0.05);
+    this.buzz(maj ? 14 : 5);
+  }
+
+  kgDown = (e) => {
+    const r = this.grab(e);
+    this.unlock();
+    this.kgD = { r, f: this.frac(e, r), n: 0 };
+    this.setState({ kgDrag: true });
+    this.setKg(this.cur.lo + this.kgD.f * this.W);
+    clearTimeout(this.edgeT);
+    this.edgeT = setTimeout(this.edgeTick, 260);
+  };
+  kgMove = (e) => {
+    if (!this.kgD) return;
+    this.kgD.f = this.frac(e, this.kgD.r);
+    this.setKg(this.cur.lo + this.kgD.f * this.W);
+  };
+  edgeTick = () => {
+    const d = this.kgD;
+    if (!d) return;
+    const edge = d.f >= 0.93 ? 1 : (d.f <= 0.07 ? -1 : 0);
+    let delay = 70;
+    if (edge) {
+      const nlo = Math.min(this.MAX - this.W, Math.max(0, this.cur.lo + this.STEP * edge));
+      if (nlo !== this.cur.lo) {
+        this.cur.lo = nlo; d.n++;
+        this.setState({ lo: nlo, edge });
+        this.setKg(nlo + d.f * this.W);
+        delay = Math.max(35, 120 - d.n * 7);
+      } else if (this.state.edge) this.setState({ edge: 0 });
+    } else {
+      d.n = 0;
+      if (this.state.edge) this.setState({ edge: 0 });
+    }
+    this.edgeT = setTimeout(this.edgeTick, delay);
+  };
+  kgUp = () => {
+    if (!this.kgD) return;
+    this.kgD = null;
+    clearTimeout(this.edgeT);
+    const lo = this.center(this.cur.kg);
+    this.cur.lo = lo;
+    this.setState({ kgDrag: false, edge: 0, lo });
+  };
+  kgKey = (e) => {
+    const k = e.key;
+    const st = this.STEP;
+    const d = (k === 'ArrowRight' || k === 'ArrowUp') ? st : (k === 'ArrowLeft' || k === 'ArrowDown') ? -st : k === 'PageUp' ? st * 4 : k === 'PageDown' ? -st * 4 : 0;
+    if (!d) return;
+    e.preventDefault();
+    this.unlock();
+    this.setKg(this.cur.kg + d);
+    const lo = this.center(this.cur.kg);
+    this.cur.lo = lo;
+    this.setState({ lo });
+  };
+
+  setReps(v) {
+    const n = Math.min(30, Math.max(1, v));
+    if (n === this.cur.reps) return;
+    this.cur.reps = n;
+    this.setState((s) => ({ reps: n, fxRep: s.fxRep + 1 }));
+    const five = n % 5 === 0;
+    const semis = [0, 2, 4, 7, 9][(n - 1) % 5] + 12 * (Math.floor((n - 1) / 5) % 3);
+    this.blip(330 * Math.pow(2, semis / 12), five ? 0.07 : 0.04, 'square', five ? 0.055 : 0.035);
+    this.buzz(five ? 12 : 5);
+  }
+  repDown = (e) => { const r = this.grab(e); this.unlock(); this.repD = { r }; this.setReps(Math.ceil(this.frac(e, r) * 30)); };
+  repMove = (e) => { if (!this.repD) return; this.setReps(Math.ceil(this.frac(e, this.repD.r) * 30)); };
+  repUp = () => { this.repD = null; };
+  repKey = (e) => {
+    const k = e.key;
+    const d = (k === 'ArrowRight' || k === 'ArrowUp') ? 1 : (k === 'ArrowLeft' || k === 'ArrowDown') ? -1 : 0;
+    if (!d) return;
+    e.preventDefault(); this.unlock(); this.setReps(this.cur.reps + d);
+  };
+
+  setLvl(v) {
+    const l = Math.min(4, Math.max(0, v));
+    if (l === this.cur.lvl) return;
+    this.cur.lvl = l;
+    const grind = l === 4;
+    this.setState((s) => ({ lvl: l, fxLvl: s.fxLvl + 1, fxShake: grind ? s.fxShake + 1 : s.fxShake }));
+    this.blip([660, 523, 440, 330, 150][l], grind ? 0.18 : 0.06, grind ? 'sawtooth' : 'square', 0.05);
+    this.buzz(grind ? [18, 30, 18] : 7);
+  }
+  lvDown = (e) => { const r = this.grab(e); this.unlock(); this.lvD = { r }; this.setLvl(Math.floor(this.frac(e, r) * 4.999)); };
+  lvMove = (e) => { if (!this.lvD) return; this.setLvl(Math.floor(this.frac(e, this.lvD.r) * 4.999)); };
+  lvUp = () => { this.lvD = null; };
+  lvKey = (e) => {
+    const k = e.key;
+    const d = (k === 'ArrowRight' || k === 'ArrowUp') ? 1 : (k === 'ArrowLeft' || k === 'ArrowDown') ? -1 : 0;
+    if (!d) return;
+    e.preventDefault(); this.unlock(); this.setLvl(this.cur.lvl + d);
+  };
+
+  logSet = () => {
+    this.unlock();
+    const set = { kg: this.cur.kg, reps: this.cur.reps, lvl: this.cur.lvl, rom: this.cur.rom };
+    this.cur.rom = 100;
+    const now = Date.now();
+    const ci = this.state.cur;
+    if (this.state.ses === 'idle') this.autoStart('İlk setini kaydettin');
+    const total = this.lib(this.state.items[ci].lid).rest;
+    this.setState((s) => ({ items: s.items.map((it, k) => (k === ci ? { ...it, sets: [...it.sets, set] } : it)), fxLog: s.fxLog + 1, rom: 100, sel: null, rest: { start: now, total }, restOpen: true, now }));
+    [523, 659, 784, 1047].forEach((f, i) => this.blip(f, 0.09, 'square', 0.05, i * 0.075));
+    this.buzz([12, 40, 24]);
+  };
+  skipRest = () => { this.rtD = null; this.setState({ rest: null, restOpen: false }); this.blip(392, 0.05, 'square', 0.04); };
+  hideRest = () => { this.rtD = null; this.setState({ restOpen: false }); this.blip(440, 0.04, 'square', 0.035); };
+  openRest = () => { this.unlock(); this.setState({ restOpen: true }); this.blip(523, 0.04, 'square', 0.035); };
+  addRest(d) {
+    const r = this.state.rest;
+    if (!r || !d) return;
+    const now = Date.now();
+    const el = (now - r.start) / 1000;
+    const total = Math.min(600 + Math.ceil(el), Math.max(Math.ceil(el) + 1, r.total + d));
+    if (total === r.total) return;
+    this.setState((s) => ({ rest: { start: r.start, total }, fxRt: s.fxRt + 1, now }));
+    this.blip(d > 0 ? 659 : 392, 0.05, 'square', 0.045);
+    this.buzz(8);
+  }
+  restPlus = () => { this.unlock(); this.addRest(15); };
+  restMinus = () => { this.unlock(); this.addRest(-15); };
+  rtDown = (e) => { const r = this.grab(e); this.unlock(); this.rtD = { x0: e.clientX, w: r.width, done: 0 }; };
+  rtMove = (e) => {
+    const d = this.rtD;
+    if (!d) return;
+    const steps = Math.trunc((e.clientX - d.x0) / (d.w / 9));
+    if (steps !== d.done) { this.addRest(15 * (steps - d.done)); d.done = steps; }
+  };
+  rtUp = () => { this.rtD = null; };
+  rtKey = (e) => {
+    const k = e.key;
+    const d = (k === 'ArrowRight' || k === 'ArrowUp') ? 15 : (k === 'ArrowLeft' || k === 'ArrowDown') ? -15 : 0;
+    if (!d) return;
+    e.preventDefault(); this.unlock(); this.addRest(d);
+  };
+
+  renderVals() {
+    const s = this.state;
+    const item = s.items[s.cur];
+    const L = item ? this.lib(item.lid) : this.LIB[0];
+    const sets = item ? item.sets : [];
+    const gb = (this.props.tema ?? 'Gece') === 'Game Boy';
+    const par = (n, a, b) => (n === 0 ? '' : (n % 2 ? a : b));
+    const kgPop = par(s.fxKg, 'popA', 'popB');
+    const SC = gb ? ['#eefaa6', '#c3df4e', '#9bbc0f', '#7aa521', '#5b8a1e'] : ['#52e07c', '#c6e04a', '#ffc53d', '#ff8a3a', '#ff3b4e'];
+    const PL = gb
+      ? { 25: '#eefaa6', 20: '#c3df4e', 15: '#9bbc0f', 10: '#7aa521', 5: '#5b8a1e', 2.5: '#3f6a1a', 1.25: '#a7c66a' }
+      : { 25: '#e8384f', 20: '#3d7fe0', 15: '#f5c542', 10: '#3fbf6a', 5: '#ece8f4', 2.5: '#4a4466', 1.25: '#b8b4c8' };
+    const DIM = { 25: [10, 66], 20: [10, 60], 15: [9, 52], 10: [8, 44], 5: [7, 34], 2.5: [6, 26], 1.25: [5, 18] };
+    let side = Math.max(0, (s.kg - 20) / 2);
+    const plates = [];
+    [25, 20, 15, 10, 5, 2.5, 1.25].forEach((p) => { while (side >= p - 1e-9) { plates.push(p); side -= p; } });
+    const plateList = plates.map((p, i) => ({ w: DIM[p][0], h: DIM[p][1], c: PL[p], cls: i === plates.length - 1 ? kgPop : '' }));
+    const ek = this.eq;
+    const sideTxt = ek === 'db'
+      ? 'tek el · iki dambıl toplam ' + this.fk(s.kg * 2) + ' kg'
+      : 'taraf başına: ' + (plates.length ? plates.map((p) => this.fk(p)).join(' + ') : (s.kg < 20 ? 'bar ağırlığının altında' : 'boş bar'));
+    const nDisc = Math.min(6, 1 + Math.floor(s.kg / 8));
+    const dH = Math.round(30 + Math.min(1, s.kg / 50) * 34);
+    const dbDiscs = Array.from({ length: nDisc }, (_, i) => ({ h: dH, cls: i === nDisc - 1 ? kgPop : '' }));
+    const plateN = Math.round(this.MAX / this.STEP);
+    const pinNo = Math.max(1, Math.round(s.kg / this.STEP));
+    const stack = ek === 'mk' ? Array.from({ length: plateN }, (_, i) => ({ y: 12 + i * 6, cls: 'mp' + (i < pinNo ? ' on' : '') })) : [];
+    const pinY = 12 + (pinNo - 1) * 6;
+
+    const ticks = this.TICKS.map((t) => ({ x: t.x, cls: t.kind + (t.v <= s.kg ? ' on' : '') }));
+    const labels = this.LABELS.map((l) => ({ x: l.x, t: l.t, cls: l.v === s.kg ? 'lb cur' : 'lb' }));
+    const thumbX = +(s.kg * this.PPK).toFixed(2);
+    const tapeX = -(+(s.lo * this.PPK).toFixed(2));
+    const prev = sets[sets.length - 1];
+    const ghostX = prev ? +(prev.kg * this.PPK).toFixed(2) : -40;
+    const burst = (list, n) => list.map((p) => ({ a: p.a, cls: par(n, p.far ? 'fA' : 'nA', p.far ? 'fB' : 'nB') }));
+
+    const N = 30;
+    const segs = [];
+    for (let i = 0; i < N; i++) {
+      const on = i < s.reps, top = i === s.reps - 1;
+      segs.push({ h: Math.round(14 + 42 * i / (N - 1)), cls: ((i + 1) % 5 === 0 ? 'five' : '') + (on ? ' on' : '') + (top ? ' top ' + par(s.fxRep, 'popA', 'popB') : '') });
+    }
+    const repScale = [1, 5, 10, 15, 20, 25, 30].map((n) => ({ t: String(n), x: ((n - 0.5) / N * 100).toFixed(2), cls: n === s.reps ? 'sc cur' : 'sc' }));
+
+    const cur = this.SPEED[s.lvl];
+    const rir = cur.rir;
+    const e1ok = rir <= 4 && s.reps + rir <= 12 && s.rom >= 90;
+    const e1 = e1ok ? this.fk(Math.round(s.kg * (1 + (s.reps + rir) / 30) * 2) / 2) : '—';
+    const e1Hint = e1ok ? 'e1RM: Epley, kalan tekrarla' : (rir > 4 ? 'e1RM için RIR ≤ 4 olmalı' : (s.reps + rir > 12 ? 'e1RM için tekrar + RIR ≤ 12 olmalı' : 'e1RM için ROM ≥ %90 olmalı'));
+
+    const r = s.rest;
+    let restTxt = '', restSegs = [], restSec = 0, restPct = 0;
+    if (r) {
+      const left = Math.max(0, r.total - (s.now - r.start) / 1000);
+      restSec = Math.ceil(left);
+      restTxt = Math.floor(restSec / 60) + ':' + String(restSec % 60).padStart(2, '0');
+      restPct = Math.round(left / r.total * 100);
+      const lit = Math.ceil(left / r.total * 30);
+      restSegs = Array.from({ length: 30 }, (_, i) => ({ cls: i < lit ? 'on' : '' }));
+    }
+    const last = sets[sets.length - 1];
+    const vol = sets.reduce((a, x) => a + x.kg * x.reps, 0) * (this.eq === 'db' ? 2 : 1);
+
+    const nS = sets.length;
+    const tonK = ek === 'db' ? 2 : 1;
+    const rows = sets.map((x, i) => ({
+      kg: this.fk(x.kg), reps: String(x.reps), rpe: this.rpeOf(x.lvl), c: SC[x.lvl],
+      aria: 'Set ' + (i + 1) + ': ' + this.fk(x.kg) + ' kilo, ' + x.reps + ' tekrar, RPE ' + this.rpeOf(x.lvl) + '. Ayrıntı için dokun.',
+      open: () => this.openSel(i),
+      cls: i === nS - 1 ? 'st new ' + par(s.fxLog, 'popA', 'popB') : 'st'
+    })).reverse();
+    const sx = s.sel != null ? sets[s.sel] : null;
+    const hasMore = nS > 6;
+
+    const tonOf = (it) => { const l = this.lib(it.lid); return it.sets.reduce((a, x) => a + x.kg * x.reps, 0) * (l.vis === 'db' ? 2 : 1); };
+    const sesSets = s.items.reduce((a, it) => a + it.sets.length, 0);
+    const sesTon = s.items.reduce((a, it) => a + tonOf(it), 0);
+    const hms = (sec) => { const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), x = sec % 60; return (h ? h + ':' + String(m).padStart(2, '0') : String(m)) + ':' + String(x).padStart(2, '0'); };
+    const el = s.startedAt ? Math.max(0, Math.floor(((s.endedAt || s.now) - s.startedAt) / 1000)) : 0;
+    const sesTime = s.startedAt ? hms(el) : 'başlamadı';
+    let load = 0, hard = 0;
+    s.items.forEach((it) => { const l = this.lib(it.lid); it.sets.forEach((x) => { const rr = this.SPEED[x.lvl].rir; if (rr <= 4) { hard++; const pw = rr <= 0 ? 1.6 : rr <= 1 ? 1.3 : rr <= 2 ? 1.1 : rr <= 3 ? 1 : 0.8; load += pw * (l.fat === 3 ? 1.5 : l.fat === 2 ? 1 : 0.6); } }); });
+    const fat = 100 * (1 - Math.exp(-load / 20));
+    const recH = load > -20 * Math.log(0.75) ? 36 * Math.log(load / (-20 * Math.log(0.75))) : 0;
+    const fatC = fat < 40 ? SC[0] : (fat < 70 ? SC[2] : SC[4]);
+    const fatSegs = Array.from({ length: 25 }, (_, k) => ({ c: (k + 0.5) * 4 <= fat ? ((k + 0.5) * 4 < 40 ? SC[0] : ((k + 0.5) * 4 < 70 ? SC[2] : SC[4])) : 'var(--dim)' }));
+    const stRows = s.items.map((it) => {
+      const l = this.lib(it.lid);
+      const e1s = it.sets.map((x) => this.e1Of(x)).filter((t) => t !== '—').map((t) => parseFloat(t.replace(',', '.')));
+      return { name: l.name, sets: it.sets.length + ' set', ton: Math.round(tonOf(it)).toLocaleString('tr-TR') + ' kg', e1: e1s.length ? this.fk(Math.max(...e1s)) + ' kg' : '—' };
+    });
+    const cards = s.items.map((it, k) => {
+      const l = this.lib(it.lid), n = it.sets.length;
+      const recent = it.sets.slice(-4).reverse();
+      return {
+        name: l.name, meta: this.EQN[l.eq] + ' · ' + l.mus,
+        sum: n ? n + ' set · ' + Math.round(tonOf(it)).toLocaleString('tr-TR') + ' kg' : 'set yok', sumC: n ? 'var(--tx)' : 'var(--mt)',
+        hasSets: n > 0,
+        chips: recent.map((x) => ({ t: this.fk(x.kg) + '×' + x.reps, c: SC[x.lvl] })).concat(n > 4 ? [{ t: '+' + (n - 4), c: 'var(--mt)' }] : []),
+        aria: l.name + ', ' + n + ' set. Devam etmek için dokun.',
+        cls: 'card' + (k === s.cur ? ' cur' : ''),
+        open: () => { this.unlock(); this.enterEx(k); }
+      };
+    });
+    const qn = this.norm(s.q).trim();
+    const inSes = s.items.map((it) => it.lid);
+    const pickRows = this.LIB.filter((l) => !qn || this.norm(l.name + ' ' + l.en + ' ' + l.mus).includes(qn)).map((l) => {
+      const idx = inSes.indexOf(l.id), on = s.picked.includes(l.id);
+      return {
+        name: l.name, meta: this.EQN[l.eq] + ' · ' + l.mus,
+        tag: idx >= 0 ? 'listede' : '', tagC: 'var(--gold)',
+        on: idx >= 0 ? false : on,
+        aria: l.name + (idx >= 0 ? ', zaten listede' : (on ? ', seçili' : ', seçmek için dokun')),
+        cls: 'pk' + (idx >= 0 ? ' in' : (on ? ' on' : '')),
+        dis: idx >= 0,
+        toggle: () => { if (idx < 0) this.togglePick(l.id); }
+      };
+    });
+
+    return {
+      themeCls: gb ? 'gb' : 'night',
+      title: this.up(L.name),
+      eqName: this.EQN[L.eq].toLocaleUpperCase('tr'),
+      scrList: s.scr === 'list', scrPick: s.scr === 'pick', scrLog: s.scr === 'log',
+      goList: this.goList, goPick: this.goPick, pickBack: this.pickBack, restToLog: this.restToLog, onQ: this.onQ, addPicked: this.addPicked,
+      sesTime: sesTime, sesState: s.ses === 'idle' ? 'HAZIR ·' : 'SÜRE', sesIdle: s.ses === 'idle', sesRun: s.ses !== 'idle',
+      toastOn: !!s.toast, toastTxt: s.toast ? s.toast.t : '', toastCls: 'toast ' + (s.toast ? (s.toast.n % 2 ? 'tA' : 'tB') : ''),
+      startSes: this.startSes, endSes: this.endSes, resumeSes: this.resumeSes, newSes: this.newSes,
+      scrStats: s.scr === 'stats', stTime: hms(el), stSets: sesSets + ' · ' + hard, stRows,
+      fatScore: String(Math.round(fat)), fatLbl: fat < 40 ? 'Yönetilebilir' : (fat < 70 ? 'Birikiyor' : 'Yüksek'), fatC, fatSegs,
+      fatRec: recH > 0 ? '~' + Math.round(recH) + ' saat' : 'hemen hazır', sesEx: String(s.items.length), sesSets: String(sesSets), sesTon: Math.round(sesTon).toLocaleString('tr-TR') + ' kg',
+      cards, noItems: s.items.length === 0,
+      q: s.q, pickRows, noMatch: pickRows.length === 0,
+      pickNone: s.picked.length === 0,
+      pickBtn: s.picked.length === 0 ? 'HAREKET SEÇ' : s.picked.length + ' HAREKET EKLE',
+      isBar: ek === 'bar', isMk: ek === 'mk', isDb: ek === 'db', notMk: ek !== 'mk',
+      dbDiscs, dbCap: dH - 12,
+      stack, pinY, rodH: pinY, pinNo,
+      stackTxt: plateN + ' plaka × ' + this.fk(this.STEP) + ' kg',
+      kgMin: this.MIN, kgMax: this.MAX,
+      trackW: Math.ceil(this.MAX * this.PPK) + 24,
+      shakeCls: par(s.fxShake, 'shA', 'shB'),
+      setNo: sets.length + 1,
+      restBig: !!r && s.restOpen, restMini: !!r && !s.restOpen, restTxt, restSegs, restSec, restPct,
+      rtPop: par(s.fxRt, 'popA', 'popB'), rtParts: burst(this.P_ALL.slice(0, 8), s.fxRt), readyFl: par(s.fxReady, 'flA', 'flB'),
+      lastNo: sets.length, lastKg: last ? this.fk(last.kg) : '', lastReps: last ? String(last.reps) : '',
+      lastSp: last ? 'hız: ' + this.SPEED[last.lvl].k : '', lastRom: last && (last.rom ?? 100) < 100 ? ' · %' + last.rom + ' ROM' : '', lastC: last ? SC[last.lvl] : 'transparent',
+      selOpen: !!sx, closeSel: this.closeSel,
+      selN: sx ? 'SET ' + (s.sel + 1) : '', selEq: ek === 'db' ? 'tek el kilo' : (ek === 'mk' ? 'makine' : 'bar'),
+      selKg: sx ? this.fk(sx.kg) : '', selReps: sx ? String(sx.reps) : '',
+      selSp: sx ? this.SPEED[sx.lvl].k : '', selC: sx ? SC[sx.lvl] : 'transparent',
+      selRir: sx ? (this.SPEED[sx.lvl].rir >= 5 ? '5+' : '~' + this.SPEED[sx.lvl].rir) : '',
+      selRpe: sx ? this.rpeOf(sx.lvl) : '', selRom: sx ? '%' + (sx.rom ?? 100) : '',
+      selE1: sx ? this.e1Of(sx) : '',
+      selTon: sx ? Math.round(sx.kg * sx.reps * tonK).toLocaleString('tr-TR') + ' kg' : '',
+      selNote: sx ? this.SPEED[sx.lvl].d + (tonK === 2 ? ' · tonaj iki el' : '') + (this.e1Of(sx) === '—' ? ' · e1RM yok: ' + (this.SPEED[sx.lvl].rir > 4 ? 'RIR 4 üstü' : (sx.reps + this.SPEED[sx.lvl].rir > 12 ? 'tekrar + RIR 12 üstü' : 'ROM %90 altı')) : '') : '',
+      noSets: sets.length === 0, listRef: this.listRef, listScroll: this.listScroll,
+      listCls: 'sl' + (hasMore && !s.listEnd ? ' fade' : ''), showMore: hasMore && !s.listEnd, moreTxt: (nS - 6) + ' eski set daha',
+      rom: s.rom, romTxt: '%' + s.rom, romAria: 'yüzde ' + s.rom, romPop: par(s.fxRom, 'popA', 'popB'),
+      romC: s.rom < 100 ? 'var(--gold)' : 'var(--tx)', romCls: s.rom < 100 ? 'part' : '',
+      romSegs: Array.from({ length: 10 }, (_, i) => ({ cls: i < Math.round(s.rom / 10) ? 'on' : '' })),
+      romDown: this.romDown, romMove: this.romMove, romUp: this.romUp, romKey: this.romKey,
+      setSum: sets.length + ' set · tonaj ' + Math.round(vol).toLocaleString('tr-TR') + ' kg',
+      hideRest: this.hideRest, openRest: this.openRest, restPlus: this.restPlus, restMinus: this.restMinus,
+      rtDown: this.rtDown, rtMove: this.rtMove, rtUp: this.rtUp, rtKey: this.rtKey,
+      prevTxt: prev ? this.fk(prev.kg) + ' × ' + prev.reps + ' · ' + this.SPEED[prev.lvl].k : '—',
+      rows,
+      plates: plateList, sideTxt,
+      kg: s.kg, kgTxt: this.fk(s.kg), kgAria: this.fk(s.kg) + ' kilogram', kgPop,
+      ticks, labels, thumbX, tapeX, ghostX,
+      tapeT: s.kgDrag ? 'transform .08s linear' : 'transform .26s steps(6)',
+      kgParts: burst(this.P_UP, s.fxKg),
+      majFl: par(s.fxMaj, 'flA', 'flB'),
+      edgeL: s.edge === -1 ? 'eg on' : 'eg', edgeR: s.edge === 1 ? 'eg on' : 'eg',
+      reps: s.reps, repPop: par(s.fxRep, 'popA', 'popB'), segs, repScale,
+      repX: ((s.reps - 0.5) / N * 100).toFixed(2), repH: Math.round(14 + 42 * (s.reps - 1) / (N - 1)) + 2,
+      repParts: burst(this.P_UP, s.fxRep),
+      lvl: s.lvl, lvD: cur.d, lvC: SC[s.lvl],
+      spd: this.SPEED.map((sp, i) => ({ k: sp.k, c: SC[i], fill: Math.round((1 - sp.vl) * 100), cls: 'sb' + (i === s.lvl ? ' sel ' + par(s.fxLvl, 'popA', 'popB') : '') })),
+      lvX: ((s.lvl + 0.5) / 5 * 100).toFixed(2),
+      lvParts: burst(this.P_UP, s.fxLvl),
+      rirTxt: rir >= 5 ? '5+' : '~' + rir,
+      rpeTxt: rir >= 5 ? '≤5' : String(10 - rir),
+      e1Txt: e1, e1Hint, e1Pop: e1ok ? kgPop : '',
+      logParts: burst(this.P_ALL, s.fxLog),
+      kgDown: this.kgDown, kgMove: this.kgMove, kgUp: this.kgUp, kgKey: this.kgKey,
+      repDown: this.repDown, repMove: this.repMove, repUp: this.repUp, repKey: this.repKey,
+      lvDown: this.lvDown, lvMove: this.lvMove, lvUp: this.lvUp, lvKey: this.lvKey,
+      logSet: this.logSet, skipRest: this.skipRest
+    };
+  }
+}
+</script>
+</body>
+</html>

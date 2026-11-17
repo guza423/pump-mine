@@ -3,7 +3,7 @@
 Hangi AI olursa olsun: önce `git pull --rebase origin main`, sonra `AGENTS.md`'yi (özellikle "Kayıt kuralı"), `docs/PROJE.md`'yi ve bu dosyayı oku. "Bekleyen" listesindeki görevleri **sırayla** uygula. Her görev bitince satırını "Tamamlanan"a taşı (tarih + commit kısa kodu) ve `docs/KONUSMA-KAYDI.md`'ye "uygulandı" satırı ekle. `AGENTS.md`'deki "Her görevin sonunda" kuralı her görev için geçerli: test + build + layout geçsin, doğrudan `main`'e push.
 
 ## Bekleyen
-Bekleyen görev yok.
+- [V13 · Pixel arayüz: plansız idman akışı ve sürüklemeli set kaydı](docs/gorevler/V13-pixel-plansiz-idman.md)
 
 ## Tamamlanan
 - [V12 · Dashboard, antrenman planı, takvimli gözlem ve beceri öğrenme hedefleri](docs/gorevler/V12-dashboard-plan-gozlem-beceri.md): 2026-11-15 · `c2f274b`

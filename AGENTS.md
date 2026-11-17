@@ -29,7 +29,7 @@ Yapılacak işler `GOREV.md`'de sırayla listelidir; görev ayrıntıları `docs
 ## Referans prototip
 
 V10 ve sonraki görev dosyaları referanstan farklı bir şey söylüyorsa görev dosyası geçerlidir.
-`reference/v09/` klasörü, Claude'da yapılmış ve çalışan güncel prototiptir. Bu projenin tasarım ve davranış kaynağıdır. Önceki prototip `reference/v03/` altında yalnızca tarihçe için tutulur.
+`reference/v13-pixel/` V13 ile gelen pixel tasarım dilinin kaynağıdır (bkz. içindeki `README.md`). `reference/v09/` klasörü, Claude'da yapılmış ve çalışan güncel prototiptir. Bu projenin tasarım ve davranış kaynağıdır. Önceki prototip `reference/v03/` altında yalnızca tarihçe için tutulur.
 
 - `performance.html`: tek dosyalık çalışan hali. Tarayıcıda açıp davranışı gör.
 - `app.jsx`: dört sekmeli uygulama kabuğu (Bugün, Antrenman, Programlar, Lab), ekranlar, sheet yığını, hesap ekranları.

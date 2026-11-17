@@ -186,6 +186,10 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 - **Drive yedeği:** haftalık otomatik JSON yedeğini Google Drive'a alma.
 - **Ad kontrolü:** OUTMOVE için alan adı ve TÜRKPATENT marka kontrolü.
 
+**Tasarım (pixel):**
+- V14: V13'teki pixel dili tüm sekmelere (Dashboard, Antrenman listeleri, planlı oturum, Gözlem, Lab, sheet'ler) uygula. Kaynak: `reference/v13-pixel/`, kararlar §9.
+- Açık soru: salona göre değişen makine plakası (5 / 7 kg, libre) için hareket başına plaka değeri mi tutulsun, yoksa yalnızca pim numarası mı kaydedilsin?
+
 **Teknik borç:**
 - Claude prototipi (`reference/v09/`) V10–V12'nin gerisinde: şablonlar, varsayılan hedef ve eski sekmeler hâlâ orada. Yeni bir referans gerekirse önce V12'ye göre güncellenmeli. V10'dan beri görev dosyaları referansa göre önceliklidir.
 - Eski çok günlü program belgeleri bölünmeden plan olarak listeleniyor (V12 kararı). Gerekirse ileride tek günlük belgelere bölünebilir.
@@ -216,6 +220,11 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | 2026-11-15 | Öğrenme hedefleri: 4 aşama + 28 beceri hareketi, deneme + kalite kaydı | "Sadece performans değil, istediğim hareketi öğrenmeyi planlayayım (kip-up)" |
 | 2026-11-15 | Planlar `programs` koleksiyonunda, her plan ayrı belge | Firestore kuralları değişmesin; cihazlar arası çakışma olmasın |
 | 2026-11-16 | **Kayıt kuralı:** her konuşma, karar ve prompt repoya; hangi AI olursa olsun | Kullanıcı: "her şey her zaman repoya kaydolsun, promptlar repoya gitsin ekrana yazılmasın" |
+| 2026-11-17 | **Pixel arayüz** (Press Start 2P yalnızca büyük sayılarda, geri kalan Pixelify Sans); küçük tuş yok, kontroller sürüklemeli; her adımda ses + titreşim + efekt. Önce plansız idmanda (V13), sonra tüm sekmelerde (V14) | "komple tüm uygulama biraz böyle pixel art gibi olsun … küçük tuşlara basarak kontrol etmek istemiyorum" |
+| 2026-11-17 | Plansız idmanda RPE çipleri kalkar; RPE ve RIR son tekrar hızından gelir (2026-11-14 kararını değiştirir) | Konseptte onaylandı; set kutucuğunda RPE hızdan gösterilir |
+| 2026-11-17 | Sete **ROM** (%10–100, varsayılan 100) eklenir; **ROM < %90 olan set e1RM'e girmez** | Kullanıcı: "o set rom %100 kaçtı onu puanlayalım"; yarım tekrar 1RM tahminini şişirir |
+| 2026-11-17 | Dambılda tonaj iki el (`kg × tekrar × 2`); adı `Tek ` ile başlayanlar ×1 | Dambıl kilosu tek el giriliyor |
+| 2026-11-17 | Plansız idman: hareket listesi + çoklu seçim + İdmanı başlat / bitir; başlatılmazsa set ekranı açılınca ya da set kaydedilince süre kendiliğinden başlar ve bildirim çıkar | Kullanıcı: "unutsak bile … idman süresini başlatmış ol" |
 
 ---
 
@@ -246,4 +255,5 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | `docs/gorevler/` | Görev dosyaları (V08–V12), `arsiv/` eski görevler |
 | `docs/FIREBASE-KURULUM.md` | Firebase konsol kurulumu |
 | `reference/` | Claude prototipleri (tarihçe ve tasarım kaynağı) |
+| `reference/v13-pixel/` | V13 pixel tasarım konsepti (Design tuvali kaynağı, `README.md` nasıl okunacağını anlatır) |
 | `CLAUDE.md`, `GEMINI.md`, `.agent/rules/`, `.cursor/rules/`, `.github/copilot-instructions.md` | Farklı AI araçlarını `AGENTS.md`'ye yönlendiren kısa dosyalar |
