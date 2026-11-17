@@ -353,3 +353,12 @@ Her iki font da uygulamada zaten paketli. Seçimden sonra uygulamadaki `pixel.cs
 - Set ekleme animasyonu: kaydet düğmesinden `kilo×tekrar` yazan altın bir blok Setler kutusuna uçar. Yeni kutucuk altın parlayarak yerine oturur, kutunun çerçevesi bir kez yanar ve iniş sesi çalar. Dinlenme ekranı ancak bu iniş bittikten sonra (~0,9 sn) açılır.
 - Düğme metni `SET n BİTTİ`; dinlenme kartında da `SET n BİTTİ`.
 - Düğmenin rengi seçili son tekrar hızının rengi (Aynı yeşil … Zar zor kırmızı).
+
+### 2026-11-17 · Claude (claude.ai, PERFORMANCE projesi · Design tuvali)
+**Kullanıcı** (ekran görüntüleri: dinlenme çipi + `SET 5 BİTTİ` düğmesi yan yana; bulanık başlık ve düğme yazısı oklarla gösterilmiş): "sayaç varken set bitti olmasın o tuş onun yerine sayaça basınca sayaç ekranına dönüp istersek ordan iptal ederiz dinlenmeyi. bide mesela bak hala bunlar okunmuo 2. resimde falan . fazla eriş bürüş olmuş yazılar. madem böyle pixel yazion ozmn daha düzgün pikseller olsun yada pixellerle daha az yuvarlak köşe yap ne bilim"
+**Yapılan (konsept):**
+- Dinlenme sürerken `SET n BİTTİ` düğmesi gizleniyor. Yerinde tam genişlikte dinlenme çubuğu var: `DİNLENİYOR`, büyük süre, eriyen bar. Dokununca büyük sayaç açılır; dinlenme oradaki **GEÇ** ile iptal edilir, ardından düğme geri gelir.
+- Netlik:
+  - Pixel font (Press Start 2P) yalnızca 8'in katı boyutlarda kullanılıyor: kilo 40, tekrar 24, dinlenme 64/32, düğmeler 16 px. Böylece pikseller tam oturuyor.
+  - Dengeli dozda başlıklar artık Saira (net). Bulanıklığın nedeni Pixelify Sans'ın keyfi boyutlarda yumuşak çizilmesiydi.
+- Özet ekranındaki `İDMANA DÖN` düğmesi 16 px pixel fonta sığsın diye `GERİ DÖN` oldu.
