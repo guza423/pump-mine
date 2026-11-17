@@ -295,4 +295,4 @@ komple tüm uygulama biraz böyle pixel art gibi olsun istiyorum mesela ağırl�
   - Model güncellemeleri: `e1Ok` için `ROM ≥ %90`, `sessionStats().tonnage` için dambılda ×2 (`Tek ` ile başlayanlar ×1), `ready` oturumda `dur = 0` ve yorgunluk dışı bırakma.
   - Sapma / notlar: RIR 5+ (`Aynı`) için `README.md`'de belirtildiği gibi `training.ts` eşlemesi (`≤6`) ve görev dosyasındaki `Zar zor` etiketi kullanıldı; `ready` oturumdan vazgeçebilmek için liste başlığına `#discard-ready-btn` eklendi; sekme çubuğu üstündeki alana tam oturmak için `.px` üzerinde `@container (max-height: ...)` kırılımları kullanıldı.
 - Vitest (14 dosya, 90 test), `npm run build`, `npm run lint` ve `npm run test:layout` (11 boyut/ölçek/inset senaryosu) geçti.
-**Kayıt:** `docs/gorevler/V13-pixel-plansiz-idman.md` uygulandı
+**Kayıt:** `docs/gorevler/V13-pixel-plansiz-idman.md` uygulandı (`5366058`)

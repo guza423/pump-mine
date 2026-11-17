@@ -173,7 +173,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | V10 | 2026-11-14 | Android beyaz üst şerit düzeltmesi, her telefona oturma + `test:layout`, varsayılan hedef ve hazır şablonlar kaldırıldı | `f7875cd` |
 | V11 | 2026-11-14 | Sade plansız antrenman, bildirimli dinlenme sayacı, Android geri tuşu | `c5c588d` |
 | V12 | 2026-11-15 | Dashboard, antrenman planları (program katmanı kalktı), Gözlem takvimi, satır içi geçmiş, öğrenme hedefleri, 28 beceri hareketi | `c2f274b` (Antigravity) |
-| V13 | 2026-11-17 | Plansız idman pixel arayüzü (liste, çoklu seçici, sürüklemeli kilo/tekrar/hız/ROM, ekipman görselleri, dinlenme ekranı, ses/titreşim, pixel özet), `ROM ≥ %90` e1RM, dambıl iki el tonaj, `ready` otomatik başlatma | (Antigravity) |
+| V13 | 2026-11-17 | Plansız idman pixel arayüzü (liste, çoklu seçici, sürüklemeli kilo/tekrar/hız/ROM, ekipman görselleri, dinlenme ekranı, ses/titreşim, pixel özet), `ROM ≥ %90` e1RM, dambıl iki el tonaj, `ready` otomatik başlatma | `5366058` (Antigravity) |
 
 ---
 
