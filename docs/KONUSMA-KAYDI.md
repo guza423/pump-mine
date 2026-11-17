@@ -373,3 +373,8 @@ Her iki font da uygulamada zaten paketli. Seçimden sonra uygulamadaki `pixel.cs
 
 **Kayıt:** `docs/gorevler/V13.1-dengeli-doz-set-animasyon.md`
 
+- Devamı: Dashboard'un pixel hali tuvale eklendi (yeni sayfa "Sekmeler (V14)").
+  - Üç durum yan yana: bugün planlı, antrenman sürüyor, yeni kullanıcı.
+  - Öğelerin hepsi ve metinleri aynı kaldı: hesap düğmesi, misafir yedek uyarısı, yorgunluk halkası + bölge + kırılım, uyku 5–9, kısa uyku uyarısı, plan/oturum kartı (4 durum), bu hafta şeridi, güç ve öğrenme hedefleri, hedef ekle, alt sekme çubuğu.
+  - Halka 24 kare segmentli; sayılar Press Start 16/24; ikonlar pixel çizim.
+  - Onaydan sonra V14 görevi yazılacak.
