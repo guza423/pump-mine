@@ -336,3 +336,12 @@ komple tüm uygulama biraz böyle pixel art gibi olsun istiyorum mesela ağırl�
   - V16: Gözlem (takvim ve grafikler)
   - V17: Lab
 - Zor kısımlar: Lab'daki biyomekanik animasyonlar, grafikler, uzun metinlerin okunurluğu.
+
+### 2026-11-17 · Claude (claude.ai, PERFORMANCE projesi · Design tuvali)
+**Kullanıcı:** "tamamdır olur ozmn pixel ayarlarını ve görüntüdeki o pixellerin dozunu ayarlayalım son. pixel art olayı biraz fazla olmuş gibi bir tık kısamaz mıyız. yazılar okunmuyorfalan şuan çünkü ."
+**Yapılan:** Tuvale aynı set ekranının üç "pixel dozu" yan yana kondu, karar kullanıcıda:
+- **Tam pixel:** şimdiki hal.
+- **Dengeli (öneri):** pixel font yalnızca büyük sayılarda, başlıklarda ve büyük düğmelerde; etiketler, küçük sayılar ve metinler IBM Plex Sans; arka plan ızgarası soluk.
+- **Hafif:** pixel font yok; büyük sayılar ve başlıklar Saira, metinler IBM Plex Sans. Pixel his yalnızca çentikli kenarlıklarda, segmentli barlarda ve efektlerde.
+
+Her iki font da uygulamada zaten paketli. Seçimden sonra uygulamadaki `pixel.css` font jetonları buna göre değişecek.
