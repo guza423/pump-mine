@@ -296,3 +296,8 @@ komple tüm uygulama biraz böyle pixel art gibi olsun istiyorum mesela ağırl�
   - Sapma / notlar: RIR 5+ (`Aynı`) için `README.md`'de belirtildiği gibi `training.ts` eşlemesi (`≤6`) ve görev dosyasındaki `Zar zor` etiketi kullanıldı; `ready` oturumdan vazgeçebilmek için liste başlığına `#discard-ready-btn` eklendi; sekme çubuğu üstündeki alana tam oturmak için `.px` üzerinde `@container (max-height: ...)` kırılımları kullanıldı.
 - Vitest (14 dosya, 90 test), `npm run build`, `npm run lint` ve `npm run test:layout` (11 boyut/ölçek/inset senaryosu) geçti.
 **Kayıt:** `docs/gorevler/V13-pixel-plansiz-idman.md` uygulandı (`5366058`)
+
+### 2026-11-17 · Gemini 4 Hydrogen (Google Antigravity)
+**Kullanıcı:** "apk ver bana şimdi"
+**Yapılan / karar:** Yerelde Android SDK kurulu olmadığı için (`AGENTS.md` gereği APK GitHub Actions'ta üretilir), `9b1369d` commit'i için başarıyla tamamlanan **Build Android debug APK** çalıştırması (`44130869685`) ve **`outmove-29`** artifact bağlantısı kullanıcıya verildi.
+**Kayıt:** `docs: konuşma kaydı`
