@@ -458,4 +458,4 @@ sen mi yaparsın agenta mı atalım bunları ?"
   - Cihaz azaltıyorsa set yine görünür biçimde iner: uçuş yok, yeni kutucuk yerinde altın renkte yanıp söner, dinlenme ekranı 650 ms sonra açılır.
   - Hesap ve yedek penceresine **Animasyonlar (cihaz azaltsa da)** anahtarı eklendi (`fx.motion`, varsayılan kapalı). Açıkken uçuş ve bütün pixel animasyonları tam oynar. Cihaz azaltıyorsa altında not çıkıyor, böylece sebep telefonda görülebiliyor.
   - `cns.css`'teki genel kural artık `.px` ekranlarına dokunmuyor; onların azaltma kuralı `pixel.css`'te.
-- Testler 650 ms beklemeye göre güncellendi. Commit: `HASH`. Kontroller: `npm test` (91 test), lint, `tsc -b`, build, `test:layout` geçti.
+- Testler 650 ms beklemeye göre güncellendi. Commit: `602a0d0`. Kontroller: `npm test` (91 test), lint, `tsc -b`, build, `test:layout` geçti.

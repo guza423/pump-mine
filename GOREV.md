@@ -6,7 +6,7 @@ Hangi AI olursa olsun: önce `git pull --rebase origin main`, sonra `AGENTS.md`'
 (Yok)
 
 ## Tamamlanan
-- Düzeltme · Set inişi animasyonu: cihaz "animasyonları azalt" diyorsa yerinde yanıp söner; Hesap'ta "Animasyonlar" anahtarı tam oynatır: 2026-11-18 · `HASH`
+- Düzeltme · Set inişi animasyonu: cihaz "animasyonları azalt" diyorsa yerinde yanıp söner; Hesap'ta "Animasyonlar" anahtarı tam oynatır: 2026-11-18 · `602a0d0`
 - [V18 · Sürüklemeli plan ayarları, not seçenekleri, özette set ayrıntısı ve çalışan kaslar](docs/gorevler/V18-plan-ayarlari-ozet.md): 2026-11-18 · `5f9d460`
 - Düzeltme · Yorgunluk ölçer ibresi kaydırıcılarla oynar (Şu an / Simülasyon): 2026-11-18 · `ef2d02b`
 - [V17 · Pixel tema: Lab sekmesi, dersler, animasyonlar, biyomekanik + kalan ikonlar](docs/gorevler/V17-pixel-lab.md): 2026-11-18 · `b05be40`
