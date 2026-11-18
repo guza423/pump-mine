@@ -449,4 +449,4 @@ sen mi yaparsın agenta mı atalım bunları ?"
   4. hareket seçilince ayar penceresi kendiliğinden açılıyor;
   5. set, tekrar aralığı, kilo, RPE aralığı sürüklemeli (`PxDrag.tsx`);
   6. 15 hazır "nasıl yapılacak" seçeneği + ek not; plan menüsünde ve hedef kartında küçük yazı.
-- Commit: `HASH`. Kontroller: `npm test` (91 test), lint, `tsc -b`, build, `test:layout` (11 boyut + yeni `plan-hareket-ayar` ekranı) geçti.
+- Commit: `5f9d460`. Kontroller: `npm test` (91 test), lint, `tsc -b`, build, `test:layout` (11 boyut + yeni `plan-hareket-ayar` ekranı) geçti.

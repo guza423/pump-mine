@@ -6,7 +6,7 @@ Hangi AI olursa olsun: önce `git pull --rebase origin main`, sonra `AGENTS.md`'
 (Yok)
 
 ## Tamamlanan
-- [V18 · Sürüklemeli plan ayarları, not seçenekleri, özette set ayrıntısı ve çalışan kaslar](docs/gorevler/V18-plan-ayarlari-ozet.md): 2026-11-18 · `HASH`
+- [V18 · Sürüklemeli plan ayarları, not seçenekleri, özette set ayrıntısı ve çalışan kaslar](docs/gorevler/V18-plan-ayarlari-ozet.md): 2026-11-18 · `5f9d460`
 - Düzeltme · Yorgunluk ölçer ibresi kaydırıcılarla oynar (Şu an / Simülasyon): 2026-11-18 · `ef2d02b`
 - [V17 · Pixel tema: Lab sekmesi, dersler, animasyonlar, biyomekanik + kalan ikonlar](docs/gorevler/V17-pixel-lab.md): 2026-11-18 · `b05be40`
 - [V16 · Pixel tema: Gözlem sekmesi](docs/gorevler/V16-pixel-gozlem.md): 2026-11-17 · `cc057e8`
