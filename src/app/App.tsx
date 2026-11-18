@@ -2108,17 +2108,27 @@ function PlanBody({ getProgram, st, openSheet }) {
 
 function FatigueBody({ st, init, source, showNow, openSheet }) {
   const [v, setV] = useState(init);
-  const set = (k) => (x) => setV((p) => ({ ...p, [k]: x }));
+  // Ölçer iki şey gösterebilir: kayıtlardan "şu an" ya da kaydırıcılardaki "simülasyon".
+  // Kaydırıcıya dokunulunca ibre simülasyona geçer ki değişiklik ibrede görünsün; "Şu an" ile geri dönülür.
+  const [mode, setMode] = useState(showNow ? 'now' : 'sim');
+  const set = (k) => (x) => { setV((p) => ({ ...p, [k]: x })); setMode('sim'); };
   const r = steadyWeek(v);
   const now = showNow ? fatigueAt(st, Date.now()) : null;
-  const head = now
+  const useNow = now && mode === 'now';
+  const head = useNow
     ? { score: now.score, zone: now.zone, l1: 'antrenman ' + Math.round(now.train) + ' + uyku ' + (now.sleep.known ? Math.round(now.sleepPts) : '?'), l2: now.hrs ? '~' + now.hrs + ' sa sonra toparlanmış' : 'antrenmandan toparlanmış', l3: 'Şu an · kayıtların ve uykun' }
-    : { score: r.pre, zone: r.zone, l1: 'seans başında · sonda ' + Math.round(r.post), l2: 'seans sonrası ~' + r.hrs + ' sa toparlanma', l3: source + ' · haftan böyle sürerse' };
-  const recs = now
+    : { score: r.pre, zone: r.zone, l1: 'seans başında · sonda ' + Math.round(r.post), l2: 'seans sonrası ~' + r.hrs + ' sa toparlanma', l3: (now ? 'Simülasyon' : source) + ' · haftan böyle sürerse' };
+  const recs = useNow
     ? fatigueRecs({ score: now.score, sleepLast: now.sleep.last, sleepAvg: now.sleep.avg3, sleepN: now.sleep.n }).concat(fatigueRecs({ pre: 0, rir: v.rir, perSession: r.perSession, post: r.post }).filter((x) => !/Toparlanmış/.test(x))).slice(0, 3)
     : fatigueRecs({ pre: r.pre, post: r.post, sleepLast: v.sleepLast, sleepAvg: v.sleepAvg, rir: v.rir, perSession: r.perSession });
   return (
     <div className="fat2">
+      {now ? (
+        <div className="segmented seg2 fat2-mode" role="tablist" aria-label="Ölçer neyi göstersin">
+          <button type="button" role="tab" id="fat-now" aria-selected={mode === 'now'} className={mode === 'now' ? 'on' : ''} onClick={() => setMode('now')}>Şu an</button>
+          <button type="button" role="tab" id="fat-sim" aria-selected={mode === 'sim'} className={mode === 'sim' ? 'on' : ''} onClick={() => setMode('sim')}>Simülasyon</button>
+        </div>
+      ) : null}
       <div className="fat2-top">
         <NeedleGauge score={head.score} zone={head.zone} />
         <div className="fat2-r">

@@ -572,6 +572,19 @@ describe('ana ekran akışları', () => {
     await waitFor(() => expect(screen.getByRole('radio', { name: '5' }).getAttribute('aria-checked')).toBe('true'));
     click('#ready-ring');
     expect(await screen.findByRole('dialog', { name: 'Yorgunluk ölçer' })).toBeTruthy();
+    // Kaydırıcı oynayınca ibre simülasyonu gösterir; "Şu an" ile gerçek değere döner.
+    const gauge = () => screen.getByRole('img', { name: /SSS yorgunluk ölçer/ }).getAttribute('aria-label');
+    const nowLabel = gauge();
+    expect(screen.getByRole('tab', { name: 'Şu an' }).getAttribute('aria-selected')).toBe('true');
+    fireEvent.change(container.querySelector('#f-sets')!, { target: { value: '80' } });
+    fireEvent.change(container.querySelector('#f-rir')!, { target: { value: '0' } });
+    await waitFor(() => expect(screen.getByRole('tab', { name: 'Simülasyon' }).getAttribute('aria-selected')).toBe('true'));
+    const simLabel = gauge();
+    expect(simLabel).not.toBe(nowLabel);
+    fireEvent.change(container.querySelector('#f-sets')!, { target: { value: '4' } });
+    await waitFor(() => expect(gauge()).not.toBe(simLabel));
+    click('#fat-now');
+    await waitFor(() => expect(gauge()).toBe(nowLabel));
     closeTopSheet();
 
     click('#tab-antrenman');

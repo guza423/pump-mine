@@ -418,3 +418,15 @@ Her iki font da uygulamada zaten paketli. Seçimden sonra uygulamadaki `pixel.cs
 - Bütün uygulamadaki eski çizgi ikonlar pixel ikona döndü (15 yeni ikon). Çıkış uyarısı pixel oldu, uzun pencere başlıkları kesilmiyor. `--f-display` font adı borcu kapandı.
 - Commit: `b05be40`. Kontroller: `npm test` (91 test), lint, `tsc -b`, build, `test:layout` (11 boyut) geçti.
 - Pixel geçişi bitti.
+
+**Kullanıcı:** "Çok güzel olmuş beğendim. Tamamdır dizayn ozmn
+Burda yorgunlul öçerdeki bar hiç harkeet etmio artırıp azaltsamda. Onu düzeltek
+Her salonda ağırlık değişsede plaka zaten göstermelik. Önemli olan bizim verdimiz sayı görseldeki ağırlık okdr önemli değil pim sırası falan. O temsili biraz."
+**Yapılan:**
+- Pixel tasarım kullanıcı tarafından tamam kabul edildi.
+- **Yorgunluk ölçer düzeltmesi:** Dashboard ve Lab'dan açılınca ibre yalnızca kayıtlardan gelen "şu an" değerini gösteriyordu; kaydırıcılar sadece alttaki "başta / sonda" sayılarını değiştiriyordu.
+  - Ölçerin üstüne **Şu an / Simülasyon** seçici eklendi.
+  - Herhangi bir kaydırıcıya ya da deload düğmesine dokununca ibre, sayı, bölge ve öneriler simülasyona geçiyor. "Şu an" ile gerçek değere dönülüyor.
+  - Hesaplar değişmedi. Teste eklendi: kaydırıcı ibreyi oynatıyor, "Şu an" geri getiriyor.
+- **Makine plakası sorusu kapandı:** yığın, plaka ve pim görseli temsili. Kaydedilen ve hesaba giren tek şey girilen kilo; salona göre plaka değeri ya da pim numarası tutulmayacak (`docs/PROJE.md` §9).
+- Commit: `HASH`. Kontroller: `npm test` (91 test), lint, `tsc -b`, build, `test:layout` geçti.

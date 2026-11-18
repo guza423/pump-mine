@@ -195,7 +195,6 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 **Tasarım (pixel):**
 - **Pixel geçişi bitti.** V13–V13.1 plansız idman; V14 Dashboard + alt sekme çubuğu; V15 alt pencereler, Antrenman sekmesi, planlı oturum, plan düzenleyici; V16 Gözlem; V17 Lab + kalan ikonlar.
 - İleride istenirse: Lab için kare kare sprite animasyonları (retro oyun karakteri gibi), ayrı iş.
-- Açık soru: salona göre değişen makine plakası (5 / 7 kg, libre) için hareket başına plaka değeri mi tutulsun, yoksa yalnızca pim numarası mı kaydedilsin?
 
 **Teknik borç:**
 - Claude prototipi (`reference/v09/`) V10–V12'nin gerisinde: şablonlar, varsayılan hedef ve eski sekmeler hâlâ orada. Yeni bir referans gerekirse önce V12'ye göre güncellenmeli. V10'dan beri görev dosyaları referansa göre önceliklidir.
@@ -236,6 +235,8 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | 2026-11-17 | **Dengeli pixel dozu:** Press Start 2P yalnızca büyük sayılarda ve büyük düğmelerde, yalnızca 8'in katı boyutlarda; başlıklar Saira, metin ve küçük sayılar IBM Plex Sans; Pixelify Sans kalkar | Kullanıcı: "yazılar okunmuyor … daha düzgün pikseller olsun"; "dengeli doz kalsın" |
 | 2026-11-17 | Plansız set düğmesi `SET n BİTTİ`, rengi son tekrar hızının rengi; dinlenme sürerken düğme yerine dinlenme çubuğu (iptal büyük sayaçtan) | Kullanıcı isteği |
 | 2026-11-17 | Pixel dil tüm uygulamaya yayılacak: **yalnızca stil değişir, her özellik ve akış korunur**; sekme sekme, önce tuvalde tasarım | Kullanıcı: "herşey korunucak … sadece stil değişicek" |
+| 2026-11-18 | Makine/kablo ağırlık yığını, bar plakaları ve pim **temsilidir**: kaydedilen ve hesaba giren tek şey girilen kilo. Salona göre plaka değeri ya da pim numarası tutulmaz | Kullanıcı: "plaka zaten göstermelik. Önemli olan bizim verdimiz sayı … pim sırası falan … O temsili biraz" |
+| 2026-11-18 | Yorgunluk ölçerde iki görünüm: **Şu an** (kayıtlar + uyku) ve **Simülasyon** (kaydırıcılar). Kaydırıcıya dokununca ibre simülasyona geçer, "Şu an" ile geri döner | Kullanıcı: "bar hiç hareket etmio artırıp azaltsamda"; ibre yalnızca kayıtlardan gelen değeri gösteriyordu |
 | 2026-11-18 | Lab animasyonları pixel'e **boyanarak** geçer (seçenek 2): aynı çizim ve hareket, pixel palet, keskin kenar, kare uç, parlama yok; Lab'da sinir sinyali mavi. Kare kare sprite ileride ayrı iş | "sadece stil değişicek"; animasyonların öğrettiği her şey korunur |
 | 2026-11-18 | Ortak `Icon` bileşeni, `PxIcon`'da karşılığı olan ikonu pixel çizer (boyut 12/18/24'e yuvarlanır) | Bütün uygulamada ikon dili tek |
 | 2026-11-17 | Pixel'e geçiş bir **tema katmanıyla** yapılır (`px-theme.css`, kök sınıf `.pxt`): var olan DOM ve kimlikler aynen kalır, yalnızca görünüm değişir. Yeni pixel bileşenleri `pixel.css`'te `px-` önekiyle yazılır | "sadece stil değişicek"; testler ve akışlar bozulmasın |
