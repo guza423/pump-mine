@@ -1066,3 +1066,6 @@
 @media (prefers-reduced-motion: reduce) {
   .pxt .live-dot, .pxt .acct-chip.pending .acct-dot, .tabbar .tab-live { animation: none; }
 }
+
+/* V20: planlı oturumda "SIRADA" etiketi 40 px sütuna her yazı tipi çiziminde sığsın (CI Chromium'da 42 px'e taşıyordu). */
+.pxt .s-t.now-t { font-size: 9px; letter-spacing: 0; }

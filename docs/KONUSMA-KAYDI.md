@@ -498,3 +498,4 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
   - animasyonlar daha akıcı (daha çok adım, yalnızca transform/opaklık, daha az yeniden çizim).
 - Commit: `0af663b`. Kontroller: `npm test` (102 test), lint, `tsc -b`, build, `test:layout` geçti.
 - Kullanıcıya kalanlar: adres ve gizlilik e-postası, VERBİS + Türkiye temsilcisi, Google ile standart sözleşme + 5 iş günü bildirim, gerekirse AB temsilcisi, Play bağlantıları, hukukçu kontrolü.
+- Düzeltme: GitHub Pages yayını birkaç committir yerleşim testinde (planlı oturumdaki "SIRADA" etiketi CI'da 2 px taşıyordu) takılıyordu; etiket küçültüldü, web sürümü ve `legal.html` yeniden yayına çıkar.
