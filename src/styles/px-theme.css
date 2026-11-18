@@ -1,6 +1,6 @@
 /* ================= V14 · Pixel tema katmanı =================
    Var olan ekranları YALNIZCA görünüm olarak pixel'e çevirir: DOM, kimlikler, metinler ve davranış aynı kalır.
-   - `.pxt` kökü: pixel'e geçmiş ekranlar (V14 Dashboard, V15 Antrenman + alt pencereler, V16 Gözlem). Sıradaki sekmeler kök div'ine `pxt` ekleyerek katılır.
+   - `.pxt` kökü: pixel'e geçmiş ekranlar (V14 Dashboard, V15 Antrenman + alt pencereler, V16 Gözlem, V17 Lab). Sıradaki sekmeler kök div'ine `pxt` ekleyerek katılır.
    - Alt sekme çubuğu (`.tabbar`) bütün uygulamada pixel.
    Dengeli doz (V13.1): Press Start 2P yalnızca büyük sayı ve büyük düğmede, yalnızca 8'in katı boyutlarda;
    başlıklar Saira, metin IBM Plex Sans.
@@ -272,7 +272,7 @@
 }
 .pxt .btn:active { transform: translateY(5px); }
 /* Pixel font yalnızca tek başına duran büyük düğmelerde (tam genişlik / büyük); yan yana düğmeler Saira. */
-.pxt .btn.full:not(.ghost),
+.pxt .btn.full:not(.ghost):not(.google),
 .pxt .btn.big,
 .pxt .hc-actions .btn,
 .pxt .start-actions .btn {
@@ -283,7 +283,7 @@
   text-rendering: optimizeSpeed;
 }
 .pxt .btn { white-space: normal; line-height: 1.35; text-align: center; min-width: 0; }
-.pxt .btn.full:not(.ghost), .pxt .btn.big, .pxt .hc-actions .btn, .pxt .start-actions .btn { line-height: 1.5; padding-top: 8px; padding-bottom: 8px; }
+.pxt .btn.full:not(.ghost):not(.google), .pxt .btn.big, .pxt .hc-actions .btn, .pxt .start-actions .btn { line-height: 1.5; padding-top: 8px; padding-bottom: 8px; }
 .pxt .btn:hover:not(:disabled) { border-color: transparent; }
 .pxt .btn.primary:hover:not(:disabled),
 .pxt .btn.fire:hover:not(:disabled) { background: var(--px-fire); }
@@ -758,6 +758,220 @@
 .pxt .ng-zone { opacity: 1; }
 .pxt .ng-needle line { stroke-linecap: square; filter: none; shape-rendering: crispEdges; }
 .pxt .ng-lbl { font-family: var(--px-f-body); font-size: 12px; font-weight: 600; fill: var(--px-mt); }
+
+/* ---------- Lab (V17): liste, dersler, animasyonlar, biyomekanik ----------
+   Animasyonlar aynı kalır; yalnızca boyanır: pixel palet, keskin kenar (crispEdges), kare uçlar, parlama yok.
+   Lab içinde sinir sinyali mavi (--px-sk), kas ateşi turuncu. */
+.pxt .lab, .pxt .scope, .pxt .fig-card, .pxt .lablist { --neuro: var(--px-sk); --neuro-hi: #a8d4ff; }
+.pxt .labseg { margin-top: 12px; }
+.pxt .labseg button { min-height: 40px; padding-left: 4px; padding-right: 4px; font-family: var(--px-f-head); font-size: clamp(13px, 3.9vw, 15px); font-weight: 700; letter-spacing: 0.01em; text-transform: uppercase; }
+.pxt .labseg button b, .pxt .labseg button small { font-family: var(--px-f-body); font-size: 12px; font-weight: 700; color: inherit; opacity: 0.7; }
+/* Çok dar ekranda sekmedeki sayı gizlenir; aynı sayı listenin üstünde "466 hareket" olarak yazıyor. */
+@media (max-width: 360px) { .pxt .labseg button small { display: none; } }
+.pxt .lablist { gap: 6px; border: 0; background: transparent; overflow: visible; }
+.pxt .lablist li + li { border-top: 0; }
+.pxt .labrow {
+  width: calc(100% - 6px);
+  min-height: 64px;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  gap: 12px;
+  margin: 3px;
+  padding: 10px 12px;
+  color: var(--px-tx);
+  background: var(--px-pn);
+  box-shadow: 0 -3px 0 0 var(--px-ln), 0 3px 0 0 var(--px-ln), -3px 0 0 0 var(--px-ln), 3px 0 0 0 var(--px-ln);
+}
+.pxt .labrow:active { background: var(--px-pn2); }
+.pxt .labrow:focus-visible { outline: 3px solid var(--px-gold); outline-offset: 4px; }
+.pxt .labrow-i { font-family: var(--px-f-big); font-weight: 400; letter-spacing: 0; -webkit-font-smoothing: none; font-size: 16px; color: var(--px-gold); }
+/* Dar ekranda başlık kesilmez, iki satıra iner */
+.pxt .labrow-t strong { font-family: var(--px-f-head); font-size: 17px; font-weight: 700; letter-spacing: 0.02em; line-height: 1.2; white-space: normal; }
+.pxt .labrow-t small { font-size: 13px; color: var(--px-mt); white-space: normal; }
+.pxt .labrow > .px-icon:last-child { color: var(--px-mt); }
+/* Hareket listesi uzun: tek panel, satırlar çizgiyle ayrılır */
+.pxt .lablist.ex { gap: 0; margin: 3px; background: var(--px-pn); box-shadow: 0 -3px 0 0 var(--px-ln), 0 3px 0 0 var(--px-ln), -3px 0 0 0 var(--px-ln), 3px 0 0 0 var(--px-ln); }
+.pxt .lablist.ex li + li { border-top: 2px solid var(--px-ln); }
+.pxt .lablist.ex .labrow { width: 100%; min-height: 56px; margin: 0; grid-template-columns: 10px minmax(0, 1fr) auto auto; background: transparent; box-shadow: none; }
+.pxt .lablist.ex .labrow:active { background: var(--px-pn2); }
+.pxt .fatdot { width: 8px; height: 8px; box-shadow: none; }
+.pxt .pdot.i4 { box-shadow: none; }
+.pxt .exf { gap: 10px; }
+.pxt .exf-count { font-size: 12px; color: var(--px-mt); }
+.pxt .fchip { min-height: 36px; padding: 0 12px; border: 0; color: var(--px-mt); background: var(--px-pn); font: 600 13px var(--px-f-body); box-shadow: inset 0 0 0 2px var(--px-ln); }
+.pxt .fchip.on { color: var(--px-btx); background: var(--px-gold); box-shadow: none; }
+.pxt .fchip-n { font-size: 11px; color: inherit; opacity: 0.75; }
+
+/* ders kabuğu */
+.pxt .lab { gap: 14px; margin: 3px; padding: 14px; border: 0; background: var(--px-pn); box-shadow: 0 -3px 0 0 var(--px-ln), 0 3px 0 0 var(--px-ln), -3px 0 0 0 var(--px-ln), 3px 0 0 0 var(--px-ln); }
+.pxt .cstage-head h2 { font-family: var(--px-f-head); font-size: 19px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; }
+.pxt .info-fold summary { min-height: 36px; padding: 0 12px; border: 0; color: var(--px-gold); font: 700 13px var(--px-f-body); box-shadow: inset 0 0 0 2px var(--px-gold); }
+.pxt .info-body { border: 0; background: #0b0914; box-shadow: inset 0 0 0 2px var(--px-ln); }
+.pxt .info-body p { font-size: 13.5px; line-height: 1.55; }
+.pxt .note { border: 0; background: #0b0914; box-shadow: inset 0 0 0 2px var(--px-ln); }
+.pxt .note-tip { background: rgba(255, 91, 58, 0.07); box-shadow: inset 0 0 0 2px rgba(255, 91, 58, 0.55); }
+.pxt .note-caveat { border: 2px dashed var(--px-ln); background: transparent; box-shadow: none; }
+.pxt .note-label { font: 700 12px var(--px-f-body); letter-spacing: 0.1em; }
+.pxt .note-what .note-label { color: var(--px-sk); }
+.pxt .readout-chip { border: 0; background: #0b0914; box-shadow: inset 0 0 0 2px var(--px-ln); }
+.pxt .rc-k { font: 600 11px var(--px-f-body); color: var(--px-mt); }
+.pxt .rc-v { font-family: var(--px-f-body); font-weight: 700; color: var(--px-sk); }
+.pxt .caption, .pxt .rfd-note, .pxt .field-hint { font-size: 12.5px; color: var(--px-mt); }
+.pxt .set-info { font: 600 13px var(--px-f-body); color: var(--px-mt); }
+.pxt .big-num { font-family: var(--px-f-big); font-weight: 400; letter-spacing: 0; -webkit-font-smoothing: none; font-size: 32px; line-height: 1.15; }
+.pxt .big-num small { margin-left: 4px; font: 700 14px var(--px-f-body); color: var(--px-mt); }
+.pxt .big-k { font: 600 12px var(--px-f-body); letter-spacing: 0.06em; color: var(--px-mt); }
+
+/* bütün ders çizimleri: keskin kenar, kare uç, parlama yok */
+.pxt .diagram svg, .pxt .fp-svg, .pxt .arc-gauge, .pxt .needle-gauge, .pxt .bio-svg { shape-rendering: crispEdges; }
+.pxt .diagram svg *, .pxt .fp-svg *, .pxt .arc-gauge *, .pxt .bio-svg * { stroke-linecap: square; stroke-linejoin: miter; }
+.pxt .diagram svg [filter], .pxt .fp-svg [filter], .pxt .bio-svg [filter] { filter: none; }
+.pxt .diagram svg rect, .pxt .fp-svg rect, .pxt .bio-svg rect { rx: 0; ry: 0; }
+.pxt .diagram { border: 0; background: #0b0914; box-shadow: inset 0 0 0 2px var(--px-ln); }
+.pxt .brain { fill: rgba(79, 168, 255, 0.06); stroke: #6d66a0; stroke-width: 2; }
+.pxt .gyri path { stroke: #3c3660; stroke-width: 2; }
+.pxt .motor-strip { stroke: rgba(79, 168, 255, 0.55); }
+.pxt .cord { fill: #1b1830; stroke: #3c3660; stroke-width: 2; }
+.pxt .vertebra { stroke: #302b4c; stroke-width: 2; }
+.pxt .path-base { stroke: rgba(79, 168, 255, 0.2); }
+.pxt .soma path { stroke: #6d66a0; }
+.pxt .soma circle, .pxt .nmj-core { fill: #1b1830; stroke: var(--px-sk); }
+.pxt .tendon { stroke: #4a4378; }
+.pxt .belly { stroke: var(--px-fire); stroke-width: 2; }
+.pxt .fiber { stroke: rgba(255, 91, 58, 0.25); }
+.pxt .spark-halo { fill: rgba(79, 168, 255, 0.4); }
+.pxt .marker circle { fill: #100e1b; stroke: var(--px-ln); stroke-width: 2; }
+.pxt .marker text { font-family: var(--px-f-body); font-weight: 700; fill: var(--px-mt); }
+.pxt .marker.passed circle { stroke: var(--px-sk); }
+.pxt .marker.active circle { fill: rgba(79, 168, 255, 0.3); stroke: #a8d4ff; }
+.pxt .stations li { border: 0; }
+.pxt .stations li.active { background: rgba(79, 168, 255, 0.1); box-shadow: inset 0 0 0 2px var(--px-sk); }
+.pxt .st-num { border: 0; font: 700 12px var(--px-f-body); box-shadow: inset 0 0 0 2px var(--px-ln); }
+.pxt .stations li.passed .st-num { color: var(--px-sk); box-shadow: inset 0 0 0 2px var(--px-sk); }
+.pxt .stations li.active .st-num { color: var(--px-bg); background: var(--px-sk); box-shadow: none; }
+.pxt .st-body strong { font-family: var(--px-f-head); font-size: 15px; font-weight: 700; }
+
+/* motor ünite */
+.pxt .zones { font: 600 11px var(--px-f-body); }
+.pxt .zones span { border-left: 2px solid var(--px-ln); }
+.pxt .lab .chip { min-height: 36px; padding: 0 12px; border: 0; color: var(--px-mt); background: transparent; font: 700 13px var(--px-f-body); box-shadow: inset 0 0 0 2px var(--px-ln); }
+.pxt .lab .chip.on { color: var(--px-btx); background: var(--px-fire); box-shadow: none; }
+.pxt .mu-group { border: 0; background: #0b0914; box-shadow: inset 0 0 0 2px var(--px-ln); }
+.pxt .mu-head strong { font-family: var(--px-f-head); font-size: 16px; font-weight: 700; }
+.pxt .mu-count { font: 700 13px var(--px-f-body); }
+.pxt .mu-dot { border: 0; background: transparent; box-shadow: inset 0 0 0 2px var(--px-ln); }
+.pxt .mu-dot.on { background: var(--c); box-shadow: none; transform: none; }
+.pxt .mu-dot.on::after { inset: -4px; border: 2px solid var(--px-sk); animation-timing-function: steps(4); }
+.pxt .live-explain { border: 0; background: rgba(79, 168, 255, 0.08); box-shadow: inset 0 0 0 2px rgba(79, 168, 255, 0.45); }
+
+/* ateşleme hızı */
+.pxt .fusion-tag { border: 0; color: var(--px-gold); background: rgba(255, 197, 61, 0.08); font: 700 12px var(--px-f-body); box-shadow: inset 0 0 0 2px var(--px-gold); }
+.pxt .scope { border: 0; background: #0b0914; box-shadow: inset 0 0 0 2px var(--px-ln); }
+.pxt .gauge-k { font: 600 11px var(--px-f-body); color: var(--px-mt); }
+.pxt .arc-bg { stroke: var(--px-dim); stroke-linecap: butt; }
+.pxt .arc-val { stroke-linecap: butt; filter: none; }
+.pxt .arc-tick { stroke: var(--px-mt); }
+.pxt .arc-num, .pxt .arc-unit { font-family: var(--px-f-body); font-weight: 700; }
+.pxt .rfd-top { font-size: 13.5px; }
+/* çubuklar: eski oyunlardaki can barı gibi bölmeli */
+.pxt .meter, .pxt .fbar, .pxt .part-bar, .pxt .emph-bar { height: 12px; background: var(--px-dim); }
+.pxt .meter span, .pxt .fbar span, .pxt .part-bar span, .pxt .emph-bar span {
+  box-shadow: none;
+  -webkit-mask: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px);
+  mask: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px);
+}
+.pxt .meter span { background: linear-gradient(90deg, var(--px-sk), var(--px-fire)); }
+.pxt .fbar span, .pxt .part-bar span { background: linear-gradient(90deg, var(--px-gold), var(--px-fire) 55%, var(--bad)); }
+.pxt .emph-bar span { background: linear-gradient(90deg, var(--px-gold), var(--px-fire)); }
+
+/* merkezi ve periferik yorgunluk */
+.pxt .fpanel, .pxt .vel-box, .pxt .rpe-box, .pxt .lane, .pxt .recov, .pxt .meter-card { border: 0; background: #0b0914; box-shadow: inset 0 0 0 2px var(--px-ln); }
+.pxt .fpanel-head strong { font-family: var(--px-f-head); font-size: 15px; font-weight: 700; }
+.pxt .drive { filter: none; }
+.pxt .fiber-body { fill: rgba(255, 91, 58, 0.08); stroke: var(--px-fire); stroke-width: 2; }
+.pxt .sr { stroke: rgba(79, 168, 255, 0.35); }
+.pxt .svg-k { font-family: var(--px-f-body); font-weight: 600; }
+.pxt .barbell .bar { height: 4px; background: #c9c3d9; }
+.pxt .barbell .plate { box-shadow: none; }
+.pxt .lane-rail { background: repeating-linear-gradient(var(--px-ln) 0 6px, transparent 6px 12px); }
+.pxt .vk, .pxt .lane-k { font: 600 11px var(--px-f-body); color: var(--px-mt); }
+.pxt .vv { font-family: var(--px-f-big); font-weight: 400; letter-spacing: 0; -webkit-font-smoothing: none; font-size: 16px; line-height: 1.6; }
+.pxt .vv small { font: 400 12px var(--px-f-body); color: var(--px-mt); }
+.pxt .vbar > span { box-shadow: none; }
+.pxt .rpe-seg { border: 0; box-shadow: inset 0 0 0 2px var(--px-ln); }
+.pxt .rpe-seg.on { box-shadow: none; }
+.pxt .rpe-seg.r5.on { background: var(--px-sk); }
+.pxt .rpe-seg.r6.on { background: #52e07c; }
+.pxt .rpe-seg.r7.on { background: var(--px-gold); }
+.pxt .rpe-seg.r8.on { background: #ff8a3a; }
+.pxt .rpe-seg.r9.on { background: var(--px-fire); }
+.pxt .rpe-seg.r10.on { background: #ff3b4e; }
+.pxt .rpe-seg.cur { transform: none; box-shadow: inset 0 0 0 3px var(--px-tx); }
+.pxt .rpe-seg span { font: 700 12px var(--px-f-body); }
+.pxt .rpe-seg.on span { color: var(--px-btx); }
+.pxt .hist-chip { border: 0; box-shadow: inset 0 0 0 2px var(--px-ln); }
+
+/* toparlanma ve yorgunluk ölçer */
+.pxt .meter-card.ok { box-shadow: inset 0 0 0 2px var(--ok); }
+.pxt .meter-card.warn { box-shadow: inset 0 0 0 2px var(--px-gold); }
+.pxt .meter-card.bad { box-shadow: inset 0 0 0 2px var(--bad); }
+.pxt .mc-head { font: 600 11px var(--px-f-body); letter-spacing: 0.1em; }
+.pxt .score { font-family: var(--px-f-big); font-weight: 400; letter-spacing: 0; -webkit-font-smoothing: none; font-size: 32px; line-height: 1.2; margin-top: 4px; text-shadow: none; }
+.pxt .recov-v { font-family: var(--px-f-big); font-weight: 400; letter-spacing: 0; -webkit-font-smoothing: none; font-size: 16px; line-height: 1.6; }
+.pxt .recov-v small { font: 400 13px var(--px-f-body); color: var(--px-mt); }
+.pxt .recs { border: 0; background: rgba(255, 91, 58, 0.06); box-shadow: inset 0 0 0 2px rgba(255, 91, 58, 0.5); }
+.pxt .formula { border: 2px dashed var(--px-ln); }
+
+/* hareket bilgisi: biyomekanik çizim, tork grafiği, oynatma */
+.pxt .move { border: 0; background: var(--px-pn); box-shadow: inset 0 0 0 2px var(--px-ln); }
+.pxt .move.on { background: rgba(255, 91, 58, 0.12); box-shadow: inset 0 0 0 2px var(--px-fire); }
+.pxt .move-n { font-family: var(--px-f-head); font-size: 14px; font-weight: 700; }
+.pxt .move-t { font: 600 11px var(--px-f-body); }
+.pxt .fig-card { margin: 3px; border: 0; background: var(--px-pn); box-shadow: 0 -3px 0 0 var(--px-ln), 0 3px 0 0 var(--px-ln), -3px 0 0 0 var(--px-ln), 3px 0 0 0 var(--px-ln); }
+.pxt .fig-title { font: 700 13px var(--px-f-body); color: var(--px-tx); }
+.pxt .fig-meta { font: 600 12px var(--px-f-body); color: var(--px-mt); }
+.pxt .fig { --limb: #4a4378; --limb-hi: #8d86c4; border: 0; background: #0b0914; box-shadow: inset 0 0 0 2px var(--px-ln); }
+.pxt .bench-pad { stroke: #3c3660; }
+.pxt .bench-leg { stroke: #2a2547; }
+.pxt .bench-rect { fill: #3c3660; }
+.pxt .limb.far { stroke: #2a2547; }
+.pxt .joint { fill: #100e1b; stroke: var(--px-sk); stroke-width: 1.5; }
+.pxt .plate { fill: rgba(255, 197, 61, 0.1); stroke: var(--px-gold); }
+.pxt .plate-rect { fill: rgba(255, 197, 61, 0.2); stroke: var(--px-gold); }
+.pxt .plate-hub { fill: var(--px-gold); }
+.pxt .bar-path { stroke: rgba(79, 168, 255, 0.55); }
+.pxt .arm-label rect { fill: #100e1b; stroke: var(--px-sk); }
+.pxt .arm-label text { font-family: var(--px-f-body); font-weight: 700; fill: #a8d4ff; }
+.pxt .svg-cap { font-family: var(--px-f-body); font-weight: 600; fill: var(--px-mt); }
+.pxt .band { filter: none; }
+.pxt .transport { grid-template-columns: 50px minmax(0, 1fr); }
+.pxt .icon-btn { width: 44px; height: 44px; margin: 3px; border: 0; color: var(--px-gold); background: var(--px-pn2); box-shadow: 0 -3px 0 0 var(--px-gold), 0 3px 0 0 var(--px-gold), -3px 0 0 0 var(--px-gold), 3px 0 0 0 var(--px-gold); }
+.pxt .icon-btn:active { background: var(--px-ln); }
+.pxt .icon-btn:focus-visible { outline: 3px solid var(--px-gold); outline-offset: 4px; }
+.pxt .tr-label, .pxt .seg-label { font-size: 13px; color: var(--px-mt); }
+.pxt .tile { border: 0; background: var(--px-pn); box-shadow: inset 0 0 0 2px var(--px-ln); }
+.pxt .tile.hot { background: rgba(255, 91, 58, 0.1); box-shadow: inset 0 0 0 2px var(--px-fire); }
+.pxt .tile-k { font: 600 11px var(--px-f-body); letter-spacing: 0.08em; color: var(--px-mt); }
+.pxt .chart-svg .direct { font-family: var(--px-f-body); font-weight: 700; }
+.pxt .chart-svg .axis-t { font-family: var(--px-f-body); font-size: 11px; font-weight: 600; fill: var(--px-mt); }
+.pxt .chart-svg .cursor { stroke: var(--px-sk); shape-rendering: crispEdges; }
+.pxt .chart-svg .chart-band-t { font-family: var(--px-f-body); font-weight: 600; }
+.pxt .legend-row { font-size: 12.5px; }
+.pxt .lg-item i { height: 4px; }
+.pxt .emph-k span { font-size: 13.5px; font-weight: 600; }
+.pxt .emph-k small { font-size: 11.5px; color: var(--px-mt); }
+
+/* uzun alt pencere başlıkları kesilmez, iki satıra iner */
+.pxt .sheet-h h3 { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.15; font-size: clamp(17px, 5.2vw, 20px); }
+
+/* "Çıkmak için tekrar bas" uyarısı (bütün uygulama, .pxt dışında da) */
+.back-toast {
+  border: 0;
+  border-radius: 0;
+  color: #f5f1e8;
+  background: #252140;
+  font: 600 14px 'IBM Plex Sans', system-ui, sans-serif;
+  box-shadow: 0 -3px 0 0 #ffc53d, 0 3px 0 0 #ffc53d, -3px 0 0 0 #ffc53d, 3px 0 0 0 #ffc53d, 0 9px 0 0 #07060d;
+}
 
 /* ---------- alt sekme çubuğu (bütün uygulama) ---------- */
 .tabbar {

@@ -410,3 +410,11 @@ Her iki font da uygulamada zaten paketli. Seçimden sonra uygulamadaki `pixel.cs
 - **V16 uygulandı** (`docs/gorevler/V16-pixel-gozlem.md`): Gözlem sekmesi pixel temaya geçti. Değişenler: takvim, seçili gün paneli, ay özeti (tek panelde istatistik satırları), yorgunluk kartı (pixel halka + tam genişlik çubuklar), uyarılar, 1RM grafiği (kare noktalar), haftalık yük ve sheet'i. Sadece stil değişti.
 - Commit: `cc057e8`. Kontroller: `npm test` (91 test), lint, `tsc -b`, build, `test:layout` (11 boyut) geçti.
 - Lab sorusuna yanıt: animasyonlar pixel olabilir. Üç yol var: kare kare sprite, vektörü pixel paletiyle çizmek, ya da yalnızca çerçeveyi pixel yapmak. Karar V17'de verilecek; açık soru olarak `docs/PROJE.md` §8'e yazıldı.
+
+**Kullanıcı:** "Geri ne kaldı peki yapalım onlarıda"
+**Yapılan:**
+- Kalan iş Lab'dı (V16'da açık soru olarak bırakılmıştı). **V17 uygulandı** (`docs/gorevler/V17-pixel-lab.md`): Lab listesi, dört ders, ölçüm ve yorgunluk ölçer, osiloskop, biyomekanik çizimler ve tork grafikleri pixel temaya geçti.
+- Animasyon sorusu: "sadece stil değişicek" kuralına göre seçenek 2 seçildi. Çizimler ve hareketleri aynı kaldı; pixel palet, keskin kenar, kare uç kullanıldı, parlama kaldırıldı. Kare kare sprite ileride ayrı iş olarak yapılabilir.
+- Bütün uygulamadaki eski çizgi ikonlar pixel ikona döndü (15 yeni ikon). Çıkış uyarısı pixel oldu, uzun pencere başlıkları kesilmiyor. `--f-display` font adı borcu kapandı.
+- Commit: `HASH`. Kontroller: `npm test` (91 test), lint, `tsc -b`, build, `test:layout` (11 boyut) geçti.
+- Pixel geçişi bitti.

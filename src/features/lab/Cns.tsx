@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React from 'react';
+import { PxIcon, hasPxIcon } from '../../app/PxIcon';
 
 const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
@@ -21,6 +22,8 @@ const STAGES = [
 
 /* ---------------- Icons ---------------- */
 function Icon({ name, size = 16 }) {
+  // Pixel tema: karşılığı olan her ikon pixel çizilir; boyut 12'nin katına yuvarlanır ki pikseller eşit kalsın.
+  if (hasPxIcon(name)) return <PxIcon name={name} size={size <= 14 ? 12 : size <= 20 ? 18 : 24} />;
   const p = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': 'true' };
   switch (name) {
     case 'zap': return <svg {...p}><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" /></svg>;
@@ -565,12 +568,16 @@ function Oscilloscope({ freq, sync, onForce }) {
   useEffect(() => {
     const cv = cvRef.current;
     const ctx = cv.getContext('2d');
-    const cs = getComputedStyle(document.documentElement);
+    // Pixel tema (.pxt içinde): renkler kapsayıcıdan okunur; parlama yok, keskin köşe, kuvvet eğrisi basamaklı.
+    const PX = !!(wrapRef.current && wrapRef.current.closest('.pxt'));
+    const cs = getComputedStyle(PX ? wrapRef.current : document.documentElement);
     const col = (n, f) => (cs.getPropertyValue(n).trim() || f);
     const NEURO = col('--neuro', '#36d6ff');
     const FIRE = col('--fire', '#ff8a3d');
     const MUTED = col('--faint', '#5b6a8c');
-    const GRID = 'rgba(80,140,220,0.10)';
+    const GRID = PX ? 'rgba(60,54,96,0.65)' : 'rgba(80,140,220,0.10)';
+    const FONT = PX ? '600 11px "IBM Plex Sans", system-ui, sans-serif' : '600 10px "JetBrains Mono", monospace';
+    const GLOW = PX ? 0 : 1;
     let w = 0, h = 0, dpr = 1;
     const resize = () => {
       const r = wrapRef.current.getBoundingClientRect();
@@ -635,7 +642,7 @@ function Oscilloscope({ freq, sync, onForce }) {
       ctx.stroke();
 
       // spike trains
-      ctx.lineJoin = 'round';
+      ctx.lineJoin = PX ? 'miter' : 'round';
       for (let i = 0; i < N; i++) {
         const y0 = muTop + rowH * (i + 0.55);
         const amp = rowH * (0.26 + i * 0.035);
@@ -646,11 +653,11 @@ function Oscilloscope({ freq, sync, onForce }) {
           ctx.lineTo(x - 2, y0); ctx.lineTo(x - 0.6, y0 - amp); ctx.lineTo(x + 1, y0 + amp * 0.45); ctx.lineTo(x + 2.4, y0);
         }
         ctx.lineTo(w, y0);
-        ctx.strokeStyle = NEURO; ctx.lineWidth = 1.4; ctx.shadowColor = NEURO; ctx.shadowBlur = 8;
+        ctx.strokeStyle = NEURO; ctx.lineWidth = PX ? 2 : 1.4; ctx.shadowColor = NEURO; ctx.shadowBlur = 8 * GLOW;
         ctx.stroke(); ctx.shadowBlur = 0;
-        ctx.fillStyle = 'rgba(3,6,13,0.85)';
+        ctx.fillStyle = PX ? '#100e1b' : 'rgba(3,6,13,0.85)';
         ctx.fillRect(2, muTop + rowH * i + 2, 30, 13);
-        ctx.fillStyle = MUTED; ctx.font = '600 10px "JetBrains Mono", monospace';
+        ctx.fillStyle = MUTED; ctx.font = FONT;
         ctx.fillText('MÜ' + (i + 1), 6, muTop + rowH * i + 12);
       }
 
@@ -675,18 +682,27 @@ function Oscilloscope({ freq, sync, onForce }) {
       }
       const yOf = (F) => fBot - F * (fBot - fTop) * 0.92;
       // max line
-      ctx.setLineDash([4, 5]); ctx.strokeStyle = 'rgba(255,138,61,0.28)'; ctx.beginPath();
+      ctx.setLineDash([4, 5]); ctx.strokeStyle = PX ? 'rgba(255,197,61,0.55)' : 'rgba(255,138,61,0.28)'; ctx.beginPath();
       ctx.moveTo(0, yOf(1)); ctx.lineTo(w, yOf(1)); ctx.stroke(); ctx.setLineDash([]);
       // area
       const grad = ctx.createLinearGradient(0, fTop, 0, fBot);
       grad.addColorStop(0, 'rgba(255,138,61,0.30)'); grad.addColorStop(1, 'rgba(255,65,85,0.02)');
+      // pixel: her 3 px'lik adım yatay + dikey basamak olarak çizilir
+      const trace = (first) => {
+        let py = 0;
+        pts.forEach(([x, F], k) => {
+          const y = PX ? Math.round(yOf(F)) : yOf(F);
+          if (!k) { if (first) ctx.lineTo(x, y); else ctx.moveTo(x, y); } else { if (PX) ctx.lineTo(x, py); ctx.lineTo(x, y); }
+          py = y;
+        });
+      };
       ctx.beginPath(); ctx.moveTo(0, fBot);
-      for (const [x, F] of pts) ctx.lineTo(x, yOf(F));
-      ctx.lineTo(w, fBot); ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
+      trace(true);
+      ctx.lineTo(w, fBot); ctx.closePath(); ctx.fillStyle = PX ? 'rgba(255,91,58,0.16)' : grad; ctx.fill();
       ctx.beginPath();
-      pts.forEach(([x, F], k) => (k ? ctx.lineTo(x, yOf(F)) : ctx.moveTo(x, yOf(F))));
-      ctx.strokeStyle = FIRE; ctx.lineWidth = 2; ctx.shadowColor = FIRE; ctx.shadowBlur = 10; ctx.stroke(); ctx.shadowBlur = 0;
-      ctx.fillStyle = MUTED; ctx.font = '600 10px "JetBrains Mono", monospace';
+      trace(false);
+      ctx.strokeStyle = FIRE; ctx.lineWidth = PX ? 3 : 2; ctx.shadowColor = FIRE; ctx.shadowBlur = 10 * GLOW; ctx.stroke(); ctx.shadowBlur = 0;
+      ctx.fillStyle = MUTED; ctx.font = FONT;
       ctx.fillText('KUVVET', 6, fTop + 13);
       ctx.textAlign = 'right';
       ctx.fillText('maks.', w - 6, yOf(1) - 4);

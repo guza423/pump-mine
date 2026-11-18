@@ -6,6 +6,7 @@ Hangi AI olursa olsun: önce `git pull --rebase origin main`, sonra `AGENTS.md`'
 (Yok)
 
 ## Tamamlanan
+- [V17 · Pixel tema: Lab sekmesi, dersler, animasyonlar, biyomekanik + kalan ikonlar](docs/gorevler/V17-pixel-lab.md): 2026-11-18 · `HASH`
 - [V16 · Pixel tema: Gözlem sekmesi](docs/gorevler/V16-pixel-gozlem.md): 2026-11-17 · `cc057e8`
 - [V15 · Pixel tema: Antrenman sekmesi, planlı oturum, plan düzenleyici, alt pencereler](docs/gorevler/V15-pixel-antrenman-alt-pencereler.md): 2026-11-17 · `2261af8`
 - [V14 · Pixel tema: Dashboard ve alt sekme çubuğu](docs/gorevler/V14-pixel-dashboard-sekme-cubugu.md): 2026-11-17 · `cb32a9b`

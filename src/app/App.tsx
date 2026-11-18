@@ -2440,7 +2440,7 @@ function LabScreen({ openSheet }) {
   const f = useExFilter(EX_LIB);
   const [part, setPart] = useState('temel');
   return (
-    <div className="screen">
+    <div className="screen pxt lab-screen">
       <ScreenHead title="Lab" sub="Antrenmanın arkasındaki bilim" />
       <div className="segmented seg3 labseg" role="tablist" aria-label="Lab bölümleri">
         <button type="button" role="tab" id="lab-part-temel" aria-selected={part === 'temel'} className={part === 'temel' ? 'on' : ''} onClick={() => setPart('temel')}><b className="mono">01</b> Temeller</button>
