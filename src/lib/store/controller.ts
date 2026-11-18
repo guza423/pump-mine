@@ -2,7 +2,7 @@ import { db, parseBackup, restoreBackup } from './database';
 import { collectionFor, emptyData, kinds, LocalBackend, type Backend, type Kind, type StoredValue } from './backend';
 import { migrateGuest, type MigrationBackend } from '../cloud/migration';
 import { accountError } from '../cloud/errors';
-import type { PerformanceBackup } from './types';
+import type { BackupData, PerformanceBackup } from './types';
 import { stopRest } from '../native/restTimer';
 
 export interface AccountUser { uid: string; email: string | null; provider: string }
@@ -17,6 +17,7 @@ export interface AccountRuntime {
   reject(): Promise<void>;
   logout(): Promise<void>;
   deleteAccount(password?: string): Promise<void>;
+  withdraw(keep: BackupData): Promise<void>;
 }
 const guest = () => ({ mode: 'guest' as 'guest' | 'user', uid: null as string | null, email: null as string | null, provider: '', pending: 0, lastSync: null as number | null, online: navigator.onLine, needsConsent: false, migrating: false, waiting: false, busy: false });
 export class LogController {
@@ -123,6 +124,23 @@ export class LogController {
     if (!navigator.onLine) throw new Error('Hesabı silmek için internete bağlan.');
     this.closing = true; this.account({ busy: true }); this.unsubscribe?.();
     try { await stopRest(); await this.runtime!.deleteAccount(password); } catch (e) { this.closing = false; this.account({ busy: false }); this.attach(this.backend); throw e; }
+  };
+  // Açık rızayı geri al: kayıtların kopyası alınır, bulut temizlenir, cihazda misafir olarak devam edilir.
+  withdrawConsent = async () => {
+    this.canLeave();
+    if (!navigator.onLine) throw new Error('Rızanı geri almak için internete bağlan.');
+    const keep = await this.backend.readAll();
+    this.closing = true; this.account({ busy: true }); this.unsubscribe?.();
+    try { await stopRest(); await this.runtime!.withdraw(keep); } catch (e) { this.closing = false; this.account({ busy: false }); this.attach(this.backend); throw e; }
+  };
+  // Misafir: bu cihazdaki tüm kayıtları siler (hesaplı kullanıcı için Hesabı sil kullanılır).
+  wipeDevice = async () => {
+    if (this.state.account.mode !== 'guest') throw new Error('Hesaplıyken Hesabı sil’i kullan.');
+    this.writable();
+    await stopRest();
+    await db.transaction('rw', [db.programs, db.sessions, db.exercises, db.checkins, db.settings, db.snapshots], async () => {
+      await Promise.all([db.programs.clear(), db.sessions.clear(), db.exercises.clear(), db.checkins.clear(), db.settings.clear(), db.snapshots.clear()]);
+    });
   };
   readBackup = async (): Promise<PerformanceBackup> => ({ format: 'performance-backup', version: 2, exportedAt: new Date().toISOString(), data: await this.backend.readAll() });
   restoreBackup = async (value: PerformanceBackup) => {

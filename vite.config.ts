@@ -9,6 +9,8 @@ export default defineConfig(({ mode }) => {
 
   return {
     base,
+    // legal.html: herkese açık yasal metinler (Google Play gizlilik ve hesap silme bağlantıları).
+    build: { rollupOptions: { input: { main: 'index.html', legal: 'legal.html' } } },
     plugins: [
       react(),
       VitePWA({
@@ -49,6 +51,7 @@ export default defineConfig(({ mode }) => {
         },
         workbox: {
           navigateFallback: `${base}index.html`,
+          navigateFallbackDenylist: [/legal\.html/],
           globPatterns: ['**/*.{js,css,html,svg,woff,woff2}']
         }
       }),

@@ -2,6 +2,10 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { BackupContext } from '../lib/store/BackupContext';
 import { AccountChip, AccountBody, ConsentBody, PrivacyBody } from '../features/hesap/Account';
+import { LegalGate } from '../legal/LegalGate';
+import { LegalDoc } from '../legal/LegalDoc';
+import { legalDoc } from '../legal/docs';
+import { acceptanceCurrent } from '../legal/acceptance';
 import { BiomechTab, Tile } from '../features/lab/Biomekanik';
 import { CompactCtx, Icon, NeedleGauge, Range, STAGES, StageFatigue, StageRate, StageRecruit, StageSignal, Switch, clamp } from '../features/lab/Cns';
 import {
@@ -2594,6 +2598,7 @@ const SHEET_TITLES = {
   wtype: 'Antrenman planı',
   setdetail: 'Set',
   planPick: 'Bu güne plan ekle',
+  legal: 'Yasal metin',
 };
 
 function App() {
@@ -2611,6 +2616,7 @@ function App() {
     }
   });
   const [sheets, setSheets] = useState([]);
+  const [legalOk, setLegalOk] = useState(acceptanceCurrent);
   const [planEd, setPlanEd] = useState(null); // { id, dayId, draft?, back } | null
   const [pixelSummary, setPixelSummary] = useState(null);
   const [jumpExId, setJumpExId] = useState(null);
@@ -2712,8 +2718,9 @@ function App() {
     const close = closeTop;
     switch (sh.type) {
       case 'account': return <AccountBody st={st} acct={acct} actions={actions} openSheet={openSheet} onClose={close} put={put} />;
-      case 'consent': return <ConsentBody onAccept={actions.acceptConsent} onClose={actions.rejectConsent} busy={acct.busy} />;
-      case 'privacy': return <PrivacyBody />;
+      case 'consent': return <ConsentBody onAccept={actions.acceptConsent} onClose={actions.rejectConsent} busy={acct.busy} openSheet={openSheet} />;
+      case 'privacy': return <PrivacyBody openSheet={openSheet} />;
+      case 'legal': return <LegalDoc id={p.doc} onOpen={(id) => openSheet('legal', { doc: id })} hideTitle />;
       case 'fatigue': { const init = p.sim || simFromLogs(st); return <FatigueBody st={st} init={init} source={p.source || init.src} showNow={!p.sim} openSheet={openSheet} />; }
       case 'lesson': return <LessonBody stage={p.stage} />;
       case 'measure': return <MeasureBody openSheet={openSheet} />;
@@ -2735,11 +2742,12 @@ function App() {
   const sheetTitle = (sh) => {
     const p = sh.props;
     if (sh.type === 'exercise') return (exMeta(p.exId, p.name) || { name: p.name || 'Hareket' }).name;
+    if (sh.type === 'legal') return legalDoc(p.doc).title;
     if (sh.type === 'note' || sh.type === 'item' || sh.type === 'setdetail') return p.title || (p.it && p.it.name) || SHEET_TITLES[sh.type];
     if (sh.type === 'wtype') { const pr = st.programs.find((x) => x.id === p.pid); const d = pr && pr.days.find((x) => x.id === p.did); return d ? d.name || 'Adsız' : SHEET_TITLES.wtype; }
     return SHEET_TITLES[sh.type];
   };
-  const sheetSize = (sh) => (['lesson', 'exercise', 'fatigue', 'summary', 'picker', 'measure'].includes(sh.type) ? 'full' : '');
+  const sheetSize = (sh) => (['lesson', 'exercise', 'fatigue', 'summary', 'picker', 'measure', 'legal'].includes(sh.type) ? 'full' : '');
 
   let screen = null;
   if (planEd) {
@@ -2803,11 +2811,11 @@ function App() {
     <div className="device-wrap">
       <div className="device">
         <div className="app-shell app2">
-          <main className="app2-main" inert={acct.migrating || acct.busy}>{screen}</main>
+          <main className="app2-main" inert={acct.migrating || acct.busy || !legalOk}>{screen}</main>
           {st.error ? <div className="store-message" role="alert">{st.error}</div> : null}
           {acct.migrating ? <div className="store-message" role="status">Kayıtlar hesabına taşınıyor…</div> : null}
           {exitToast ? <div className="back-toast" role="status">Çıkmak için tekrar bas</div> : null}
-          <nav className="tabbar tb4" aria-label="Ana gezinme" inert={acct.migrating || acct.busy}>
+          <nav className="tabbar tb4" aria-label="Ana gezinme" inert={acct.migrating || acct.busy || !legalOk}>
             {TABS2.map((t) => (
               <button key={t.id} id={'tab-' + t.id} type="button" className={'tab' + (t.id === tab ? ' on' : '')} aria-label={t.label} aria-current={t.id === tab ? 'page' : undefined} onClick={() => pick(t.id)}>
                 <span className="tab-ic"><PxIcon name={t.icon} size={24} />{t.id === 'antrenman' && active ? <i className="tab-live" /> : null}</span>
@@ -2820,6 +2828,7 @@ function App() {
               {renderSheet(sh)}
             </SheetFrame>
           ))}
+          {!legalOk ? <LegalGate onDone={() => setLegalOk(true)} /> : null}
         </div>
       </div>
     </div>

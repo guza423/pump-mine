@@ -486,3 +486,14 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
   - İDMANI BİTİR 0,5 sn + "İDMAN BİTTİ" animasyonu;
   - kilo/tekrar barları göreli ve hassas (plan ayarlarında da).
 - Commit: `3021685`. Kontroller: `npm test` (94 test), lint, `tsc -b`, build, `test:layout` geçti.
+
+### 2026-11-18 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** "tamamdır bide animasyonlar bir tık kasio gibi onun dışında bişi kalmadı .  isteyen hesabını silebilsin falan. o olsun. kvkk ve eu daki bu privacy policy olaylarını koyalım . çok detaylı koy  başa iş almayak  . okudum onaylıyorum cart curt. lazım. kurallar çok önemli bak. firma adı prwagon llc falan."
+**Yapılan:**
+- **V20** (`docs/gorevler/V20-yasal-metinler-hesap-silme.md`):
+  - Kullanım Koşulları, Gizlilik Politikası (KVKK + GDPR), KVKK Aydınlatma Metni, ayrı Açık Rıza Metni, Hesap ve veri silme, İngilizce Privacy Policy; veri sorumlusu PRWAGON LLC;
+  - ilk açılışta kabul kapısı (koşullar kabul, aydınlatma yalnızca okundu), hesap açarken ayrı açık rıza (v2);
+  - Hesap'ta Yasal bölümü, Açık rızamı geri al, misafirde Bu telefondaki verileri sil; Hesabı sil duruyor;
+  - herkese açık `legal.html` (Google Play gizlilik ve hesap silme bağlantısı);
+  - animasyonlar daha akıcı (daha çok adım, yalnızca transform/opaklık, daha az yeniden çizim).
+- Kullanıcıya kalanlar: adres ve gizlilik e-postası, VERBİS + Türkiye temsilcisi, Google ile standart sözleşme + 5 iş günü bildirim, gerekirse AB temsilcisi, Play bağlantıları, hukukçu kontrolü.

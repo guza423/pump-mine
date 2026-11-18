@@ -50,6 +50,8 @@ export const FreePixelSession: React.FC<Props> = ({
   const [scr, setScr] = useState<'list' | 'pick' | 'log'>('list');
   const [cur, setCur] = useState(0);
   const [now, setNow] = useState(() => Date.now());
+  const lastSec = useRef(0);
+  const lastBurst = useRef(0);
 
   const fxRef = useRef(readFxSettings(st.settings));
   useEffect(() => { fxRef.current = readFxSettings(st.settings); }, [st.settings]);
@@ -252,7 +254,9 @@ export const FreePixelSession: React.FC<Props> = ({
         setFxReady((n) => n + 1);
         setNow(t);
         pixelFx.chime(fxRef.current);
-      } else {
+      } else if (Math.floor(t / 1000) !== Math.floor(lastSec.current / 1000)) {
+        // sayaç saniye gösterir; animasyonlar sırasında gereksiz yeniden çizim olmasın
+        lastSec.current = t;
         setNow(t);
       }
     }, 250);
@@ -445,7 +449,8 @@ export const FreePixelSession: React.FC<Props> = ({
     curVals.current.kg = nk;
     const maj = nk % 10 === 0;
     setKgState(nk);
-    setFxKg((n) => n + 1);
+    const tb = Date.now();
+    if (tb - lastBurst.current > 110 || maj) { lastBurst.current = tb; setFxKg((n) => n + 1); }
     if (maj) setFxMaj((n) => n + 1);
     pixelFx.setKg(fxRef.current, nk, c.step);
   };
@@ -1619,7 +1624,7 @@ export const FreePixelSession: React.FC<Props> = ({
                     style={{
                       position: 'absolute', left: 0, top: 0, bottom: 0, width: trackW,
                       transform: `translateX(${tapeX}px)`,
-                      transition: kgDrag ? 'transform .08s linear' : 'transform .26s steps(6)',
+                      transition: kgDrag ? 'transform .08s linear' : 'transform .24s steps(8)', willChange: 'transform',
                     }}
                   >
                     <div className="fill" style={{ width: thumbX }} />

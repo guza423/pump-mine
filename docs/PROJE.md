@@ -111,7 +111,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 
 ## 5) Veri modeli (özet; şemanın tamamı `AGENTS.md` → "Veri")
 
-- **Firestore:** `users/{uid}` (`email, createdAt, consent {v, at}, appVersion`). Alt koleksiyonlar: `programs`, `sessions`, `exercises`, `checkins`, `settings`. `firestore.rules`: yalnızca `request.auth.uid == uid`, yalnızca bu 5 alt koleksiyon. **Yeni koleksiyon açmak kuralların konsolda yeniden yayınlanmasını gerektirir**; bu yüzden V12'de planlar `programs` içinde tutuldu.
+- **Firestore:** `users/{uid}` (`email, createdAt, consent {v: 2, at, text}, terms {v, at}, appVersion`; rıza geri alınınca yalnızca `consent {v: 0, withdrawnAt}`). Alt koleksiyonlar: `programs`, `sessions`, `exercises`, `checkins`, `settings`. `firestore.rules`: yalnızca `request.auth.uid == uid`, yalnızca bu 5 alt koleksiyon. **Yeni koleksiyon açmak kuralların konsolda yeniden yayınlanmasını gerektirir**; bu yüzden V12'de planlar `programs` içinde tutuldu.
 - **Plan** = program belgesinin günü. Yeni plan = tek günlük program belgesi.
   - Takvim alanları: `weekdays: number[]` (JS `getDay()`, 0 = Pazar), `dates: string[]` ve `skip: string[]` (`'YYYY-MM-DD'`, yerel).
   - Eski `weekday` okunurken diziye çevrilir.
@@ -190,7 +190,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 
 **Herkese açmadan önce:**
 - Firebase Blaze planına geç, 1 $ bütçe uyarısı kur, günlük Firestore yedeğini aç (7 gün saklama).
-- Gizlilik metnine veri sorumlusunun adını ve iletişim adresini yaz; metni bir hukukçuya kontrol ettir.
+- Yasal (V20): `src/legal/meta.ts`'ye şirket adresi ve gizlilik e-postası; VERBİS kaydı (Türkiye'de veri sorumlusu temsilcisi); Google ile KVKK standart sözleşmesi + 5 iş günü içinde Kuruma bildirim; AB kullanıcısı alınacaksa GDPR m.27 temsilcisi; Play'de gizlilik ve hesap silme bağlantısı `legal.html#gizlilik` / `#silme`; metinleri hukukçuya kontrol ettir. Firestore günlük yedeği açılırsa saklama süresi Gizlilik Politikası Bölüm 8'e yazılır.
 - Play Store'a çıkılacaksa:
   - Gerçek bir yayın imza anahtarı oluştur.
   - `USE_EXACT_ALARM` için gerekçe hazırla.
@@ -254,6 +254,10 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | 2026-11-18 | Yorgunluk ölçerde iki görünüm: **Şu an** (kayıtlar + uyku) ve **Simülasyon** (kaydırıcılar). Kaydırıcıya dokununca ibre simülasyona geçer, "Şu an" ile geri döner | Kullanıcı: "bar hiç hareket etmio artırıp azaltsamda"; ibre yalnızca kayıtlardan gelen değeri gösteriyordu |
 | 2026-11-18 | Lab animasyonları pixel'e **boyanarak** geçer (seçenek 2): aynı çizim ve hareket, pixel palet, keskin kenar, kare uç, parlama yok; Lab'da sinir sinyali mavi. Kare kare sprite ileride ayrı iş | "sadece stil değişicek"; animasyonların öğrettiği her şey korunur |
 | 2026-11-18 | Ortak `Icon` bileşeni, `PxIcon`'da karşılığı olan ikonu pixel çizer (boyut 12/18/24'e yuvarlanır) | Bütün uygulamada ikon dili tek |
+| 2026-11-18 | Veri sorumlusu **PRWAGON LLC**. Yasal metinler `src/legal/texts/*.md` tek kaynaktır; uygulamada pencere, webde `legal.html` olarak açılır. Yer tutucular `meta.ts`'de; EIN ve kişisel bilgi depoya yazılmaz | Kullanıcı: "firma adı prwagon llc", "çok detaylı koy başa iş almayak"; depo herkese açık |
+| 2026-11-18 | İlk açılışta kabul kapısı: Kullanım Koşulları **kabul edilir**, aydınlatma yalnızca **okundu** işaretlenir; açık rıza ayrı metin ve ayrı beyanla yalnızca hesap açarken istenir (rıza v2). `LEGAL.VERSION` yalnızca önemli değişiklikte artar | KVKK İlke Kararı 2026/347 (aydınlatma ve açık rıza ayrı; aydınlatmaya onay istenmez); GDPR m.7 ve m.9 |
+| 2026-11-18 | Açık rızayı geri almak bulut kayıtlarını siler, e-posta hesabı kalır ve kayıtlar cihazda misafir olarak devam eder; misafir cihaz verisini tek düğmeyle silebilir | Rızanın geri alınması verilmesi kadar kolay olmalı (GDPR m.7/3); hesap silme ayrı ve daha sıkı kalır |
+| 2026-11-18 | Animasyonlar yalnızca `transform`/`opacity` ile ve daha çok adımla oynar; dinlenmede ekran saniyede 1 çizilir | Kullanıcı: "animasyonlar bir tık kasio gibi" |
 | 2026-11-17 | Pixel'e geçiş bir **tema katmanıyla** yapılır (`px-theme.css`, kök sınıf `.pxt`): var olan DOM ve kimlikler aynen kalır, yalnızca görünüm değişir. Yeni pixel bileşenleri `pixel.css`'te `px-` önekiyle yazılır | "sadece stil değişicek"; testler ve akışlar bozulmasın |
 
 ---

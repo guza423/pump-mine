@@ -126,6 +126,20 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
     await page.evaluate(() => document.fonts.ready);
     await scaleFonts(page, scale);
     if (safeArea) await page.addStyleTag({ content: ':root { --sat: 24px; --sab: 24px; }' });
+    // V20: ilk açılışta yasal kabul kapısı
+    screen = 'yasal-kapi';
+    await page.locator('#legal-go').waitFor();
+    await check(page, label, screen, { tablet });
+    screen = 'yasal-metin';
+    await page.locator('#legal-open-gizlilik').click();
+    await page.locator('.lg-gate-doc').waitFor();
+    await check(page, label, screen, { tablet });
+    await page.locator('#legal-back').click();
+    await page.locator('#legal-terms').check();
+    await page.locator('#legal-notice').check();
+    await page.locator('#legal-go').click();
+    await page.locator('.lg-gate').waitFor({ state: 'detached' });
+    screen = 'bugun-bos';
     await check(page, label, screen, { tablet });
 
     screen = 'hedef-form';
@@ -266,6 +280,12 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
     await page.locator('#account-btn').click();
     await page.getByRole('dialog', { name: 'Hesap ve yedek' }).waitFor();
     await check(page, label, screen);
+    screen = 'yasal-kosullar';
+    await page.locator('#legal-kosullar').click();
+    await page.getByRole('dialog', { name: 'Kullanım Koşulları' }).waitFor();
+    await check(page, label, screen);
+    await page.getByRole('dialog').last().getByRole('button', { name: 'Kapat', exact: true }).last().click();
+    await page.waitForFunction(() => document.querySelectorAll('[role="dialog"]').length === 1);
     await closeSheet(page);
     console.log(`${label}: akış tamamlandı`);
   } catch (error) {

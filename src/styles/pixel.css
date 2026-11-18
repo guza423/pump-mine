@@ -129,7 +129,7 @@
   display: flex;
   flex-direction: column;
   padding: calc(6px + var(--sat, 0px)) 16px 12px;
-  animation: pxScrIn 0.18s steps(3);
+  animation: pxScrIn 0.18s steps(5);
   overflow: hidden;
 }
 
@@ -320,7 +320,8 @@
   pointer-events: none;
   opacity: 0;
   box-shadow: 0 0 0 3px #160f0c;
-  animation: pxFly 0.6s steps(10) forwards;
+  animation: pxFly 0.6s steps(16) forwards;
+  will-change: transform;
 }
 @keyframes pxFly {
   0% { opacity: 1; transform: translate(var(--fx), var(--fy)) scale(1.6); }
@@ -331,12 +332,25 @@
 }
 @keyframes pxLandA { 0%, 58% { opacity: 0; transform: scale(0.5); } 72% { opacity: 1; transform: scale(1.22); background: var(--gold); } 86% { transform: scale(0.95); } 100% { opacity: 1; transform: none; } }
 @keyframes pxLandB { 0%, 58% { opacity: 0; transform: scale(0.5); } 72% { opacity: 1; transform: scale(1.22); background: var(--gold); } 86% { transform: scale(0.95); } 100% { opacity: 1; transform: none; } }
-.px .st.px-landA { animation: pxLandA 0.8s steps(10); }
-.px .st.px-landB { animation: pxLandB 0.8s steps(10); }
-@keyframes pxPnlA { 0%, 55% {} 66% { box-shadow: 0 -3px 0 0 var(--gold), 0 3px 0 0 var(--gold), -3px 0 0 0 var(--gold), 3px 0 0 0 var(--gold); background: #2a2440; } 100% {} }
-@keyframes pxPnlB { 0%, 55% {} 66% { box-shadow: 0 -3px 0 0 var(--gold), 0 3px 0 0 var(--gold), -3px 0 0 0 var(--gold), 3px 0 0 0 var(--gold); background: #2a2440; } 100% {} }
-.px .px-sets-box.px-pnlA { animation: pxPnlA 0.9s steps(6); }
-.px .px-sets-box.px-pnlB { animation: pxPnlB 0.9s steps(6); }
+.px .st.px-landA { animation: pxLandA 0.8s steps(20); }
+.px .st.px-landB { animation: pxLandB 0.8s steps(20); }
+/* V20: parlama ayrı bir katmanda yalnızca opaklıkla oynar (gölge/arka plan boyaması yok → takılma yok). */
+@keyframes pxPnlA { 0%, 55% { opacity: 0; } 66% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes pxPnlB { 0%, 55% { opacity: 0; } 66% { opacity: 1; } 100% { opacity: 0; } }
+.px .px-sets-box { position: relative; }
+.px .px-sets-box.px-pnlA::after,
+.px .px-sets-box.px-pnlB::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: rgba(255, 197, 61, 0.07);
+  outline: 3px solid var(--gold); /* .pxb kenarının üstüne biner; taşma sayılmaz */
+  will-change: opacity;
+}
+.px .px-sets-box.px-pnlA::after { animation: pxPnlA 0.9s steps(10); }
+.px .px-sets-box.px-pnlB::after { animation: pxPnlB 0.9s steps(10); }
 
 /* SET n BİTTİ: renk son tekrar hızının rengi (V13.1) */
 .px .go.px-lv0 { background: #52e07c; box-shadow: 0 -4px 0 0 #52e07c, 0 4px 0 0 #52e07c, -4px 0 0 0 #52e07c, 4px 0 0 0 #52e07c, 0 10px 0 0 #23854a; }
@@ -749,15 +763,15 @@
 @keyframes pxNb { 0% { opacity: 1; transform: translateX(4px); } 100% { opacity: 0; transform: translateX(26px); } }
 @keyframes pxFa { 0% { opacity: 1; transform: translateX(6px); } 100% { opacity: 0; transform: translateX(44px); } }
 @keyframes pxFb { 0% { opacity: 1; transform: translateX(6px); } 100% { opacity: 0; transform: translateX(44px); } }
-.px .nA { animation: pxNa 0.36s steps(5) forwards; }
-.px .nB { animation: pxNb 0.36s steps(5) forwards; }
-.px .fA { animation: pxFa 0.44s steps(6) forwards; }
-.px .fB { animation: pxFb 0.44s steps(6) forwards; }
+.px .nA { animation: pxNa 0.36s steps(9) forwards; }
+.px .nB { animation: pxNb 0.36s steps(9) forwards; }
+.px .fA { animation: pxFa 0.44s steps(11) forwards; }
+.px .fB { animation: pxFb 0.44s steps(11) forwards; }
 
 @keyframes pxPopA { 0% { transform: scale(1.25); } 55% { transform: scale(0.94); } 100% { transform: scale(1); } }
 @keyframes pxPopB { 0% { transform: scale(1.25); } 55% { transform: scale(0.94); } 100% { transform: scale(1); } }
-.px .popA { animation: pxPopA 0.2s steps(4); }
-.px .popB { animation: pxPopB 0.2s steps(4); }
+.px .popA { animation: pxPopA 0.2s steps(6); }
+.px .popB { animation: pxPopB 0.2s steps(6); }
 
 @keyframes pxFlA { 0% { opacity: 0.4; } 100% { opacity: 0; } }
 @keyframes pxFlB { 0% { opacity: 0.4; } 100% { opacity: 0; } }
@@ -1166,7 +1180,7 @@
     linear-gradient(var(--grid) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid) 1px, transparent 1px);
   background-size: 12px 12px;
-  animation: pxOvIn 0.22s steps(4);
+  animation: pxOvIn 0.22s steps(7);
 }
 
 @keyframes pxOvIn {
@@ -1430,7 +1444,7 @@
     -4px 0 0 0 var(--gold),
     4px 0 0 0 var(--gold),
     0 12px 0 0 var(--sh);
-  animation: pxWinIn 0.2s steps(4);
+  animation: pxWinIn 0.2s steps(6);
 }
 
 @keyframes pxWinIn {
@@ -1487,8 +1501,8 @@
 
 @keyframes pxTa { 0% { transform: translateY(-70px); } 100% { transform: none; } }
 @keyframes pxTb { 0% { transform: translateY(-70px); } 100% { transform: none; } }
-.px .px-toast.tA { animation: pxTa 0.24s steps(4); }
-.px .px-toast.tB { animation: pxTb 0.24s steps(4); }
+.px .px-toast.tA { animation: pxTa 0.24s steps(7); }
+.px .px-toast.tB { animation: pxTb 0.24s steps(7); }
 
 /* Özet bölge çubuğu */
 .px .zb {
@@ -1973,8 +1987,8 @@
   }
   .px:not(.px-motion) .st.px-landA { animation: pxBlinkA 0.6s steps(1) !important; }
   .px:not(.px-motion) .st.px-landB { animation: pxBlinkB 0.6s steps(1) !important; }
-  .px:not(.px-motion) .px-sets-box.px-pnlA,
-  .px:not(.px-motion) .px-sets-box.px-pnlB {
+  .px:not(.px-motion) .px-sets-box.px-pnlA::after,
+  .px:not(.px-motion) .px-sets-box.px-pnlB::after {
     animation: none !important;
   }
   .px:not(.px-motion) .nA,
@@ -2132,7 +2146,7 @@
   padding: 0 16px;
   text-align: center;
   background: rgba(11, 9, 20, 0.9);
-  animation: pxEndIn 0.65s steps(5) both;
+  animation: pxEndIn 0.65s steps(10) both;
 }
 .px .px-endfx::before {
   content: '';
@@ -2140,9 +2154,10 @@
   height: 8px;
   background: transparent;
   box-shadow: -96px -40px 0 0 #ffc53d, 92px -52px 0 0 #ff5b3a, -60px 64px 0 0 #52e07c, 80px 56px 0 0 #ffc53d, 0 -84px 0 0 #4fa8ff, -120px 12px 0 0 #ff5b3a, 124px 8px 0 0 #52e07c;
-  animation: pxEndBurst 0.65s steps(4) both;
+  animation: pxEndBurst 0.65s steps(10) both;
+  will-change: transform, opacity;
 }
-.px .px-endfx-t { max-width: 100%; font-family: var(--px-f-big); font-size: 24px; line-height: 1.4; white-space: normal; color: var(--gold); -webkit-font-smoothing: none; animation: pxEndT 0.65s steps(4) both; }
+.px .px-endfx-t { max-width: 100%; font-family: var(--px-f-big); font-size: 24px; line-height: 1.4; white-space: normal; color: var(--gold); -webkit-font-smoothing: none; animation: pxEndT 0.65s steps(10) both; will-change: transform; }
 .px .px-endfx.ex .px-endfx-t { color: #52e07c; }
 .px .px-endfx-s { font: 600 15px var(--px-f-body); color: var(--tx); }
 @keyframes pxEndIn { 0% { background: rgba(255, 197, 61, 0.85); } 25% { background: rgba(11, 9, 20, 0.9); } }

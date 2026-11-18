@@ -7,6 +7,9 @@ import { accountError } from '../../lib/cloud/errors';
 import { readFxSettings } from '../../lib/native/fx';
 import { allPlans } from '../plan/plans';
 import { HoldButton } from '../../app/HoldButton';
+import { LEGAL_DOCS } from '../../legal/docs';
+import { LEGAL } from '../../legal/meta';
+import '../../legal/legal.css';
 const hm = ts => new Date(ts).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 function AccountChip({ acct, onClick }) {
   const state = acct.mode === 'guest' ? 'guest' : acct.pending ? 'pending' : acct.online ? 'ok' : 'offline';
@@ -23,7 +26,7 @@ function AccountBody({ st, acct, actions, openSheet, onClose, put }) {
   const [isNew, setIsNew] = useState(false);
   const [email, setEmail] = useState('');
   const [pass, setPass] = useState('');
-  const [confirm, setConfirm] = useState(null); // 'out' | 'del'
+  const [confirm, setConfirm] = useState(null); // 'out' | 'del' | 'withdraw' | 'wipe'
   const [delTxt, setDelTxt] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
@@ -69,6 +72,16 @@ function AccountBody({ st, acct, actions, openSheet, onClose, put }) {
         <BackupPanel />
         {fxSection}
         <button type="button" className="linkbtn" onClick={() => openSheet('privacy', {})}><Icon name="shield" size={13} /> Verilerin nasıl saklanır?</button>
+        {confirm === 'wipe' ? (
+          <div className="lg-pop">
+            <p>Bu telefondaki tüm planların, antrenmanların, uyku kayıtların, hedeflerin ve ayarların kalıcı olarak silinir. Geri alınamaz. İstersen önce yukarıdan dışa aktar.</p>
+            <div className="confirm-inline">
+              <HoldButton id="wipe-yes" className="btn danger sm" disabled={busy} onHold={() => run(async () => { await actions.wipeDevice(); setConfirm(null); }, 'Bu telefondaki kayıtlar silindi.')}>Hepsini sil</HoldButton>
+              <button type="button" className="btn ghost sm" onClick={() => setConfirm(null)}>Vazgeç</button>
+            </div>
+          </div>
+        ) : <button type="button" id="wipe-device" className="linkbtn danger-t" onClick={() => setConfirm('wipe')}><Icon name="trash" size={13} /> Bu telefondaki verileri sil</button>}
+        <LegalLinks openSheet={openSheet} />
       </div>
     );
   }
@@ -88,7 +101,15 @@ function AccountBody({ st, acct, actions, openSheet, onClose, put }) {
       {fxSection}
       <button type="button" className="btn ghost full" disabled={busy} onClick={() => run(() => exportBackup(actions.readBackup))}>Verilerimi dışa aktar (JSON)</button>
       <button type="button" className="linkbtn" onClick={() => openSheet('privacy', {})}><Icon name="shield" size={13} /> Gizlilik ve veri kullanımı</button>
-      {confirm === 'out' ? (
+      {confirm === 'withdraw' ? (
+        <div className="lg-pop">
+          <p>Açık rızanı geri alırsan buluttaki tüm kayıtların silinir ve hesabından çıkış yapılır. Kayıtların bu telefonda misafir olarak kalır. Hesabın (e-posta adresin) durur; tamamen silmek için Hesabı sil’i kullan. Tekrar giriş yaparsan rıza yeniden sorulur.</p>
+          <div className="confirm-inline">
+            <HoldButton id="withdraw-yes" className="btn danger sm" disabled={busy || acct.pending > 0 || !acct.online} onHold={() => run(actions.withdrawConsent)}>Rızamı geri al</HoldButton>
+            <button type="button" className="btn ghost sm" onClick={() => setConfirm(null)}>Vazgeç</button>
+          </div>
+        </div>
+      ) : confirm === 'out' ? (
         <div className="pop flat">
           <p>{acct.pending ? acct.pending + ' kayıt henüz buluta gitmedi. Çıkarsan bu telefondan silinir. İnternete bağlanıp bekle.' : 'Çıkış yapınca kayıtların bu telefondan kalkar, hesabında durur.'}</p>
           <div className="confirm-inline">
@@ -98,7 +119,7 @@ function AccountBody({ st, acct, actions, openSheet, onClose, put }) {
         </div>
       ) : confirm === 'del' ? (
         <div className="pop flat">
-          <p>Hesabın ve buluttaki tüm kayıtların kalıcı olarak silinir; geri alınamaz. Onaylamak için <b>SİL</b> yaz.</p>
+          <p>Hesabın, buluttaki tüm kayıtların ve bu telefondaki kopya kalıcı olarak silinir; geri alınamaz. İstersen önce dışa aktar. Onaylamak için <b>SİL</b> yaz.</p>
           {acct.provider !== 'google.com' ? <input id="delete-password" className="text-in" type="password" autoComplete="current-password" placeholder="Şifreni tekrar gir" value={password} onChange={e => setPassword(e.target.value)} /> : null}
           <input id="del-confirm" className="text-in" value={delTxt} onChange={(e) => setDelTxt(e.target.value)} placeholder="SİL" />
           <div className="confirm-inline">
@@ -112,36 +133,54 @@ function AccountBody({ st, acct, actions, openSheet, onClose, put }) {
           <button type="button" id="delete-account" className="btn ghost sm danger-t" onClick={() => setConfirm('del')}><Icon name="trash" size={13} /> Hesabı sil</button>
         </div>
       )}
+      {!confirm ? <button type="button" id="withdraw-consent" className="linkbtn" onClick={() => setConfirm('withdraw')}>Açık rızamı geri al</button> : null}
+      <LegalLinks openSheet={openSheet} />
     </div>
   );
 }
-function ConsentBody({ onAccept, onClose, busy: externalBusy }) {
+function LegalLinks({ openSheet }) {
+  return (
+    <div className="lg-acct">
+      <p className="lg-acct-h">Yasal</p>
+      <div className="lg-acct-links">
+        {LEGAL_DOCS.map((d) => <button key={d.id} type="button" id={'legal-' + d.id} className="linkbtn" onClick={() => openSheet('legal', { doc: d.id })}>{d.title}</button>)}
+      </div>
+      <p className="lg-acct-co">{LEGAL.COMPANY} · metin sürümü {LEGAL.VERSION}</p>
+    </div>
+  );
+}
+function ConsentBody({ onAccept, onClose, busy: externalBusy, openSheet }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const status = error ? <p role="alert">{error}</p> : null;
   const accept = async () => { setBusy(true); try { await onAccept(); } catch (e) { setError(accountError(e)); } finally { setBusy(false); } };
   const [ok, setOk] = useState(false);
+  const doc = (id, label) => <button type="button" className="linkbtn" onClick={() => openSheet && openSheet('legal', { doc: id })}>{label}</button>;
+  // Açık rıza, aydınlatmadan ve Kullanım Koşulları’ndan ayrı, kendi başlığı ve beyanıyla istenir (KVKK İlke Kararı 2026/347).
   return (
     <div className="acct">{status}
-      <p className="consent-p">Hesabına şunlar kaydedilir: planların, antrenman ve set kayıtların, notların, uyku saatlerin ve hedeflerin. Bunlar yalnızca sana gösterilir, yorgunluk ve gelişim hesapları için kullanılır, kimseyle paylaşılmaz ve satılmaz. Veriler Avrupa’daki (Frankfurt) sunucularda tutulur.</p>
-      <p className="consent-p">Uyku ve antrenman verisi sağlıkla ilgili sayılabileceği için açık rızan gerekir. Rızanı istediğin an hesabını silerek geri alabilirsin; o zaman tüm verilerin silinir.</p>
-      <label className="check-row"><input id="consent-check" type="checkbox" checked={ok} onChange={(e) => setOk(e.target.checked)} /> Antrenman ve uyku verilerimin bu amaçla saklanmasına açık rıza veriyorum.</label>
-      <button type="button" className="btn ghost full" disabled={busy || externalBusy} onClick={onClose}>Misafir olarak devam et</button>
-      <button type="button" id="consent-yes" className="btn primary full" disabled={!ok || busy || externalBusy} onClick={accept}>Kabul et ve devam et</button>
+      <p className="consent-p">Hesabında planların, antrenman ve set kayıtların, hedeflerin ve ayarların saklanır. Yalnızca sana gösterilir; satılmaz, reklam için kullanılmaz. Veri sorumlusu {LEGAL.COMPANY} (ABD); veriler Google Firebase’in Frankfurt (Almanya) sunucularında tutulur.</p>
+      <p className="consent-p"><b>Açık rıza:</b> Uyku saatlerin, zorlanma ve yorgunluk girişlerin, notların ve bunlardan yapılan hesaplar sağlık verisi sayılabilir. Bunları bulutta saklamak için açık rızan gerekir. Rıza vermezsen hesap açılmaz; uygulamayı misafir olarak tüm işlevleriyle kullanmaya devam edersin.</p>
+      <div className="lg-acct-links">{doc('riza', 'Açık Rıza Metni')}{doc('aydinlatma', 'KVKK Aydınlatma Metni')}{doc('gizlilik', 'Gizlilik Politikası')}</div>
+      <label className="check-row"><input id="consent-check" type="checkbox" checked={ok} onChange={(e) => setOk(e.target.checked)} /> <span>Açık Rıza Metni’ni okudum. Sağlık verisi niteliği taşıyabilecek verilerimin bu metindeki amaçla hesabımda saklanmasına ve işlenmesine özgür irademle açık rıza veriyorum.</span></label>
+      <p className="consent-p">Rızanı istediğin an Hesap › Açık rızamı geri al ile geri alabilirsin.</p>
+      <button type="button" id="consent-no" className="btn ghost full" disabled={busy || externalBusy} onClick={onClose}>Rıza vermeden misafir devam et</button>
+      <button type="button" id="consent-yes" className="btn primary full" disabled={!ok || busy || externalBusy} onClick={accept}>Rıza veriyorum</button>
     </div>
   );
 }
-function PrivacyBody() {
+function PrivacyBody({ openSheet }) {
   return (
     <div className="acct privacy">
-      <p><b>Ne saklanır:</b> e-posta adresin, planların, antrenman ve set kayıtların (saatleriyle), notların, uyku girişlerin, hedeflerin.</p>
-      <p><b>Nerede:</b> Hesapsız kullanımda yalnızca bu telefonda. Giriş yapınca Google Firebase’in Avrupa (Frankfurt) sunucularında; telefonda da bir kopya kalır, internet yokken kayıt buraya yazılır.</p>
+      <p><b>Veri sorumlusu:</b> {LEGAL.COMPANY} (ABD).</p>
+      <p><b>Ne saklanır:</b> Hesaplıysan e-posta adresin; planların, antrenman ve set kayıtların (saatleriyle), notların, uyku girişlerin, hedeflerin ve ayarların.</p>
+      <p><b>Nerede:</b> Hesapsız kullanımda yalnızca bu telefonda; bize gelmez. Giriş yapınca Google Firebase’in Frankfurt (Almanya) sunucularında; telefonda da bir kopya kalır.</p>
       <p><b>Kim görür:</b> Yalnızca sen. Her kullanıcı sadece kendi verisine erişebilir; bu kural sunucuda zorunlu.</p>
-      <p><b>Silme:</b> Hesap › Hesabı sil ile hesabın ve tüm verilerin kalıcı silinir. Dışa aktar ile istediğin an JSON kopyasını alabilirsin.</p>
-      <p className="ex-src">Veri sorumlusu ve iletişim bilgisi yayın öncesi eklenecek.</p>
+      <p><b>Satış ve reklam:</b> Yok. Uygulamada reklam, analiz ya da takip yazılımı bulunmaz.</p>
+      <p><b>Silme ve kopya:</b> Dışa aktar ile JSON kopyanı al. Hesap › Hesabı sil ile hesabını ve tüm verilerini sil. Misafirsen Bu telefondaki verileri sil.</p>
+      {openSheet ? <LegalLinks openSheet={openSheet} /> : null}
     </div>
   );
 }
-
 
 export { AccountChip, AccountBody, ConsentBody, PrivacyBody };

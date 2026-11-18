@@ -9,6 +9,8 @@ import { hipertrofiProgram } from './fixtures';
 import { resetTestRuntime, testEnvironment } from './cloudRuntime';
 import { backStack } from '../app/back';
 import { dateKey } from '../features/plan/plans';
+import { LEGAL_KEY, readAcceptance } from '../legal/acceptance';
+import { LEGAL } from '../legal/meta';
 
 const native = vi.hoisted(() => ({ start: vi.fn(), stop: vi.fn(), checkPermissions: vi.fn(), requestPermissions: vi.fn() }));
 vi.mock('@capacitor/core', async importOriginal => {
@@ -80,6 +82,7 @@ describe('ana ekran akışları', () => {
     native.checkPermissions.mockResolvedValue({ notifications: 'granted' });
     resetTestRuntime();
     window.location.hash = '';
+    localStorage.setItem(LEGAL_KEY, JSON.stringify({ v: LEGAL.VERSION, at: 1 }));
     await db.delete();
     await db.open();
   });
@@ -504,6 +507,8 @@ describe('ana ekran akışları', () => {
     click('#acct-email-go');
     expect(await screen.findByRole('dialog', { name: 'Verilerin nasıl kullanılır' })).toBeTruthy();
     expect(container.querySelector('#consent-yes').disabled).toBe(true);
+    expect(screen.getByText(/özgür irademle açık rıza veriyorum/)).toBeTruthy();
+    expect(container.querySelector('#consent-no').textContent).toBe('Rıza vermeden misafir devam et');
     click('#consent-check');
     click('#consent-yes');
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
@@ -514,6 +519,70 @@ describe('ana ekran akışları', () => {
     fireEvent.change(container.querySelector('#del-confirm'), { target: { value: 'SİL' } });
     expect(container.querySelector('#delete-yes').disabled).toBe(false);
     expect(testEnvironment.runtime.deleteAccount).not.toHaveBeenCalled();
+    expectHealthy();
+  });
+
+  it('ilk açılışta yasal kapı çıkar: koşullar kabul, aydınlatma yalnızca okundu', async () => {
+    localStorage.removeItem(LEGAL_KEY);
+    const { container } = render(<App />);
+    const click = selector => fireEvent.click(container.querySelector(selector));
+    expect(await screen.findByRole('heading', { name: 'Başlamadan önce' })).toBeTruthy();
+    expect(container.querySelector('.app2-main').hasAttribute('inert')).toBe(true);
+    expect(container.querySelector('#legal-go').disabled).toBe(true);
+    click('#legal-open-kosullar');
+    expect(await screen.findByRole('dialog', { name: 'Kullanım Koşulları' })).toBeTruthy();
+    expect(screen.getByText(/tıbbi bir cihaz değildir/)).toBeTruthy();
+    click('#legal-back');
+    click('#legal-terms');
+    expect(container.querySelector('#legal-go').disabled).toBe(true);
+    click('#legal-notice');
+    click('#legal-go');
+    await waitFor(() => expect(container.querySelector('.lg-gate')).toBeNull());
+    expect(readAcceptance().v).toBe(LEGAL.VERSION);
+    expect(container.querySelector('.app2-main').hasAttribute('inert')).toBe(false);
+    expectHealthy();
+  });
+
+  it('metin sürümü değişince kapı yeniden çıkar', async () => {
+    localStorage.setItem(LEGAL_KEY, JSON.stringify({ v: '2000-01-01', at: 1 }));
+    render(<App />);
+    expect(await screen.findByRole('heading', { name: 'Metinler güncellendi' })).toBeTruthy();
+  });
+
+  it('hesap penceresinden yasal metinler açılır, misafir cihaz verisini siler', async () => {
+    await db.programs.put(hipertrofiProgram());
+    const { container } = render(<App />);
+    const click = selector => fireEvent.click(container.querySelector(selector));
+    await screen.findByRole('heading', { name: 'Dashboard' });
+    await waitFor(async () => expect(await db.programs.count()).toBe(1));
+    click('#account-btn');
+    await screen.findByRole('dialog', { name: 'Hesap ve yedek' });
+    click('#legal-gizlilik');
+    expect(await screen.findByRole('dialog', { name: 'Gizlilik Politikası' })).toBeTruthy();
+    expect(screen.getAllByText(/PRWAGON LLC/).length).toBeGreaterThan(0);
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Gizlilik Politikası' })).getAllByRole('link', { name: 'Açık Rıza Metni' })[0]);
+    expect(await screen.findByRole('dialog', { name: 'Açık Rıza Metni' })).toBeTruthy();
+    const close = () => fireEvent.click(within(screen.getAllByRole('dialog').at(-1)).getAllByRole('button', { name: 'Kapat' }).at(-1));
+    close(); close();
+    click('#wipe-device');
+    click('#wipe-yes');
+    await waitFor(async () => expect(await db.programs.count()).toBe(0));
+    expectHealthy();
+  });
+
+  it('hesaplı kullanıcı açık rızasını geri alabilir', async () => {
+    testEnvironment.setConsent(true);
+    testEnvironment.login('password', 'spor@example.com');
+    const { container } = render(<App />);
+    const click = selector => fireEvent.click(container.querySelector(selector));
+    await screen.findByRole('heading', { name: 'Dashboard' });
+    await waitFor(() => expect(container.querySelector('#account-btn.ok')).toBeTruthy());
+    click('#account-btn');
+    await screen.findByRole('dialog', { name: 'Hesap ve yedek' });
+    click('#withdraw-consent');
+    expect(screen.getByText(/Kayıtların bu telefonda misafir olarak kalır/)).toBeTruthy();
+    click('#withdraw-yes');
+    await waitFor(() => expect(testEnvironment.runtime.withdraw).toHaveBeenCalledTimes(1));
     expectHealthy();
   });
 

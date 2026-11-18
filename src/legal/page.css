@@ -1,0 +1,10 @@
+html, body { margin: 0; background: #100e1b; color: #f5f1e8; }
+.lgp { --px-gold: #ffc53d; --px-ln: #3c3660; --px-pn: #1b1830; --px-pn2: #252140; --px-tx: #f5f1e8; --px-mt: #c9c3e6; --px-fire: #ff5b3a;
+  min-height: 100vh; background-image: linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px); background-size: 12px 12px; }
+.lgp-head { position: sticky; top: 0; z-index: 2; display: grid; gap: 12px; padding: 16px 20px 12px; background: #1b1830; box-shadow: 0 2px 0 #3c3660; }
+.lgp-head .lg-brand { text-decoration: none; }
+.lgp-nav { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.lgp-nav a { flex: none; padding: 8px 12px; background: #252140; color: #f5f1e8; font: 600 13px 'IBM Plex Sans', system-ui, sans-serif; text-decoration: none; white-space: nowrap; }
+.lgp-nav a[aria-current='page'] { background: #ffc53d; color: #160f0c; }
+.lgp-main { max-width: 760px; margin: 0 auto; padding: 24px 20px 48px; }
+.lgp-foot { padding: 20px; text-align: center; font: 12px 'IBM Plex Sans', system-ui, sans-serif; color: #aaa4ca; }

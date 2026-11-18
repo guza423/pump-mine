@@ -52,6 +52,7 @@ export function createTestRuntime() {
     reject: vi.fn(async () => { user = null; next?.(null); }),
     logout: vi.fn(async () => { user = null; next?.(null); }),
     deleteAccount: vi.fn(async () => {}),
+    withdraw: vi.fn(async () => { consent = false; user = null; next?.(null); }),
   };
   return { cloud, runtime, login, setConsent: (value: boolean) => { consent = value; } };
 }
