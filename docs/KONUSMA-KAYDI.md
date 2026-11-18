@@ -496,4 +496,5 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
   - Hesap'ta Yasal bölümü, Açık rızamı geri al, misafirde Bu telefondaki verileri sil; Hesabı sil duruyor;
   - herkese açık `legal.html` (Google Play gizlilik ve hesap silme bağlantısı);
   - animasyonlar daha akıcı (daha çok adım, yalnızca transform/opaklık, daha az yeniden çizim).
+- Commit: `0af663b`. Kontroller: `npm test` (102 test), lint, `tsc -b`, build, `test:layout` geçti.
 - Kullanıcıya kalanlar: adres ve gizlilik e-postası, VERBİS + Türkiye temsilcisi, Google ile standart sözleşme + 5 iş günü bildirim, gerekirse AB temsilcisi, Play bağlantıları, hukukçu kontrolü.
