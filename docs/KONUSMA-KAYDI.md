@@ -511,5 +511,5 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
   - testler: sözlük bütünlüğü + `t` gölgeleme denetimi, İngilizce ekran testleri, İngilizce yerleşim akışı (`flowEn`).
 - Sıradakiler `GOREV.md` › Bekleyen: V22 Antrenman, V23 Gözlem, V24 Lab, V25 yasal metinler + son tarama.
 - Kural `AGENTS.md` › Dil: her yeni metin `t()` ile ve İngilizcesiyle birlikte eklenir.
-**Kayıt:** commit `V21_COMMIT`. Kontroller: `npm test` (118 test), `tsc -b`, lint, build, `test:layout` (Türkçe + İngilizce) geçti.
+**Kayıt:** commit `8fdf12e`. Kontroller: `npm test` (118 test), `tsc -b`, lint, build, `test:layout` (Türkçe + İngilizce) geçti.
 

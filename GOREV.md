@@ -10,7 +10,7 @@ Dil geçişi sekme sekme (yöntem: `docs/gorevler/V21-dil-altyapisi-ingilizce.md
 - [V25 · İngilizce yasal metinler + son tarama](docs/gorevler/V25-ingilizce-yasal-son-tarama.md)
 
 ## Tamamlanan
-- [V21 · Dil altyapısı, İngilizce varsayılan, Hesap ve ayarlar'da dil seçimi + Dashboard](docs/gorevler/V21-dil-altyapisi-ingilizce.md): 2026-11-19 · `V21_COMMIT`
+- [V21 · Dil altyapısı, İngilizce varsayılan, Hesap ve ayarlar'da dil seçimi + Dashboard](docs/gorevler/V21-dil-altyapisi-ingilizce.md): 2026-11-19 · `8fdf12e`
 - [V20 · Yasal metinler (KVKK + GDPR), kabul kapısı, açık rıza, hesap/veri silme, akıcı animasyonlar](docs/gorevler/V20-yasal-metinler-hesap-silme.md): 2026-11-18 · `0af663b`
 - [V19 · Basılı tutma düğmeleri, göreli/hassas sürükleme, hareketi bitir, başlık bilgisi](docs/gorevler/V19-basili-tut-goreli-surukleme.md): 2026-11-18 · `3021685`
 - Düzeltme · Set inişi animasyonu: cihaz "animasyonları azalt" diyorsa yerinde yanıp söner; Hesap'ta "Animasyonlar" anahtarı tam oynatır: 2026-11-18 · `602a0d0`
