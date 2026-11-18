@@ -521,5 +521,5 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Yapılan / karar:**
 - **V22** (`docs/gorevler/V22-ingilizce-antrenman.md`): Antrenman sekmesinin tamamı İngilizce; kayıtlı Türkçe değerler (hareket, kas, set etiketleri, hazır not seçenekleri) ekranda çevrilir, veri değişmez; arama iki dilde; dinlenme bildirimi ve Android kanal adları uygulama dilinde.
 - Testler: İngilizce plansız ve planlı oturum, özet, plan düzenleyici; `flowEn` Antrenman ekranlarını da kapsar.
-**Kayıt:** commit `V22_COMMIT`. Kontroller: `npm test` (120 test), `tsc -b`, lint, build, `test:layout` (Türkçe + İngilizce) geçti.
+**Kayıt:** commit `40fcfb8`. Kontroller: `npm test` (120 test), `tsc -b`, lint, build, `test:layout` (Türkçe + İngilizce) geçti.
 
