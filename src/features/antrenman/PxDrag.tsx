@@ -1,10 +1,15 @@
-// Plan ayarları için sürüklemeli pixel kontroller (set kaydı ekranındaki gibi: dokun = o değere atla, sürükle = adım adım, ses + titreşim).
-// PxStair: tek değer ya da aralık (en az–en çok). PxKgTape: isteğe bağlı kilo; kenarda tutunca pencere kayar.
+// Plan ayarları için sürüklemeli pixel kontroller (set kaydı ekranındaki gibi, ses + titreşim).
+// Dokunulan yere atlamaz: bar her yerinden tutulup sürüklenir; parmak bardan yukarı/aşağı uzaklaştıkça hassaslaşır (1, 1/2, 1/4, 1/8).
+// PxStair: tek değer ya da aralık (en az–en çok; dokunulan yere yakın uç oynar). PxKgTape: isteğe bağlı kilo; kenarda tutunca kayar.
 import React, { useEffect, useRef, useState } from 'react';
 import { pixelFx } from '../../lib/native/fx';
 import type { FxSettings } from '../../lib/store/types';
 
 const clampN = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+const fineOf = (y: number, r: DOMRect) => {
+  const d = Math.max(0, Math.abs(y - (r.top + r.height / 2)) - r.height / 2);
+  return d < 40 ? 1 : d < 100 ? 0.5 : d < 170 ? 0.25 : 0.125;
+};
 const fmtN = (v: number) => (Math.round(v * 10) / 10).toString().replace('.', ',');
 
 type StairProps = {
@@ -30,7 +35,8 @@ export function PxStair({ id, label, min, max, step = 1, lo, hi, range = false, 
   const toV = (i: number) => Math.round((min + i * step) * 100) / 100;
   const loI = toI(lo);
   const hiI = range ? Math.max(loI, toI(hi ?? lo)) : loI;
-  const drag = useRef<null | { r: DOMRect; h: 'lo' | 'hi' }>(null);
+  const drag = useRef<null | { r: DOMRect; h: 'lo' | 'hi'; x: number; acc: number }>(null);
+  const [fine, setFine] = useState(1);
   const cur = useRef({ loI, hiI });
   cur.current = { loI, hiI };
 
@@ -59,14 +65,18 @@ export function PxStair({ id, label, min, max, step = 1, lo, hi, range = false, 
     const c = cur.current;
     // aralıkta: dokunulan yere en yakın uç hareket eder
     const h: 'lo' | 'hi' = !range ? 'lo' : i <= c.loI ? 'lo' : i >= c.hiI ? 'hi' : (i - c.loI < c.hiI - i ? 'lo' : 'hi');
-    drag.current = { r, h };
-    apply(i, h);
+    drag.current = { r, h, x: e.clientX, acc: h === 'lo' ? c.loI : c.hiI };
   };
   const move = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!drag.current) return;
-    apply(idxAt(e.clientX, drag.current.r), drag.current.h);
+    const d = drag.current;
+    if (!d) return;
+    const fn = fineOf(e.clientY, d.r);
+    setFine(fn);
+    d.acc = clampN(d.acc + ((e.clientX - d.x) * fn * n) / (d.r.width || 1), 0, n - 1);
+    d.x = e.clientX;
+    apply(Math.round(d.acc), d.h);
   };
-  const up = () => { drag.current = null; };
+  const up = () => { drag.current = null; setFine(1); };
   const key = (h: 'lo' | 'hi') => (e: React.KeyboardEvent<HTMLElement>) => {
     const k = e.key;
     const d = k === 'ArrowRight' || k === 'ArrowUp' ? 1 : k === 'ArrowLeft' || k === 'ArrowDown' ? -1 : 0;
@@ -98,6 +108,7 @@ export function PxStair({ id, label, min, max, step = 1, lo, hi, range = false, 
     <div className="px-dr" id={id}>
       <div className="px-dr-head">
         <span className="px-dr-k">{label}</span>
+        {fine < 1 ? <span className="px-dr-fine">HASSAS 1/{Math.round(1 / fine)}</span> : null}
         <span className="px-dr-v">{shown}{unit ? <small>{unit}</small> : null}</span>
       </div>
       <div
@@ -143,7 +154,8 @@ export function PxKgTape({ id, label, value, onChange, fx, step = 2.5, span = 40
   const v = has ? Number(value) : null;
   const winFor = (x: number) => clampN(Math.floor((x - span / 2) / 10) * 10, 0, Math.max(0, max - span));
   const [w0, setW0] = useState(() => winFor(v ?? start));
-  const drag = useRef<null | { r: DOMRect; x: number }>(null);
+  const drag = useRef<null | { r: DOMRect; x: number; f: number; acc: number }>(null);
+  const [fine, setFine] = useState(1);
   const timer = useRef(0);
   const cur = useRef({ v, w0 });
   cur.current = { v, w0 };
@@ -157,38 +169,49 @@ export function PxKgTape({ id, label, value, onChange, fx, step = 2.5, span = 40
     pixelFx.setKg(fx, nv, step);
     onChange(nv);
   };
-  const at = (x: number, r: DOMRect, w = cur.current.w0) => w + ((x - r.left) / (r.width || 1)) * span;
+  // pencere değeri görünür tutacak kadar kayar
+  const follow = (x: number) => {
+    const w = cur.current.w0;
+    let nw = w;
+    if (x > w + span * 0.88) nw = x - span * 0.88;
+    else if (x < w + span * 0.12) nw = x - span * 0.12;
+    nw = clampN(Math.round(nw / step) * step, 0, Math.max(0, max - span));
+    if (nw !== w) { cur.current.w0 = nw; setW0(nw); }
+  };
   const edge = () => {
     const d = drag.current;
     if (!d) return;
-    const f = (d.x - d.r.left) / (d.r.width || 1);
-    const dir = f > 0.9 ? 1 : f < 0.1 ? -1 : 0;
+    const dir = d.f > 0.92 ? 1 : d.f < 0.08 ? -1 : 0;
     if (!dir) return;
-    const nw = clampN(cur.current.w0 + dir * step, 0, Math.max(0, max - span));
-    if (nw === cur.current.w0) return;
-    cur.current.w0 = nw;
-    setW0(nw);
-    set(at(d.x, d.r, nw));
+    d.acc = clampN((cur.current.v ?? start) + dir * step, 0, max);
+    set(d.acc);
+    follow(d.acc);
   };
   const down = (e: React.PointerEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
     try { el.setPointerCapture(e.pointerId); } catch { /* yoksay */ }
     pixelFx.unlock(fx);
     const r = el.getBoundingClientRect();
-    drag.current = { r, x: e.clientX };
-    set(at(e.clientX, r));
+    drag.current = { r, x: e.clientX, f: (e.clientX - r.left) / (r.width || 1), acc: cur.current.v ?? start };
     clearInterval(timer.current);
-    timer.current = window.setInterval(edge, 90);
+    timer.current = window.setInterval(edge, 110);
   };
   const move = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!drag.current) return;
-    drag.current.x = e.clientX;
-    set(at(e.clientX, drag.current.r));
+    const d = drag.current;
+    if (!d) return;
+    const fn = fineOf(e.clientY, d.r);
+    setFine(fn);
+    d.f = (e.clientX - d.r.left) / (d.r.width || 1);
+    d.acc = clampN(d.acc + ((e.clientX - d.x) * fn * span) / (d.r.width || 1), 0, max);
+    d.x = e.clientX;
+    set(d.acc);
+    follow(d.acc);
   };
   const up = () => {
     if (!drag.current) return;
     drag.current = null;
     clearInterval(timer.current);
+    setFine(1);
     if (cur.current.v != null) setW0(winFor(cur.current.v));
   };
   const key = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -209,7 +232,8 @@ export function PxKgTape({ id, label, value, onChange, fx, step = 2.5, span = 40
     <div className="px-dr px-dr-kg" id={id}>
       <div className="px-dr-head">
         <span className="px-dr-k">{label}</span>
-        {has ? <span className="px-dr-v">{fmtN(v as number)}<small>kg</small></span> : <span className="px-dr-none">isteğe bağlı · dokun</span>}
+        {fine < 1 ? <span className="px-dr-fine">HASSAS 1/{Math.round(1 / fine)}</span> : null}
+        {has ? <span className="px-dr-v">{fmtN(v as number)}<small>kg</small></span> : <span className="px-dr-none">isteğe bağlı · sürükle</span>}
       </div>
       <div
         className={'px-dr-bar px-dr-tape' + (has ? '' : ' off')}

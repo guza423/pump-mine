@@ -6,6 +6,7 @@ Hangi AI olursa olsun: önce `git pull --rebase origin main`, sonra `AGENTS.md`'
 (Yok)
 
 ## Tamamlanan
+- [V19 · Basılı tutma düğmeleri, göreli/hassas sürükleme, hareketi bitir, başlık bilgisi](docs/gorevler/V19-basili-tut-goreli-surukleme.md): 2026-11-18 · `HASH`
 - Düzeltme · Set inişi animasyonu: cihaz "animasyonları azalt" diyorsa yerinde yanıp söner; Hesap'ta "Animasyonlar" anahtarı tam oynatır: 2026-11-18 · `602a0d0`
 - [V18 · Sürüklemeli plan ayarları, not seçenekleri, özette set ayrıntısı ve çalışan kaslar](docs/gorevler/V18-plan-ayarlari-ozet.md): 2026-11-18 · `5f9d460`
 - Düzeltme · Yorgunluk ölçer ibresi kaydırıcılarla oynar (Şu an / Simülasyon): 2026-11-18 · `ef2d02b`

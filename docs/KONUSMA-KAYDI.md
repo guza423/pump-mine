@@ -459,3 +459,30 @@ sen mi yaparsın agenta mı atalım bunları ?"
   - Hesap ve yedek penceresine **Animasyonlar (cihaz azaltsa da)** anahtarı eklendi (`fx.motion`, varsayılan kapalı). Açıkken uçuş ve bütün pixel animasyonları tam oynar. Cihaz azaltıyorsa altında not çıkıyor, böylece sebep telefonda görülebiliyor.
   - `cns.css`'teki genel kural artık `.px` ekranlarına dokunmuyor; onların azaltma kuralı `pixel.css`'te.
 - Testler 650 ms beklemeye göre güncellendi. Commit: `602a0d0`. Kontroller: `npm test` (91 test), lint, `tsc -b`, build, `test:layout` geçti.
+
+**Kullanıcı:** "Olmuş ama tam animasykn yok sadwce sondaki parlama var o tam şekilde koyalım 
+
+İlk resimdeki yerde idman seansında haraket ekleyince otomatik son eklenen hareketin üstüne gelsin. Ekran son harekete odaklasın. 
+
+2 resimdeki yerdede set 1 bitti tuşu gibi bide hareketi bitir tuşu olsun biyerde ve hemen basılmasın yarım sn falan basılı tutulması gerekilsin ki set hareket bitmiş olsun. Ve animasyonlu şekilde idman seansı ekranına gelelim. 
+
+Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışmasın onunyerine 1 sn basılı tutulma olsun ki silinsin ve basılı tutulması gerkildiği belli olsun. 
+ 
+2. Resimdeki elimle işaretlediğim yer gördüğüb gibi okunmuyor orası okunur olsun. 
+
+1. Resimde Plansız antrenman yazan başlıkta yanında saat kaçta başladığı. Sayaç(kaç dk oldu başlayalı) ve tarih olsun. 
+
+İdmanı bitir tuşu yarım sn basılı tutulması gerekilsinki bitsin ve animasyon olsun tabiki birazda. 
+
+2. Resimdkei o tekrar artırıp azaltma varı yada ağırlık barındaki değerler dokundumuz yere ışınlanmasın direkt. O barı herhangi yerden sürükleyebilelim. Bara basılı tutup bardan parmağı aşşağı yada yukarı uzaklaştırıp sağ sol çekersek ozmn daha hassas şekilde ağırlık artırabilelim youtube dan videoyu ileri yada geri sarmak gibi."
+**Yapılan:**
+- **V19** (`docs/gorevler/V19-basili-tut-goreli-surukleme.md`):
+  - tam animasyon varsayılan oldu;
+  - eklenen harekete odak;
+  - HAREKETİ BİTİR (0,5 sn, animasyon, kartta BİTTİ);
+  - bütün silmeler 1 sn basılı tutmalı (dolan çubuk + "BASILI TUT");
+  - dambıl kilo yazısı okunur;
+  - başlıkta tarih, başlama saati ve süre;
+  - İDMANI BİTİR 0,5 sn + "İDMAN BİTTİ" animasyonu;
+  - kilo/tekrar barları göreli ve hassas (plan ayarlarında da).
+- Commit: `HASH`. Kontroller: `npm test` (94 test), lint, `tsc -b`, build, `test:layout` geçti.

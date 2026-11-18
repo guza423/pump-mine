@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState } from 'react';
+import React from 'react';
 import { bestE1, isPlyo, isSkill, sessionStats } from './core';
 import { dbMultiplier } from '../../lib/models/session';
 import { fatigueAt, recoveryHours, sessionFatigue } from '../../lib/models/fatigue';
@@ -7,6 +7,7 @@ import { advanceSkillStage, matchesSkillGoal, readGoals } from '../bugun/goals';
 import { useBack } from '../../app/back';
 import { fk, hms, PX_SPEED_COLORS } from './pixelHelpers';
 import { readFxSettings } from '../../lib/native/fx';
+import { HoldButton } from '../../app/HoldButton';
 
 interface Props {
   session: any;
@@ -18,7 +19,6 @@ interface Props {
 }
 
 export const PixelSummaryScreen: React.FC<Props> = ({ session, st, put, del, openSheet, onDone }) => {
-  const [confirmDel, setConfirmDel] = useState(false);
   useBack(true, onDone);
 
   const ss = sessionStats(session);
@@ -165,14 +165,7 @@ export const PixelSummaryScreen: React.FC<Props> = ({ session, st, put, del, ope
             <button type="button" id="save-tmpl" className="px-fchip on" style={{ height: 44, padding: '0 14px', fontSize: 14 }} onClick={() => openSheet('saveTemplate', { session })}>
               + Plan olarak kaydet
             </button>
-            {confirmDel ? (
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button type="button" className="px-fchip on" style={{ height: 44, color: 'var(--bad)' }} onClick={() => { del('sessions', session.id); onDone(); }}>Kaydı sil</button>
-                <button type="button" className="px-fchip" style={{ height: 44 }} onClick={() => setConfirmDel(false)}>Vazgeç</button>
-              </div>
-            ) : (
-              <button type="button" className="px-fchip" style={{ height: 44, color: 'var(--bad)' }} onClick={() => setConfirmDel(true)}>Kaydı sil</button>
-            )}
+            <HoldButton id="sum-del" className="px-fchip" style={{ height: 48, color: 'var(--bad)' }} onHold={() => { del('sessions', session.id); onDone(); }}>Kaydı sil</HoldButton>
           </div>
         </div>
 

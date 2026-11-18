@@ -222,8 +222,12 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
 
     await page.getByRole('button', { name: 'GEÇ' }).click();
     await page.getByRole('button', { name: 'Geri: antrenman listesi' }).click();
-    await page.locator('#finish-btn').click();
-    await page.locator('#finish-yes').click();
+    // İDMANI BİTİR yarım saniye basılı tutulur (HoldButton)
+    const fb = await page.locator('#finish-btn').boundingBox();
+    await page.mouse.move(fb.x + fb.width / 2, fb.y + fb.height / 2);
+    await page.mouse.down();
+    await page.waitForTimeout(650);
+    await page.mouse.up();
     await page.locator('#pixel-summary').waitFor();
     screen = 'plansiz-ozet';
     await check(page, label, screen);

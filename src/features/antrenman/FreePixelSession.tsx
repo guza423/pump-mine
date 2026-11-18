@@ -12,6 +12,7 @@ import { clamp } from '../lab/Cns';
 import { useBack } from '../../app/back';
 import { pixelFx, readFxSettings } from '../../lib/native/fx';
 import { PixelWeightVisual } from './PixelWeightVisual';
+import { HoldButton } from '../../app/HoldButton';
 import {
   eqConfig, eqLabel, fk, hms, P_ALL, P_UP, par, PX_PLYO_Q, PX_SKILL_Q, PX_SPEED, PX_SPEED_COLORS, upTr,
 } from './pixelHelpers';
@@ -95,9 +96,15 @@ export const FreePixelSession: React.FC<Props> = ({
   const scrNow = useRef<string>('');
   scrNow.current = scr;
   const [selIdx, setSelIdx] = useState<number | null>(null);
-  const [confirmDelSet, setConfirmDelSet] = useState(false);
+  const [, setConfirmDelSet] = useState(false);
   const [confirmModal, setConfirmModal] = useState<null | 'finish' | 'discard'>(null);
   const [toast, setToast] = useState<{ t: string; n: number } | null>(null);
+  // Bitirme animasyonları (İDMANI BİTİR / HAREKETİ BİTİR) ve hassas sürükleme göstergesi
+  const [endFx, setEndFx] = useState(0);
+  const [exFx, setExFx] = useState<null | { name: string; n: number }>(null);
+  const [fine, setFine] = useState(1);
+  const [scrollLast, setScrollLast] = useState(0);
+  const listRef = useRef<HTMLDivElement | null>(null);
 
   // Seçici (çoklu) durumu
   const [pickQ, setPickQ] = useState('');
@@ -112,8 +119,8 @@ export const FreePixelSession: React.FC<Props> = ({
   // İşaretçi sürükleme refs
   const kgTrackRef = useRef<HTMLDivElement | null>(null);
   const setListRef = useRef<HTMLDivElement | null>(null);
-  const kgD = useRef<{ r: DOMRect; f: number; n: number } | null>(null);
-  const repD = useRef<{ r: DOMRect } | null>(null);
+  const kgD = useRef<{ r: DOMRect; f: number; n: number; x: number; acc: number } | null>(null);
+  const repD = useRef<{ r: DOMRect; x: number; acc: number } | null>(null);
   const lvD = useRef<{ r: DOMRect } | null>(null);
   const romD = useRef<{ x0: number; w: number; base: number } | null>(null);
   const rtD = useRef<{ x0: number; w: number; done: number } | null>(null);
@@ -391,8 +398,32 @@ export const FreePixelSession: React.FC<Props> = ({
       x.endedAt = end;
       x.fatigue = { v: 2, pre, post };
     });
-    pixelFx.endSes(fxRef.current);
     onFinished(ns);
+  };
+
+  const endSes = () => {
+    if (!sessionStats(sRef.current).sets.length) { setConfirmModal('discard'); return; }
+    void stopRest();
+    setEndFx(Date.now());
+    pixelFx.endSes(fxRef.current);
+    setTimeout(finish, 650);
+  };
+
+  // HAREKETİ BİTİR: hareket bitti olarak işaretlenir, kısa animasyonla listeye dönülür, sıradaki hareket seçili olur.
+  const finishEx = () => {
+    if (!item) return;
+    const idx = cur;
+    mutate((ns) => { if (ns.items[idx]) ns.items[idx].done = true; });
+    setExFx({ name: item.name, n: item.sets.length });
+    pixelFx.land(fxRef.current);
+    setTimeout(() => {
+      setExFx(null);
+      const its = sRef.current.items;
+      let next = its.findIndex((x: any, i: number) => i > idx && !x.done);
+      if (next < 0) next = its.findIndex((x: any) => !x.done);
+      goList();
+      setCur(next >= 0 ? next : idx);
+    }, 650);
   };
 
   // Yardımcı pointer & slider fonksiyonları
@@ -419,6 +450,23 @@ export const FreePixelSession: React.FC<Props> = ({
     pixelFx.setKg(fxRef.current, nk, c.step);
   };
 
+  // Parmak bardan yukarı/aşağı uzaklaştıkça sürükleme hassaslaşır (YouTube'da ileri sarmak gibi): 1, 1/2, 1/4, 1/8.
+  const fineOf = (y: number, r: DOMRect) => {
+    const d = Math.max(0, Math.abs(y - (r.top + r.height / 2)) - r.height / 2);
+    return d < 40 ? 1 : d < 100 ? 0.5 : d < 170 ? 0.25 : 0.125;
+  };
+
+  // Kilo penceresi değeri görünür tutacak kadar kayar.
+  const keepKgInView = (v: number) => {
+    const c = cfgRef.current;
+    const lo = curVals.current.lo;
+    let nlo = lo;
+    if (v > lo + c.W * 0.88) nlo = v - c.W * 0.88;
+    else if (v < lo + c.W * 0.12) nlo = v - c.W * 0.12;
+    nlo = Math.min(Math.max(0, c.max - c.W), Math.max(0, Math.round(nlo / c.step) * c.step));
+    if (nlo !== lo) { curVals.current.lo = nlo; setLoState(nlo); }
+  };
+
   const edgeTick = () => {
     const d = kgD.current;
     if (!d) return;
@@ -426,13 +474,14 @@ export const FreePixelSession: React.FC<Props> = ({
     const ed: -1 | 0 | 1 = d.f >= 0.93 ? 1 : d.f <= 0.07 ? -1 : 0;
     let delay = 70;
     if (ed !== 0) {
-      const nlo = Math.min(Math.max(0, c.max - c.W), Math.max(0, curVals.current.lo + c.step * ed));
-      if (nlo !== curVals.current.lo) {
-        curVals.current.lo = nlo;
+      // kenarda tut: değer o yöne adım adım, giderek hızlanarak ilerler
+      const nv = Math.min(c.max, Math.max(c.min, curVals.current.kg + c.step * ed));
+      if (nv !== curVals.current.kg) {
         d.n += 1;
-        setLoState(nlo);
+        d.acc = nv;
         setEdge(ed);
-        setKgVal(nlo + d.f * c.W);
+        setKgVal(nv);
+        keepKgInView(curVals.current.kg);
         delay = Math.max(35, 120 - d.n * 7);
       } else {
         setEdge(0);
@@ -444,22 +493,27 @@ export const FreePixelSession: React.FC<Props> = ({
     edgeT.current = setTimeout(edgeTick, delay);
   };
 
+  // Dokunulan yere atlamaz: bar her yerinden tutulup sürüklenir, değer parmağın hareketi kadar değişir.
   const kgDown = (e: React.PointerEvent<HTMLDivElement>) => {
     const r = grab(e);
     pixelFx.unlock(fxRef.current);
-    const f = frac(e.clientX, r);
-    kgD.current = { r, f, n: 0 };
+    kgD.current = { r, f: frac(e.clientX, r), n: 0, x: e.clientX, acc: curVals.current.kg };
     setKgDrag(true);
-    setKgVal(curVals.current.lo + f * cfgRef.current.W);
     if (edgeT.current) clearTimeout(edgeT.current);
-    edgeT.current = setTimeout(edgeTick, 260);
+    edgeT.current = setTimeout(edgeTick, 320);
   };
 
   const kgMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!kgD.current) return;
-    const f = frac(e.clientX, kgD.current.r);
-    kgD.current.f = f;
-    setKgVal(curVals.current.lo + f * cfgRef.current.W);
+    const d = kgD.current;
+    if (!d) return;
+    const c = cfgRef.current;
+    const fn = fineOf(e.clientY, d.r);
+    setFine(fn);
+    d.f = frac(e.clientX, d.r);
+    d.acc = Math.min(c.max, Math.max(c.min, d.acc + ((e.clientX - d.x) * fn * c.W) / (d.r.width || barWRef.current || 354)));
+    d.x = e.clientX;
+    setKgVal(d.acc);
+    keepKgInView(curVals.current.kg);
   };
 
   const kgUp = () => {
@@ -470,6 +524,7 @@ export const FreePixelSession: React.FC<Props> = ({
     curVals.current.lo = nlo;
     setKgDrag(false);
     setEdge(0);
+    setFine(1);
     setLoState(nlo);
   };
 
@@ -501,16 +556,20 @@ export const FreePixelSession: React.FC<Props> = ({
   const repDown = (e: React.PointerEvent<HTMLDivElement>) => {
     const r = grab(e);
     pixelFx.unlock(fxRef.current);
-    repD.current = { r };
-    setRepsVal(Math.ceil(frac(e.clientX, r) * 30));
+    repD.current = { r, x: e.clientX, acc: curVals.current.reps };
   };
 
   const repMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!repD.current) return;
-    setRepsVal(Math.ceil(frac(e.clientX, repD.current.r) * 30));
+    const d = repD.current;
+    if (!d) return;
+    const fn = fineOf(e.clientY, d.r);
+    setFine(fn);
+    d.acc = Math.min(30.49, Math.max(0.5, d.acc + ((e.clientX - d.x) * fn * 30) / (d.r.width || barWRef.current || 354)));
+    d.x = e.clientX;
+    setRepsVal(d.acc);
   };
 
-  const repUp = () => { repD.current = null; };
+  const repUp = () => { repD.current = null; setFine(1); };
 
   const repKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const k = e.key;
@@ -698,6 +757,7 @@ export const FreePixelSession: React.FC<Props> = ({
     mutate((ns) => {
       delete ns.rest;
       ns.items[cur].sets.push(set);
+      delete ns.items[cur].done;
       ns.rest = nextRest;
     });
 
@@ -817,14 +877,26 @@ export const FreePixelSession: React.FC<Props> = ({
       });
     });
     setPicked([]);
+    setCur(Math.max(0, sRef.current.items.length - 1));
+    setScrollLast(Date.now());
     setScr('list');
     pixelFx.addPicked(fxRef.current);
   };
+
+  useEffect(() => {
+    if (scr !== 'list' || !scrollLast) return;
+    const cards = listRef.current ? listRef.current.querySelectorAll('.px-card') : null;
+    const last = cards && cards.length ? (cards[cards.length - 1] as HTMLElement) : null;
+    if (last && typeof last.scrollIntoView === 'function') last.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, [scr, scrollLast]);
 
   // Ortak oturum hesapları
   const ss = sessionStats(s);
   const totalSets = ss.sets.length;
   const elapsedSec = s.ready ? 0 : Math.max(0, Math.floor((now - s.startedAt) / 1000));
+  const sesD = new Date(s.ready ? now : s.startedAt);
+  const sesDate = sesD.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', weekday: 'short' });
+  const sesStart = String(sesD.getHours()).padStart(2, '0') + ':' + String(sesD.getMinutes()).padStart(2, '0');
   const rest = s.rest;
   let restTxt = '';
   let restSec = 0;
@@ -863,40 +935,40 @@ export const FreePixelSession: React.FC<Props> = ({
       </div>
     ) : null;
 
+  // İdman / hareket bitti animasyonu (basılı tutma tamamlanınca)
+  const renderFx = () => (
+    <React.Fragment>
+      {endFx ? (
+        <div className="px-endfx" role="status" key={'e' + endFx}>
+          <span className="px-endfx-t">İDMAN BİTTİ</span>
+          <span className="px-endfx-s">{totalSets} set · {Math.round(ss.tonnage).toLocaleString('tr-TR')} kg</span>
+        </div>
+      ) : null}
+      {exFx ? (
+        <div className="px-endfx ex" role="status">
+          <span className="px-endfx-t">HAREKET BİTTİ</span>
+          <span className="px-endfx-s">{exFx.name} · {exFx.n} set</span>
+        </div>
+      ) : null}
+    </React.Fragment>
+  );
+
   const renderConfirmModal = () => {
     if (!confirmModal) return null;
-    const noSets = totalSets === 0;
+    // İDMANI BİTİR basılı tutulunca doğrudan biter; bu pencere yalnızca hiç set yokken çıkar.
     return (
       <React.Fragment>
         <button type="button" className="bd" onClick={() => setConfirmModal(null)} aria-label="Pencereyi kapat" />
-        <div className="win" role="dialog" aria-label={noSets ? 'İdmanı iptal et' : 'İdmanı bitir'}>
-          <span className="lbl" style={{ color: 'var(--gold)', fontSize: 15 }}>
-            {noSets ? 'HİÇ SET YOK' : 'İDMANI BİTİR?'}
-          </span>
-          <div style={{ fontSize: 16, color: 'var(--tx)' }}>
-            {noSets
-              ? 'Hiç set kaydetmedin. Kaydetmeden çıkabilirsin.'
-              : `${totalSets} set · tonaj ${Math.round(ss.tonnage).toLocaleString('tr-TR')} kg`}
+        <div className="win" role="dialog" aria-label="İdmanı iptal et">
+          <span className="lbl" style={{ color: 'var(--gold)', fontSize: 15 }}>HİÇ SET YOK</span>
+          <div style={{ fontSize: 16, color: 'var(--tx)' }}>Hiç set kaydetmedin. Kaydetmeden çıkabilirsin.</div>
+          {/* Press Start yalnızca 16 px (keskin); uzun metin sığsın diye düğmeler alt alta */}
+          <div style={{ display: 'flex', gap: 20, flexDirection: 'column' }}>
+            <button type="button" className="bb" style={{ flex: 'none' }} onClick={() => setConfirmModal(null)}>GERİ DÖN</button>
+            <HoldButton id="discard-yes" className="go" style={{ flex: 'none', height: 64 }} onHold={discard}>
+              <span style={{ textTransform: 'uppercase' }}>Kaydetmeden çık</span>
+            </HoldButton>
           </div>
-          {/* Press Start yalnızca 16 px (keskin); uzun metin sığsın diye "Kaydetmeden çık" düğmeleri alt alta */}
-          <div style={{ display: 'flex', gap: noSets ? 20 : 12, flexDirection: noSets ? 'column' : 'row' }}>
-            <button type="button" className="bb" style={noSets ? { flex: 'none' } : undefined} onClick={() => setConfirmModal(null)}>GERİ DÖN</button>
-            {noSets ? (
-              <button type="button" id="discard-yes" className="go" style={{ flex: 'none', textTransform: 'uppercase' }} onClick={discard}>Kaydetmeden çık</button>
-            ) : (
-              <button type="button" id="finish-yes" className="go end" onClick={finish}>BİTİR</button>
-            )}
-          </div>
-          {!noSets ? (
-            <button
-              type="button"
-              className="px-fchip"
-              style={{ alignSelf: 'center', color: 'var(--bad)', marginTop: 2 }}
-              onClick={discard}
-            >
-              Kaydetmeden çık (sil)
-            </button>
-          ) : null}
         </div>
       </React.Fragment>
     );
@@ -910,23 +982,22 @@ export const FreePixelSession: React.FC<Props> = ({
           <div className="px-head">
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
               <span style={{ fontSize: 21, fontWeight: 700, letterSpacing: '0.04em', lineHeight: 1.1 }}>PLANSIZ ANTRENMAN</span>
-              <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--mt)', letterSpacing: '0.08em' }}>
-                {s.ready ? 'HAZIR · ' : 'SÜRE '}
-                <span className="nm" style={{ fontSize: 15, color: 'var(--gold)' }}>
-                  {s.ready ? 'başlamadı' : hms(elapsedSec)}
-                </span>
+              <span className="px-ses-meta">
+                <span>{sesDate}</span>
+                {s.ready ? (
+                  <span>HAZIR · <b>başlamadı</b></span>
+                ) : (
+                  <React.Fragment>
+                    <span>{sesStart}'de başladı</span>
+                    <span>SÜRE <b className="nm">{hms(elapsedSec)}</b></span>
+                  </React.Fragment>
+                )}
               </span>
             </div>
             {s.ready ? (
-              <button
-                type="button"
-                id="discard-ready-btn"
-                className="ib"
-                aria-label="İdmanı iptal et"
-                onClick={() => setConfirmModal('discard')}
-              >
-                ×
-              </button>
+              <HoldButton id="discard-ready-btn" className="ib px-ib-hold" aria-label="İdmanı iptal et (1 saniye basılı tut)" onHold={discard} hint="basılı tut">
+                İPTAL
+              </HoldButton>
             ) : null}
           </div>
 
@@ -952,7 +1023,7 @@ export const FreePixelSession: React.FC<Props> = ({
             <span style={{ fontSize: 13, color: 'var(--mt)' }}>dokun: devam et</span>
           </div>
 
-          <div className="px-scroll" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', marginTop: 8, padding: '4px 3px 8px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div ref={listRef} className="px-scroll" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', marginTop: 8, padding: '4px 3px 8px', display: 'flex', flexDirection: 'column', gap: 12 }}>
             {s.items.map((it: any, k: number) => {
               const lib = exMeta(it.exId, it.name);
               const eqTxt = lib ? eqLabel(lib.eq) : 'Özel';
@@ -971,7 +1042,7 @@ export const FreePixelSession: React.FC<Props> = ({
               const recent = it.sets.slice(-4).reverse();
 
               return (
-                <div key={it.id} className={'px-card' + (k === cur && s.items.length > 0 ? ' cur' : '')}>
+                <div key={it.id} className={'px-card' + (k === cur && s.items.length > 0 ? ' cur' : '') + (it.done ? ' done' : '')}>
                   <button
                     type="button"
                     className="card-main"
@@ -982,6 +1053,7 @@ export const FreePixelSession: React.FC<Props> = ({
                       <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: '0.03em', color: 'var(--tx)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {it.name}
                       </span>
+                      {it.done ? <span className="px-done-tag">BİTTİ</span> : null}
                       <svg width="14" height="14" viewBox="0 0 9 9" shapeRendering="crispEdges" aria-hidden="true" style={{ flex: '0 0 auto', color: 'var(--mt)' }}>
                         <path d="M2 1h2v1H2zM3 2h2v1H3zM4 3h2v1H4zM5 4h2v1H5zM4 5h2v1H4zM3 6h2v1H3zM2 7h2v1H2z" fill="currentColor" />
                       </svg>
@@ -1012,14 +1084,9 @@ export const FreePixelSession: React.FC<Props> = ({
                     ) : null}
                   </button>
                   {n === 0 ? (
-                    <button
-                      type="button"
-                      className="card-del"
-                      aria-label={it.name + ' hareketini çıkar'}
-                      onClick={() => removeItem(k)}
-                    >
+                    <HoldButton className="card-del" aria-label={it.name + ' hareketini çıkar'} onHold={() => removeItem(k)} hint="tut">
                       ×
-                    </button>
+                    </HoldButton>
                   ) : null}
                 </div>
               );
@@ -1048,11 +1115,12 @@ export const FreePixelSession: React.FC<Props> = ({
             {s.ready ? (
               <button type="button" id="start-ses-btn" className="go" onClick={startSes}>İDMANI BAŞLAT</button>
             ) : (
-              <button type="button" id="finish-btn" className="go end" onClick={() => setConfirmModal('finish')}>İDMANI BİTİR</button>
+              <HoldButton id="finish-btn" className="go end" ms={500} tone="go" onHold={endSes}>İDMANI BİTİR</HoldButton>
             )}
           </div>
         </div>
         {renderToast()}
+        {renderFx()}
         {renderConfirmModal()}
         <div className={'fl ' + par(fxReady, 'flA', 'flB')} />
       </div>
@@ -1214,6 +1282,7 @@ export const FreePixelSession: React.FC<Props> = ({
           </div>
         </div>
         {renderToast()}
+        {renderFx()}
         <div className={'fl ' + par(fxReady, 'flA', 'flB')} />
       </div>
     );
@@ -1526,7 +1595,7 @@ export const FreePixelSession: React.FC<Props> = ({
                     <span className="num" style={{ fontSize: 20, color: 'var(--tx)' }}>{fk(kg)}</span>
                     <span className="nm" style={{ fontSize: 13, color: 'var(--mt)' }}>KG</span>
                   </span>
-                  <span className="px-ctl-hint">dokun · sürükle · kenarda tut</span>
+                  {kgDrag && fine < 1 ? <span className="px-fine">HASSAS 1/{Math.round(1 / fine)}</span> : <span className="px-ctl-hint">sürükle · uzaklaş: hassas</span>}
                 </div>
                 <div
                   ref={kgTrackRef}
@@ -1576,6 +1645,7 @@ export const FreePixelSession: React.FC<Props> = ({
               <div className="px-rep-sec">
                 <div className="px-rep-head">
                   <span className="lbl">TEKRAR</span>
+                  {repD.current && fine < 1 ? <span className="px-fine">HASSAS 1/{Math.round(1 / fine)}</span> : null}
                   <span className={'num px-rep-num ' + repPop}>{reps}</span>
                 </div>
                 <div
@@ -1735,6 +1805,11 @@ export const FreePixelSession: React.FC<Props> = ({
                 SET {sets.length + 1} BİTTİ
               </button>
             )}
+            {sets.length ? (
+              <HoldButton id="ex-done" className="px-exdone" ms={500} tone="go" onHold={finishEx} aria-label="Hareketi bitir (yarım saniye basılı tut)">
+                HAREKETİ BİTİR
+              </HoldButton>
+            ) : null}
             <div style={{ position: 'absolute', left: '50%', top: 28, width: 0, height: 0, pointerEvents: 'none' }}>
               {burst(P_ALL, fxLog).map((p, idx) => (
                 <div key={idx} className="rot" style={{ transform: `rotate(${p.a}deg)` }}>
@@ -1910,28 +1985,18 @@ export const FreePixelSession: React.FC<Props> = ({
               {sx.note ? <div style={{ fontSize: 13, color: 'var(--gold)' }}>{sx.note}</div> : null}
 
               <div style={{ display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'space-between' }}>
-                {confirmDelSet ? (
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button
-                      type="button"
-                      id="set-del-yes"
-                      className="px-fchip on"
-                      style={{ height: 44, color: 'var(--bad)' }}
-                      onClick={() => {
-                        const idxToDel = selIdx;
-                        mutate((ns) => { ns.items[cur].sets.splice(idxToDel, 1); });
-                        closeSel();
-                      }}
-                    >
-                      Seti sil
-                    </button>
-                    <button type="button" className="px-fchip" style={{ height: 44 }} onClick={() => setConfirmDelSet(false)}>Vazgeç</button>
-                  </div>
-                ) : (
-                  <button type="button" id="set-del" className="px-fchip" style={{ height: 44, color: 'var(--bad)' }} onClick={() => setConfirmDelSet(true)}>
-                    Seti sil
-                  </button>
-                )}
+                <HoldButton
+                  id="set-del"
+                  className="px-fchip"
+                  style={{ height: 48, color: 'var(--bad)' }}
+                  onHold={() => {
+                    const idxToDel = selIdx;
+                    mutate((ns) => { ns.items[cur].sets.splice(idxToDel, 1); });
+                    closeSel();
+                  }}
+                >
+                  Seti sil
+                </HoldButton>
               </div>
 
               <div style={{ display: 'flex' }}>
@@ -1942,6 +2007,7 @@ export const FreePixelSession: React.FC<Props> = ({
         ) : null}
 
         {renderToast()}
+        {renderFx()}
         {renderConfirmModal()}
         <div className={'fl ' + par(fxReady, 'flA', 'flB')} />
       </div>

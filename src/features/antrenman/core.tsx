@@ -6,6 +6,7 @@ import { e1Ok, bestE1 } from '../../lib/models/training';
 import { dbMultiplier } from '../../lib/models/session';
 import { nextPlanned } from '../plan/plans';
 import { PxKgTape, PxStair } from './PxDrag';
+import { HoldButton } from '../../app/HoldButton';
 
 /* ================= GÜNLÜK: program yazma + antrenman kaydı ================= */
 const WD_LONG = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
@@ -202,7 +203,6 @@ function splitNote(note) {
 const joinNote = (on, free) => [...NOTE_PRESETS.filter((p) => on.includes(p)), String(free || '').trim()].filter(Boolean).join(' · ');
 
 function ItemEditor({ it, idx, n, onChange, onMove, onRemove, fx = { sound: true, haptic: true } }) {
-  const [confirm, setConfirm] = useState(false);
   const plyo = isPlyo(it.exId);
   const skill = isSkill(it.exId);
   const set = (k) => (v) => onChange({ ...it, [k]: v });
@@ -241,12 +241,7 @@ function ItemEditor({ it, idx, n, onChange, onMove, onRemove, fx = { sound: true
       <div className="ied-actions">
         <button type="button" className="btn ghost sm" disabled={idx === 0} onClick={() => onMove(-1)} aria-label="Yukarı taşı">↑ Yukarı</button>
         <button type="button" className="btn ghost sm" disabled={idx === n - 1} onClick={() => onMove(1)} aria-label="Aşağı taşı">↓ Aşağı</button>
-        {confirm ? (
-          <span className="confirm-inline">
-            <button type="button" className="btn danger sm" onClick={onRemove}>Sil</button>
-            <button type="button" className="btn ghost sm" onClick={() => setConfirm(false)}>Vazgeç</button>
-          </span>
-        ) : <button type="button" className="btn ghost sm danger-t" onClick={() => setConfirm(true)}>Hareketi sil</button>}
+        <HoldButton className="btn ghost sm danger-t" onHold={onRemove}>Hareketi sil</HoldButton>
       </div>
     </div>
   );

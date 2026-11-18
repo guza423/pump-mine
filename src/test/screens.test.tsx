@@ -109,6 +109,7 @@ describe('ana ekran akışları', () => {
     click('#free-session');
     await waitFor(() => expect(container.querySelector('#ses-add-first')).toBeTruthy());
     expect(screen.getByText('başlamadı')).toBeTruthy();
+    expect(container.querySelector('.px-ses-meta').textContent).toMatch(/\d/);
     click('#ses-add-first');
     fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'düz bench' } });
     fireEvent.click(container.querySelector('.pk'));
@@ -160,7 +161,13 @@ describe('ana ekran akışları', () => {
     fireEvent.click(screen.getByRole('button', { name: 'GEÇ' }));
     await waitFor(async () => expect((await db.sessions.toArray())[0].rest).toBeUndefined());
 
-    fireEvent.click(screen.getByRole('button', { name: 'Geri: antrenman listesi' }));
+    // HAREKETİ BİTİR (basılı tut): animasyon, listeye dönüş, kartta BİTTİ; başlıkta başlama saati
+    expect(container.querySelector('#ex-done').className).toContain('px-hold');
+    click('#ex-done');
+    expect(await screen.findByText('HAREKET BİTTİ')).toBeTruthy();
+    await waitFor(() => expect(container.querySelector('.px-done-tag')).toBeTruthy(), { timeout: 3000 });
+    await waitFor(async () => expect((await db.sessions.toArray())[0].items[0].done).toBe(true));
+    expect(container.querySelector('.px-ses-meta').textContent).toContain("'de başladı");
     click('#fx-add');
     fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'Oturarak dumbbell omuz press' } });
     fireEvent.click(container.querySelector('.pk'));
@@ -214,11 +221,10 @@ describe('ana ekran akışları', () => {
     await waitFor(async () => expect((await db.sessions.toArray())[0].items[0].sets).toHaveLength(1));
     fireEvent.click(await screen.findByRole('button', { name: 'GİZLE' }));
     fireEvent.click(screen.getByRole('button', { name: 'Geri: antrenman listesi' }));
+    expect(container.querySelector('#finish-btn').className).toContain('px-hold');
     click('#finish-btn');
-    act(() => { backStack.dispatch(); });
-    expect(container.querySelector('#finish-yes')).toBeNull();
-    click('#finish-btn'); click('#finish-yes');
-    await waitFor(() => expect(native.stop).toHaveBeenCalledTimes(2));
+    expect(await screen.findByText('İDMAN BİTTİ')).toBeTruthy();
+    await waitFor(() => expect(native.stop).toHaveBeenCalledTimes(2), { timeout: 3000 });
     await waitFor(async () => {
       const s = (await db.sessions.toArray())[0];
       expect(s.status).toBe('done'); expect(s.rest).toBeUndefined();
@@ -453,7 +459,6 @@ describe('ana ekran akışları', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Geri: antrenman listesi' }));
 
     click('#finish-btn');
-    click('#finish-yes');
     const summaryEl = await waitFor(() => {
       const el = container.querySelector('#pixel-summary');
       expect(el).toBeTruthy();
@@ -555,7 +560,6 @@ describe('ana ekran akışları', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'GİZLE' }));
     fireEvent.click(screen.getByRole('button', { name: 'Geri: antrenman listesi' }));
     click('#finish-btn');
-    click('#finish-yes');
     await waitFor(() => expect(container.querySelector('#pixel-summary')).toBeTruthy());
     await waitFor(async () => {
       const done = (await db.sessions.toArray()).find(s => s.status === 'done');
@@ -618,7 +622,6 @@ describe('ana ekran akışları', () => {
     expect(screen.getByText('Kalan tekrar')).toBeTruthy();
     closeTopSheet();
     click('#finish-btn');
-    fireEvent.click(await screen.findByRole('button', { name: 'Bitir ve özetle' }));
     const summary = await screen.findByRole('dialog', { name: 'Antrenman özeti' });
     expect(screen.getByText('Tonaj')).toBeTruthy();
     // Geçmiş setin kutucuğuna dokununca salt okunur ayrıntı açılır (hız, ROM, tonaj; silme yok)
@@ -637,14 +640,14 @@ describe('ana ekran akışları', () => {
     const typeName = screen.getByLabelText('Plan adı');
     fireEvent.change(typeName, { target: { value: 'Ağır güç' } });
     fireEvent.blur(typeName);
-    click('#wtype-del');
-    expect(screen.getByRole('button', { name: 'Sil' })).toBeTruthy();
+    // silme düğmeleri basılı tutmalı (1 sn); dokunmak silmez
+    expect(container.querySelector('#wtype-del').className).toContain('px-hold');
     closeTopSheet();
 
     click('#free-session');
     await waitFor(() => expect(container.querySelector('#start-ses-btn')).toBeTruthy());
+    expect(container.querySelector('#discard-ready-btn').className).toContain('px-hold');
     click('#discard-ready-btn');
-    fireEvent.click(await screen.findByRole('button', { name: 'Kaydetmeden çık' }));
     await waitFor(() => expect(container.querySelector('#tab-antrenman')?.getAttribute('aria-current')).toBe('page'));
 
     click('#tab-gozlem');

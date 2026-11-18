@@ -545,6 +545,7 @@
 
 .px .px-vis-sub {
   height: 16px;
+  line-height: 16px;
   margin-top: 2px;
   text-align: center;
   font-size: 13px;
@@ -859,7 +860,11 @@
   padding: 0 3px;
 }
 
+/* dar ekranda başlık iki satıra kırılıp üstteki ölçeğe binmesin; açıklama kısalır */
+.px .px-spd-head .lbl { flex: 0 0 auto; white-space: nowrap; }
+
 .px .px-spd-desc {
+  min-width: 0;
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
@@ -1615,21 +1620,22 @@
 
 /* ================= Ekrana sığma: kabın yüksekliğine göre aşamalı küçültme (§5) ================= */
 @container (max-height: 820px) {
+  /* görsel + sayı + alt yazı = kutu (86 = 40 + 28 + 18); yazılar üst üste binmez */
   .px .px-vis {
     height: 86px;
     margin-top: 6px;
   }
   .px .px-vis-bar,
   .px .px-vis-db {
-    height: 46px;
+    height: 40px;
   }
   .px .px-vis-bar .px-plate,
   .px .px-vis-db .px-plate,
   .px .px-vis-db-cap {
-    transform: scaleY(0.62);
+    transform: scaleY(0.56);
   }
   .px .px-vis-num-row {
-    height: 30px;
+    height: 28px;
   }
   .px .px-vis-num {
     font-size: 32px;
@@ -1688,13 +1694,19 @@
 }
 
 @container (max-height: 710px) {
+  /* 74 = 30 + 26 + 18 */
   .px .px-vis {
     height: 74px;
     margin-top: 4px;
   }
   .px .px-vis-bar,
   .px .px-vis-db {
-    height: 38px;
+    height: 30px;
+  }
+  .px .px-vis-bar .px-plate,
+  .px .px-vis-db .px-plate,
+  .px .px-vis-db-cap {
+    transform: scaleY(0.42);
   }
   .px .px-vis-num-row {
     height: 26px;
@@ -1989,6 +2001,7 @@
   -webkit-font-smoothing: none;
 }
 .px-dr-v small { margin-left: 6px; font: 600 12px 'IBM Plex Sans', system-ui, sans-serif; color: var(--px-mt, #a39cc0); }
+.px-dr-fine { margin-left: auto; font: 700 11px 'IBM Plex Sans', system-ui, sans-serif; letter-spacing: 0.08em; color: var(--px-gold, #ffc53d); }
 .px-dr-none { font: 600 13px 'IBM Plex Sans', system-ui, sans-serif; color: var(--px-mt, #a39cc0); }
 .px-dr-bar {
   position: relative;
@@ -2039,3 +2052,101 @@
   cursor: pointer;
 }
 @media (prefers-reduced-motion: reduce) { .px-dr * { transition: none !important; } }
+
+/* ---------- Basılı tutma düğmesi (HoldButton.tsx): silmeler 1 sn, bitirmeler 0,5 sn ---------- */
+.px-hold { position: relative; overflow: hidden; touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.px-hold-fill { position: absolute; inset: 0; z-index: 0; transform: scaleX(0); transform-origin: 0 50%; pointer-events: none; }
+.px-hold.danger .px-hold-fill { background: rgba(255, 59, 78, 0.45); }
+.px-hold.go .px-hold-fill { background: rgba(255, 255, 255, 0.38); }
+.px-hold.on .px-hold-fill { transform: scaleX(1); transition: transform var(--hold, 1000ms) steps(12, end); }
+.px-hold-lbl { position: relative; z-index: 1; display: inline-flex; flex-direction: column; align-items: center; gap: 3px; pointer-events: none; }
+.px-hold-t { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.px-hold-hint {
+  font: 600 10px 'IBM Plex Sans', system-ui, sans-serif;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.8;
+  -webkit-font-smoothing: antialiased;
+}
+.px-hold.nudge .px-hold-hint { opacity: 1; animation: pxHoldNudge 0.3s steps(2) 3; }
+@keyframes pxHoldNudge { 50% { color: #ffc53d; transform: translateX(3px); } }
+
+/* ---------- Plansız idman: başlık bilgisi, hareketi bitir, hassas sürükleme, bitiş animasyonları ---------- */
+.px .px-ses-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mt);
+}
+.px .px-ses-meta b { font-weight: 700; color: var(--gold); text-transform: none; }
+.px .px-ses-meta b.nm { font-size: 15px; }
+.px .ib.px-ib-hold { width: auto; height: 48px; padding: 0 12px; color: var(--bad); font: 700 14px var(--px-f-head); letter-spacing: 0.06em; }
+.px .card-del.px-hold .px-hold-hint { font-size: 9px; }
+.px .px-card.done .card-main { opacity: 0.72; }
+.px .px-done-tag {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 3px 6px;
+  font: 700 11px var(--px-f-body);
+  letter-spacing: 0.1em;
+  color: var(--btx);
+  background: #52e07c;
+}
+.px .px-actions:has(.px-exdone) { gap: 12px; }
+.px .px-exdone {
+  flex: 0 0 96px;
+  height: 64px;
+  margin: 0;
+  padding: 0 6px;
+  border: 0;
+  color: #52e07c;
+  background: var(--pn2);
+  font: 700 14px var(--px-f-head);
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  text-align: center;
+  white-space: normal;
+  cursor: pointer;
+  box-shadow: 0 -4px 0 0 #52e07c, 0 4px 0 0 #52e07c, -4px 0 0 0 #52e07c, 4px 0 0 0 #52e07c, 0 10px 0 0 var(--sh);
+}
+.px .px-exdone .px-hold-fill { background: rgba(82, 224, 124, 0.4); }
+.px .px-exdone:active,
+.px .px-exdone.on { box-shadow: 0 -4px 0 0 #52e07c, 0 4px 0 0 #52e07c, -4px 0 0 0 #52e07c, 4px 0 0 0 #52e07c; transform: translateY(4px); }
+.px .px-exdone .px-hold-hint { color: var(--mt); }
+.px .px-fine { margin-left: auto; margin-right: 10px; font: 700 12px var(--px-f-body); letter-spacing: 0.08em; color: var(--gold); }
+.px .px-kg-sec .px-fine { margin: 0; }
+.px .px-endfx {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 0 16px;
+  text-align: center;
+  background: rgba(11, 9, 20, 0.9);
+  animation: pxEndIn 0.65s steps(5) both;
+}
+.px .px-endfx::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: transparent;
+  box-shadow: -96px -40px 0 0 #ffc53d, 92px -52px 0 0 #ff5b3a, -60px 64px 0 0 #52e07c, 80px 56px 0 0 #ffc53d, 0 -84px 0 0 #4fa8ff, -120px 12px 0 0 #ff5b3a, 124px 8px 0 0 #52e07c;
+  animation: pxEndBurst 0.65s steps(4) both;
+}
+.px .px-endfx-t { max-width: 100%; font-family: var(--px-f-big); font-size: 24px; line-height: 1.4; white-space: normal; color: var(--gold); -webkit-font-smoothing: none; animation: pxEndT 0.65s steps(4) both; }
+.px .px-endfx.ex .px-endfx-t { color: #52e07c; }
+.px .px-endfx-s { font: 600 15px var(--px-f-body); color: var(--tx); }
+@keyframes pxEndIn { 0% { background: rgba(255, 197, 61, 0.85); } 25% { background: rgba(11, 9, 20, 0.9); } }
+@keyframes pxEndT { 0% { transform: scale(0.3); } 50% { transform: scale(1.25); } 100% { transform: scale(1); } }
+@keyframes pxEndBurst { 0% { transform: scale(0.2); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
+@container (max-height: 820px) { .px .px-exdone { height: 52px; } }
+@container (max-height: 710px) { .px .px-exdone { height: 46px; flex-basis: 88px; } .px .px-exdone .px-hold-hint { display: none; } }

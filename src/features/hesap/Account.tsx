@@ -6,6 +6,7 @@ import { BackupPanel, exportBackup } from '../programlar/BackupPanel';
 import { accountError } from '../../lib/cloud/errors';
 import { readFxSettings } from '../../lib/native/fx';
 import { allPlans } from '../plan/plans';
+import { HoldButton } from '../../app/HoldButton';
 const hm = ts => new Date(ts).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 function AccountChip({ acct, onClick }) {
   const state = acct.mode === 'guest' ? 'guest' : acct.pending ? 'pending' : acct.online ? 'ok' : 'offline';
@@ -101,7 +102,7 @@ function AccountBody({ st, acct, actions, openSheet, onClose, put }) {
           {acct.provider !== 'google.com' ? <input id="delete-password" className="text-in" type="password" autoComplete="current-password" placeholder="Şifreni tekrar gir" value={password} onChange={e => setPassword(e.target.value)} /> : null}
           <input id="del-confirm" className="text-in" value={delTxt} onChange={(e) => setDelTxt(e.target.value)} placeholder="SİL" />
           <div className="confirm-inline">
-            <button type="button" id="delete-yes" className="btn danger sm" disabled={delTxt.trim().toLocaleUpperCase('tr') !== 'SİL' || busy || acct.pending > 0 || !acct.online} onClick={() => run(() => actions.deleteAccount(password))}>Hesabı kalıcı sil</button>
+            <HoldButton id="delete-yes" className="btn danger sm" disabled={delTxt.trim().toLocaleUpperCase('tr') !== 'SİL' || busy || acct.pending > 0 || !acct.online} onHold={() => run(() => actions.deleteAccount(password))}>Hesabı kalıcı sil</HoldButton>
             <button type="button" className="btn ghost sm" onClick={() => { setConfirm(null); setDelTxt(''); }}>Vazgeç</button>
           </div>
         </div>

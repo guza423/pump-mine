@@ -38,6 +38,7 @@ import { PxIcon } from './PxIcon';
 import { readFxSettings } from '../lib/native/fx';
 import { dbMultiplier } from '../lib/models/session';
 import { PX_SPEED, PX_SPEED_COLORS } from '../features/antrenman/pixelHelpers';
+import { HoldButton } from './HoldButton';
 
 /* ================= PERFORMANCE · son kullanıcı uygulaması ================= */
 const TABS2 = [
@@ -578,7 +579,6 @@ function WtypeMenuBody({ st, pid, did, put, del, onStart, onEdit, onClose }) {
   const rawDay = p && p.days.find((x) => x.id === did);
   const d = rawDay ? normalizeDay(rawDay) : null;
   const [name, setName] = useState(d ? d.name : '');
-  const [confirm, setConfirm] = useState(false);
   if (!d) return <p className="muted-p">Bu plan artık yok.</p>;
   const saveDay = (fn) => {
     const nextDay = normalizeDay(clone(d));
@@ -635,15 +635,7 @@ function WtypeMenuBody({ st, pid, did, put, del, onStart, onEdit, onClose }) {
         <button type="button" id="wtype-edit" className="btn ghost" onClick={() => onEdit(p, d)}><Icon name="edit" size={14} /> Düzenle</button>
         <button type="button" id="wtype-copy" className="btn ghost" onClick={copyPlan}>Kopyala</button>
       </div>
-      {confirm ? (
-        <div className="pop flat">
-          <p>“{d.name || 'Adsız'}” planı silinsin mi? Geçmiş kayıtların kalır.</p>
-          <div className="confirm-inline">
-            <button type="button" id="wtype-del-yes" className="btn danger sm" onClick={remove}>Sil</button>
-            <button type="button" className="btn ghost sm" onClick={() => setConfirm(false)}>Vazgeç</button>
-          </div>
-        </div>
-      ) : <button type="button" id="wtype-del" className="btn ghost danger-t wmenu-del" onClick={() => setConfirm(true)}><Icon name="trash" size={14} /> Planı sil</button>}
+      <HoldButton id="wtype-del" className="btn ghost danger-t wmenu-del" aria-label="Planı sil (1 saniye basılı tut; geçmiş kayıtlar kalır)" onHold={remove}><Icon name="trash" size={14} /> Planı sil</HoldButton>
     </div>
   );
 }
@@ -1032,7 +1024,7 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
         <div className="shead-row">
           <span className="live-dot" />
           <div className="shead-t"><h1 className="ses2-name">{sessionName(s)}</h1><span className="shead-sub mono">{hm(s.startedAt)} başladı · {mmss(now - s.startedAt)} · {totalSets} set</span></div>
-          <button type="button" id="finish-btn" className="btn fire sm" onClick={() => setConfirm(confirm ? null : 'finish')}>Bitir</button>
+          <HoldButton id="finish-btn" className="btn fire sm" ms={500} tone="go" onHold={() => { if (totalSets) finish(); else setConfirm('finish'); }}>Bitir</HoldButton>
         </div>
       </header>
 
@@ -1042,16 +1034,16 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
             <React.Fragment>
               <p>{totalSets ? `Antrenmanı bitir? ${totalSets} set kaydedildi.` : 'Hiç set yok. Kaydetmeden çıkabilirsin.'}</p>
               <div className="confirm-inline">
-                {totalSets ? <button type="button" id="finish-yes" className="btn fire sm" onClick={finish}>Bitir ve özetle</button> : <button type="button" id="discard-yes" className="btn danger sm" onClick={discard}>Kaydetmeden çık</button>}
+                {totalSets ? <button type="button" id="finish-yes" className="btn fire sm" onClick={finish}>Bitir ve özetle</button> : <HoldButton id="discard-yes" className="btn danger sm" onHold={discard}>Kaydetmeden çık</HoldButton>}
                 <button type="button" className="btn ghost sm" onClick={() => setConfirm(null)}>Devam</button>
-                {totalSets ? <button type="button" className="btn ghost sm danger-t" onClick={() => setConfirm('discard')}>Sil</button> : null}
+                {totalSets ? <HoldButton className="btn ghost sm danger-t" onHold={discard}>Sil</HoldButton> : null}
               </div>
             </React.Fragment>
           ) : (
             <React.Fragment>
               <p>Bu antrenman ve {totalSets} set silinsin mi?</p>
               <div className="confirm-inline">
-                <button type="button" className="btn danger sm" onClick={discard}>Sil</button>
+                <HoldButton className="btn danger sm" onHold={discard}>Sil</HoldButton>
                 <button type="button" className="btn ghost sm" onClick={() => setConfirm(null)}>Vazgeç</button>
               </div>
             </React.Fragment>
@@ -1218,7 +1210,6 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
 }
 
 function SetDetailBody({ set, idx, exId, name, onDelete, onClose }) {
-  const [confirm, setConfirm] = useState(false);
   if (set.skill) {
     const lib = libById(exId);
     const q = SKILL_Q[set.q || 0] || SKILL_Q[0];
@@ -1237,9 +1228,7 @@ function SetDetailBody({ set, idx, exId, name, onDelete, onClose }) {
         </div>
         {set.tags && set.tags.length ? <div className="chips-wrap">{set.tags.map((x) => <span key={x} className="fchip on">{x}</span>)}</div> : null}
         {set.note ? <p className="sd-note">{set.note}</p> : null}
-        {!onDelete ? null : confirm ? (
-          <span className="confirm-inline"><button type="button" id="set-del-yes" className="btn danger sm" onClick={() => { onDelete(); onClose(); }}>Seti sil</button><button type="button" className="btn ghost sm" onClick={() => setConfirm(false)}>Vazgeç</button></span>
-        ) : <button type="button" id="set-del" className="btn ghost sm danger-t setd-del" onClick={() => setConfirm(true)}><Icon name="trash" size={13} /> Seti sil</button>}
+        {onDelete ? <HoldButton id="set-del" className="btn ghost sm danger-t setd-del" onHold={() => { onDelete(); onClose(); }}><Icon name="trash" size={13} /> Seti sil</HoldButton> : null}
       </div>
     );
   }
@@ -1261,9 +1250,7 @@ function SetDetailBody({ set, idx, exId, name, onDelete, onClose }) {
         </div>
         {set.tags && set.tags.length ? <div className="chips-wrap">{set.tags.map((x) => <span key={x} className="fchip on">{x}</span>)}</div> : null}
         {set.note ? <p className="sd-note">{set.note}</p> : null}
-        {!onDelete ? null : confirm ? (
-          <span className="confirm-inline"><button type="button" id="set-del-yes" className="btn danger sm" onClick={() => { onDelete(); onClose(); }}>Seti sil</button><button type="button" className="btn ghost sm" onClick={() => setConfirm(false)}>Vazgeç</button></span>
-        ) : <button type="button" id="set-del" className="btn ghost sm danger-t setd-del" onClick={() => setConfirm(true)}><Icon name="trash" size={13} /> Seti sil</button>}
+        {onDelete ? <HoldButton id="set-del" className="btn ghost sm danger-t setd-del" onHold={() => { onDelete(); onClose(); }}><Icon name="trash" size={13} /> Seti sil</HoldButton> : null}
       </div>
     );
   }
@@ -1290,9 +1277,7 @@ function SetDetailBody({ set, idx, exId, name, onDelete, onClose }) {
       </div>
       {set.tags && set.tags.length ? <div className="chips-wrap">{set.tags.map((x) => <span key={x} className="fchip on">{x}</span>)}</div> : null}
       {set.note ? <p className="sd-note">{set.note}</p> : null}
-      {!onDelete ? null : confirm ? (
-        <span className="confirm-inline"><button type="button" id="set-del-yes" className="btn danger sm" onClick={() => { onDelete(); onClose(); }}>Seti sil</button><button type="button" className="btn ghost sm" onClick={() => setConfirm(false)}>Vazgeç</button></span>
-      ) : <button type="button" id="set-del" className="btn ghost sm danger-t setd-del" onClick={() => setConfirm(true)}><Icon name="trash" size={13} /> Seti sil</button>}
+      {onDelete ? <HoldButton id="set-del" className="btn ghost sm danger-t setd-del" onHold={() => { onDelete(); onClose(); }}><Icon name="trash" size={13} /> Seti sil</HoldButton> : null}
     </div>
   );
 }
@@ -1389,7 +1374,6 @@ function ExListBody({ getSession, onGo, onAdd, onClose, openSheet }) {
 
 /* ---------- özet + plan kaydı ---------- */
 function SummaryBody({ session, st, put, del, openSheet, onDelete, onClose }) {
-  const [confirm, setConfirm] = useState(false);
   const ss = sessionStats(session);
   const all = st.sessions.some((x) => x.id === session.id) ? st.sessions.map((x) => (x.id === session.id ? session : x)) : [session, ...st.sessions];
   const ls = logStats(all, session.endedAt || Date.now());
@@ -1484,9 +1468,7 @@ function SummaryBody({ session, st, put, del, openSheet, onDelete, onClose }) {
       <SessionMuscles session={session} week={ls.muscles} />
       <div className="sum-actions">
         <button type="button" id="save-tmpl" className="btn ghost" onClick={() => openSheet('saveTemplate', { session })}><Icon name="plus" size={14} /> Plan olarak kaydet</button>
-        {confirm ? (
-          <span className="confirm-inline"><button type="button" className="btn danger sm" onClick={() => { onDelete(session.id); onClose(); }}>Kaydı sil</button><button type="button" className="btn ghost sm" onClick={() => setConfirm(false)}>Vazgeç</button></span>
-        ) : <button type="button" className="btn ghost sm danger-t" onClick={() => setConfirm(true)}>Kaydı sil</button>}
+        <HoldButton id="sum-del" className="btn ghost sm danger-t" onHold={() => { onDelete(session.id); onClose(); }}>Kaydı sil</HoldButton>
       </div>
     </div>
   );
@@ -1554,7 +1536,6 @@ function PlanEditor({ program, dayId, st, put, del, onBack, openSheet, startSess
   }, [program.id, dayId]);
   const [day, setDay] = useState(initDay);
   const [saved, setSaved] = useState(true);
-  const [confirm, setConfirm] = useState(false);
   const latestDay = useRef(day);
   const latestProg = useRef(clone(program));
   const timer = useRef(0);
@@ -1577,7 +1558,6 @@ function PlanEditor({ program, dayId, st, put, del, onBack, openSheet, startSess
   };
 
   useBack(true, () => { flush(); onBack(); });
-  useBack(confirm, () => setConfirm(false));
   useEffect(() => () => {
     clearTimeout(timer.current);
     if (pending.current) {
@@ -1637,18 +1617,9 @@ function PlanEditor({ program, dayId, st, put, del, onBack, openSheet, startSess
           <button type="button" id="ed-back" className="nav-arrow" aria-label="Geri" onClick={() => { flush(); onBack(); }}><Icon name="left" size={18} /></button>
           <div className="shead-t"><h1>Plan</h1></div>
           <span className={'save-st mono' + (saved ? ' ok' : '')}>{saved ? 'Kaydedildi' : '…'}</span>
-          <button type="button" id="plan-del" className="btn ghost sm danger-t" onClick={() => setConfirm(true)}>Sil</button>
+          <HoldButton id="plan-del" className="btn ghost sm danger-t" aria-label="Planı sil (1 saniye basılı tut)" onHold={handleDelete}>Sil</HoldButton>
         </div>
       </header>
-      {confirm ? (
-        <div className="pop">
-          <p>Planı sil?</p>
-          <div className="confirm-inline">
-            <button type="button" id="plan-del-yes" className="btn danger sm" onClick={handleDelete}>Sil</button>
-            <button type="button" className="btn ghost sm" onClick={() => setConfirm(false)}>Vazgeç</button>
-          </div>
-        </div>
-      ) : null}
       <div className="ed2-body">
         <div className="ed2-dayhead">
           <input
