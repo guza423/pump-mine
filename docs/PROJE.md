@@ -8,7 +8,7 @@
 > Konuşmaların kronolojik kaydı `docs/KONUSMA-KAYDI.md`'de. Kalıcı her karar bu dosyaya da işlenir (bkz. §9 Karar günlüğü).
 > Repo **herkese açık**. Buraya şifre, token ya da kişisel sağlık/vücut verisi yazılmaz.
 
-Son güncelleme: 2026-11-17 · V13 sonrası durum.
+Son güncelleme: 2026-11-19 · V21 (dil altyapısı, İngilizce varsayılan).
 
 ---
 
@@ -16,7 +16,7 @@ Son güncelleme: 2026-11-17 · V13 sonrası durum.
 
 **OUTMOVE**, her türlü antrenmanı takip eden ve yorgunluğu yöneten bir telefon uygulaması.
 - Ağırlık, olimpik kaldırış, pliometri ve beceri (kip-up, amut, front lever…) kaydı.
-- Arayüz Türkçe. Hedef platform Android (APK). Aynı kod PWA olarak da çalışır.
+- Arayüz **İngilizce (varsayılan) ve Türkçe** (V21; sekme sekme çevriliyor, bkz. §8). Hedef platform Android (APK). Aynı kod PWA olarak da çalışır.
 - Eski adı **PERFORMANCE**.
 
 **Kimin için:** önce proje sahibinin kendisi için. Yıllardır antrenmanlarını sadece kendisinin olduğu bir WhatsApp grubuna yazıyor; OUTMOVE'un bulut veritabanı bundan sonra onun kalıcı antrenman kaydı olacak. Uygulama başkalarının da kullanabileceği biçimde tasarlanıyor: hesap, misafir modu, her kullanıcının verisi ayrı.
@@ -61,7 +61,8 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
   - son 7 gün kas başına zor set çubukları (az / iyi / fazla, bu antrenmanın katkısı `+n`) ve uyarılar (az, bu hafta hiç, fazla).
 - **Android geri tuşu:** sheet'i / pixel pencereyi kapatır → büyük dinlenmeyi küçültür → set ekranından listeye döner → oturumdan Dashboard'a (oturum sürer) → sekmeden Dashboard'a → Dashboard'da iki kez basınca çıkar.
 
-**Hesap ve yedek** (Dashboard sağ üst):
+**Hesap ve ayarlar** (eski adı Hesap ve yedek; Dashboard sağ üst):
+- En üstte **Language · Dil** seçici: English / Türkçe (cihazda saklanır, varsayılan English).
 - Misafir ya da Google / e-posta hesabı. İlk girişte açık rıza.
 - Sesler / Titreşim / Animasyonlar anahtarları (`settings.fx`: `sound`, `haptic`, `motion`). `motion` açıksa cihaz "animasyonları azalt" dese de pixel ekran animasyonları tam oynar. Cihaz azaltıyorsa altında not çıkar.
 - Verilerimi dışa aktar (JSON), Yedekle / Geri yükle.
@@ -77,6 +78,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
   - `RestTimerPlugin` + `RestTimerReceiver`: dinlenme bildirimi, kesin alarm.
   - `@capacitor/app`: geri tuşu.
   - `@capacitor-firebase/authentication`: Google girişi.
+- **Dil (V21):** `src/i18n/`. Kaynak metin Türkçe ve anahtar; `t()` / `tc()` / `byLang()`; İngilizce sözlük `src/i18n/en/*.ts`. Veri Türkçe saklanır, gösterimde `muscleName()` / `exName()` / `dayLabel()` çevirir. Dil değişince `.device-wrap` `key={lang}` ile yeniden kurulur.
 - **Veri:** misafirde Dexie (IndexedDB `performance-training`). Hesapta Firebase Auth + Firestore, kalıcı yerel önbellekle (çevrimdışı önce telefona). Ayrıntı §5.
 - **CI** (`.github/workflows/`):
   - `android.yml`: her push'ta debug APK (artifact `outmove-<no>`), sabit debug anahtarıyla imzalı.
@@ -182,6 +184,8 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | V10 | 2026-11-14 | Android beyaz üst şerit düzeltmesi, her telefona oturma + `test:layout`, varsayılan hedef ve hazır şablonlar kaldırıldı | `f7875cd` |
 | V11 | 2026-11-14 | Sade plansız antrenman, bildirimli dinlenme sayacı, Android geri tuşu | `c5c588d` |
 | V12 | 2026-11-15 | Dashboard, antrenman planları (program katmanı kalktı), Gözlem takvimi, satır içi geçmiş, öğrenme hedefleri, 28 beceri hareketi | `c2f274b` (Antigravity) |
+| V14–V20 | 2026-11-17 → 18 | Pixel tema bütün sekmelere (V14–V17), plan ayarları ve özet (V18), basılı tutma ve göreli sürükleme (V19), yasal metinler, kabul kapısı, hesap/veri silme (V20) | `docs/gorevler/V14…V20` |
+| V21 | 2026-11-19 | Dil altyapısı; **İngilizce varsayılan**, Türkçe seçenek (Hesap ve ayarlar); ortak katman, Dashboard, Hesap, yasal kapı arayüzü İngilizce | `docs/gorevler/V21-dil-altyapisi-ingilizce.md` |
 | V13 | 2026-11-17 | Plansız idman pixel arayüzü (liste, çoklu seçici, sürüklemeli kilo/tekrar/hız/ROM, ekipman görselleri, dinlenme ekranı, ses/titreşim, pixel özet), `ROM ≥ %90` e1RM, dambıl iki el tonaj, `ready` otomatik başlatma | `5366058` (Antigravity) |
 
 ---
@@ -200,6 +204,10 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 - **WhatsApp içe aktarma:** yıllardır WhatsApp grubuna yazılan antrenmanlar. WhatsApp → Sohbeti dışa aktar → Medya olmadan → .txt → uygulama biçimine çevir.
 - **Drive yedeği:** haftalık otomatik JSON yedeğini Google Drive'a alma.
 - **Ad kontrolü:** OUTMOVE için alan adı ve TÜRKPATENT marka kontrolü.
+
+**Dil (V21'den itibaren, sekme sekme):**
+- V22 Antrenman, V23 Gözlem (Insights), V24 Lab, V25 yasal metinlerin İngilizcesi + son tarama. Görev dosyaları `docs/gorevler/V22…V25`.
+- Geçiş bitene kadar İngilizcede çevrilmemiş sekmeler kısmen Türkçe görünür; Türkçe seçiliyse her şey eskisi gibi.
 
 **Tasarım (pixel):**
 - **Pixel geçişi bitti.** V13–V13.1 plansız idman; V14 Dashboard + alt sekme çubuğu; V15 alt pencereler, Antrenman sekmesi, planlı oturum, plan düzenleyici; V16 Gözlem; V17 Lab + kalan ikonlar.
@@ -258,6 +266,10 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | 2026-11-18 | İlk açılışta kabul kapısı: Kullanım Koşulları **kabul edilir**, aydınlatma yalnızca **okundu** işaretlenir; açık rıza ayrı metin ve ayrı beyanla yalnızca hesap açarken istenir (rıza v2). `LEGAL.VERSION` yalnızca önemli değişiklikte artar | KVKK İlke Kararı 2026/347 (aydınlatma ve açık rıza ayrı; aydınlatmaya onay istenmez); GDPR m.7 ve m.9 |
 | 2026-11-18 | Açık rızayı geri almak bulut kayıtlarını siler, e-posta hesabı kalır ve kayıtlar cihazda misafir olarak devam eder; misafir cihaz verisini tek düğmeyle silebilir | Rızanın geri alınması verilmesi kadar kolay olmalı (GDPR m.7/3); hesap silme ayrı ve daha sıkı kalır |
 | 2026-11-18 | Animasyonlar yalnızca `transform`/`opacity` ile ve daha çok adımla oynar; dinlenmede ekran saniyede 1 çizilir | Kullanıcı: "animasyonlar bir tık kasio gibi" |
+| 2026-11-19 | **Dil seçeneği; varsayılan İngilizce** (telefon dili ne olursa olsun), Türkçe seçilebilir. Seçim cihazda saklanır. Çeviri sekme sekme (V21 altyapı + Dashboard + Hesap, V22–V25 kalanlar) | Kullanıcı: "İngilizce ile başlayalım ve asıl default dil olsun … Ayarlardan dil seçeneği olsun" |
+| 2026-11-19 | Kaynak metin Türkçe kalır ve sözlük anahtarıdır (gettext yöntemi); veri (kas, hareket, gün adı) Türkçe saklanır, yalnızca ekranda çevrilir | Mevcut kayıtlar ve testler bozulmaz; dil değişince geçmiş veri de doğru dilde görünür |
+| 2026-11-19 | "Hesap ve yedek" penceresi **Hesap ve ayarlar** oldu; dil seçici en üstte, etiketi iki dilde (`Language · Dil`) | Dil bir ayar; yanlış dilde kalan da bulsun |
+| 2026-11-19 | İngilizce adlar: sekmeler Dashboard · Workout · Insights · Lab; Plansız antrenman → **Quick workout**; hesap silme onayı **DELETE** | Kısa ve doğal İngilizce; "Free workout" ücretsiz gibi okunuyordu |
 | 2026-11-17 | Pixel'e geçiş bir **tema katmanıyla** yapılır (`px-theme.css`, kök sınıf `.pxt`): var olan DOM ve kimlikler aynen kalır, yalnızca görünüm değişir. Yeni pixel bileşenleri `pixel.css`'te `px-` önekiyle yazılır | "sadece stil değişicek"; testler ve akışlar bozulmasın |
 
 ---
@@ -275,6 +287,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 - **Temas:** pliometrik iniş/sıçrama sayısı.
 - **Deneme:** beceri girişimi.
 - **Görev dosyası:** `docs/gorevler/Vxx-*.md`; kodlayan AI'nın uyguladığı ayrıntılı iş tanımı.
+- **Çeviri anahtarı:** Türkçe kaynak metin; `t('Kaydet')` İngilizcede `Save`. Sözlük `src/i18n/en/*.ts`.
 
 ---
 
@@ -286,7 +299,8 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | `docs/PROJE.md` | Bu belge: ne, neden, nasıl, kararlar |
 | `docs/KONUSMA-KAYDI.md` | Tüm konuşmaların kronolojik kaydı |
 | `GOREV.md` | Bekleyen / tamamlanan görevler |
-| `docs/gorevler/` | Görev dosyaları (V08–V12), `arsiv/` eski görevler |
+| `docs/gorevler/` | Görev dosyaları (V08–V25), `arsiv/` eski görevler |
+| `src/i18n/` | Dil katmanı (`index.ts`, `names.ts`) ve İngilizce sözlük (`en/`) |
 | `docs/FIREBASE-KURULUM.md` | Firebase konsol kurulumu |
 | `reference/` | Claude prototipleri (tarihçe ve tasarım kaynağı) |
 | `reference/v13-pixel/` | V13 pixel tasarım konsepti (Design tuvali kaynağı, `README.md` nasıl okunacağını anlatır) |

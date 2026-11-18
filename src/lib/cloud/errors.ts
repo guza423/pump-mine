@@ -1,3 +1,6 @@
+import { t } from '../../i18n';
+
+// Mesajlar Türkçe kaynak metindir; gösterimde etkin dile çevrilir (V21). Kodun attığı Error mesajları da sözlükte.
 export function accountError(error: unknown) {
   const code = (error as { code?: string })?.code;
   const messages: Record<string, string> = {
@@ -12,5 +15,5 @@ export function accountError(error: unknown) {
     'failed-precondition': 'Bulut önbelleği başka bir sekmede açık olabilir. Diğer sekmeyi kapatıp yeniden dene.',
     'unavailable': 'İnternete bağlanınca taşınacak.',
   };
-  return messages[code || ''] || (error instanceof Error && !code ? error.message : 'İşlem tamamlanamadı. Yeniden dene.');
+  return t(messages[code || ''] || (error instanceof Error && !code ? error.message : 'İşlem tamamlanamadı. Yeniden dene.'));
 }

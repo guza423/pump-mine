@@ -1,4 +1,5 @@
 import { EX_LIB } from '../../lib/data/exlib';
+import { byLang } from '../../i18n';
 import type { Goal, PerfGoal, Session, SessionItem, Setting, SkillGoal } from '../../lib/store/types';
 
 const exMeta = (id?: string | null, name?: string | null) =>
@@ -8,12 +9,11 @@ const exMeta = (id?: string | null, name?: string | null) =>
 
 export type { Goal, PerfGoal, SkillGoal };
 
-export const SKILL_STAGES = [
-  'Başladım',
-  'Parçalarını yapıyorum',
-  'İlk temiz tekrar',
-  'Oturdu',
-] as const;
+// Gösterim etiketleri; dile göre (V21). Aşama verisi sayı olarak (0–3) saklanır.
+export const SKILL_STAGES = byLang<readonly string[]>({
+  tr: ['Başladım', 'Parçalarını yapıyorum', 'İlk temiz tekrar', 'Oturdu'],
+  en: ['Started', 'Working on the parts', 'First clean rep', 'Locked in'],
+});
 
 export function sortGoals(goals: Goal[]): Goal[] {
   const active: Goal[] = [];

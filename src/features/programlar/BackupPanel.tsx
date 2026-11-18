@@ -3,6 +3,7 @@ import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { BackupContext } from '../../lib/store/BackupContext';
+import { t } from '../../i18n';
 
 type Status = { tone: 'ok' | 'bad'; message: string } | null;
 
@@ -24,10 +25,10 @@ async function shareJson(contents: string, filename: string) {
   });
 
   await Share.share({
-    title: 'OUTMOVE yedeği',
-    text: 'Antrenman verilerimin OUTMOVE yedeği',
+    title: t('OUTMOVE yedeği'),
+    text: t('Antrenman verilerimin OUTMOVE yedeği'),
     url: uri,
-    dialogTitle: 'Yedeği kaydet veya paylaş',
+    dialogTitle: t('Yedeği kaydet veya paylaş'),
   });
 }
 
@@ -49,23 +50,23 @@ export function BackupPanel() {
     setBusy(true);
     try {
       await exportBackup(readBackup);
-      setStatus({ tone: 'ok', message: Capacitor.isNativePlatform() ? 'Yedek paylaşıma hazır.' : 'Yedek indirildi.' });
+      setStatus({ tone: 'ok', message: Capacitor.isNativePlatform() ? t('Yedek paylaşıma hazır.') : t('Yedek indirildi.') });
     } catch {
-      setStatus({ tone: 'bad', message: 'Yedek oluşturulamadı.' });
+      setStatus({ tone: 'bad', message: t('Yedek oluşturulamadı.') });
     } finally {
       setBusy(false);
     }
   };
 
   const importData = async (file: File) => {
-    if (!window.confirm('Mevcut plan ve antrenman kayıtları bu yedekle değiştirilsin mi?')) return;
+    if (!window.confirm(t('Mevcut plan ve antrenman kayıtları bu yedekle değiştirilsin mi?'))) return;
     setBusy(true);
     try {
       const parsed = JSON.parse(await file.text()) as unknown;
       await restoreBackup(parsed as never);
-      setStatus({ tone: 'ok', message: 'Yedek geri yüklendi.' });
+      setStatus({ tone: 'ok', message: t('Yedek geri yüklendi.') });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Yedek geri yüklenemedi.';
+      const message = t(error instanceof Error ? error.message : 'Yedek geri yüklenemedi.');
       setStatus({ tone: 'bad', message });
     } finally {
       setBusy(false);
@@ -76,13 +77,13 @@ export function BackupPanel() {
   return (
     <section className="hub-sec backup-card" aria-labelledby="backup-title">
       <div className="sec-h">
-        <h3 id="backup-title">Yedek</h3>
-        <span className="sec-k mono">{cloud ? 'hesap ve cihaz' : 'yalnızca bu cihazda'}</span>
+        <h3 id="backup-title">{t('Yedek')}</h3>
+        <span className="sec-k mono">{cloud ? t('hesap ve cihaz') : t('yalnızca bu cihazda')}</span>
       </div>
-      <p>Plan, antrenman, uyku, hedef ve özel hareket kayıtlarını tek JSON dosyasında sakla.</p>
+      <p>{t('Plan, antrenman, uyku, hedef ve özel hareket kayıtlarını tek JSON dosyasında sakla.')}</p>
       <div className="backup-actions">
-        <button type="button" className="btn primary" onClick={exportData} disabled={busy}>Yedekle</button>
-        <button type="button" className="btn ghost" onClick={() => input.current?.click()} disabled={busy}>Geri yükle</button>
+        <button type="button" className="btn primary" onClick={exportData} disabled={busy}>{t('Yedekle')}</button>
+        <button type="button" className="btn ghost" onClick={() => input.current?.click()} disabled={busy}>{t('Geri yükle')}</button>
         <input
           ref={input}
           className="visually-hidden"

@@ -1,6 +1,7 @@
 // @ts-nocheck
 import React from 'react';
 import { PxIcon, hasPxIcon } from '../../app/PxIcon';
+import { t } from '../../i18n';
 
 const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
@@ -158,7 +159,7 @@ function Switch({ id, on, onChange, label }) {
       <span id={id + '-lbl'}>{label}</span>
       <button id={id} type="button" role="switch" aria-checked={on} aria-labelledby={id + '-lbl'} className={'switch' + (on ? ' on' : '')} onClick={() => onChange(!on)}>
         <span className="knob" />
-        <span className="switch-txt">{on ? 'Açık' : 'Kapalı'}</span>
+        <span className="switch-txt">{on ? t('Açık') : t('Kapalı')}</span>
       </button>
     </div>
   );

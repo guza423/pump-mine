@@ -2,6 +2,8 @@
 import { EX_LIB, PLYO_W, SKILL_W, isPlyo, isSkill, skillSetTxt, sessionStats, bestE1, hasNum, nf } from "../../features/antrenman/core";
 import { weekProgram } from "../../features/plan/plans";
 import { clamp } from "./training";
+import { muscleName, pct, t } from "../../i18n";
+import { exName } from "../../i18n/names";
 const DAY_MS = 864e5;
 const MAIN_MUSCLES = ["Göğüs", "Omuz (ön)", "Omuz (yan)", "Sırt", "Trapez", "Triceps", "Hamstring", "Quadriceps"];
 export type FatigueLevel = 1 | 2 | 3;
@@ -97,7 +99,7 @@ const dayKey = (ts) => { const d = new Date(ts); return 'c_' + d.getFullYear() +
 const exMeta = (exId, name) => EX_LIB.find((e) => e.id === exId) || EX_LIB.find((e) => e.name === name) || null;
 const rpeMid = (a, b) => (hasNum(a) ? (hasNum(b) ? (Number(a) + Number(b)) / 2 : Number(a)) : 8);
 const repMid = (a, b) => (hasNum(a) ? (hasNum(b) ? (Number(a) + Number(b)) / 2 : Number(a)) : 8);
-const zoneOf = (score) => (score < 40 ? { k: 'Yönetilebilir', c: 'var(--ok)', cls: 'ok' } : score < 70 ? { k: 'Birikiyor', c: 'var(--warn)', cls: 'warn' } : { k: 'Yüksek', c: 'var(--bad)', cls: 'bad' });
+const zoneOf = (score) => (score < 40 ? { k: t('Yönetilebilir'), c: 'var(--ok)', cls: 'ok' } : score < 70 ? { k: t('Birikiyor'), c: 'var(--warn)', cls: 'warn' } : { k: t('Yüksek'), c: 'var(--bad)', cls: 'bad' });
 export function planStats(program) {
   const muscles = {};
   (program ? program.days : []).forEach((d) => {
@@ -184,20 +186,20 @@ export function steadyWeek(v) {
   return { per, resid, pre, post: clamp(loadScore(resid + per) + sp, 0, 100), train: loadScore(resid), sleepPts: sp, hrs: hoursToFresh(resid + per), perSession: sets / n, zone: zoneOf(pre) };
 }
 export function simFromLogs(st) {
-  const t = Date.now();
-  const loads = setLoads(st.sessions, t).filter((x) => !x.plyo && !x.skill);
-  const sl = sleepInfo(st, t);
-  const n = st.sessions.filter((s) => s.status === 'done' && !s.ready && t - s.startedAt < 7 * DAY_MS).length;
+  const now = Date.now();
+  const loads = setLoads(st.sessions, now).filter((x) => !x.plyo && !x.skill);
+  const sl = sleepInfo(st, now);
+  const n = st.sessions.filter((s) => s.status === 'done' && !s.ready && now - s.startedAt < 7 * DAY_MS).length;
   const avg3 = sl.n ? (sl.avg3 * sl.n + 7.5 * (3 - sl.n)) / 3 : 7.5;
   const base = { sleepLast: sl.last != null ? sl.last : 7.5, sleepAvg: Math.round(avg3 * 2) / 2, deload: false };
   if (loads.length && n) {
-    return { ...base, sets: Math.max(4, Math.round(loads.length / 2) * 2), rir: clamp(Math.round((loads.reduce((a, x) => a + x.rir, 0) / loads.length) * 2) / 2, 0, 4), n: clamp(n, 1, 6), heavy: Math.round((loads.filter((x) => x.heavy).length / loads.length) * 10) * 10, src: 'Son 7 günün kayıtlarından' };
+    return { ...base, sets: Math.max(4, Math.round(loads.length / 2) * 2), rir: clamp(Math.round((loads.reduce((a, x) => a + x.rir, 0) / loads.length) * 2) / 2, 0, 4), n: clamp(n, 1, 6), heavy: Math.round((loads.filter((x) => x.heavy).length / loads.length) * 10) * 10, src: t('Son 7 günün kayıtlarından') };
   }
   const wp = weekProgram(st.programs);
-  if (wp.days.length) return { ...simFromPlan(wp), ...base, src: 'Planına göre' };
+  if (wp.days.length) return { ...simFromPlan(wp), ...base, src: t('Planına göre') };
   const p = st.programs.find((x) => x.days.some((d) => d.items.length));
-  if (p) return { ...simFromPlan(p), ...base, src: 'Planına göre' };
-  return { ...base, sets: 30, rir: 2, n: 3, heavy: 40, src: 'Örnek değerler' };
+  if (p) return { ...simFromPlan(p), ...base, src: t('Planına göre') };
+  return { ...base, sets: 30, rir: 2, n: 3, heavy: 40, src: t('Örnek değerler') };
 }
 export function simFromPlan(p) {
   let sets = 0, rir = 0, heavy = 0;
@@ -236,18 +238,20 @@ export function simulatePlan(p) {
   const per = events.filter((e) => e.wk === 2).map((e) => { const pre = at(e.h); return { d: e.d, pre: loadScore(pre), post: loadScore(pre + e.w) }; });
   return { per, pre: per.reduce((a, x) => a + x.pre, 0) / per.length, post: Math.max(...per.map((x) => x.post)), unplaced: days.length - slots.length };
 }
+// Toparlanmış önerisi: ekranda başka önerilerle birleşirken bu metinle ayıklanır (dile bağlı regex yok).
+export const REC_FRESH = 'Toparlanmış görünüyorsun. Plana göre yüklen; ilerlemeyi küçük adımlarla yap.';
 export function fatigueRecs(f) {
   // f: { pre|score, post?, sleepLast, sleepAvg, n?, rir?, perSession?, fail? }
   const r = [];
   const score = f.score != null ? f.score : f.pre;
-  if (f.sleepLast != null && f.sleepLast < 6.5) r.push('Dün gece ' + nf(f.sleepLast) + ' sa: maksimal kuvvet ortalama ~%3, çok tekrarlı setler ~%10 düşebilir ve aynı yük daha ağır hissedilir. Ağır setlerde hedefi 1 tekrar erken bitir.');
-  if (f.sleepAvg != null && f.sleepAvg < 6.5 && f.sleepN !== 1) r.push('Son gecelerin ortalaması ' + nf(Math.round(f.sleepAvg * 10) / 10) + ' sa. Birkaç gece üst üste kısa uyku tek geceden daha çok düşürür; önce uykuyu 7 saatin üstüne çıkar.');
-  if (score >= 70) r.push('Yorgunluk yüksek: bugün hafif çalış ya da dinlen. Birkaç gün üst üste böyleyse 1 hafta hacmi %40–50 azalt (deload).');
-  else if (score >= 40) r.push('Yorgunluk birikiyor: setleri 2–3 tekrar kala bitir, aynı kas grubunu ağır çalışmadan önce 48 sa ver.');
-  if (f.rir != null && f.rir <= 1) r.push('Setlerin çoğu tükenişte. Tükeniş toparlanmayı 24–48 sa uzatır; 1–3 tekrar kala bitirmek benzer kazanım sağlar.');
-  if (f.perSession != null && f.perSession > 24) r.push('Seans başına ' + Math.round(f.perSession) + ' zor set çok. Hacmi daha fazla seansa böl.');
-  if (f.post != null && f.post >= 85) r.push('Seans sonrası tepe çok yüksek; en ağır günleri arka arkaya koyma.');
-  if (score < 40 && !r.length) r.push('Toparlanmış görünüyorsun. Plana göre yüklen; ilerlemeyi küçük adımlarla yap.');
+  if (f.sleepLast != null && f.sleepLast < 6.5) r.push(t('Dün gece {h} sa: maksimal kuvvet ortalama ~%3, çok tekrarlı setler ~%10 düşebilir ve aynı yük daha ağır hissedilir. Ağır setlerde hedefi 1 tekrar erken bitir.', { h: nf(f.sleepLast) }));
+  if (f.sleepAvg != null && f.sleepAvg < 6.5 && f.sleepN !== 1) r.push(t('Son gecelerin ortalaması {h} sa. Birkaç gece üst üste kısa uyku tek geceden daha çok düşürür; önce uykuyu 7 saatin üstüne çıkar.', { h: nf(Math.round(f.sleepAvg * 10) / 10) }));
+  if (score >= 70) r.push(t('Yorgunluk yüksek: bugün hafif çalış ya da dinlen. Birkaç gün üst üste böyleyse 1 hafta hacmi %40–50 azalt (deload).'));
+  else if (score >= 40) r.push(t('Yorgunluk birikiyor: setleri 2–3 tekrar kala bitir, aynı kas grubunu ağır çalışmadan önce 48 sa ver.'));
+  if (f.rir != null && f.rir <= 1) r.push(t('Setlerin çoğu tükenişte. Tükeniş toparlanmayı 24–48 sa uzatır; 1–3 tekrar kala bitirmek benzer kazanım sağlar.'));
+  if (f.perSession != null && f.perSession > 24) r.push(t('Seans başına {n} zor set çok. Hacmi daha fazla seansa böl.', { n: Math.round(f.perSession) }));
+  if (f.post != null && f.post >= 85) r.push(t('Seans sonrası tepe çok yüksek; en ağır günleri arka arkaya koyma.'));
+  if (score < 40 && !r.length) r.push(t(REC_FRESH));
   return r.slice(0, 3);
 }
 export function e1Series(sessions, exId, name) {
@@ -290,23 +294,23 @@ export function historyWarnings(st, list) {
   const done = st.sessions.filter((s) => s.status === 'done');
   const fz = fatigueAt(st, now);
   const sc = Math.round(fz.score);
-  if (sc >= 70) w.push({ lv: 'bad', t: 'Yorgunluk yüksek · ' + sc, d: 'Bugün hafif çalış ya da dinlen. Günlerce böyleyse 1 hafta hacmi %40–50 azalt.' });
-  else if (sc >= 40) w.push({ lv: 'warn', t: 'Yorgunluk birikiyor · ' + sc, d: 'Setleri 2–3 tekrar kala bitir; aynı kası ağır çalışmadan önce 48 sa ver.' });
-  if (fz.sleep.known && fz.sleep.last < 6.5) w.push({ lv: 'warn', t: 'Dün gece ' + nf(fz.sleep.last) + ' sa uyku', d: 'Maksimal kuvvet ~%3, çok tekrarlı setler ~%10 düşebilir. Ağır setlerde 1 tekrar erken bitir.' });
+  if (sc >= 70) w.push({ lv: 'bad', t: t('Yorgunluk yüksek · {n}', { n: sc }), d: t('Bugün hafif çalış ya da dinlen. Günlerce böyleyse 1 hafta hacmi %40–50 azalt.') });
+  else if (sc >= 40) w.push({ lv: 'warn', t: t('Yorgunluk birikiyor · {n}', { n: sc }), d: t('Setleri 2–3 tekrar kala bitir; aynı kası ağır çalışmadan önce 48 sa ver.') });
+  if (fz.sleep.known && fz.sleep.last < 6.5) w.push({ lv: 'warn', t: t('Dün gece {h} sa uyku', { h: nf(fz.sleep.last) }), d: t('Maksimal kuvvet ~%3, çok tekrarlı setler ~%10 düşebilir. Ağır setlerde 1 tekrar erken bitir.') });
   const ls = logStats(st.sessions, now);
-  Object.entries(ls.muscles).filter(([, n]) => n > 20).sort((a, b) => b[1] - a[1]).forEach(([m, n]) => w.push({ lv: 'bad', t: m + ' · 7 günde ' + n + ' zor set', d: '20 setin üstünde toparlanma uzar. Hacmi azalt ya da 2–3 güne böl.' }));
+  Object.entries(ls.muscles).filter(([, n]) => n > 20).sort((a, b) => b[1] - a[1]).forEach(([m, n]) => w.push({ lv: 'bad', t: t('{m} · 7 günde {n} zor set', { m: muscleName(m), n }), d: t('20 setin üstünde toparlanma uzar. Hacmi azalt ya da 2–3 güne böl.') }));
   const sets = [];
   list.forEach((s) => s.items.forEach((it) => it.sets.forEach((x) => { if (!x.plyo && !x.skill) sets.push(x); })));
   if (sets.length >= 6) {
     const avgRpe = sets.reduce((a, x) => a + Number(x.rpe || 0), 0) / sets.length;
-    if (avgRpe >= 9) w.push({ lv: 'warn', t: 'Ortalama RPE ' + nf(Math.round(avgRpe * 10) / 10), d: 'Setlerin çoğunu 1–3 tekrar kala bitir. Kazanım benzer, yorgunluk daha az.' });
+    if (avgRpe >= 9) w.push({ lv: 'warn', t: t('Ortalama RPE {n}', { n: nf(Math.round(avgRpe * 10) / 10) }), d: t('Setlerin çoğunu 1–3 tekrar kala bitir. Kazanım benzer, yorgunluk daha az.') });
     const fail = sets.filter((x) => x.rir <= 0.5).length / sets.length;
-    if (fail >= 0.3) w.push({ lv: 'warn', t: 'Setlerin %' + Math.round(fail * 100) + '’i tükenişte', d: 'Tükeniş toparlanmayı 24–48 sa uzatır. 1–3 tekrar kala bitirmek benzer kazanım sağlar.' });
+    if (fail >= 0.3) w.push({ lv: 'warn', t: t('Setlerin {p}’i tükenişte', { p: pct(Math.round(fail * 100)) }), d: t('Tükeniş toparlanmayı 24–48 sa uzatır. 1–3 tekrar kala bitirmek benzer kazanım sağlar.') });
   }
   const sl = st.checkins.filter((c) => now - (c.at || 0) < 7 * DAY_MS);
   if (sl.length >= 2) {
     const a = sl.reduce((x, c) => x + Number(c.sleep), 0) / sl.length;
-    if (a < 7) w.push({ lv: 'warn', t: 'Uyku ortalaması ' + nf(Math.round(a * 10) / 10) + ' sa', d: 'Son 7 gün. 7 saatin altı aynı yükü daha ağır hissettirir.' });
+    if (a < 7) w.push({ lv: 'warn', t: t('Uyku ortalaması {h} sa', { h: nf(Math.round(a * 10) / 10) }), d: t('Son 7 gün. 7 saatin altı aynı yükü daha ağır hissettirir.') });
   }
   const seen = {};
   done.forEach((s) => s.items.forEach((it) => { if (bestE1(it.sets)) seen[it.exId || it.name] = it; }));
@@ -317,19 +321,19 @@ export function historyWarnings(st, list) {
     if (now - last.t > 14 * DAY_MS) return;
     const best = Math.max(...ser.slice(0, -1).map((x) => x.v));
     const drop = 1 - last.v / best;
-    if (drop >= 0.05) w.push({ lv: 'warn', t: it.name + ' · e1RM %' + Math.round(drop * 100) + ' düştü', d: 'En iyi ' + nf(Math.round(best * 2) / 2) + ' kg, son ' + nf(Math.round(last.v * 2) / 2) + ' kg. Yorgunluk birikmiş olabilir.' });
+    if (drop >= 0.05) w.push({ lv: 'warn', t: t('{x} · e1RM {p} düştü', { x: exName(it), p: pct(Math.round(drop * 100)) }), d: t('En iyi {a} kg, son {b} kg. Yorgunluk birikmiş olabilir.', { a: nf(Math.round(best * 2) / 2), b: nf(Math.round(last.v * 2) / 2) }) });
   });
   if (done.some((s) => now - s.startedAt < 7 * DAY_MS)) {
     const plan = {};
     st.programs.forEach((p) => p.days.forEach((d) => d.items.forEach((i) => { plan[i.muscle] = 1; })));
     const low = MAIN_MUSCLES.filter((m) => plan[m] && (ls.muscles[m] || 0) < 10);
-    if (low.length) w.push({ lv: 'info', t: 'Az çalışan: ' + low.map((m) => m + ' ' + (ls.muscles[m] || 0)).join(', '), d: 'Son 7 gün zor set. Kas başına haftada 10–20 sık önerilir.' });
+    if (low.length) w.push({ lv: 'info', t: t('Az çalışan: {list}', { list: low.map((m) => muscleName(m) + ' ' + (ls.muscles[m] || 0)).join(', ') }), d: t('Son 7 gün zor set. Kas başına haftada 10–20 sık önerilir.') });
   }
   const bigPlyo = list.map((s) => sessionStats(s).contacts).filter((c) => c > 140);
-  if (bigPlyo.length) w.push({ lv: 'warn', t: 'Seans başına ' + Math.max(...bigPlyo) + ' sıçrama teması', d: 'Pliometrikte ileri seviye için bile 120–140 temas önerilir; fazlası kaliteyi düşürür, sakatlık riskini artırır.' });
+  if (bigPlyo.length) w.push({ lv: 'warn', t: t('Seans başına {n} sıçrama teması', { n: Math.max(...bigPlyo) }), d: t('Pliometrikte ileri seviye için bile 120–140 temas önerilir; fazlası kaliteyi düşürür, sakatlık riskini artırır.') });
   if (done.length) {
     const gap = Math.floor((now - done[0].startedAt) / DAY_MS);
-    if (gap >= 6) w.push({ lv: 'info', t: gap + ' gündür antrenman yok', d: 'Uzun aradan sonra ilk antrenmanda yükü %5–10 düşük başla.' });
+    if (gap >= 6) w.push({ lv: 'info', t: t('{n} gündür antrenman yok', { n: gap }), d: t('Uzun aradan sonra ilk antrenmanda yükü %5–10 düşük başla.') });
   }
   return w;
 }

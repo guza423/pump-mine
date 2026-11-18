@@ -499,3 +499,17 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 - Commit: `0af663b`. Kontroller: `npm test` (102 test), lint, `tsc -b`, build, `test:layout` geçti.
 - Kullanıcıya kalanlar: adres ve gizlilik e-postası, VERBİS + Türkiye temsilcisi, Google ile standart sözleşme + 5 iş günü bildirim, gerekirse AB temsilcisi, Play bağlantıları, hukukçu kontrolü.
 - Düzeltme: GitHub Pages yayını birkaç committir yerleşim testinde (planlı oturumdaki "SIRADA" etiketi CI'da 2 px taşıyordu) takılıyordu; etiket küçültüldü, web sürümü ve `legal.html` yeniden yayına çıkar.
+
+### 2026-11-19 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** "Outmove için dil seçenekleri olsun ya. İngilizce ile başlayalım ve asıl default dil olsun. Bunu yapabiliri miyiz. Yine sekme sekme mi gidelim herşeyi proper ingilizce yapmak için. Ayarlardan dil seçeneği olsun tabiki."
+**Yapılan / karar:**
+- Evet; pixel geçişi gibi sekme sekme. Varsayılan dil İngilizce (telefon dili ne olursa olsun), Türkçe seçilebilir.
+- **V21** (`docs/gorevler/V21-dil-altyapisi-ingilizce.md`):
+  - `src/i18n/` dil katmanı: Türkçe kaynak metin anahtar (`t()`, `tc()`, `byLang()`), İngilizce sözlük `src/i18n/en/`, sayı/yüzde/saat biçimleri; veri Türkçe kalır, ekranda çevrilir (`muscleName`, `exName`, `dayLabel`);
+  - "Hesap ve yedek" → **Hesap ve ayarlar**; en üstte `Language · Dil` seçici; dil değişince pencere açık kalır;
+  - İngilizce: alt sekmeler (Dashboard · Workout · Insights · Lab), Dashboard, Hedef ve Yorgunluk ölçer pencereleri, yorgunluk önerileri ve uyarıları, Hesap / açık rıza / gizlilik özeti / yedek / hata mesajları, yasal kapının arayüzü (Privacy Policy İngilizce metni açar), ortak tarih/birim/gün-ay adları;
+  - testler: sözlük bütünlüğü + `t` gölgeleme denetimi, İngilizce ekran testleri, İngilizce yerleşim akışı (`flowEn`).
+- Sıradakiler `GOREV.md` › Bekleyen: V22 Antrenman, V23 Gözlem, V24 Lab, V25 yasal metinler + son tarama.
+- Kural `AGENTS.md` › Dil: her yeni metin `t()` ile ve İngilizcesiyle birlikte eklenir.
+**Kayıt:** commit `V21_COMMIT`. Kontroller: `npm test` (118 test), `tsc -b`, lint, build, `test:layout` (Türkçe + İngilizce) geçti.
+

@@ -7,58 +7,76 @@ import { dbMultiplier } from '../../lib/models/session';
 import { nextPlanned } from '../plan/plans';
 import { PxKgTape, PxStair } from './PxDrag';
 import { HoldButton } from '../../app/HoldButton';
+import { byLang, num, numIn, t } from '../../i18n';
 
 /* ================= GÜNLÜK: program yazma + antrenman kaydı ================= */
-const WD_LONG = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
-const WD_SHORT = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
+const WD_LONG = byLang({ tr: ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'], en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] });
+const WD_SHORT = byLang({ tr: ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'], en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] });
 const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
-const MONTHS = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+const MONTHS = byLang({ tr: ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'], en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] });
 const MUSCLES = Object.values(MUS_CODE);
 const REST_OPTS = [60, 75, 90, 120, 150, 180, 240, 300];
 // EX_LIB, MUS_CODE, EQ, KIND, PLYO_INT: exlib.js
-const PROF = {
+const PROF_TR = {
   a: { k: 'Altta ağır', d: 'Kas uzunken en zor; gerilmiş pozisyonda yükler' },
   u: { k: 'Üstte ağır', d: 'Kas kısalırken en zor; alt aralık hafif kalır' },
   o: { k: 'Ortada ağır', d: 'En zor nokta hareketin ortası; iki uç daha hafif' },
   d: { k: 'Dengeli', d: 'Direnç hareket boyunca benzer' },
 };
-PROF.alt = PROF.a; PROF.ust = PROF.u; PROF.dengeli = PROF.d;
-const FAT = ['', 'Düşük', 'Orta', 'Yüksek'];
+const PROF_EN = {
+  a: { k: 'Hardest at the bottom', d: 'Hardest with the muscle long; loads the stretched position' },
+  u: { k: 'Hardest at the top', d: 'Hardest as the muscle shortens; the bottom range stays light' },
+  o: { k: 'Hardest mid-range', d: 'The sticking point is mid-rep; both ends are easier' },
+  d: { k: 'Even', d: 'Resistance stays similar through the whole rep' },
+};
+for (const P of [PROF_TR, PROF_EN]) { P.alt = P.a; P.ust = P.u; P.dengeli = P.d; }
+const PROF = byLang({ tr: PROF_TR, en: PROF_EN });
+const FAT = byLang({ tr: ['', 'Düşük', 'Orta', 'Yüksek'], en: ['', 'Low', 'Moderate', 'High'] });
 const LIB_MAP = new Map(EX_LIB.map((e) => [e.id, e]));
 const libById = (id) => (id ? LIB_MAP.get(id) : undefined);
 const isPlyo = (exId) => { const e = libById(exId); return !!(e && e.kind === 'plyo'); };
 const isSkill = (exId) => { const e = libById(exId); return !!(e && e.kind === 'beceri'); };
 // Pliometrik yorgunluk: temas başına yük, yoğunluğa göre (düşük, orta, yüksek, şok). 100 orta temas ≈ 5 orta maliyetli zor set.
 const PLYO_W = [0, 0.03, 0.05, 0.08, 0.12];
-const PLYO_Q = [
-  { k: 'Korundu', d: 'Yükseklik ve hız korundu', c: 'var(--neuro)' },
-  { k: 'Biraz düştü', d: 'Son tekrarlar biraz alçaldı', c: 'var(--amber)' },
-  { k: 'Belirgin düştü', d: 'Kalite bozuldu; seti bitir', c: 'var(--burn)' },
-];
+const PLYO_Q = byLang({
+  tr: [
+    { k: 'Korundu', d: 'Yükseklik ve hız korundu', c: 'var(--neuro)' },
+    { k: 'Biraz düştü', d: 'Son tekrarlar biraz alçaldı', c: 'var(--amber)' },
+    { k: 'Belirgin düştü', d: 'Kalite bozuldu; seti bitir', c: 'var(--burn)' },
+  ],
+  en: [
+    { k: 'Held', d: 'Height and speed held', c: 'var(--neuro)' },
+    { k: 'Dropped a bit', d: 'The last reps got a little lower', c: 'var(--amber)' },
+    { k: 'Clearly dropped', d: 'Quality broke down; end the set', c: 'var(--burn)' },
+  ],
+});
 const SKILL_W = [0, 0.02, 0.04, 0.06];
-const SKILL_Q = [
-  { k: 'Temiz', d: 'Temiz tekrar', c: 'var(--ok)' },
-  { k: 'Kısmen', d: 'Kısmen çıktı', c: 'var(--warn)' },
-  { k: 'Olmadı', d: 'Henüz çıkmadı', c: 'var(--bad)' },
-];
+const SKILL_Q = byLang({
+  tr: [
+    { k: 'Temiz', d: 'Temiz tekrar', c: 'var(--ok)' },
+    { k: 'Kısmen', d: 'Kısmen çıktı', c: 'var(--warn)' },
+    { k: 'Olmadı', d: 'Henüz çıkmadı', c: 'var(--bad)' },
+  ],
+  en: [
+    { k: 'Clean', d: 'Clean rep', c: 'var(--ok)' },
+    { k: 'Partly', d: 'Partly there', c: 'var(--warn)' },
+    { k: 'Missed', d: 'Not there yet', c: 'var(--bad)' },
+  ],
+});
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const rid = () => Math.random().toString(36).slice(2, 8);
 const newId = (p) => p + '_' + Date.now().toString(36) + rid();
-const nf = (n, d) => {
-  if (!Number.isFinite(n)) return '–';
-  const dd = d == null ? (Math.abs(n % 1) > 1e-9 ? 1 : 0) : d;
-  try { return n.toLocaleString('tr-TR', { minimumFractionDigits: dd, maximumFractionDigits: dd }); } catch (e) { return n.toFixed(dd).replace('.', ','); }
-};
+const nf = (n, d) => num(n, d);
 const hasNum = (v) => v !== null && v !== undefined && v !== '' && Number.isFinite(Number(v));
 const kgTxt = (kg) => (hasNum(kg) ? nf(Number(kg)) + ' kg' : '—');
-const restTxt = (sec) => (sec % 60 ? nf(sec / 60, 1) : String(sec / 60)) + ' dk';
+const restTxt = (sec) => t('{n} dk', { n: sec % 60 ? nf(sec / 60, 1) : String(sec / 60) });
 const mmss = (ms) => {
   const t = Math.max(0, Math.floor(ms / 1000));
   const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60;
   return (h ? h + ':' + String(m).padStart(2, '0') : String(m)) + ':' + String(s).padStart(2, '0');
 };
-const durTxt = (ms) => { const m = Math.max(1, Math.round(ms / 60000)); return m < 60 ? m + ' dk' : Math.floor(m / 60) + ' sa ' + (m % 60) + ' dk'; };
+const durTxt = (ms) => { const m = Math.max(1, Math.round(ms / 60000)); return m < 60 ? t('{n} dk', { n: m }) : t('{h} sa {m} dk', { h: Math.floor(m / 60), m: m % 60 }); };
 const dateTxt = (ts) => { const d = new Date(ts); return d.getDate() + ' ' + MONTHS[d.getMonth()] + ' · ' + WD_SHORT[d.getDay()]; };
 const sameDay = (a, b) => { const x = new Date(a), y = new Date(b); return x.getFullYear() === y.getFullYear() && x.getMonth() === y.getMonth() && x.getDate() === y.getDate(); };
 const normTr = (s) => (s || '').toLocaleLowerCase('tr').replace(/ı/g, 'i').normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
@@ -68,13 +86,21 @@ const normTr = (s) => (s || '').toLocaleLowerCase('tr').replace(/ı/g, 'i').norm
 // yükten bağımsızdır. Aynı hız kaybı yüzdesi hafif yükte tükenişten uzak, ağır yükte yakın demektir
 // (Rodríguez-Rosell ve ark. 2020), ama kişi "zar zor çıktı" dediğinde yük ne olursa olsun tükenişe yakındır.
 // RIR tabanlı RPE ile bar hızı güçlü ilişkili (Zourdos ve ark. 2016, r = −0,88).
-const SPEED = [
+const SPEED_TR = [
   { k: 'Aynı hız', d: 'İlki kadar hızlı · 5+ kaldı', rir: 5, vl: 0.05 },
   { k: 'Biraz yavaş', d: 'Biraz yavaşladı · ~3 kaldı', rir: 3, vl: 0.18 },
   { k: 'Belirgin yavaş', d: 'Belirgin yavaş · ~2 kaldı', rir: 2, vl: 0.32 },
   { k: 'Çok yavaş', d: 'Çok yavaş · ~1 kaldı', rir: 1, vl: 0.47 },
   { k: 'Takılma sınırı', d: 'Zar zor çıktı · tükeniş', rir: 0, vl: 0.62 },
 ];
+const SPEED_EN_TXT = [
+  ['Same speed', 'As fast as the first · 5+ left'],
+  ['A bit slower', 'Slowed a little · ~3 left'],
+  ['Clearly slower', 'Clearly slower · ~2 left'],
+  ['Very slow', 'Very slow · ~1 left'],
+  ['Grinding', 'Barely got it · failure'],
+];
+const SPEED = byLang({ tr: SPEED_TR, en: SPEED_TR.map((x, i) => ({ ...x, k: SPEED_EN_TXT[i][0], d: SPEED_EN_TXT[i][1] })) });
 const rirTxt = (rir) => (rir >= 5 ? '5+' : nf(Math.round(rir)));
 const V_MIN = 0.17;      // bench press'te 1RM / tükeniş tekrarı ortalama itiş hızı (m/s)
 const ROM_M = 0.4;       // animasyon için nominal hareket açıklığı (m)
@@ -105,7 +131,7 @@ function repVelocities(reps, rir, vl) {
 const e1rm = (kg, reps, rir) => Number(kg) * (1 + (reps + rir) / 30);
 const rpeLabel = (rpe, rir) => (rpe <= 6 && rir > 4 ? '≤6' : nf(Number(rpe)));
 const vlColor = (vl) => (vl < 0.2 ? 'var(--neuro)' : vl < 0.35 ? 'var(--amber)' : vl < 0.5 ? 'var(--fire)' : 'var(--burn)');
-const skillSetTxt = (z) => z.reps + ' deneme · ' + (SKILL_Q[z.q || 0] ? SKILL_Q[z.q || 0].k : 'Temiz') + (Number(z.hold) > 0 ? ' · ' + nf(Number(z.hold)) + ' sn' : '');
+const skillSetTxt = (z) => t('{n} deneme', { n: z.reps }) + ' · ' + (SKILL_Q[z.q || 0] ? SKILL_Q[z.q || 0].k : SKILL_Q[0].k) + (Number(z.hold) > 0 ? ' · ' + t('{n} sn', { n: nf(Number(z.hold)) }) : '');
 
 function blankProgram() {
   const now = Date.now();
@@ -134,12 +160,12 @@ function itemFromEx(ex) {
 }
 function repTxt(a, b) { return !hasNum(b) || Number(a) === Number(b) ? String(a) : a + '–' + b; }
 function rpeTxt(a, b) { if (!hasNum(a)) return null; return 'RPE ' + (!hasNum(b) || Number(a) === Number(b) ? nf(Number(a)) : nf(Number(a)) + '–' + nf(Number(b))); }
-function targetTxt(t, exId) {
+function targetTxt(tg, exId) {
   const plyo = isPlyo(exId);
   const skill = isSkill(exId);
-  const parts = [t.sets + ' × ' + repTxt(t.repMin, t.repMax) + (plyo ? ' temas' : skill ? ' deneme' : '')];
-  if (!skill && hasNum(t.kg)) parts.push(kgTxt(t.kg));
-  const r = skill ? null : rpeTxt(t.rpeMin, t.rpeMax);
+  const parts = [tg.sets + ' × ' + repTxt(tg.repMin, tg.repMax) + (plyo ? ' ' + t('temas') : skill ? ' ' + t('deneme') : '')];
+  if (!skill && hasNum(tg.kg)) parts.push(kgTxt(tg.kg));
+  const r = skill ? null : rpeTxt(tg.rpeMin, tg.rpeMax);
   if (r) parts.push(r);
   return parts.join(' · ');
 }
@@ -171,20 +197,20 @@ function weeklyHard(sessions, endTs) {
 /* ---------- küçük parçalar ---------- */
 function Stepper({ id, value, onChange, step, min, max, unit, label, decimals }) {
   const [txt, setTxt] = useState(String(value));
-  useEffect(() => { setTxt(hasNum(value) ? nf(Number(value), decimals).replace(/\./g, '') : ''); }, [value]);
+  useEffect(() => { setTxt(hasNum(value) ? numIn(Number(value), decimals) : ''); }, [value]);
   const commit = (raw) => {
     const n = parseFloat(String(raw).replace(',', '.'));
     if (Number.isFinite(n)) onChange(clamp(n, min, max));
-    else setTxt(hasNum(value) ? nf(Number(value), decimals) : '');
+    else setTxt(hasNum(value) ? numIn(Number(value), decimals) : '');
   };
   const bump = (d) => onChange(clamp(Math.round(((Number(value) || 0) + d) * 100) / 100, min, max));
   return (
     <div className="stepper">
       <label htmlFor={id} className="st-k">{label}</label>
       <div className="st-row">
-        <button type="button" className="st-btn" aria-label={label + ' azalt'} onClick={() => bump(-step)}>−</button>
+        <button type="button" className="st-btn" aria-label={t('{x} azalt', { x: label })} onClick={() => bump(-step)}>−</button>
         <input id={id} className="st-in mono" inputMode="decimal" value={txt} onChange={(e) => setTxt(e.target.value)} onBlur={(e) => commit(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }} />
-        <button type="button" className="st-btn" aria-label={label + ' artır'} onClick={() => bump(step)}>+</button>
+        <button type="button" className="st-btn" aria-label={t('{x} artır', { x: label })} onClick={() => bump(step)}>+</button>
       </div>
       {unit ? <span className="st-u">{unit}</span> : null}
     </div>

@@ -43,15 +43,22 @@ import { readFxSettings } from '../lib/native/fx';
 import { dbMultiplier } from '../lib/models/session';
 import { PX_SPEED, PX_SPEED_COLORS } from '../features/antrenman/pixelHelpers';
 import { HoldButton } from './HoldButton';
+import { byLang, pct, t, tc, useLang } from '../i18n';
+import { dayLabel, exName } from '../i18n/names';
+import { REC_FRESH } from '../lib/models/fatigue';
 
 /* ================= PERFORMANCE · son kullanıcı uygulaması ================= */
+// Sekme etiketleri Türkçe kaynak metindir; gösterimde t() ile çevrilir (V21).
 const TABS2 = [
   { id: 'bugun', label: 'Dashboard', icon: 'home' },
   { id: 'antrenman', label: 'Antrenman', icon: 'bolt' },
   { id: 'gozlem', label: 'Gözlem', icon: 'calendar' },
   { id: 'lab', label: 'Lab', icon: 'flask' },
 ];
-const MONTHS_LONG = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+const MONTHS_LONG = byLang({
+  tr: ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'],
+  en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+});
 const MAIN_MUSCLES = ['Göğüs', 'Omuz (ön)', 'Omuz (yan)', 'Sırt', 'Trapez', 'Triceps', 'Hamstring', 'Quadriceps'];
 const SPEED_SHORT = ['Aynı', 'Hafif', 'Belirgin', 'Çok', 'Grind'];
 const NOTE_TAGS = ['Kolay geldi', 'Form bozuldu', 'Takıldı', 'Ağrı', 'Pump', 'Yardım aldım'];
@@ -63,17 +70,17 @@ function useNow(ms) {
   return now;
 }
 const dayKey = (ts) => { const d = new Date(ts); return 'c_' + d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
-const fullDate = (ts) => { const d = new Date(ts); return WD_LONG[d.getDay()] + ', ' + d.getDate() + ' ' + MONTHS_LONG[d.getMonth()]; };
+const fullDate = (ts) => { const d = new Date(ts); return t('{wd}, {d} {m}', { wd: WD_LONG[d.getDay()], d: d.getDate(), m: MONTHS_LONG[d.getMonth()] }); };
 const exMeta = (exId, name) => EX_LIB.find((e) => e.id === exId) || EX_LIB.find((e) => e.name === name) || null;
 const dayMinutes = (day) => Math.round(day.items.reduce((a, i) => a + Number(i.sets || 0) * ((i.rest || 120) + 45), 0) / 60);
 const hm = (ts) => { const d = new Date(ts); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
-const zoneOf = (score) => (score < 40 ? { k: 'Yönetilebilir', c: 'var(--ok)', cls: 'ok' } : score < 70 ? { k: 'Birikiyor', c: 'var(--warn)', cls: 'warn' } : { k: 'Yüksek', c: 'var(--bad)', cls: 'bad' });
+const zoneOf = (score) => (score < 40 ? { k: t('Yönetilebilir'), c: 'var(--ok)', cls: 'ok' } : score < 70 ? { k: t('Birikiyor'), c: 'var(--warn)', cls: 'warn' } : { k: t('Yüksek'), c: 'var(--bad)', cls: 'bad' });
 const tonTxt = (kg) => (kg >= 10000 ? nf(Math.round(kg / 100) / 10) + ' t' : nf(Math.round(kg)) + ' kg');
 const sessionNotes = (s) => s.items.reduce((a, it) => a + (it.memo ? 1 : 0) + it.sets.filter((x) => x.note || (x.tags && x.tags.length)).length, 0);
 const sessionSubTxt = (ss) => {
   if (ss.tonnage > 0) return tonTxt(ss.tonnage);
-  if (ss.attempts > 0) return ss.attempts + ' deneme';
-  if (ss.contacts > 0) return ss.contacts + ' temas';
+  if (ss.attempts > 0) return t('{n} deneme', { n: ss.attempts });
+  if (ss.contacts > 0) return t('{n} temas', { n: ss.contacts });
   return tonTxt(0);
 };
 const isSkillHeavySession = (s) => {
@@ -102,13 +109,13 @@ function SheetFrame({ title, onClose, children, size, z, head, top }) {
   useBack(top, onClose);
   return (
     <div className="sheet-wrap pxt" style={{ zIndex: z }} role="dialog" aria-modal="true" aria-label={title}>
-      <button type="button" className="sheet-bg" aria-label="Kapat" onClick={onClose} />
+      <button type="button" className="sheet-bg" aria-label={t('Kapat')} onClick={onClose} />
       <div className={'sheet ' + (size || '')}>
         <div className="sheet-grab" aria-hidden="true" />
         <div className="sheet-h">
           <h3>{title}</h3>
           {head || null}
-          <button type="button" className="x-btn" onClick={onClose} aria-label="Kapat">✕</button>
+          <button type="button" className="x-btn" onClick={onClose} aria-label={t('Kapat')}>✕</button>
         </div>
         <div className="sheet-body">{children}</div>
       </div>
@@ -311,7 +318,7 @@ function formatDue(due) {
   if (!due) return '';
   const d = parseDateKey(due);
   if (Number.isNaN(d.getTime())) return '';
-  return d.getDate() + ' ' + MONTHS[d.getMonth()] + "'ya kadar";
+  return t("{d} {m}'ya kadar", { d: d.getDate(), m: MONTHS[d.getMonth()] });
 }
 function TodayScreen({ st, put, openSheet, startSession, newPlan, practiceSkill, goTab, acct }) {
   const fz = fatigueAt(st, Date.now());
@@ -327,80 +334,80 @@ function TodayScreen({ st, put, openSheet, startSession, newPlan, practiceSkill,
 
   return (
     <div className="screen pxt">
-      <ScreenHead title="Dashboard" sub={fullDate(Date.now())} right={<AccountChip acct={acct} onClick={() => openSheet('account', {})} />} />
+      <ScreenHead title={t('Dashboard')} sub={fullDate(Date.now())} right={<AccountChip acct={acct} onClick={() => openSheet('account', {})} />} />
       <div className="scr fit">
         {acct.mode === 'guest' && st.sessions.length ? (
           <button type="button" id="guest-banner" className="guest-banner" onClick={() => openSheet('account', {})}>
             <PxIcon name="cloud" size={18} />
-            <span>Kayıtlar yalnızca bu telefonda · <b>Yedekle</b></span>
+            <span>{t('Kayıtlar yalnızca bu telefonda')} · <b>{t('Yedekle')}</b></span>
             <PxIcon name="right" size={14} />
           </button>
         ) : null}
         <section className="ready">
-          <button type="button" id="ready-ring" className="ready-ring" onClick={() => openSheet('fatigue', {})} aria-label="Yorgunluk ayrıntısı">
-            <Ring pixel size={104} score={fz.score} zone={fz.zone} label={'Yorgunluk ' + Math.round(fz.score)} />
+          <button type="button" id="ready-ring" className="ready-ring" onClick={() => openSheet('fatigue', {})} aria-label={t('Yorgunluk ayrıntısı')}>
+            <Ring pixel size={104} score={fz.score} zone={fz.zone} label={t('Yorgunluk {n}', { n: Math.round(fz.score) })} />
           </button>
           <div className="ready-r">
             <div className="ready-top">
-              <span className="ready-k">Yorgunluk</span>
+              <span className="ready-k">{t('Yorgunluk')}</span>
               <span className="zone-pill" style={{ color: fz.zone.c, borderColor: fz.zone.c }}>{fz.zone.k}</span>
             </div>
             <div className="ready-parts mono">
-              <span>Antrenman <b>{Math.round(fz.train)}</b></span>
-              <span className={sl.known ? (fz.sleepPts >= 8 ? 'bad' : '') : 'ask'}>Uyku {sl.known ? <b>+{Math.round(fz.sleepPts)}</b> : <b>?</b>}</span>
-              <span>{fz.hrs ? '~' + fz.hrs + ' sa toparlanma' : 'toparlanmış'}</span>
+              <span>{tc('load', 'Antrenman')} <b>{Math.round(fz.train)}</b></span>
+              <span className={sl.known ? (fz.sleepPts >= 8 ? 'bad' : '') : 'ask'}>{t('Uyku')} {sl.known ? <b>+{Math.round(fz.sleepPts)}</b> : <b>?</b>}</span>
+              <span>{fz.hrs ? t('~{n} sa toparlanma', { n: fz.hrs }) : t('toparlanmış')}</span>
             </div>
-            <div className="sleep-row" role="radiogroup" aria-label="Dün geceki uyku">
-              <span className="sleep-k">Uyku</span>
+            <div className="sleep-row" role="radiogroup" aria-label={t('Dün geceki uyku')}>
+              <span className="sleep-k">{t('Uyku')}</span>
               {[5, 6, 7, 8, 9].map((h) => (
                 <button key={h} type="button" role="radio" aria-checked={sl.known && sl.last === h} className={'sl' + (sl.known && sl.last === h ? ' on' : '')} onClick={() => setSleep(h)}>{h}</button>
               ))}
-              <span className="sleep-u">sa</span>
+              <span className="sleep-u">{t('sa')}</span>
             </div>
           </div>
-          {short ? <p className="ready-warn">Kısa uyku: kuvvet ~%3, çok tekrarlı setler ~%10 düşebilir.</p> : null}
+          {short ? <p className="ready-warn">{t('Kısa uyku: kuvvet ~%3, çok tekrarlı setler ~%10 düşebilir.')}</p> : null}
         </section>
 
         {loading ? <div className="skeleton"><span /><span /></div> : active ? (
           <section className="hero-card live">
-            <div className="hc-top"><span className="live-dot" /><span className="eyebrow fire">{active.ready ? 'Hazır' : 'Antrenman sürüyor'}</span><span className="hc-when mono">{active.ready ? 'başlamadı' : active.items.reduce((a, it) => a + it.sets.length, 0) + ' set'}</span></div>
+            <div className="hc-top"><span className="live-dot" /><span className="eyebrow fire">{active.ready ? t('Hazır') : t('Antrenman sürüyor')}</span><span className="hc-when mono">{active.ready ? t('başlamadı') : t('{n} set', { n: active.items.reduce((a, it) => a + it.sets.length, 0) })}</span></div>
             <h3>{sessionName(active)}</h3>
-            <button type="button" id="resume-btn" className="btn fire full" onClick={() => goTab('antrenman')}>Devam et <PxIcon name="right" size={16} /></button>
+            <button type="button" id="resume-btn" className="btn fire full" onClick={() => goTab('antrenman')}>{t('Devam et')} <PxIcon name="right" size={16} /></button>
           </section>
         ) : next && next.off === 0 ? (
           <section className="hero-card">
-            <div className="hc-top"><span className="eyebrow">Bugün</span><span className="hc-when mono">~{dayMinutes(next.day)} dk</span></div>
-            <h3>{next.day.name}</h3>
-            <p className="hc-sub">{next.day.items.slice(0, 3).map((i) => i.name).join(' · ')}{next.day.items.length > 3 ? ' +' + (next.day.items.length - 3) : ''}</p>
-            <button type="button" id="start-next" className="btn primary full" onClick={() => startSession(next.program, next.day)}><PxIcon name="play" size={16} /> Başlat</button>
+            <div className="hc-top"><span className="eyebrow">{t('Bugün')}</span><span className="hc-when mono">~{t('{n} dk', { n: dayMinutes(next.day) })}</span></div>
+            <h3>{dayLabel(next.day.name)}</h3>
+            <p className="hc-sub">{next.day.items.slice(0, 3).map((i) => exName(i)).join(' · ')}{next.day.items.length > 3 ? ' +' + (next.day.items.length - 3) : ''}</p>
+            <button type="button" id="start-next" className="btn primary full" onClick={() => startSession(next.program, next.day)}><PxIcon name="play" size={16} /> {t('Başlat')}</button>
           </section>
         ) : plans.length > 0 ? (
           <section className="hero-card">
-            <h3>Bugün planlı antrenman yok</h3>
-            <p className="hc-sub">{next ? 'Sıradaki: ' + next.day.name + ' · ' + WD_LONG[next.weekday] : 'Takvimden istediğin güne plan ekleyebilirsin.'}</p>
+            <h3>{t('Bugün planlı antrenman yok')}</h3>
+            <p className="hc-sub">{next ? t('Sıradaki: {x}', { x: dayLabel(next.day.name) }) + ' · ' + WD_LONG[next.weekday] : t('Takvimden istediğin güne plan ekleyebilirsin.')}</p>
             <div className="hc-actions">
-              <button type="button" className="btn primary" onClick={() => startSession(null, null)}>Plansız antrenman</button>
-              <button type="button" className="btn ghost" onClick={() => goTab('gozlem')}>Takvim</button>
+              <button type="button" className="btn primary" onClick={() => startSession(null, null)}>{t('Plansız antrenman')}</button>
+              <button type="button" className="btn ghost" onClick={() => goTab('gozlem')}>{t('Takvim')}</button>
             </div>
           </section>
         ) : (
           <section className="hero-card">
-            <h3>Planın yok</h3>
-            <p className="hc-sub">Plansız başla ya da ilk planını oluştur.</p>
+            <h3>{t('Planın yok')}</h3>
+            <p className="hc-sub">{t('Plansız başla ya da ilk planını oluştur.')}</p>
             <div className="hc-actions">
-              <button type="button" className="btn primary" onClick={() => startSession(null, null)}>Plansız antrenman</button>
-              <button type="button" className="btn ghost" onClick={() => newPlan('bugun')}>Plan oluştur</button>
+              <button type="button" className="btn primary" onClick={() => startSession(null, null)}>{t('Plansız antrenman')}</button>
+              <button type="button" className="btn ghost" onClick={() => newPlan('bugun')}>{t('Plan oluştur')}</button>
             </div>
           </section>
         )}
 
         <section className="tcard">
-          <div className="tcard-h"><span className="eyebrow">Bu hafta</span><span className="mono tcard-k">{st.sessions.filter((s) => s.status === 'done' && !s.ready && Date.now() - s.startedAt < 7 * DAY_MS).length} antrenman</span></div>
+          <div className="tcard-h"><span className="eyebrow">{t('Bu hafta')}</span><span className="mono tcard-k">{t('{n} antrenman', { n: st.sessions.filter((s) => s.status === 'done' && !s.ready && Date.now() - s.startedAt < 7 * DAY_MS).length })}</span></div>
           <WeekRow programs={st.programs} sessions={st.sessions} />
         </section>
 
         <section className="goals-sec">
-          <div className="sec2-h"><span className="eyebrow">Hedefler</span>{goals.length ? <span className="mono">{goals.length}</span> : null}</div>
+          <div className="sec2-h"><span className="eyebrow">{t('Hedefler')}</span>{goals.length ? <span className="mono">{goals.length}</span> : null}</div>
           {goals.map((goal) => {
             if (goal.type === 'perf') {
               const isFirstPerf = perfCount === 0;
@@ -411,12 +418,12 @@ function TodayScreen({ st, put, openSheet, startSession, newPlan, practiceSkill,
               return (
                 <button key={goal.id} type="button" id={isFirstPerf ? 'goal-card' : undefined} data-goal={goal.id} className="tcard goal2 goal-card" onClick={() => openSheet('goal', { id: goal.id })}>
                   <div className="goal2-l">
-                    <span className="eyebrow fire">Hedef</span>
-                    <span className="goal2-n">{gEx?.name || goal.name || goal.exId}</span>
+                    <span className="eyebrow fire">{t('Hedef')}</span>
+                    <span className="goal2-n">{exName({ exId: goal.exId, name: goal.name }) || goal.exId}</span>
                     <span className="goal2-v mono"><b>{nf(Math.round(cur * 2) / 2)}</b> → {nf(goal.target)} kg</span>
                   </div>
                   <div className="goal2-r">
-                    {series.length > 1 ? <Spark pts={series.slice(-10)} goal={goal.target} /> : <span className="goal2-hint">Kayıtlar arttıkça eğri oluşur</span>}
+                    {series.length > 1 ? <Spark pts={series.slice(-10)} goal={goal.target} /> : <span className="goal2-hint">{t('Kayıtlar arttıkça eğri oluşur')}</span>}
                     <div className="goal-bar"><span style={{ width: clamp((cur - goal.base * 0.9) / (goal.target - goal.base * 0.9)) * 100 + '%' }} /></div>
                   </div>
                 </button>
@@ -425,8 +432,8 @@ function TodayScreen({ st, put, openSheet, startSession, newPlan, practiceSkill,
             const stats = skillStats(goal, st.sessions);
             const daysAgo = stats.last != null ? Math.max(0, Math.floor((Date.now() - stats.last) / DAY_MS)) : null;
             const statTxt = stats.n
-              ? stats.n + ' pratik · son ' + (daysAgo === 0 ? 'bugün' : daysAgo + ' gün önce')
-              : 'Henüz pratik yok';
+              ? t('{n} pratik', { n: stats.n }) + ' · ' + (daysAgo === 0 ? t('son bugün') : t('son {n} gün önce', { n: daysAgo }))
+              : t('Henüz pratik yok');
             const dueTxt = formatDue(goal.due);
             const done = goal.stage === 3;
             return (
@@ -440,15 +447,15 @@ function TodayScreen({ st, put, openSheet, startSession, newPlan, practiceSkill,
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSheet('goal', { id: goal.id }); } }}
               >
                 <div className="skill-top">
-                  <span className="eyebrow skill">{done ? 'Öğrenildi ✓' : 'Öğrenme'}</span>
+                  <span className="eyebrow skill">{done ? t('Öğrenildi ✓') : t('Öğrenme')}</span>
                   <span className="mono" style={{ color: 'var(--muted)' }}>⋯</span>
                 </div>
-                <div className="skill-name">{goal.name}</div>
+                <div className="skill-name">{exName({ exId: goal.exId, name: goal.name })}</div>
                 <div className="skill-stage-row">
                   <div className="skill-bars" aria-hidden="true">
                     {[0, 1, 2, 3].map((i) => <i key={i} className={i <= goal.stage ? 'on' : ''} />)}
                   </div>
-                  <span>{done ? 'Öğrenildi ✓' : SKILL_STAGES[goal.stage]}</span>
+                  <span>{done ? t('Öğrenildi ✓') : SKILL_STAGES[goal.stage]}</span>
                 </div>
                 <div className="skill-foot">
                   <span className="skill-meta">{statTxt}{dueTxt ? ' · ' + dueTxt : ''}</span>
@@ -457,7 +464,7 @@ function TodayScreen({ st, put, openSheet, startSession, newPlan, practiceSkill,
                     className="btn ghost sm skill-go"
                     onClick={(e) => { e.stopPropagation(); practiceSkill(goal); }}
                   >
-                    Pratik et
+                    {t('Pratik et')}
                   </button>
                 </div>
               </div>
@@ -466,14 +473,14 @@ function TodayScreen({ st, put, openSheet, startSession, newPlan, practiceSkill,
           {goals.length === 0 ? (
             <button type="button" id="goal-add" className="tcard goal-add" onClick={() => openSheet('goal', {})}>
               <span className="goal2-l">
-                <span className="eyebrow fire">Hedef</span>
-                <span className="goal2-n">Hedef ekle</span>
-                <span className="goal-add-hint">Güç (1RM) ya da yeni bir beceri hedefi belirle.</span>
+                <span className="eyebrow fire">{t('Hedef')}</span>
+                <span className="goal2-n">{t('Hedef ekle')}</span>
+                <span className="goal-add-hint">{t('Güç (1RM) ya da yeni bir beceri hedefi belirle.')}</span>
               </span>
               <span className="goal-add-plus"><PxIcon name="plus" size={18} /></span>
             </button>
           ) : (
-            <button type="button" id="goal-add" className="goal-add-sm" onClick={() => openSheet('goal', {})}>+ Hedef ekle</button>
+            <button type="button" id="goal-add" className="goal-add-sm" onClick={() => openSheet('goal', {})}>+ {t('Hedef ekle')}</button>
           )}
         </section>
       </div>
@@ -2109,7 +2116,7 @@ function PlanBody({ getProgram, st, openSheet }) {
   return (
     <div className="plan2">
       {sim ? (
-        <button type="button" className="plan2-meter" onClick={() => openSheet('fatigue', { sim: simFromPlan(p), source: 'Planına göre' })}>
+        <button type="button" className="plan2-meter" onClick={() => openSheet('fatigue', { sim: simFromPlan(p), source: t('Planına göre') })}>
           <Ring pixel score={sim.pre} zone={zoneOf(sim.pre)} size={72} label="Seans başında yorgunluk" />
           <div className="pm-t">
             <span className="zone-pill" style={{ color: zoneOf(sim.pre).c, borderColor: zoneOf(sim.pre).c }}>{zoneOf(sim.pre).k}</span>
@@ -2149,17 +2156,17 @@ function FatigueBody({ st, init, source, showNow, openSheet }) {
   const now = showNow ? fatigueAt(st, Date.now()) : null;
   const useNow = now && mode === 'now';
   const head = useNow
-    ? { score: now.score, zone: now.zone, l1: 'antrenman ' + Math.round(now.train) + ' + uyku ' + (now.sleep.known ? Math.round(now.sleepPts) : '?'), l2: now.hrs ? '~' + now.hrs + ' sa sonra toparlanmış' : 'antrenmandan toparlanmış', l3: 'Şu an · kayıtların ve uykun' }
-    : { score: r.pre, zone: r.zone, l1: 'seans başında · sonda ' + Math.round(r.post), l2: 'seans sonrası ~' + r.hrs + ' sa toparlanma', l3: (now ? 'Simülasyon' : source) + ' · haftan böyle sürerse' };
+    ? { score: now.score, zone: now.zone, l1: t('antrenman {a} + uyku {b}', { a: Math.round(now.train), b: now.sleep.known ? Math.round(now.sleepPts) : '?' }), l2: now.hrs ? t('~{n} sa sonra toparlanmış', { n: now.hrs }) : t('antrenmandan toparlanmış'), l3: t('Şu an · kayıtların ve uykun') }
+    : { score: r.pre, zone: r.zone, l1: t('seans başında · sonda {n}', { n: Math.round(r.post) }), l2: t('seans sonrası ~{n} sa toparlanma', { n: r.hrs }), l3: (now ? t('Simülasyon') : source) + ' · ' + t('haftan böyle sürerse') };
   const recs = useNow
-    ? fatigueRecs({ score: now.score, sleepLast: now.sleep.last, sleepAvg: now.sleep.avg3, sleepN: now.sleep.n }).concat(fatigueRecs({ pre: 0, rir: v.rir, perSession: r.perSession, post: r.post }).filter((x) => !/Toparlanmış/.test(x))).slice(0, 3)
+    ? fatigueRecs({ score: now.score, sleepLast: now.sleep.last, sleepAvg: now.sleep.avg3, sleepN: now.sleep.n }).concat(fatigueRecs({ pre: 0, rir: v.rir, perSession: r.perSession, post: r.post }).filter((x) => x !== t(REC_FRESH))).slice(0, 3)
     : fatigueRecs({ pre: r.pre, post: r.post, sleepLast: v.sleepLast, sleepAvg: v.sleepAvg, rir: v.rir, perSession: r.perSession });
   return (
     <div className="fat2">
       {now ? (
-        <div className="segmented seg2 fat2-mode" role="tablist" aria-label="Ölçer neyi göstersin">
-          <button type="button" role="tab" id="fat-now" aria-selected={mode === 'now'} className={mode === 'now' ? 'on' : ''} onClick={() => setMode('now')}>Şu an</button>
-          <button type="button" role="tab" id="fat-sim" aria-selected={mode === 'sim'} className={mode === 'sim' ? 'on' : ''} onClick={() => setMode('sim')}>Simülasyon</button>
+        <div className="segmented seg2 fat2-mode" role="tablist" aria-label={t('Ölçer neyi göstersin')}>
+          <button type="button" role="tab" id="fat-now" aria-selected={mode === 'now'} className={mode === 'now' ? 'on' : ''} onClick={() => setMode('now')}>{t('Şu an')}</button>
+          <button type="button" role="tab" id="fat-sim" aria-selected={mode === 'sim'} className={mode === 'sim' ? 'on' : ''} onClick={() => setMode('sim')}>{t('Simülasyon')}</button>
         </div>
       ) : null}
       <div className="fat2-top">
@@ -2174,22 +2181,22 @@ function FatigueBody({ st, init, source, showNow, openSheet }) {
       </div>
       <div className="recs2">{recs.map((x, i) => <p key={i}>{x}</p>)}</div>
       <div className="fat2-simh">
-        <span className="st-k">{now ? 'Simülasyon · haftan böyle geçerse' : 'Değerleri değiştir'}</span>
-        {now ? <span className="mono fat2-simv">başta <b style={{ color: r.zone.c }}>{Math.round(r.pre)}</b> · sonda <b style={{ color: zoneOf(r.post).c }}>{Math.round(r.post)}</b></span> : null}
+        <span className="st-k">{now ? t('Simülasyon · haftan böyle geçerse') : t('Değerleri değiştir')}</span>
+        {now ? <span className="mono fat2-simv">{t('başta')} <b style={{ color: r.zone.c }}>{Math.round(r.pre)}</b> · {t('sonda')} <b style={{ color: zoneOf(r.post).c }}>{Math.round(r.post)}</b></span> : null}
       </div>
       <div className="fat2-in">
-        <Range id="f-sets" label="Haftalık zor set (tüm kaslar)" value={v.sets} min={4} max={80} step={2} onChange={set('sets')} display={v.sets + ' set'} tone="fire" />
-        <Range id="f-rir" label="Setleri nerede bitiriyorsun" value={v.rir} min={0} max={4} step={0.5} onChange={set('rir')} display={v.rir === 0 ? 'tükenişte' : nf(v.rir) + ' tekrar kala'} tone="fire" />
-        <Range id="f-n" label="Haftada seans" value={v.n} min={1} max={6} onChange={set('n')} display={v.n + ' seans'} />
-        <Range id="f-heavy" label="Ağır bileşik hareket payı" value={v.heavy} min={0} max={100} step={10} onChange={set('heavy')} display={'%' + v.heavy} />
-        <Range id="f-sleep" label="Dün gece uyku" value={v.sleepLast} min={4} max={9} step={0.5} onChange={set('sleepLast')} display={nf(v.sleepLast) + ' sa'} />
-        <Range id="f-sleep3" label="Son 3 gece ortalaması" value={v.sleepAvg} min={4} max={9} step={0.5} onChange={set('sleepAvg')} display={nf(v.sleepAvg) + ' sa'} />
-        <Switch id="f-deload" label="Deload haftası" on={v.deload} onChange={set('deload')} />
+        <Range id="f-sets" label={t('Haftalık zor set (tüm kaslar)')} value={v.sets} min={4} max={80} step={2} onChange={set('sets')} display={t('{n} set', { n: v.sets })} tone="fire" />
+        <Range id="f-rir" label={t('Setleri nerede bitiriyorsun')} value={v.rir} min={0} max={4} step={0.5} onChange={set('rir')} display={v.rir === 0 ? t('tükenişte') : t('{n} tekrar kala', { n: nf(v.rir) })} tone="fire" />
+        <Range id="f-n" label={t('Haftada seans')} value={v.n} min={1} max={6} onChange={set('n')} display={t('{n} seans', { n: v.n })} />
+        <Range id="f-heavy" label={t('Ağır bileşik hareket payı')} value={v.heavy} min={0} max={100} step={10} onChange={set('heavy')} display={pct(v.heavy)} />
+        <Range id="f-sleep" label={t('Dün gece uyku')} value={v.sleepLast} min={4} max={9} step={0.5} onChange={set('sleepLast')} display={t('{n} sa', { n: nf(v.sleepLast) })} />
+        <Range id="f-sleep3" label={t('Son 3 gece ortalaması')} value={v.sleepAvg} min={4} max={9} step={0.5} onChange={set('sleepAvg')} display={t('{n} sa', { n: nf(v.sleepAvg) })} />
+        <Switch id="f-deload" label={t('Deload haftası')} on={v.deload} onChange={set('deload')} />
       </div>
       <div className="fat2-learn">
-        <span className="st-k">Nasıl hesaplanır?</span>
+        <span className="st-k">{t('Nasıl hesaplanır?')}</span>
         <div className="chips-wrap">
-          <button type="button" className="fchip" onClick={() => openSheet('measure', {})}>Yorgunluk nasıl ölçülür?</button>
+          <button type="button" className="fchip" onClick={() => openSheet('measure', {})}>{t('Yorgunluk nasıl ölçülür?')}</button>
           {STAGES.slice(0, 4).map((s2, i) => <button key={s2.id} type="button" className="fchip" onClick={() => openSheet('lesson', { stage: i })}>{s2.short}</button>)}
         </div>
       </div>
@@ -2345,28 +2352,28 @@ function GoalBody({ id, st, put, del, addCustom, onClose }) {
   return (
     <div className="note-sheet">
       {!existing ? (
-        <div className="segmented seg2" role="tablist" aria-label="Hedef türü">
-          <button type="button" role="tab" id="goal-type-perf" aria-selected={type === 'perf'} className={type === 'perf' ? 'on' : ''} onClick={() => { setType('perf'); setQ(''); }}>Güç (1RM)</button>
-          <button type="button" role="tab" id="goal-type-skill" aria-selected={type === 'skill'} className={type === 'skill' ? 'on' : ''} onClick={() => { setType('skill'); setQ(''); }}>Öğrenme</button>
+        <div className="segmented seg2" role="tablist" aria-label={t('Hedef türü')}>
+          <button type="button" role="tab" id="goal-type-perf" aria-selected={type === 'perf'} className={type === 'perf' ? 'on' : ''} onClick={() => { setType('perf'); setQ(''); }}>{t('Güç (1RM)')}</button>
+          <button type="button" role="tab" id="goal-type-skill" aria-selected={type === 'skill'} className={type === 'skill' ? 'on' : ''} onClick={() => { setType('skill'); setQ(''); }}>{t('Öğrenme')}</button>
         </div>
       ) : null}
 
       {type === 'perf' ? (
         <React.Fragment>
-          <span className="st-k">Hareket{curPerfLib ? ': ' + curPerfLib.name : perf.name ? ': ' + perf.name : ''}</span>
-          <input id="goal-search" className="search" type="search" placeholder="Hareket ara (ör. bench, squat)" value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" />
-          <div className="chips-wrap">{perfOpts.map((e) => <button key={e.id} type="button" className={'fchip' + (perf.exId === e.id ? ' on' : '')} onClick={() => selectPerf(e)}>{e.name}</button>)}</div>
+          <span className="st-k">{t('Hareket')}{curPerfLib ? ': ' + exName(curPerfLib) : perf.name ? ': ' + exName(perf) : ''}</span>
+          <input id="goal-search" className="search" type="search" placeholder={t('Hareket ara (ör. bench, squat)')} value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" />
+          <div className="chips-wrap">{perfOpts.map((e) => <button key={e.id} type="button" className={'fchip' + (perf.exId === e.id ? ' on' : '')} onClick={() => selectPerf(e)}>{exName(e)}</button>)}</div>
           <div className="entry-steps">
-            <Stepper id="goal-base" label="Başlangıç 1RM" value={perf.base} step={2.5} min={0} max={400} onChange={(v) => setPerf({ ...perf, base: v })} />
-            <Stepper id="goal-target" label="Hedef 1RM" value={perf.target} step={2.5} min={0} max={400} onChange={(v) => setPerf({ ...perf, target: v })} />
+            <Stepper id="goal-base" label={t('Başlangıç 1RM')} value={perf.base} step={2.5} min={0} max={400} onChange={(v) => setPerf({ ...perf, base: v })} />
+            <Stepper id="goal-target" label={t('Hedef 1RM')} value={perf.target} step={2.5} min={0} max={400} onChange={(v) => setPerf({ ...perf, target: v })} />
           </div>
-          <button type="button" id="goal-save" className="btn primary full" disabled={!perfValid} onClick={savePerf}>Kaydet</button>
-          {!perfValid ? <p className="goal-form-hint">{!perf.exId ? 'Önce bir hareket seç' : Number(perf.base) <= 0 ? 'Başlangıç 1RM değerini gir' : 'Hedef, başlangıçtan büyük olmalı'}</p> : null}
+          <button type="button" id="goal-save" className="btn primary full" disabled={!perfValid} onClick={savePerf}>{t('Kaydet')}</button>
+          {!perfValid ? <p className="goal-form-hint">{!perf.exId ? t('Önce bir hareket seç') : Number(perf.base) <= 0 ? t('Başlangıç 1RM değerini gir') : t('Hedef, başlangıçtan büyük olmalı')}</p> : null}
         </React.Fragment>
       ) : (
         <React.Fragment>
-          <span className="st-k">Hareket{skill.name ? ': ' + skill.name : ''}</span>
-          <input id="goal-search" className="search" type="search" placeholder="Beceri ya da hareket ara (ör. kip-up, amut)" value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" />
+          <span className="st-k">{t('Hareket')}{skill.name ? ': ' + exName(skill) : ''}</span>
+          <input id="goal-search" className="search" type="search" placeholder={t('Beceri ya da hareket ara (ör. kip-up, amut)')} value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" />
           <div className="chips-wrap">
             {skillOpts.map((e) => (
               <button
@@ -2375,7 +2382,7 @@ function GoalBody({ id, st, put, del, addCustom, onClose }) {
                 className={'fchip' + (skill.exId === e.id && skill.name === e.name ? ' on' : '')}
                 onClick={() => setSkill({ ...skill, exId: e.id, name: e.name })}
               >
-                {e.name}
+                {exName(e)}
               </button>
             ))}
           </div>
@@ -2389,11 +2396,11 @@ function GoalBody({ id, st, put, del, addCustom, onClose }) {
                 setSkill({ ...skill, exId: d.id, name: d.name });
               }}
             >
-              + “{q.trim()}” adıyla özel hareket
+              {t('+ “{x}” adıyla özel hareket', { x: q.trim() })}
             </button>
           ) : null}
-          <span className="st-k">Aşama</span>
-          <div className="chips-wrap" role="radiogroup" aria-label="Aşama">
+          <span className="st-k">{t('Aşama')}</span>
+          <div className="chips-wrap" role="radiogroup" aria-label={t('Aşama')}>
             {SKILL_STAGES.map((stLabel, idx) => (
               <button
                 key={idx}
@@ -2407,14 +2414,14 @@ function GoalBody({ id, st, put, del, addCustom, onClose }) {
               </button>
             ))}
           </div>
-          <label className="st-k" htmlFor="goal-due">Hedef tarih (isteğe bağlı)</label>
+          <label className="st-k" htmlFor="goal-due">{t('Hedef tarih (isteğe bağlı)')}</label>
           <input id="goal-due" className="text-in" type="date" value={skill.due} onChange={(e) => setSkill({ ...skill, due: e.target.value })} />
-          <button type="button" id="goal-save" className="btn primary full" disabled={!skillValid} onClick={saveSkill}>Kaydet</button>
-          {!skillValid ? <p className="goal-form-hint">Önce bir hareket seç</p> : null}
+          <button type="button" id="goal-save" className="btn primary full" disabled={!skillValid} onClick={saveSkill}>{t('Kaydet')}</button>
+          {!skillValid ? <p className="goal-form-hint">{t('Önce bir hareket seç')}</p> : null}
         </React.Fragment>
       )}
 
-      {existing ? <button type="button" id="goal-remove" className="btn danger-t full" onClick={handleRemove}>Hedefi kaldır</button> : null}
+      {existing ? <button type="button" id="goal-remove" className="btn danger-t full" onClick={handleRemove}>{t('Hedefi kaldır')}</button> : null}
     </div>
   );
 }
@@ -2580,7 +2587,7 @@ function MeasureBody({ openSheet }) {
 
 /* ================= KABUK ================= */
 const SHEET_TITLES = {
-  account: 'Hesap ve yedek',
+  account: 'Hesap ve ayarlar',
   consent: 'Verilerin nasıl kullanılır',
   privacy: 'Gizlilik',
   fatigue: 'Yorgunluk ölçer',
@@ -2602,6 +2609,7 @@ const SHEET_TITLES = {
 };
 
 function App() {
+  const lang = useLang();
   const store = useLogStore();
   const [st, apiRef] = store;
   const acct = st.account;
@@ -2731,7 +2739,7 @@ function App() {
       case 'exlist': return <ExListBody {...p} onClose={close} openSheet={openSheet} />;
       case 'setdetail': return <SetDetailBody set={p.set} idx={p.idx} exId={p.exId} name={p.title} onDelete={p.onDelete} onClose={close} />;
       case 'wtype': return <WtypeMenuBody st={st} pid={p.pid} did={p.did} put={put} del={del} onStart={startSession} onEdit={(pr, d) => editPlan(pr, d, tab)} onClose={close} />;
-      case 'summary': { const s = p.draft || st.sessions.find((x) => x.id === p.id); return s ? <SummaryBody session={s} st={st} put={put} del={del} openSheet={openSheet} onDelete={(id) => del('sessions', id)} onClose={close} /> : <p className="muted-p">Kayıt bulunamadı.</p>; }
+      case 'summary': { const s = p.draft || st.sessions.find((x) => x.id === p.id); return s ? <SummaryBody session={s} st={st} put={put} del={del} openSheet={openSheet} onDelete={(id) => del('sessions', id)} onClose={close} /> : <p className="muted-p">{t('Kayıt bulunamadı.')}</p>; }
       case 'saveTemplate': return <SaveTemplateBody session={p.session} st={st} put={put} onClose={close} onSaved={(pr, d) => { closeAll(); setPixelSummary(null); editPlan(pr, d, 'antrenman'); }} />;
       case 'plan': return <PlanBody getProgram={p.getProgram} st={st} openSheet={openSheet} />;
       case 'goal': return <GoalBody id={p.id} st={st} put={put} del={del} addCustom={addCustom} onClose={close} />;
@@ -2741,11 +2749,11 @@ function App() {
   };
   const sheetTitle = (sh) => {
     const p = sh.props;
-    if (sh.type === 'exercise') return (exMeta(p.exId, p.name) || { name: p.name || 'Hareket' }).name;
+    if (sh.type === 'exercise') return exName(exMeta(p.exId, p.name) || { name: p.name }) || t('Hareket');
     if (sh.type === 'legal') return legalDoc(p.doc).title;
-    if (sh.type === 'note' || sh.type === 'item' || sh.type === 'setdetail') return p.title || (p.it && p.it.name) || SHEET_TITLES[sh.type];
-    if (sh.type === 'wtype') { const pr = st.programs.find((x) => x.id === p.pid); const d = pr && pr.days.find((x) => x.id === p.did); return d ? d.name || 'Adsız' : SHEET_TITLES.wtype; }
-    return SHEET_TITLES[sh.type];
+    if (sh.type === 'note' || sh.type === 'item' || sh.type === 'setdetail') return p.title || (p.it && exName(p.it)) || t(SHEET_TITLES[sh.type]);
+    if (sh.type === 'wtype') { const pr = st.programs.find((x) => x.id === p.pid); const d = pr && pr.days.find((x) => x.id === p.did); return d ? dayLabel(d.name) : t(SHEET_TITLES.wtype); }
+    return t(SHEET_TITLES[sh.type]);
   };
   const sheetSize = (sh) => (['lesson', 'exercise', 'fatigue', 'summary', 'picker', 'measure', 'legal'].includes(sh.type) ? 'full' : '');
 
@@ -2808,18 +2816,19 @@ function App() {
 
   return (
     <BackupContext.Provider value={{ readBackup: actions.readBackup, restoreBackup: actions.restoreBackup, cloud: acct.mode === 'user' }}>
-    <div className="device-wrap">
+    {/* V21: dil değişince ekran ağacı yeniden kurulur; sekme, açık pencereler ve veri App'te kalır. */}
+    <div className="device-wrap" key={lang}>
       <div className="device">
         <div className="app-shell app2">
           <main className="app2-main" inert={acct.migrating || acct.busy || !legalOk}>{screen}</main>
-          {st.error ? <div className="store-message" role="alert">{st.error}</div> : null}
-          {acct.migrating ? <div className="store-message" role="status">Kayıtlar hesabına taşınıyor…</div> : null}
-          {exitToast ? <div className="back-toast" role="status">Çıkmak için tekrar bas</div> : null}
-          <nav className="tabbar tb4" aria-label="Ana gezinme" inert={acct.migrating || acct.busy || !legalOk}>
-            {TABS2.map((t) => (
-              <button key={t.id} id={'tab-' + t.id} type="button" className={'tab' + (t.id === tab ? ' on' : '')} aria-label={t.label} aria-current={t.id === tab ? 'page' : undefined} onClick={() => pick(t.id)}>
-                <span className="tab-ic"><PxIcon name={t.icon} size={24} />{t.id === 'antrenman' && active ? <i className="tab-live" /> : null}</span>
-                <span className="tab-l">{t.label}</span>
+          {st.error ? <div className="store-message" role="alert">{t(st.error)}</div> : null}
+          {acct.migrating ? <div className="store-message" role="status">{t('Kayıtlar hesabına taşınıyor…')}</div> : null}
+          {exitToast ? <div className="back-toast" role="status">{t('Çıkmak için tekrar bas')}</div> : null}
+          <nav className="tabbar tb4" aria-label={t('Ana gezinme')} inert={acct.migrating || acct.busy || !legalOk}>
+            {TABS2.map((tb) => (
+              <button key={tb.id} id={'tab-' + tb.id} type="button" className={'tab' + (tb.id === tab ? ' on' : '')} aria-label={t(tb.label)} aria-current={tb.id === tab ? 'page' : undefined} onClick={() => pick(tb.id)}>
+                <span className="tab-ic"><PxIcon name={tb.icon} size={24} />{tb.id === 'antrenman' && active ? <i className="tab-live" /> : null}</span>
+                <span className="tab-l">{t(tb.label)}</span>
               </button>
             ))}
           </nav>

@@ -1,6 +1,6 @@
 # OUTMOVE · antrenman takip uygulaması
 
-Android telefonda çalışan, sunucusuz, çevrimdışı bir antrenman uygulaması. Arayüz dili Türkçe.
+Android telefonda çalışan, sunucusuz, çevrimdışı bir antrenman uygulaması. Arayüz **İngilizce (varsayılan) ve Türkçe**; kaynak metinler Türkçe yazılır ve `t()` ile çevrilir (bkz. "Dil").
 
 ## Kayıt kuralı (her AI için zorunlu: Claude, Codex, Gemini/Antigravity, Cursor, Copilot…)
 Bu repo projenin **tek hafızası**. Sohbetler kaybolabilir, oturumlar değişir, AI değişir; repo kalır. Bu yüzden:
@@ -69,7 +69,7 @@ Yerine cihazda IndexedDB (Dexie) kullan, veri modeli aynı kalsın:
 
 Store arayüzü prototiptekiyle aynı mantıkta olsun (`put`, `del`, canlı liste). İlk açılışta veri yoktur; uygulama boş başlar (örnek program, şablon ve varsayılan hedef yok).
 
-Veri yedekleme/geri yükleme ("Yedekle / Geri yükle") **Hesap ve yedek** penceresinin altındadır: tüm veriyi JSON olarak dışa aktar, JSON'dan içe aktar. Android'de Capacitor Filesystem + Share kullan.
+Veri yedekleme/geri yükleme ("Yedekle / Geri yükle") **Hesap ve ayarlar** (eski adı Hesap ve yedek) penceresinin altındadır: tüm veriyi JSON olarak dışa aktar, JSON'dan içe aktar. Android'de Capacitor Filesystem + Share kullan.
 
 ## Klasör yapısı
 ```
@@ -99,6 +99,12 @@ src/
   - `bestE1([{ kg: 40, reps: 20, rir: 1 }])` = 0
   - `simulatePlan(hipertrofiProgram())` ve `simulatePlan(weekProgram([hipertrofiProgram()]))` (test fikstürü, `src/test/fixtures.ts`): seans başı ortalama ≈21, en yüksek tepe ≈76
 - Her PR'da `npm run build` ve `npm test` geçmeli.
+
+## Dil (V21; ayrıntı `docs/gorevler/V21-dil-altyapisi-ingilizce.md`)
+- Varsayılan dil **İngilizce**; kullanıcı **Hesap ve ayarlar › Language · Dil**'den Türkçeye geçer (`localStorage['outmove.lang']`).
+- Arayüze giren **her yeni metin** `t('Türkçe metin')`, `tc('bağlam', '…')` ya da `byLang({ tr, en })` ile yazılır ve İngilizcesi **aynı committe** `src/i18n/en/*.ts`'ye eklenir. Sayı/yüzde/saat için `num()`, `pct()`, `clock()`; `toLocaleString('tr-TR')` yazma.
+- Veri Türkçe saklanır (kas adı, kütüphane hareket adı, `Plansız antrenman`, `1. gün`); gösterimde `muscleName()`, `exName()`, `dayLabel()` ile çevrilir. Metne göre karar verme (regex/eşitlik); kimlik kullan.
+- `t` adını yerel değişkene verme (`i18n.test.ts` gölgelemeyi yakalar). Testler Türkçe başlar (`src/test/setup.ts`); İngilizce ekran testleri `src/test/i18n-screens.test.tsx`, İngilizce yerleşim `layout-check.mjs` → `flowEn`.
 
 ## Fazlar
 1. **Web uygulaması.** Vite + React + TS iskeleti, prototipin birebir taşınması, IndexedDB store, yedekleme, PWA. Her push'ta GitHub Pages'e deploy eden workflow (Vite `base` ayarını repo adına göre yap).

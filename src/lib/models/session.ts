@@ -1,8 +1,10 @@
 import { EX_LIB } from '../data/exlib';
 import type { Session, SessionItem } from '../store/types';
+import { dayLabel } from '../../i18n/names';
 
 export const isFree = (session: Pick<Session, 'dayId'>) => session.dayId == null;
-export const sessionName = (session: Pick<Session, 'dayName'>) => session.dayName === 'Boş antrenman' ? 'Plansız antrenman' : session.dayName;
+// Gösterim adı: plansız oturum ve varsayılan gün adları etkin dilde (V21); veri Türkçe kalır.
+export const sessionName = (session: Pick<Session, 'dayName'>) => dayLabel(session.dayName);
 
 export function dbMultiplier(exId?: string | null, name?: string): number {
   const lib = (exId ? EX_LIB.find(ex => ex.id === exId) : undefined)

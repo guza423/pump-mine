@@ -106,14 +106,16 @@ async function check(page, label, screen, { session = false, tablet = false, res
   }
 }
 
-async function closeSheet(page) {
-  await page.getByRole('dialog').last().getByRole('button', { name: 'Kapat', exact: true }).last().click();
+async function closeSheet(page, name = 'Kapat') {
+  await page.getByRole('dialog').last().getByRole('button', { name, exact: true }).last().click();
   await page.getByRole('dialog').waitFor({ state: 'hidden' });
 }
 
 async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
   const label = `${viewport.width}x${viewport.height}${scale !== 1 ? '-115' : ''}${safeArea ? '-insets' : ''}`;
   const context = await browser.newContext({ viewport, isMobile: true, hasTouch: true, deviceScaleFactor: 1, reducedMotion: 'reduce', serviceWorkers: 'block' });
+  // Ana akış Türkçe metinlerle yazıldı; İngilizce (varsayılan) ekranlar flowEn'de (V21).
+  await context.addInitScript(() => { try { localStorage.setItem('outmove.lang', 'tr'); } catch { /* yok */ } });
   const page = await context.newPage();
   page.setDefaultTimeout(10000);
   await page.route('**/*googleapis.com/**', route => route.abort());
@@ -278,7 +280,7 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
     screen = 'hesap';
     await page.locator('#tab-bugun').click();
     await page.locator('#account-btn').click();
-    await page.getByRole('dialog', { name: 'Hesap ve yedek' }).waitFor();
+    await page.getByRole('dialog', { name: 'Hesap ve ayarlar' }).waitFor();
     await check(page, label, screen);
     screen = 'yasal-kosullar';
     await page.locator('#legal-kosullar').click();
@@ -287,6 +289,74 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
     await page.getByRole('dialog').last().getByRole('button', { name: 'Kapat', exact: true }).last().click();
     await page.waitForFunction(() => document.querySelectorAll('[role="dialog"]').length === 1);
     await closeSheet(page);
+    console.log(`${label}: akış tamamlandı`);
+  } catch (error) {
+    failures.push(`${label} · ${screen} · ${error.message}`);
+    await page.screenshot({ path: resolve(shots, `${label}-${screen}-akis.png`) }).catch(() => {});
+  } finally {
+    await context.close();
+  }
+}
+
+// V21 · İngilizce ekranlar (varsayılan dil). Sekmeler çevrildikçe bu akış genişler (V22–V25).
+async function flowEn(viewport, scale = 1, tablet = false, safeArea = false) {
+  const label = `en-${viewport.width}x${viewport.height}${scale !== 1 ? '-115' : ''}${safeArea ? '-insets' : ''}`;
+  const context = await browser.newContext({ viewport, isMobile: true, hasTouch: true, deviceScaleFactor: 1, reducedMotion: 'reduce', serviceWorkers: 'block' });
+  const page = await context.newPage();
+  page.setDefaultTimeout(10000);
+  await page.route('**/*googleapis.com/**', route => route.abort());
+  await page.route('**/*firebase*/**', route => route.abort());
+  let screen = 'gate';
+  try {
+    await page.goto(url);
+    await page.locator('#legal-go').waitFor();
+    await page.evaluate(() => document.fonts.ready);
+    await scaleFonts(page, scale);
+    if (safeArea) await page.addStyleTag({ content: ':root { --sat: 24px; --sab: 24px; }' });
+    if (await page.evaluate(() => document.documentElement.lang) !== 'en') throw new Error('varsayılan dil İngilizce değil');
+    await check(page, label, screen, { tablet });
+    screen = 'gate-privacy';
+    await page.locator('#legal-open-gizlilik').click();
+    await page.locator('.lg-gate-doc').waitFor();
+    await check(page, label, screen, { tablet });
+    await page.locator('#legal-back').click();
+    await page.locator('#legal-terms').check();
+    await page.locator('#legal-notice').check();
+    await page.locator('#legal-go').click();
+    await page.locator('.lg-gate').waitFor({ state: 'detached' });
+    screen = 'dashboard-empty';
+    await page.locator('#goal-add').waitFor();
+    await check(page, label, screen, { tablet });
+    screen = 'goal-form';
+    await page.locator('#goal-add').click();
+    await check(page, label, screen);
+    await page.locator('#goal-search').fill('bench');
+    await page.getByRole('button', { name: 'Incline barbell bench press', exact: true }).click();
+    await page.locator('#goal-base').fill('95');
+    await page.locator('#goal-base').blur();
+    await page.locator('#goal-target').fill('100');
+    await page.locator('#goal-target').blur();
+    await page.locator('#goal-save').click();
+    await page.locator('#goal-card').waitFor();
+    screen = 'dashboard-goal';
+    await page.locator('.sl').nth(0).click();
+    await check(page, label, screen);
+    screen = 'fatigue';
+    await page.locator('#ready-ring').click();
+    await page.getByRole('dialog', { name: 'Fatigue meter' }).waitFor();
+    await check(page, label, screen);
+    await closeSheet(page, 'Close');
+    screen = 'account';
+    await page.locator('#account-btn').click();
+    await page.getByRole('dialog', { name: 'Account & settings' }).waitFor();
+    await check(page, label, screen);
+    screen = 'account-tr';
+    await page.locator('#lang-tr').click();
+    await page.getByRole('dialog', { name: 'Hesap ve ayarlar' }).waitFor();
+    await check(page, label, screen);
+    await page.locator('#lang-en').click();
+    await page.getByRole('dialog', { name: 'Account & settings' }).waitFor();
+    await closeSheet(page, 'Close');
     console.log(`${label}: akış tamamlandı`);
   } catch (error) {
     failures.push(`${label} · ${screen} · ${error.message}`);
@@ -306,10 +376,11 @@ try {
     }
     throw new Error(`vite preview açılamadı: ${serverOutput}`);
   })()]);
-  browser = await chromium.launch();
+  browser = await chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});
   const cases = [[320, 568], [360, 640], [360, 800], [384, 832], [393, 873], [412, 915], [430, 932], [360, 720, 1.15], [411, 770, 1.15], [884, 1104], [320, 568, 1.15, true]];
   for (const [width, height, scale = 1, safeArea = false] of cases) {
     await flow({ width, height }, scale, width === 884, safeArea);
+    await flowEn({ width, height }, scale, width === 884, safeArea);
   }
   if (failures.length) {
     console.error(failures.join('\n'));

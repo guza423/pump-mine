@@ -500,7 +500,7 @@ describe('ana ekran akışları', () => {
     await screen.findByRole('heading', { name: 'Dashboard' });
     await waitFor(async () => expect(await db.programs.count()).toBe(1));
     click('#account-btn');
-    expect(await screen.findByRole('dialog', { name: 'Hesap ve yedek' })).toBeTruthy();
+    expect(await screen.findByRole('dialog', { name: 'Hesap ve ayarlar' })).toBeTruthy();
     click('#email-signin');
     fireEvent.change(container.querySelector('#acct-email'), { target: { value: 'spor@example.com' } });
     fireEvent.change(container.querySelector('#acct-pass'), { target: { value: 'secret123' } });
@@ -556,7 +556,7 @@ describe('ana ekran akışları', () => {
     await screen.findByRole('heading', { name: 'Dashboard' });
     await waitFor(async () => expect(await db.programs.count()).toBe(1));
     click('#account-btn');
-    await screen.findByRole('dialog', { name: 'Hesap ve yedek' });
+    await screen.findByRole('dialog', { name: 'Hesap ve ayarlar' });
     click('#legal-gizlilik');
     expect(await screen.findByRole('dialog', { name: 'Gizlilik Politikası' })).toBeTruthy();
     expect(screen.getAllByText(/PRWAGON LLC/).length).toBeGreaterThan(0);
@@ -578,7 +578,7 @@ describe('ana ekran akışları', () => {
     await screen.findByRole('heading', { name: 'Dashboard' });
     await waitFor(() => expect(container.querySelector('#account-btn.ok')).toBeTruthy());
     click('#account-btn');
-    await screen.findByRole('dialog', { name: 'Hesap ve yedek' });
+    await screen.findByRole('dialog', { name: 'Hesap ve ayarlar' });
     click('#withdraw-consent');
     expect(screen.getByText(/Kayıtların bu telefonda misafir olarak kalır/)).toBeTruthy();
     click('#withdraw-yes');
