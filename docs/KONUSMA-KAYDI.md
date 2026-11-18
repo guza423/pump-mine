@@ -429,4 +429,4 @@ Her salonda ağırlık değişsede plaka zaten göstermelik. Önemli olan bizim 
   - Herhangi bir kaydırıcıya ya da deload düğmesine dokununca ibre, sayı, bölge ve öneriler simülasyona geçiyor. "Şu an" ile gerçek değere dönülüyor.
   - Hesaplar değişmedi. Teste eklendi: kaydırıcı ibreyi oynatıyor, "Şu an" geri getiriyor.
 - **Makine plakası sorusu kapandı:** yığın, plaka ve pim görseli temsili. Kaydedilen ve hesaba giren tek şey girilen kilo; salona göre plaka değeri ya da pim numarası tutulmayacak (`docs/PROJE.md` §9).
-- Commit: `HASH`. Kontroller: `npm test` (91 test), lint, `tsc -b`, build, `test:layout` geçti.
+- Commit: `ef2d02b`. Kontroller: `npm test` (91 test), lint, `tsc -b`, build, `test:layout` geçti.
