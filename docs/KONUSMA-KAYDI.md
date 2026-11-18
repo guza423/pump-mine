@@ -416,5 +416,5 @@ Her iki font da uygulamada zaten paketli. Seçimden sonra uygulamadaki `pixel.cs
 - Kalan iş Lab'dı (V16'da açık soru olarak bırakılmıştı). **V17 uygulandı** (`docs/gorevler/V17-pixel-lab.md`): Lab listesi, dört ders, ölçüm ve yorgunluk ölçer, osiloskop, biyomekanik çizimler ve tork grafikleri pixel temaya geçti.
 - Animasyon sorusu: "sadece stil değişicek" kuralına göre seçenek 2 seçildi. Çizimler ve hareketleri aynı kaldı; pixel palet, keskin kenar, kare uç kullanıldı, parlama kaldırıldı. Kare kare sprite ileride ayrı iş olarak yapılabilir.
 - Bütün uygulamadaki eski çizgi ikonlar pixel ikona döndü (15 yeni ikon). Çıkış uyarısı pixel oldu, uzun pencere başlıkları kesilmiyor. `--f-display` font adı borcu kapandı.
-- Commit: `HASH`. Kontroller: `npm test` (91 test), lint, `tsc -b`, build, `test:layout` (11 boyut) geçti.
+- Commit: `b05be40`. Kontroller: `npm test` (91 test), lint, `tsc -b`, build, `test:layout` (11 boyut) geçti.
 - Pixel geçişi bitti.
