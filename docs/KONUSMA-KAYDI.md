@@ -485,4 +485,4 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
   - başlıkta tarih, başlama saati ve süre;
   - İDMANI BİTİR 0,5 sn + "İDMAN BİTTİ" animasyonu;
   - kilo/tekrar barları göreli ve hassas (plan ayarlarında da).
-- Commit: `HASH`. Kontroller: `npm test` (94 test), lint, `tsc -b`, build, `test:layout` geçti.
+- Commit: `3021685`. Kontroller: `npm test` (94 test), lint, `tsc -b`, build, `test:layout` geçti.
