@@ -5,6 +5,7 @@ export function readFxSettings(settings: Setting[] = []): FxSettings {
   return {
     sound: raw?.sound ?? true,
     haptic: raw?.haptic ?? true,
+    motion: raw?.motion ?? false,
   };
 }
 

@@ -126,7 +126,7 @@ describe('ana ekran akışları', () => {
 
     click('#log-set');
     expect(container.querySelectorAll('.st')).toHaveLength(1);
-    expect(container.querySelector('#rest-big')).toBeTruthy();
+    await waitFor(() => expect(container.querySelector('#rest-big')).toBeTruthy());
     await waitFor(() => expect(native.start).toHaveBeenCalledTimes(1));
     const saved = (await db.sessions.toArray())[0];
     expect(saved.rest).toMatchObject({ total: 180, exId: 'duz-bench', setNo: 1, start: saved.items[0].sets[0].at });
@@ -212,7 +212,7 @@ describe('ana ekran akışları', () => {
     click('#log-set');
     await waitFor(() => expect(native.start).toHaveBeenCalled());
     await waitFor(async () => expect((await db.sessions.toArray())[0].items[0].sets).toHaveLength(1));
-    fireEvent.click(screen.getByRole('button', { name: 'GİZLE' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'GİZLE' }));
     fireEvent.click(screen.getByRole('button', { name: 'Geri: antrenman listesi' }));
     click('#finish-btn');
     act(() => { backStack.dispatch(); });
@@ -449,7 +449,7 @@ describe('ana ekran akışları', () => {
     fireEvent.change(container.querySelector('input[id^="reps-"]'), { target: { value: '2' } });
     click('#sq-0');
     click('#log-set');
-    fireEvent.click(screen.getByRole('button', { name: 'GİZLE' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'GİZLE' }));
     fireEvent.click(screen.getByRole('button', { name: 'Geri: antrenman listesi' }));
 
     click('#finish-btn');
@@ -538,8 +538,9 @@ describe('ana ekran akışları', () => {
     await waitFor(() => expect(container.querySelector('#pq-1')).toBeTruthy());
     click('#pq-1');
     click('#log-set');
+    await waitFor(() => expect(container.querySelector('#rest-big')).toBeTruthy());
     click('#log-set');
-    fireEvent.click(screen.getByRole('button', { name: 'GEÇ' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'GEÇ' }));
     fireEvent.click(screen.getByRole('button', { name: 'Set 1: 5 temas. Ayrıntı' }));
     expect(within(screen.getByRole('dialog', { name: 'Set ayrıntısı' })).getByText('Biraz düştü')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'KAPAT' }));
@@ -551,7 +552,7 @@ describe('ana ekran akışları', () => {
     fireEvent.click(container.querySelectorAll('.card-main')[1]);
     await waitFor(() => expect(container.querySelector('#pq-1')).toBeNull());
     click('#log-set');
-    fireEvent.click(screen.getByRole('button', { name: 'GİZLE' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'GİZLE' }));
     fireEvent.click(screen.getByRole('button', { name: 'Geri: antrenman listesi' }));
     click('#finish-btn');
     click('#finish-yes');
@@ -718,7 +719,7 @@ describe('ana ekran akışları', () => {
 
     // Set 1: 20 kg
     click('#log-set');
-    fireEvent.click(screen.getByRole('button', { name: 'GEÇ' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'GEÇ' }));
 
     // Set 2: 22.5 kg, Belirgin hız (RIR 2 -> 10+2=12) ve ROM %85
     fireEvent.keyDown(kgSlider, { key: 'ArrowRight' });
@@ -732,7 +733,7 @@ describe('ana ekran akışları', () => {
 
     // Kaydet sonrası ROM %100'e döner
     expect(romSlider.getAttribute('aria-valuenow')).toBe('100');
-    fireEvent.click(screen.getByRole('button', { name: 'GİZLE' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'GİZLE' }));
 
     // Set kutucukları yeniden eskiye sıralanır
     const tiles = [...container.querySelectorAll('.px-sets-grid .st .st-main')].map((el) => el.textContent);

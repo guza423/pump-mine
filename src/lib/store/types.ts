@@ -52,6 +52,8 @@ export interface RecordedSet {
 export interface FxSettings {
   sound: boolean;
   haptic: boolean;
+  /** Cihaz "animasyonları azalt" dese de oyun animasyonları (set inişi vb.) tam oynasın. */
+  motion: boolean;
 }
 
 export type PerfGoal = {

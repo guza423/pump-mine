@@ -52,6 +52,7 @@ export const FreePixelSession: React.FC<Props> = ({
 
   const fxRef = useRef(readFxSettings(st.settings));
   useEffect(() => { fxRef.current = readFxSettings(st.settings); }, [st.settings]);
+  const motionOn = readFxSettings(st.settings).motion;
 
   const prefsRef = useRef<Record<string, number>>({});
   const prefsSource = st.settings.find((x: any) => x.key === 'restPrefs')?.value;
@@ -714,15 +715,26 @@ export const FreePixelSession: React.FC<Props> = ({
     pixelFx.logSet(fxRef.current);
 
     // Uçan blok kaydet düğmesinden ilk set hücresine iner; dinlenme ekranı inişten sonra açılır.
-    const reduce = typeof window === 'undefined' || !window.matchMedia || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Cihaz "animasyonları azalt" diyorsa (ve Hesap'ta "Animasyonlar" açık değilse) uçuş olmaz:
+    // yeni kutucuk yerinde yanıp söner, dinlenme ekranı yine kısa bir bekleyişten sonra açılır.
+    const noMM = typeof window === 'undefined' || !window.matchMedia;
+    const reduce = !noMM && !fxRef.current.motion && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const btn = logBtnRef.current;
     const grid = setListRef.current as HTMLElement | null;
     const root = btn ? (btn.closest('.px') as HTMLElement | null) : null;
-    if (reduce || !btn || !grid || !root) {
+    if (noMM || !btn || !grid || !root) {
       setRestOpen(true);
       return;
     }
     try { grid.scrollTop = 0; grid.scrollLeft = 0; } catch { /* yok say */ }
+    if (reduce) {
+      if (landT.current) clearTimeout(landT.current);
+      landT.current = setTimeout(() => {
+        landT.current = null;
+        if (sRef.current.rest && scrNow.current === 'log') setRestOpen(true);
+      }, 650);
+      return;
+    }
     const rr = root.getBoundingClientRect();
     const br = btn.getBoundingClientRect();
     const gr = grid.getBoundingClientRect();
@@ -893,7 +905,7 @@ export const FreePixelSession: React.FC<Props> = ({
   /* ================= EKRAN 1: HAREKET LİSTESİ ================= */
   if (scr === 'list') {
     return (
-      <div className="screen px night">
+      <div className={'screen px night' + (motionOn ? ' px-motion' : '')}>
         <div className="px-scr">
           <div className="px-head">
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -1053,7 +1065,7 @@ export const FreePixelSession: React.FC<Props> = ({
     const exactMatch = allPickerExercises.some((e) => normTr(e.name) === normTr(pickQ));
 
     return (
-      <div className="screen px night">
+      <div className={'screen px night' + (motionOn ? ' px-motion' : '')}>
         <div className="px-scr">
           <div className="px-head">
             <button type="button" className="ib" onClick={pickBack} aria-label="Geri: antrenman listesi">
@@ -1264,7 +1276,7 @@ export const FreePixelSession: React.FC<Props> = ({
   const skillStat = matchingGoal ? skillStats(matchingGoal, st.sessions) : null;
 
   return (
-    <div className="screen px night">
+    <div className={'screen px night' + (motionOn ? ' px-motion' : '')}>
       <div className="px-scr">
         {fly ? (
           <div

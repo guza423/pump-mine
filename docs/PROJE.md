@@ -63,7 +63,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 
 **Hesap ve yedek** (Dashboard sağ üst):
 - Misafir ya da Google / e-posta hesabı. İlk girişte açık rıza.
-- Sesler / Titreşim anahtarları (`settings.fx`).
+- Sesler / Titreşim / Animasyonlar anahtarları (`settings.fx`: `sound`, `haptic`, `motion`). `motion` açıksa cihaz "animasyonları azalt" dese de pixel ekran animasyonları tam oynar. Cihaz azaltıyorsa altında not çıkar.
 - Verilerimi dışa aktar (JSON), Yedekle / Geri yükle.
 - Gizlilik sayfası, hesap silme ("SİL" onayı).
 
@@ -244,6 +244,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | 2026-11-17 | **Dengeli pixel dozu:** Press Start 2P yalnızca büyük sayılarda ve büyük düğmelerde, yalnızca 8'in katı boyutlarda; başlıklar Saira, metin ve küçük sayılar IBM Plex Sans; Pixelify Sans kalkar | Kullanıcı: "yazılar okunmuyor … daha düzgün pikseller olsun"; "dengeli doz kalsın" |
 | 2026-11-17 | Plansız set düğmesi `SET n BİTTİ`, rengi son tekrar hızının rengi; dinlenme sürerken düğme yerine dinlenme çubuğu (iptal büyük sayaçtan) | Kullanıcı isteği |
 | 2026-11-17 | Pixel dil tüm uygulamaya yayılacak: **yalnızca stil değişir, her özellik ve akış korunur**; sekme sekme, önce tuvalde tasarım | Kullanıcı: "herşey korunucak … sadece stil değişicek" |
+| 2026-11-18 | Cihaz "animasyonları azalt" diyorsa set inişi uçmaz, yeni kutucuk yerinde yanıp söner, dinlenme ekranı 650 ms sonra açılır. Hesap'taki **Animasyonlar** anahtarı (`fx.motion`, varsayılan kapalı) sistemi geçer. `cns.css`'teki genel azaltma kuralı `.px` ekranlarına dokunmaz | Kullanıcı: "set gridine yerleşiyordu. O yok şuan"; kod sağlamdı, cihazın azaltma ayarı animasyonu tamamen kapatıyordu |
 | 2026-11-18 | Plan ayarlarında sayılar elle yazılmaz, set kaydı gibi **sürüklenir**; hareket seçilince ayar penceresi kendiliğinden açılır; not için hazır "nasıl yapılacak" seçenekleri | Kullanıcı: "tekrar tıklayıp doldurmayım", "setleri kaydeder gibi", "ihtimaller listesi" |
 | 2026-11-18 | Geçmiş özetinde set ayrıntısı salt okunurdur (silme yok); kas bölümü bu antrenmanda çalışan kasları ve haftalık durumu uyarılarla gösterir | Kullanıcı: "detayı görebileyim", "o bi ifade vermio … uyarılan kaslar" |
 | 2026-11-18 | Makine/kablo ağırlık yığını, bar plakaları ve pim **temsilidir**: kaydedilen ve hesaba giren tek şey girilen kilo. Salona göre plaka değeri ya da pim numarası tutulmaz | Kullanıcı: "plaka zaten göstermelik. Önemli olan bizim verdimiz sayı … pim sırası falan … O temsili biraz" |

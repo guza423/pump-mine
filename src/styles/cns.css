@@ -375,7 +375,8 @@ h2 {
 
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+  /* Pixel ekranlar (.px) kendi kuralını pixel.css'te uygular; Hesap'taki "Animasyonlar" ayarı orada sistemi geçebilir. */
+  :not(.px, .px *), :not(.px, .px *)::before, :not(.px, .px *)::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
   .drive { animation: none; stroke-dasharray: none; }
   .mu-dot.on::after { display: none; }
 }

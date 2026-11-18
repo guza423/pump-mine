@@ -450,3 +450,12 @@ sen mi yaparsın agenta mı atalım bunları ?"
   5. set, tekrar aralığı, kilo, RPE aralığı sürüklemeli (`PxDrag.tsx`);
   6. 15 hazır "nasıl yapılacak" seçeneği + ek not; plan menüsünde ve hedef kartında küçük yazı.
 - Commit: `5f9d460`. Kontroller: `npm test` (91 test), lint, `tsc -b`, build, `test:layout` (11 boyut + yeni `plan-hareket-ayar` ekranı) geçti.
+
+**Kullanıcı:** "Bi sorun var gibi. Şöyle. Bir set bitince animasyon olarak set gridine yerleşiodu. O yok şuan.  O niye öyle"
+**Yapılan:**
+- **Teşhis:** animasyon kodu sağlam. Güncel sürümde tarayıcıda kare kare kontrol edildi, set uçup kutucuğa iniyor. Animasyonun tamamen kaybolduğu tek durum, cihazın "animasyonları azalt / kaldır" ayarı (`prefers-reduced-motion`). Bu ayarı Android'de erişilebilirlik ya da güç tasarrufu, Windows'ta "Animasyon efektleri" kapalı ya da emülatör açabilir. Bu durumda kod uçuşu atlıyor, dinlenme ekranını hemen açıyordu. Ayrıca `cns.css`'teki genel azaltma kuralı bütün animasyonları 0,01 ms'ye indiriyordu.
+- **Düzeltme:**
+  - Cihaz azaltıyorsa set yine görünür biçimde iner: uçuş yok, yeni kutucuk yerinde altın renkte yanıp söner, dinlenme ekranı 650 ms sonra açılır.
+  - Hesap ve yedek penceresine **Animasyonlar (cihaz azaltsa da)** anahtarı eklendi (`fx.motion`, varsayılan kapalı). Açıkken uçuş ve bütün pixel animasyonları tam oynar. Cihaz azaltıyorsa altında not çıkıyor, böylece sebep telefonda görülebiliyor.
+  - `cns.css`'teki genel kural artık `.px` ekranlarına dokunmuyor; onların azaltma kuralı `pixel.css`'te.
+- Testler 650 ms beklemeye göre güncellendi. Commit: `HASH`. Kontroller: `npm test` (91 test), lint, `tsc -b`, build, `test:layout` geçti.

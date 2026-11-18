@@ -6,6 +6,7 @@ import { fatigueAt, recoveryHours, sessionFatigue } from '../../lib/models/fatig
 import { advanceSkillStage, matchesSkillGoal, readGoals } from '../bugun/goals';
 import { useBack } from '../../app/back';
 import { fk, hms, PX_SPEED_COLORS } from './pixelHelpers';
+import { readFxSettings } from '../../lib/native/fx';
 
 interface Props {
   session: any;
@@ -64,7 +65,7 @@ export const PixelSummaryScreen: React.FC<Props> = ({ session, st, put, del, ope
   const itemsWithSets = session.items.filter((it: any) => it.sets.length > 0);
 
   return (
-    <div id="pixel-summary" className="screen px night" aria-label="Antrenman özeti">
+    <div id="pixel-summary" className={'screen px night' + (readFxSettings(st.settings).motion ? ' px-motion' : '')} aria-label="Antrenman özeti">
       <div className="px-scr">
         <div style={{ height: 52, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 2, padding: '0 3px', flex: '0 0 auto' }}>
           <span style={{ fontSize: 21, fontWeight: 700, letterSpacing: '.04em', lineHeight: 1.1, color: 'var(--gold)' }}>İDMAN BİTTİ</span>

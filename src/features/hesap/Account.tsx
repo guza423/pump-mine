@@ -32,10 +32,13 @@ function AccountBody({ st, acct, actions, openSheet, onClose, put }) {
   const n = { p: allPlans(st.programs).length, s: st.sessions.filter((x) => x.status === 'done').length, c: st.checkins.length };
   const valid = /.+@.+\..+/.test(email) && pass.length >= 6;
   const fx = readFxSettings(st.settings);
+  const sysReduce = typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const fxSection = put ? (
     <div className="acct-fx" style={{ display: 'grid', gap: '8px' }}>
       <Switch id="fx-sound" label="Sesler" on={fx.sound} onChange={(v) => put('settings', { key: 'fx', value: { ...fx, sound: v } })} />
       <Switch id="fx-haptic" label="Titreşim" on={fx.haptic} onChange={(v) => put('settings', { key: 'fx', value: { ...fx, haptic: v } })} />
+      <Switch id="fx-motion" label="Animasyonlar (cihaz azaltsa da)" on={fx.motion} onChange={(v) => put('settings', { key: 'fx', value: { ...fx, motion: v } })} />
+      {sysReduce && !fx.motion ? <p className="acct-fx-note">Bu cihaz animasyonları azaltıyor. Bu yüzden set kutucuğa uçmuyor, yerinde yanıp sönüyor. Açarsan tam oynar.</p> : null}
     </div>
   ) : null;
   if (acct.mode === 'guest') {

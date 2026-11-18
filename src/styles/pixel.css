@@ -1930,38 +1930,48 @@
   }
 }
 
+/* Cihaz "animasyonları azalt" derse büyük hareketler kapanır. Hesap'ta "Animasyonlar" açıksa (.px-motion) her şey yine oynar.
+   Set inişi tamamen kaybolmaz: yeni kutucuk uçmadan, yerinde yanıp söner. */
+@keyframes pxBlinkA { 0%, 66% { background: var(--gold); color: var(--btx); } 33%, 100% { background: #2f2a55; } }
+@keyframes pxBlinkB { 0%, 66% { background: var(--gold); color: var(--btx); } 33%, 100% { background: #2f2a55; } }
 @media (prefers-reduced-motion: reduce) {
-  .px .px-scr,
-  .px .ov,
-  .px .win,
-  .px .px-toast.tA,
-  .px .px-toast.tB,
-  .px .shA,
-  .px .shB,
-  .px .popA,
-  .px .popB,
-  .px .flA,
-  .px .flB,
-  .px .more,
-  .px .eg.on {
+  .px:not(.px-motion) *,
+  .px:not(.px-motion) *::before,
+  .px:not(.px-motion) *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  .px:not(.px-motion) .px-scr,
+  .px:not(.px-motion) .ov,
+  .px:not(.px-motion) .win,
+  .px:not(.px-motion) .px-toast.tA,
+  .px:not(.px-motion) .px-toast.tB,
+  .px:not(.px-motion) .shA,
+  .px:not(.px-motion) .shB,
+  .px:not(.px-motion) .popA,
+  .px:not(.px-motion) .popB,
+  .px:not(.px-motion) .flA,
+  .px:not(.px-motion) .flB,
+  .px:not(.px-motion) .more,
+  .px:not(.px-motion) .eg.on {
     animation: none !important;
   }
-  .px .px-fly {
+  .px:not(.px-motion) .px-fly {
     display: none !important;
   }
-  .px .st.px-landA,
-  .px .st.px-landB,
-  .px .px-sets-box.px-pnlA,
-  .px .px-sets-box.px-pnlB {
+  .px:not(.px-motion) .st.px-landA { animation: pxBlinkA 0.6s steps(1) !important; }
+  .px:not(.px-motion) .st.px-landB { animation: pxBlinkB 0.6s steps(1) !important; }
+  .px:not(.px-motion) .px-sets-box.px-pnlA,
+  .px:not(.px-motion) .px-sets-box.px-pnlB {
     animation: none !important;
   }
-  .px .nA,
-  .px .nB,
-  .px .fA,
-  .px .fB {
+  .px:not(.px-motion) .nA,
+  .px:not(.px-motion) .nB,
+  .px:not(.px-motion) .fA,
+  .px:not(.px-motion) .fB {
     display: none !important;
   }
-  .px .pin {
+  .px:not(.px-motion) .pin {
     transition: none !important;
   }
 }
