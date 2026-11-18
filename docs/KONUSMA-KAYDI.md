@@ -430,3 +430,23 @@ Her salonda ağırlık değişsede plaka zaten göstermelik. Önemli olan bizim 
   - Hesaplar değişmedi. Teste eklendi: kaydırıcı ibreyi oynatıyor, "Şu an" geri getiriyor.
 - **Makine plakası sorusu kapandı:** yığın, plaka ve pim görseli temsili. Kaydedilen ve hesaba giren tek şey girilen kilo; salona göre plaka değeri ya da pim numarası tutulmayacak (`docs/PROJE.md` §9).
 - Commit: `ef2d02b`. Kontroller: `npm test` (91 test), lint, `tsc -b`, build, `test:layout` geçti.
+
+**Kullanıcı:** "tamam tasarımda gerekenler şimdi şöyle: 
+
+1. ilk resimde burdaki geçmişte yaptım setleri üstüne tıklayıp detalı görebileyim. ekranda ne seçtiysem ozmaniçin.
+2. geçmiş idmanlar kısmında 2. resimdeki yerdede orası çalışmış olan kasları göstersin son 7 gün zor set yazılmış başlığa ama o bi ifade vermio. uyarılan kaslar falan ekle. 
+3. resim 3 de gördüğün gibi kaydetmeden çık ekranı sığmamış.
+4. plan yapıcağım zaman idman planlaması falan. orda hakerekt seçince ekle hemen ama sonra kaç set kaç tekrar yapıcağımı girdiğim ekranı aç dierkt onu doldurmam gerek tekrar tıklayıp doldurmayım. 
+5. idman planlarken o set tekrar rep girdiğim ekranda böyle elle yazmalık değilde tıpkı normalde seti kaydeder gibi sürükleyip falan böyle sayıları değişelim. setleri kaydeder gibi.
+6. not kısmı ise önceden doldurulmuş bir liste olsun ya . ihtimaller listesi. mesela . hissederek yap. ağırlığa odaklaanrk yap. alltta beklet. üstte beklet. ortada beklet. izometrik yap. eccentric yap. overload yük yap . pump seti yap. falan falan. o seçeneklere basarak o hareketin o seastaki attributesini seçelim. ve idman günü planı açınca o küçük not oalrak yazsın. 
+
+sen mi yaparsın agenta mı atalım bunları ?"
+**Yapılan:**
+- Claude yaptı (agente verilmedi). **V18** (`docs/gorevler/V18-plan-ayarlari-ozet.md`):
+  1. özette set kutucuğuna dokununca salt okunur ayrıntı (hız, ROM, tonaj dahil);
+  2. "Bu antrenmanda çalışan kaslar" + yardımcı kaslar, son 7 gün çubuklarında az/iyi/fazla ve `+n`, uyarı satırları;
+  3. "Kaydetmeden çık" düğmeleri alt alta, 320 px'te sığıyor;
+  4. hareket seçilince ayar penceresi kendiliğinden açılıyor;
+  5. set, tekrar aralığı, kilo, RPE aralığı sürüklemeli (`PxDrag.tsx`);
+  6. 15 hazır "nasıl yapılacak" seçeneği + ek not; plan menüsünde ve hedef kartında küçük yazı.
+- Commit: `HASH`. Kontroller: `npm test` (91 test), lint, `tsc -b`, build, `test:layout` (11 boyut + yeni `plan-hareket-ayar` ekranı) geçti.

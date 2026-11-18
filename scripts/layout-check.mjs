@@ -238,6 +238,12 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
     await page.locator('#add-item').click();
     await page.locator('#ex-search').fill('düz bench');
     await page.locator('.exr-main').first().click();
+    // V18: hareket seçilince set/tekrar penceresi kendiliğinden açılır (sürüklemeli ayarlar)
+    screen = 'plan-hareket-ayar';
+    await page.locator('.sheet-wrap .px-dr-bar').first().waitFor();
+    await check(page, label, screen);
+    await page.locator('.sheet-wrap .x-btn').last().click();
+    await page.locator('.sheet-wrap').waitFor({ state: 'detached' });
     await page.locator('#ed-start').click();
     await page.locator('.tgt2').waitFor();
     screen = 'planli-seans';

@@ -262,7 +262,20 @@ describe('ana ekran akışları', () => {
     fireEvent.click(within(container.querySelector('.wd-pick')).getByRole('button', { name: 'Pzt' }));
     click('#add-item');
     const picker = await screen.findByRole('dialog', { name: 'Hareket ekle' });
+    const exName = picker.querySelector('.exr-n').textContent;
     fireEvent.click(picker.querySelector('.exr-main'));
+    // Hareket seçilince ayar penceresi kendiliğinden açılır; sayılar sürüklemeli, not hazır seçeneklerden
+    const itemSheet = await screen.findByRole('dialog', { name: exName });
+    const setSlider = within(itemSheet).getByRole('slider', { name: 'Set' });
+    const before = Number(setSlider.getAttribute('aria-valuenow'));
+    fireEvent.keyDown(setSlider, { key: 'ArrowRight' });
+    await waitFor(() => expect(Number(within(itemSheet).getByRole('slider', { name: 'Set' }).getAttribute('aria-valuenow'))).toBe(before + 1));
+    fireEvent.keyDown(within(itemSheet).getByRole('slider', { name: 'En çok tekrar' }), { key: 'ArrowLeft' });
+    fireEvent.click(within(itemSheet).getByRole('button', { name: 'Altta beklet' }));
+    await waitFor(() => expect(within(itemSheet).getByRole('button', { name: 'Altta beklet' }).getAttribute('aria-pressed')).toBe('true'));
+    fireEvent.click(within(itemSheet).getAllByRole('button', { name: 'Kapat' }).at(-1));
+    await waitFor(() => expect(container.querySelector('.ed2-list .item-t em')?.textContent).toBe('Altta beklet'));
+    expect(container.querySelector('.ed2-list .item-t small').textContent).toContain((before + 1) + ' × ');
     click('#ed-back');
 
     await waitFor(() => expect(container.querySelector('.plan-list')).toBeTruthy());
@@ -605,8 +618,16 @@ describe('ana ekran akışları', () => {
     closeTopSheet();
     click('#finish-btn');
     fireEvent.click(await screen.findByRole('button', { name: 'Bitir ve özetle' }));
-    expect(await screen.findByRole('dialog', { name: 'Antrenman özeti' })).toBeTruthy();
+    const summary = await screen.findByRole('dialog', { name: 'Antrenman özeti' });
     expect(screen.getByText('Tonaj')).toBeTruthy();
+    // Geçmiş setin kutucuğuna dokununca salt okunur ayrıntı açılır (hız, ROM, tonaj; silme yok)
+    fireEvent.click(within(summary).getByRole('button', { name: 'Set 1 ayrıntısı' }));
+    await waitFor(() => expect(screen.getAllByRole('dialog').length).toBeGreaterThan(1));
+    const detail = screen.getAllByRole('dialog').at(-1);
+    expect(within(detail).getByText('Son tekrar hızı')).toBeTruthy();
+    expect(within(detail).getByText('ROM')).toBeTruthy();
+    expect(within(detail).queryByRole('button', { name: /Seti sil/ })).toBeNull();
+    closeTopSheet();
     closeTopSheet();
     await waitFor(() => expect(container.querySelector('#tab-antrenman')?.getAttribute('aria-current')).toBe('page'));
 

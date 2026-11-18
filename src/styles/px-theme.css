@@ -963,6 +963,61 @@
 /* uzun alt pencere başlıkları kesilmez, iki satıra iner */
 .pxt .sheet-h h3 { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.15; font-size: clamp(17px, 5.2vw, 20px); }
 
+/* ---------- V18: plan ayarları, özet ayrıntıları, çalışan kaslar ---------- */
+.pxt .ied-drag { display: grid; gap: 14px; }
+.pxt .ied-presets { gap: 6px; }
+.pxt .ied-presets .fchip { min-height: 34px; }
+.pxt .wmenu-items li span { display: grid; gap: 2px; white-space: normal; }
+.pxt .wmenu-note { font-size: 12px; font-weight: 600; line-height: 1.35; color: var(--px-gold); }
+.pxt .se-set { font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.pxt .se-set:active { background: var(--px-pn2); }
+.pxt .se-set:focus-visible { outline: 3px solid var(--px-gold); outline-offset: 2px; }
+.pxt .setd-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.pxt .sum-mus { display: grid; gap: 10px; }
+.pxt .mus-hits { display: flex; flex-wrap: wrap; gap: 6px; }
+.pxt .mus-hit {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  min-height: 34px;
+  padding: 6px 10px;
+  background: rgba(255, 91, 58, 0.12);
+  box-shadow: inset 0 0 0 2px var(--px-fire);
+}
+.pxt .mus-hit b { font-family: var(--px-f-head); font-size: 15px; font-weight: 700; }
+.pxt .mus-hit .mono { font-size: 12px; font-weight: 700; color: var(--px-fire); }
+.pxt .mus-help { margin: 0; font-size: 13px; color: var(--px-mt); }
+.pxt .sum-week-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.pxt .mus-leg { font-size: 12px; font-weight: 700; color: var(--ok); }
+.pxt .mbars.with-st .mbar { grid-template-columns: 96px minmax(0, 1fr) 24px 40px; }
+.pxt .mbar.hit .mbar-m { color: var(--px-tx); font-weight: 700; }
+.pxt .mbar-hit { margin-left: 4px; font-style: normal; font-size: 11px; font-weight: 700; color: var(--px-fire); }
+.pxt .mbar-s { font-size: 11px; font-weight: 700; text-align: right; text-transform: uppercase; letter-spacing: 0.04em; }
+.pxt .mbar-s.low { color: var(--px-gold); }
+.pxt .mbar-s.ok { color: var(--ok); }
+.pxt .mbar-s.high { color: var(--px-fire); }
+.pxt .mbar-s.none { color: var(--px-mt); }
+.pxt .mus-warn { display: grid; gap: 6px; }
+.pxt .mw {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 13px;
+  line-height: 1.4;
+  background: #0b0914;
+  box-shadow: inset 4px 0 0 0 var(--px-ln);
+}
+.pxt .mw b { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
+.pxt .mw.low { box-shadow: inset 4px 0 0 0 var(--px-gold); }
+.pxt .mw.low b { color: var(--px-gold); }
+.pxt .mw.none { box-shadow: inset 4px 0 0 0 var(--px-sk); }
+.pxt .mw.none b { color: var(--px-sk); }
+.pxt .mw.high { box-shadow: inset 4px 0 0 0 var(--px-fire); }
+.pxt .mw.high b { color: var(--px-fire); }
+.pxt .mw.ok { box-shadow: inset 4px 0 0 0 var(--ok); }
+.pxt .mw.ok b { color: var(--ok); }
+
 /* "Çıkmak için tekrar bas" uyarısı (bütün uygulama, .pxt dışında da) */
 .back-toast {
   border: 0;

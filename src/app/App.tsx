@@ -35,6 +35,9 @@ import '../styles/v7.css';
 import '../styles/pixel.css';
 import '../styles/px-theme.css';
 import { PxIcon } from './PxIcon';
+import { readFxSettings } from '../lib/native/fx';
+import { dbMultiplier } from '../lib/models/session';
+import { PX_SPEED, PX_SPEED_COLORS } from '../features/antrenman/pixelHelpers';
 
 /* ================= PERFORMANCE · son kullanıcı uygulaması ================= */
 const TABS2 = [
@@ -131,24 +134,72 @@ function Ring({ score, zone, size = 76, label, pixel = false }) {
     </svg>
   );
 }
-function MuscleBars({ muscles, list, max = 24, compact }) {
+const MBAR_ST = { none: 'yok', low: 'az', ok: 'iyi', high: 'fazla' };
+function MuscleBars({ muscles, list, max = 24, compact, mark, status }) {
   const names = list || Object.keys(muscles).sort((a, b) => (muscles[b] || 0) - (muscles[a] || 0));
   return (
-    <div className={'mbars' + (compact ? ' compact' : '')}>
+    <div className={'mbars' + (compact ? ' compact' : '') + (status ? ' with-st' : '')}>
       {names.map((m) => {
         const n = muscles[m] || 0;
         const st = n === 0 ? 'none' : n < 10 ? 'low' : n > 20 ? 'high' : 'ok';
         return (
-          <div key={m} className={'mbar ' + st}>
-            <span className="mbar-m">{m}</span>
+          <div key={m} className={'mbar ' + st + (mark && mark[m] ? ' hit' : '')}>
+            <span className="mbar-m">{m}{mark && mark[m] ? <em className="mbar-hit">+{mark[m]}</em> : null}</span>
             <div className="mbar-t">
               <span className="mbar-z" style={{ left: (10 / max) * 100 + '%', width: (10 / max) * 100 + '%' }} />
               <span className="mbar-f" style={{ width: Math.min(100, (n / max) * 100) + '%' }} />
             </div>
             <span className="mbar-n mono">{nf(n)}</span>
+            {status ? <span className={'mbar-s ' + st}>{MBAR_ST[st]}</span> : null}
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// Antrenman özeti: bu seansta çalışan (uyarılan) kaslar + son 7 günün kas başına zor seti ve uyarılar.
+function SessionMuscles({ session, week }) {
+  const here = {};
+  const helpers = new Set();
+  session.items.forEach((it) => {
+    if (!it.sets.length) return;
+    const h = it.sets.filter((x) => !x.plyo && !x.skill && x.rir <= 4).length;
+    if (h) here[it.muscle] = (here[it.muscle] || 0) + h;
+    const m = exMeta(it.exId, it.name);
+    if (m && m.sec) m.sec.forEach((x) => helpers.add(x));
+  });
+  Object.keys(here).forEach((k) => helpers.delete(k));
+  const hits = Object.entries(here).sort((a, b) => b[1] - a[1]);
+  const names = Object.keys(week).sort((a, b) => (week[b] || 0) - (week[a] || 0));
+  const low = names.filter((m) => week[m] > 0 && week[m] < 10);
+  const none = MAIN_MUSCLES.filter((m) => !week[m]);
+  const high = names.filter((m) => week[m] > 20);
+  if (!hits.length && !names.length) return null;
+  return (
+    <div className="sum-mus">
+      {hits.length ? (
+        <React.Fragment>
+          <span className="st-k">Bu antrenmanda çalışan kaslar</span>
+          <div className="mus-hits">
+            {hits.map(([m, n]) => <span key={m} className="mus-hit"><b>{m}</b><span className="mono">{n} zor set</span></span>)}
+          </div>
+          {helpers.size ? <p className="mus-help">Yardımcı olarak çalışanlar: {[...helpers].join(', ')}</p> : null}
+        </React.Fragment>
+      ) : null}
+      {names.length ? (
+        <div className="sum-week">
+          <div className="sum-week-h"><span className="st-k">Son 7 gün · kas başına zor set</span><span className="mus-leg mono">hedef 10–20</span></div>
+          <MuscleBars muscles={week} list={names} compact mark={here} status />
+          <p className="chart-note">Taralı şerit haftada 10–20 zor set: kas gelişimi için sık önerilen aralık. +n bu antrenmanın katkısı. Zor set: bitişe 4 tekrar ya da daha az kala biten set.</p>
+          <div className="mus-warn">
+            {low.length ? <p className="mw low"><b>Az</b>{low.map((m) => m + ' ' + week[m]).join(', ')}: haftalık 10 setin altında.</p> : null}
+            {none.length ? <p className="mw none"><b>Bu hafta hiç</b>{none.join(', ')}</p> : null}
+            {high.length ? <p className="mw high"><b>Fazla</b>{high.map((m) => m + ' ' + week[m]).join(', ')}: 20 setin üstünde, toparlanmaya dikkat.</p> : null}
+            {!low.length && !none.length && !high.length ? <p className="mw ok"><b>Dengeli</b>Bütün ana kaslar haftalık aralıkta.</p> : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -557,7 +608,7 @@ function WtypeMenuBody({ st, pid, did, put, del, onStart, onEdit, onClose }) {
       <p className="wmenu-k mono">{d.items.length} hareket · {total} set · ~{dayMinutes(d)} dk{runs.length ? ' · ' + runs.length + ' kez yapıldı, son ' + dateTxt(runs[0].startedAt) : ''}</p>
       {d.items.length ? (
         <ol className="wmenu-items">
-          {d.items.map((it) => <li key={it.id}><span>{it.name}</span><b className="mono">{it.sets} × {repTxt(it.repMin, it.repMax)}</b></li>)}
+          {d.items.map((it) => <li key={it.id}><span>{it.name}{it.note ? <small className="wmenu-note">{it.note}</small> : null}</span><b className="mono">{it.sets} × {repTxt(it.repMin, it.repMax)}</b></li>)}
         </ol>
       ) : <p className="muted-p">Bu planda henüz hareket yok.</p>}
       <span className="st-k">Her hafta</span>
@@ -1166,7 +1217,7 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
   );
 }
 
-function SetDetailBody({ set, idx, exId, onDelete, onClose }) {
+function SetDetailBody({ set, idx, exId, name, onDelete, onClose }) {
   const [confirm, setConfirm] = useState(false);
   if (set.skill) {
     const lib = libById(exId);
@@ -1186,7 +1237,7 @@ function SetDetailBody({ set, idx, exId, onDelete, onClose }) {
         </div>
         {set.tags && set.tags.length ? <div className="chips-wrap">{set.tags.map((x) => <span key={x} className="fchip on">{x}</span>)}</div> : null}
         {set.note ? <p className="sd-note">{set.note}</p> : null}
-        {confirm ? (
+        {!onDelete ? null : confirm ? (
           <span className="confirm-inline"><button type="button" id="set-del-yes" className="btn danger sm" onClick={() => { onDelete(); onClose(); }}>Seti sil</button><button type="button" className="btn ghost sm" onClick={() => setConfirm(false)}>Vazgeç</button></span>
         ) : <button type="button" id="set-del" className="btn ghost sm danger-t setd-del" onClick={() => setConfirm(true)}><Icon name="trash" size={13} /> Seti sil</button>}
       </div>
@@ -1210,7 +1261,7 @@ function SetDetailBody({ set, idx, exId, onDelete, onClose }) {
         </div>
         {set.tags && set.tags.length ? <div className="chips-wrap">{set.tags.map((x) => <span key={x} className="fchip on">{x}</span>)}</div> : null}
         {set.note ? <p className="sd-note">{set.note}</p> : null}
-        {confirm ? (
+        {!onDelete ? null : confirm ? (
           <span className="confirm-inline"><button type="button" id="set-del-yes" className="btn danger sm" onClick={() => { onDelete(); onClose(); }}>Seti sil</button><button type="button" className="btn ghost sm" onClick={() => setConfirm(false)}>Vazgeç</button></span>
         ) : <button type="button" id="set-del" className="btn ghost sm danger-t setd-del" onClick={() => setConfirm(true)}><Icon name="trash" size={13} /> Seti sil</button>}
       </div>
@@ -1231,9 +1282,15 @@ function SetDetailBody({ set, idx, exId, onDelete, onClose }) {
         <div><small>Zor set</small><b className="mono" style={{ color: set.rir <= 4 ? 'var(--ok)' : 'var(--faint)' }}>{set.rir <= 4 ? 'evet' : 'hayır'}</b></div>
         <div><small>e1RM</small><b className="mono">{e1 ? nf(e1) : '–'}</b></div>
       </div>
+      {/* Set kaydında seçilenler: son tekrarın hızı, ROM ve tonaj */}
+      <div className="setd-grid three">
+        <div><small>Son tekrar hızı</small><b style={{ color: set.lvl != null && PX_SPEED[set.lvl] ? PX_SPEED_COLORS[set.lvl] : undefined }}>{set.lvl != null && PX_SPEED[set.lvl] ? PX_SPEED[set.lvl].k : '–'}</b></div>
+        <div><small>ROM</small><b className="mono">{hasNum(set.rom) ? '%' + Math.round(Number(set.rom)) : '%100'}</b></div>
+        <div><small>Tonaj</small><b className="mono">{nf(Math.round((Number(set.kg) || 0) * set.reps * dbMultiplier(exId, name) * 10) / 10)} kg</b></div>
+      </div>
       {set.tags && set.tags.length ? <div className="chips-wrap">{set.tags.map((x) => <span key={x} className="fchip on">{x}</span>)}</div> : null}
       {set.note ? <p className="sd-note">{set.note}</p> : null}
-      {confirm ? (
+      {!onDelete ? null : confirm ? (
         <span className="confirm-inline"><button type="button" id="set-del-yes" className="btn danger sm" onClick={() => { onDelete(); onClose(); }}>Seti sil</button><button type="button" className="btn ghost sm" onClick={() => setConfirm(false)}>Vazgeç</button></span>
       ) : <button type="button" id="set-del" className="btn ghost sm danger-t setd-del" onClick={() => setConfirm(true)}><Icon name="trash" size={13} /> Seti sil</button>}
     </div>
@@ -1389,7 +1446,7 @@ function SummaryBody({ session, st, put, del, openSheet, onDelete, onClose }) {
               </div>
               <div className="se-sets">
                 {it.sets.map((z, j) => (
-                  <span key={j} className="se-set">
+                  <button key={j} type="button" className="se-set" aria-label={'Set ' + (j + 1) + ' ayrıntısı'} onClick={() => openSheet('setdetail', { title: it.name, exId: it.exId, set: z, idx: j })}>
                     <span className="mono">
                       {z.skill
                         ? skillSetTxt(z)
@@ -1399,7 +1456,7 @@ function SummaryBody({ session, st, put, del, openSheet, onDelete, onClose }) {
                     </span>
                     <i style={z.skill ? { background: (SKILL_Q[z.q || 0] || SKILL_Q[0]).c, width: '100%' } : z.plyo ? { background: PLYO_Q[z.q || 0].c, width: '100%' } : { background: vlColor(z.vl), width: Math.max(10, z.vl * 100) + '%' }} />
                     <small className="mono">{hm(z.at)}</small>
-                  </span>
+                  </button>
                 ))}
               </div>
             </li>
@@ -1424,12 +1481,7 @@ function SummaryBody({ session, st, put, del, openSheet, onDelete, onClose }) {
         );
       })}
       {notes.length ? <div className="sum-notes"><span className="st-k">Notlar</span>{notes.map((t, i) => <p key={i}>{t}</p>)}</div> : null}
-      {Object.keys(ls.muscles).length ? (
-        <div className="sum-week">
-          <span className="st-k">Son 7 gün zor set</span>
-          <MuscleBars muscles={ls.muscles} compact />
-        </div>
-      ) : null}
+      <SessionMuscles session={session} week={ls.muscles} />
       <div className="sum-actions">
         <button type="button" id="save-tmpl" className="btn ghost" onClick={() => openSheet('saveTemplate', { session })}><Icon name="plus" size={14} /> Plan olarak kaydet</button>
         {confirm ? (
@@ -1551,14 +1603,20 @@ function PlanEditor({ program, dayId, st, put, del, onBack, openSheet, startSess
   const low = MAIN_MUSCLES.filter((m) => (ps.muscles[m] || 0) < 10);
 
   const editItem = (i) => openSheet('item', {
-    it: day.items[i], idx: i, n: day.items.length,
+    it: latestDay.current.items[i], idx: i, n: latestDay.current.items.length,
     onChange: (nit) => commit((nd) => { nd.items[i] = nit; }),
     onMove: (d) => commit((nd) => { const a = nd.items; const j = i + d; if (j < 0 || j >= a.length) return; const t = a[i]; a[i] = a[j]; a[j] = t; }),
     onRemove: () => commit((nd) => { nd.items.splice(i, 1); }),
   });
   const addItem = () => openSheet('picker', {
     low,
-    onPick: (ex) => { const nit = itemFromEx(ex); commit((nd) => { nd.items.push(nit); }); },
+    onPick: (ex) => {
+      const nit = itemFromEx(ex);
+      commit((nd) => { nd.items.push(nit); });
+      // seçici kapandıktan sonra yeni hareketin set/tekrar penceresi açılır (ikinci dokunuş gerekmez)
+      const i = latestDay.current.items.length - 1;
+      setTimeout(() => editItem(i), 0);
+    },
   });
   const handleDelete = () => {
     clearTimeout(timer.current);
@@ -2002,14 +2060,14 @@ function PlanPickBody({ dayKey: targetKey, st, put, newPlan, onClose }) {
   );
 }
 
-function ItemSheetBody({ it: it0, idx, n, onChange, onMove, onRemove, onClose, openSheet }) {
+function ItemSheetBody({ it: it0, idx, n, onChange, onMove, onRemove, onClose, openSheet, fx }) {
   const [it, setIt] = useState(it0);
   const m = exMeta(it.exId, it.name);
   return (
     <div className="itemsheet">
       <FactChips ex={m} />
       {m ? <button type="button" className="mod-link" onClick={() => openSheet('exercise', { exId: m.id })}><Icon name="info" size={13} /> {m.bio ? 'Biyomekanik ve geçmiş' : 'Hareket bilgisi ve geçmiş'}</button> : null}
-      <ItemEditor it={it} idx={idx} n={n} onChange={(nit) => { setIt(nit); onChange(nit); }} onMove={(d) => { onMove(d); onClose(); }} onRemove={() => { onRemove(); onClose(); }} />
+      <ItemEditor it={it} idx={idx} n={n} fx={fx} onChange={(nit) => { setIt(nit); onChange(nit); }} onMove={(d) => { onMove(d); onClose(); }} onRemove={() => { onRemove(); onClose(); }} />
     </div>
   );
 }
@@ -2690,10 +2748,10 @@ function App() {
       case 'measure': return <MeasureBody openSheet={openSheet} />;
       case 'exercise': return <ExerciseBody exId={p.exId} name={p.name} st={st} />;
       case 'picker': return <PickerBody custom={st.custom} addCustom={addCustom} onPick={p.onPick} onClose={close} low={p.low} openSheet={openSheet} />;
-      case 'item': return <ItemSheetBody {...p} onClose={close} openSheet={openSheet} />;
+      case 'item': return <ItemSheetBody {...p} fx={readFxSettings(st.settings)} onClose={close} openSheet={openSheet} />;
       case 'note': return <NoteSheetBody init={p.init} onSave={p.onSave} onClose={close} />;
       case 'exlist': return <ExListBody {...p} onClose={close} openSheet={openSheet} />;
-      case 'setdetail': return <SetDetailBody set={p.set} idx={p.idx} exId={p.exId} onDelete={p.onDelete} onClose={close} />;
+      case 'setdetail': return <SetDetailBody set={p.set} idx={p.idx} exId={p.exId} name={p.title} onDelete={p.onDelete} onClose={close} />;
       case 'wtype': return <WtypeMenuBody st={st} pid={p.pid} did={p.did} put={put} del={del} onStart={startSession} onEdit={(pr, d) => editPlan(pr, d, tab)} onClose={close} />;
       case 'summary': { const s = p.draft || st.sessions.find((x) => x.id === p.id); return s ? <SummaryBody session={s} st={st} put={put} del={del} openSheet={openSheet} onDelete={(id) => del('sessions', id)} onClose={close} /> : <p className="muted-p">Kayıt bulunamadı.</p>; }
       case 'saveTemplate': return <SaveTemplateBody session={p.session} st={st} put={put} onClose={close} onSaved={(pr, d) => { closeAll(); setPixelSummary(null); editPlan(pr, d, 'antrenman'); }} />;

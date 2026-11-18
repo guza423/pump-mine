@@ -5,6 +5,7 @@ import { EX_LIB, MUS_CODE, EQ, PLYO_INT } from '../../lib/data/exlib';
 import { e1Ok, bestE1 } from '../../lib/models/training';
 import { dbMultiplier } from '../../lib/models/session';
 import { nextPlanned } from '../plan/plans';
+import { PxKgTape, PxStair } from './PxDrag';
 
 /* ================= GÜNLÜK: program yazma + antrenman kaydı ================= */
 const WD_LONG = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
@@ -192,39 +193,36 @@ function Stepper({ id, value, onChange, step, min, max, unit, label, decimals })
 /* ---------- hafta şeridi ---------- */
 /* ---------- ana ekran ---------- */
 /* ---------- program editörü ---------- */
-function ItemEditor({ it, idx, n, onChange, onMove, onRemove }) {
+// Hareketin o seanstaki uygulama biçimi: dokunarak seçilir, notta " · " ile birleşir.
+const NOTE_PRESETS = ['Hissederek yap', 'Ağırlığa odaklan', 'Altta beklet', 'Ortada beklet', 'Üstte beklet', 'İzometrik', 'Yavaş eksantrik', 'Patlayıcı kaldır', 'Overload yük', 'Pump seti', 'Drop set', 'Rest-pause', 'Kısmi tekrar', 'Tükenişe kadar', 'Tam ROM'];
+function splitNote(note) {
+  const toks = String(note || '').split(' · ').map((x) => x.trim()).filter(Boolean);
+  return { on: NOTE_PRESETS.filter((p) => toks.includes(p)), free: toks.filter((t) => !NOTE_PRESETS.includes(t)).join(' · ') };
+}
+const joinNote = (on, free) => [...NOTE_PRESETS.filter((p) => on.includes(p)), String(free || '').trim()].filter(Boolean).join(' · ');
+
+function ItemEditor({ it, idx, n, onChange, onMove, onRemove, fx = { sound: true, haptic: true } }) {
   const [confirm, setConfirm] = useState(false);
   const plyo = isPlyo(it.exId);
   const skill = isSkill(it.exId);
   const set = (k) => (v) => onChange({ ...it, [k]: v });
-  const num = (k) => (e) => { const v = e.target.value.replace(',', '.'); onChange({ ...it, [k]: v === '' ? null : Number(v) }); };
   const pid = 'it-' + it.id;
+  const parsed = splitNote(it.note);
+  const [free, setFree] = useState(parsed.free);
+  const togglePreset = (p) => {
+    const on = parsed.on.includes(p) ? parsed.on.filter((x) => x !== p) : [...parsed.on, p];
+    onChange({ ...it, note: joinNote(on, free) });
+  };
+  const repWord = plyo ? 'Temas' : skill ? 'Deneme' : 'Tekrar';
+  const rMin = hasNum(it.repMin) ? Number(it.repMin) : 8;
+  const rMax = hasNum(it.repMax) ? Number(it.repMax) : rMin;
   return (
     <div className="item-ed">
-      <div className="ied-grid">
-        <Stepper id={pid + '-sets'} label="Set" value={it.sets} step={1} min={1} max={12} onChange={set('sets')} decimals={0} />
-        <div className="field-pair">
-          <span className="st-k">{plyo ? 'Temas' : skill ? 'Deneme' : 'Tekrar'}</span>
-          <div className="pair">
-            <input id={pid + '-rmin'} className="mini-in mono" inputMode="numeric" value={hasNum(it.repMin) ? it.repMin : ''} onChange={num('repMin')} aria-label="En az tekrar" />
-            <span>–</span>
-            <input id={pid + '-rmax'} className="mini-in mono" inputMode="numeric" value={hasNum(it.repMax) ? it.repMax : ''} onChange={num('repMax')} aria-label="En çok tekrar" />
-          </div>
-        </div>
-        {skill ? null : <div className="field-pair">
-          <span className="st-k">{plyo ? 'Ek yük (kg)' : 'Kg'}</span>
-          <div className="pair">
-            <input id={pid + '-kg'} className="mini-in mono wide" inputMode="decimal" placeholder="isteğe bağlı" value={hasNum(it.kg) ? String(it.kg).replace('.', ',') : ''} onChange={num('kg')} aria-label="Hedef kilo" />
-          </div>
-        </div>}
-        {plyo || skill ? null : <div className="field-pair">
-          <span className="st-k">RPE</span>
-          <div className="pair">
-            <input id={pid + '-pmin'} className="mini-in mono" inputMode="decimal" value={hasNum(it.rpeMin) ? String(it.rpeMin).replace('.', ',') : ''} onChange={num('rpeMin')} aria-label="En düşük RPE" />
-            <span>–</span>
-            <input id={pid + '-pmax'} className="mini-in mono" inputMode="decimal" value={hasNum(it.rpeMax) ? String(it.rpeMax).replace('.', ',') : ''} onChange={num('rpeMax')} aria-label="En yüksek RPE" />
-          </div>
-        </div>}
+      <div className="ied-drag">
+        <PxStair id={pid + '-sets'} label="Set" min={1} max={12} lo={Number(it.sets) || 3} onChange={(a) => onChange({ ...it, sets: a })} fx={fx} marks={[1, 4, 8, 12]} />
+        <PxStair id={pid + '-reps'} label={repWord} min={1} max={30} range lo={rMin} hi={rMax} onChange={(a, b) => onChange({ ...it, repMin: a, repMax: b })} fx={fx} marks={[1, 5, 10, 15, 20, 25, 30]} loLabel={'En az ' + repWord.toLowerCase()} hiLabel={'En çok ' + repWord.toLowerCase()} />
+        {skill ? null : <PxKgTape id={pid + '-kg'} label={plyo ? 'Ek yük' : 'Kilo'} value={hasNum(it.kg) ? Number(it.kg) : null} onChange={(x) => onChange({ ...it, kg: x })} fx={fx} />}
+        {plyo || skill ? null : <PxStair id={pid + '-rpe'} label="RPE" min={5} max={10} step={0.5} range lo={hasNum(it.rpeMin) ? Number(it.rpeMin) : 7} hi={hasNum(it.rpeMax) ? Number(it.rpeMax) : hasNum(it.rpeMin) ? Number(it.rpeMin) : 9} onChange={(a, b) => onChange({ ...it, rpeMin: a, rpeMax: b })} fx={fx} marks={[5, 6, 7, 8, 9, 10]} loLabel="En düşük RPE" hiLabel="En yüksek RPE" />}
       </div>
       <div className="field-pair">
         <span className="st-k">Set arası dinlenme</span>
@@ -233,8 +231,12 @@ function ItemEditor({ it, idx, n, onChange, onMove, onRemove }) {
         </div>
       </div>
       <div className="field-pair">
-        <label className="st-k" htmlFor={pid + '-note'}>Not</label>
-        <input id={pid + '-note'} className="text-in" placeholder="örn. ağır setler, 3 sn eksantrik" value={it.note || ''} onChange={(e) => set('note')(e.target.value)} />
+        <span className="st-k">Nasıl yapılacak</span>
+        <div className="chips-wrap ied-presets">
+          {NOTE_PRESETS.map((p) => <button key={p} type="button" className={'fchip sm' + (parsed.on.includes(p) ? ' on' : '')} aria-pressed={parsed.on.includes(p)} onClick={() => togglePreset(p)}>{p}</button>)}
+        </div>
+        <label className="st-k" htmlFor={pid + '-note'}>Ek not</label>
+        <input id={pid + '-note'} className="text-in" placeholder="örn. 3 sn iniş, dirsek içeride" value={free} onChange={(e) => { setFree(e.target.value); onChange({ ...it, note: joinNote(parsed.on, e.target.value) }); }} />
       </div>
       <div className="ied-actions">
         <button type="button" className="btn ghost sm" disabled={idx === 0} onClick={() => onMove(-1)} aria-label="Yukarı taşı">↑ Yukarı</button>

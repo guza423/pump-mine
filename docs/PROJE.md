@@ -49,7 +49,16 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
   - **Büyük dinlenme ekranı (`#rest-big`):** set kaydında açılır; sürükleyerek ve `-15 SN`/`+15 SN` düğmeleriyle ayarlanır, `GİZLE` ile kaydet düğmesinin solunda küçük çipe küçülür, `GEÇ` ile biter.
   - **Ses ve titreşim:** her adımda WebAudio kare/testere dalga sesleri, parçacık/pop/sarsıntı efektleri ve titreşim; **Hesap ve yedek** penceresinden (`Sesler`, `Titreşim`) kapatılabilir.
   - **Pixel özet:** süre, tonaj (dambılda iki el; `Tek ` ile başlayanlar tek el), set · zor set, 25 parçalı yorgunluk çubuğu, `recoveryHours()`, hareket başına e1RM (`ROM ≥ %90`), `Plan olarak kaydet`.
-- **Planlı oturum:** hedef kartı ("Hedef 4×6–8 · 80 kg · RPE 8"), planlı set satırları, "Set 1/4 kaydet", hız animasyonu.
+- **Planlı oturum:** hedef kartı ("Hedef 4×6–8 · 80 kg · RPE 8"), planlı set satırları, "Set 1/4 kaydet", hız animasyonu. Hareketin notu hedef kartında küçük yazıyla görünür.
+- **Plan düzenleyici (V18):**
+  - hareket seçilince eklenir ve ayar penceresi kendiliğinden açılır;
+  - set (1–12), tekrar aralığı (1–30), RPE aralığı (5–10) sürüklemeli merdiven; aralıkta dokunulan yere en yakın uç oynar;
+  - kilo isteğe bağlı sürüklemeli bant (40 kg pencere, kenarda tutunca kayar, "Kilo hedefini kaldır");
+  - "Nasıl yapılacak" hazır seçenekleri (Hissederek yap, Altta beklet, Pump seti …) + ek not; seçilenler notta ` · ` ile birleşir, plan menüsünde ve hedef kartında görünür.
+- **Antrenman özeti (geçmiş, V18):**
+  - set kutucuğuna dokununca salt okunur ayrıntı: RPE, kalan tekrar, zor set, e1RM, son tekrar hızı, ROM, tonaj;
+  - "Bu antrenmanda çalışan kaslar" (zor set sayısıyla) + yardımcı kaslar;
+  - son 7 gün kas başına zor set çubukları (az / iyi / fazla, bu antrenmanın katkısı `+n`) ve uyarılar (az, bu hafta hiç, fazla).
 - **Android geri tuşu:** sheet'i / pixel pencereyi kapatır → büyük dinlenmeyi küçültür → set ekranından listeye döner → oturumdan Dashboard'a (oturum sürer) → sekmeden Dashboard'a → Dashboard'da iki kez basınca çıkar.
 
 **Hesap ve yedek** (Dashboard sağ üst):
@@ -235,6 +244,8 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | 2026-11-17 | **Dengeli pixel dozu:** Press Start 2P yalnızca büyük sayılarda ve büyük düğmelerde, yalnızca 8'in katı boyutlarda; başlıklar Saira, metin ve küçük sayılar IBM Plex Sans; Pixelify Sans kalkar | Kullanıcı: "yazılar okunmuyor … daha düzgün pikseller olsun"; "dengeli doz kalsın" |
 | 2026-11-17 | Plansız set düğmesi `SET n BİTTİ`, rengi son tekrar hızının rengi; dinlenme sürerken düğme yerine dinlenme çubuğu (iptal büyük sayaçtan) | Kullanıcı isteği |
 | 2026-11-17 | Pixel dil tüm uygulamaya yayılacak: **yalnızca stil değişir, her özellik ve akış korunur**; sekme sekme, önce tuvalde tasarım | Kullanıcı: "herşey korunucak … sadece stil değişicek" |
+| 2026-11-18 | Plan ayarlarında sayılar elle yazılmaz, set kaydı gibi **sürüklenir**; hareket seçilince ayar penceresi kendiliğinden açılır; not için hazır "nasıl yapılacak" seçenekleri | Kullanıcı: "tekrar tıklayıp doldurmayım", "setleri kaydeder gibi", "ihtimaller listesi" |
+| 2026-11-18 | Geçmiş özetinde set ayrıntısı salt okunurdur (silme yok); kas bölümü bu antrenmanda çalışan kasları ve haftalık durumu uyarılarla gösterir | Kullanıcı: "detayı görebileyim", "o bi ifade vermio … uyarılan kaslar" |
 | 2026-11-18 | Makine/kablo ağırlık yığını, bar plakaları ve pim **temsilidir**: kaydedilen ve hesaba giren tek şey girilen kilo. Salona göre plaka değeri ya da pim numarası tutulmaz | Kullanıcı: "plaka zaten göstermelik. Önemli olan bizim verdimiz sayı … pim sırası falan … O temsili biraz" |
 | 2026-11-18 | Yorgunluk ölçerde iki görünüm: **Şu an** (kayıtlar + uyku) ve **Simülasyon** (kaydırıcılar). Kaydırıcıya dokununca ibre simülasyona geçer, "Şu an" ile geri döner | Kullanıcı: "bar hiç hareket etmio artırıp azaltsamda"; ibre yalnızca kayıtlardan gelen değeri gösteriyordu |
 | 2026-11-18 | Lab animasyonları pixel'e **boyanarak** geçer (seçenek 2): aynı çizim ve hareket, pixel palet, keskin kenar, kare uç, parlama yok; Lab'da sinir sinyali mavi. Kare kare sprite ileride ayrı iş | "sadece stil değişicek"; animasyonların öğrettiği her şey korunur |

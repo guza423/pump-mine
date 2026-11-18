@@ -866,12 +866,13 @@ export const FreePixelSession: React.FC<Props> = ({
               ? 'Hiç set kaydetmedin. Kaydetmeden çıkabilirsin.'
               : `${totalSets} set · tonaj ${Math.round(ss.tonnage).toLocaleString('tr-TR')} kg`}
           </div>
-          <div style={{ display: 'flex', gap: 12 }}>
-            <button type="button" className="bb" style={{ fontSize: 17 }} onClick={() => setConfirmModal(null)}>GERİ DÖN</button>
+          {/* Press Start yalnızca 16 px (keskin); uzun metin sığsın diye "Kaydetmeden çık" düğmeleri alt alta */}
+          <div style={{ display: 'flex', gap: noSets ? 20 : 12, flexDirection: noSets ? 'column' : 'row' }}>
+            <button type="button" className="bb" style={noSets ? { flex: 'none' } : undefined} onClick={() => setConfirmModal(null)}>GERİ DÖN</button>
             {noSets ? (
-              <button type="button" id="discard-yes" className="go" style={{ fontSize: 17 }} onClick={discard}>Kaydetmeden çık</button>
+              <button type="button" id="discard-yes" className="go" style={{ flex: 'none', textTransform: 'uppercase' }} onClick={discard}>Kaydetmeden çık</button>
             ) : (
-              <button type="button" id="finish-yes" className="go end" style={{ fontSize: 18 }} onClick={finish}>BİTİR</button>
+              <button type="button" id="finish-yes" className="go end" onClick={finish}>BİTİR</button>
             )}
           </div>
           {!noSets ? (
