@@ -46,7 +46,7 @@ describe('yerel bildirim sarmalayıcısı', () => {
   it('sonraki set için epoch bitişi yollar ve yeni sayaçtan önce durdurur', async () => {
     await startRest(rest, 'Bench');
     await stopRest(); await startRest({ ...rest, start: 5000 }, 'Bench');
-    expect(native.start).toHaveBeenNthCalledWith(1, { endAt: 121000, title: 'Dinlenme · Bench', body: '2. set sırada', doneTitle: 'Dinlenme bitti', doneBody: 'Bench · 2. set zamanı' });
+    expect(native.start).toHaveBeenNthCalledWith(1, { endAt: 121000, title: 'Dinlenme · Bench', body: '2. set sırada', doneTitle: 'Dinlenme bitti', doneBody: 'Bench · 2. set zamanı', channelRunning: 'Dinlenme sayacı', channelDone: 'Dinlenme bitti' });
     expect(native.start.mock.invocationCallOrder[0]).toBeLessThan(native.stop.mock.invocationCallOrder[0]);
     expect(native.stop.mock.invocationCallOrder[0]).toBeLessThan(native.start.mock.invocationCallOrder[1]);
   });

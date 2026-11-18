@@ -1,4 +1,5 @@
 import { EQ } from '../../lib/data/exlib';
+import { byLang, getLang, t } from '../../i18n';
 
 export type VisKind = 'bar' | 'mk' | 'db' | 'other';
 
@@ -25,31 +26,54 @@ export function eqConfig(eq?: string): EqConfig {
 }
 
 export function eqLabel(eq?: string): string {
-  if (!eq) return 'Özel';
-  return (EQ as Record<string, string>)[eq] || 'Diğer';
+  if (!eq) return t('Özel');
+  return (EQ as Record<string, string>)[eq] || t('Diğer');
 }
 
 export const PX_SPEED_COLORS = ['#52e07c', '#c6e04a', '#ffc53d', '#ff8a3a', '#ff3b4e'] as const;
 
-export const PX_SPEED = [
+// Etiketler dile göre (V21/V22); sayılar (rir, rpe, vl) iki dilde aynı.
+const PX_SPEED_TR = [
   { k: 'Aynı', d: 'İlki kadar hızlı · 5+ kaldı', rir: 5, rpe: 6, vl: 0.05 },
   { k: 'Hafif', d: 'Biraz yavaşladı · ~3 kaldı', rir: 3, rpe: 7, vl: 0.18 },
   { k: 'Belirgin', d: 'Belirgin yavaş · ~2 kaldı', rir: 2, rpe: 8, vl: 0.32 },
   { k: 'Çok', d: 'Çok yavaş · ~1 kaldı', rir: 1, rpe: 9, vl: 0.47 },
   { k: 'Zar zor', d: 'Zar zor çıktı · tükeniş', rir: 0, rpe: 10, vl: 0.62 },
 ] as const;
-
-export const PX_PLYO_Q = [
-  { k: 'Korundu', d: 'Yükseklik ve hız korundu', c: '#52e07c' },
-  { k: 'Biraz düştü', d: 'Son tekrarlar biraz alçaldı', c: '#ffc53d' },
-  { k: 'Belirgin düştü', d: 'Kalite bozuldu; seti bitir', c: '#ff3b4e' },
+const PX_SPEED_EN = [
+  { ...PX_SPEED_TR[0], k: 'Same', d: 'As fast as the first · 5+ left' },
+  { ...PX_SPEED_TR[1], k: 'Slight', d: 'Slowed a little · ~3 left' },
+  { ...PX_SPEED_TR[2], k: 'Clear', d: 'Clearly slower · ~2 left' },
+  { ...PX_SPEED_TR[3], k: 'Big', d: 'Very slow · ~1 left' },
+  { ...PX_SPEED_TR[4], k: 'Grind', d: 'Barely got it · failure' },
 ] as const;
+export const PX_SPEED = byLang<readonly (typeof PX_SPEED_TR)[number][]>({ tr: PX_SPEED_TR, en: PX_SPEED_EN as never });
 
-export const PX_SKILL_Q = [
-  { k: 'Temiz', d: 'Temiz tekrar', c: '#52e07c' },
-  { k: 'Kısmen', d: 'Kısmen çıktı', c: '#ffc53d' },
-  { k: 'Olmadı', d: 'Henüz çıkmadı', c: '#ff3b4e' },
-] as const;
+export const PX_PLYO_Q = byLang({
+  tr: [
+    { k: 'Korundu', d: 'Yükseklik ve hız korundu', c: '#52e07c' },
+    { k: 'Biraz düştü', d: 'Son tekrarlar biraz alçaldı', c: '#ffc53d' },
+    { k: 'Belirgin düştü', d: 'Kalite bozuldu; seti bitir', c: '#ff3b4e' },
+  ],
+  en: [
+    { k: 'Held', d: 'Height and speed held', c: '#52e07c' },
+    { k: 'Dropped a bit', d: 'The last reps got a little lower', c: '#ffc53d' },
+    { k: 'Clearly dropped', d: 'Quality broke down; end the set', c: '#ff3b4e' },
+  ],
+});
+
+export const PX_SKILL_Q = byLang({
+  tr: [
+    { k: 'Temiz', d: 'Temiz tekrar', c: '#52e07c' },
+    { k: 'Kısmen', d: 'Kısmen çıktı', c: '#ffc53d' },
+    { k: 'Olmadı', d: 'Henüz çıkmadı', c: '#ff3b4e' },
+  ],
+  en: [
+    { k: 'Clean', d: 'Clean rep', c: '#52e07c' },
+    { k: 'Partly', d: 'Partly there', c: '#ffc53d' },
+    { k: 'Missed', d: 'Not there yet', c: '#ff3b4e' },
+  ],
+});
 
 export const PL_COLORS: Record<number, string> = {
   25: '#e8384f',
@@ -80,15 +104,18 @@ const fan = (n: number, from: number, to: number) =>
 export const P_UP = fan(8, -168, -12);
 export const P_ALL = fan(14, -180, 154);
 
-export function upTr(t: string): string {
-  return String(t)
+export function upTr(s: string): string {
+  if (getLang() !== 'tr') return String(s).toUpperCase();
+  return String(s)
     .split(' ')
     .map((w) => (/[ğüşöçıİĞÜŞÖÇ]/.test(w) ? w.toLocaleUpperCase('tr') : w.toUpperCase()))
     .join(' ');
 }
 
+// Kilo yazısı: Türkçede 82,5 · İngilizcede 82.5 (binlik ayırıcı yok)
 export function fk(v: number): string {
-  return String(Math.round(v * 100) / 100).replace('.', ',');
+  const s = String(Math.round(v * 100) / 100);
+  return getLang() === 'tr' ? s.replace('.', ',') : s;
 }
 
 export function hms(sec: number): string {

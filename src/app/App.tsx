@@ -10,7 +10,7 @@ import { BiomechTab, Tile } from '../features/lab/Biomekanik';
 import { CompactCtx, Icon, NeedleGauge, Range, STAGES, StageFatigue, StageRate, StageRecruit, StageSignal, Switch, clamp } from '../features/lab/Cns';
 import {
   BENCH_IDS, EX_LIB, FAT, EQ, PLYO_INT, isPlyo, isSkill, PLYO_W, PLYO_Q, SKILL_W, SKILL_Q, skillSetTxt, libById, MONTHS, MUSCLES, PROF, SPEED,
-  WD_LONG, WD_SHORT, WEEK_ORDER, ItemEditor, Lane, SetReplay, Stepper, animVl,
+  WD_LONG, WD_SHORT, WEEK_ORDER, ItemEditor, Lane, SetReplay, Stepper, animVl, noteLabel,
   bestE1, clone, dateTxt, durTxt, e1Ok, e1rm, entryFor,
   firstOpen, hasNum, itemFromEx, mmss, newId, nextPlanned, nf, normTr,
   repTxt, repVelocities, restTxt, rirFromSpeed, rirTxt, rpeLabel,
@@ -43,7 +43,7 @@ import { readFxSettings } from '../lib/native/fx';
 import { dbMultiplier } from '../lib/models/session';
 import { PX_SPEED, PX_SPEED_COLORS } from '../features/antrenman/pixelHelpers';
 import { HoldButton } from './HoldButton';
-import { byLang, pct, t, tc, useLang } from '../i18n';
+import { byLang, clock, lower, muscleName, num, pct, t, tc, upper, useLang } from '../i18n';
 import { dayLabel, exName } from '../i18n/names';
 import { REC_FRESH } from '../lib/models/fatigue';
 
@@ -60,7 +60,8 @@ const MONTHS_LONG = byLang({
   en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
 });
 const MAIN_MUSCLES = ['Göğüs', 'Omuz (ön)', 'Omuz (yan)', 'Sırt', 'Trapez', 'Triceps', 'Hamstring', 'Quadriceps'];
-const SPEED_SHORT = ['Aynı', 'Hafif', 'Belirgin', 'Çok', 'Grind'];
+const SPEED_SHORT = byLang({ tr: ['Aynı', 'Hafif', 'Belirgin', 'Çok', 'Grind'], en: ['Same', 'Slight', 'Clear', 'Big', 'Grind'] });
+// Set notu etiketleri Türkçe saklanır (set.tags); gösterimde t() ile çevrilir.
 const NOTE_TAGS = ['Kolay geldi', 'Form bozuldu', 'Takıldı', 'Ağrı', 'Pump', 'Yardım aldım'];
 const DAY_MS = 864e5;
 
@@ -146,7 +147,7 @@ function Ring({ score, zone, size = 76, label, pixel = false }) {
     </svg>
   );
 }
-const MBAR_ST = { none: 'yok', low: 'az', ok: 'iyi', high: 'fazla' };
+const MBAR_ST = byLang({ tr: { none: 'yok', low: 'az', ok: 'iyi', high: 'fazla' }, en: { none: 'none', low: 'low', ok: 'good', high: 'high' } });
 function MuscleBars({ muscles, list, max = 24, compact, mark, status }) {
   const names = list || Object.keys(muscles).sort((a, b) => (muscles[b] || 0) - (muscles[a] || 0));
   return (
@@ -156,7 +157,7 @@ function MuscleBars({ muscles, list, max = 24, compact, mark, status }) {
         const st = n === 0 ? 'none' : n < 10 ? 'low' : n > 20 ? 'high' : 'ok';
         return (
           <div key={m} className={'mbar ' + st + (mark && mark[m] ? ' hit' : '')}>
-            <span className="mbar-m">{m}{mark && mark[m] ? <em className="mbar-hit">+{mark[m]}</em> : null}</span>
+            <span className="mbar-m">{muscleName(m)}{mark && mark[m] ? <em className="mbar-hit">+{mark[m]}</em> : null}</span>
             <div className="mbar-t">
               <span className="mbar-z" style={{ left: (10 / max) * 100 + '%', width: (10 / max) * 100 + '%' }} />
               <span className="mbar-f" style={{ width: Math.min(100, (n / max) * 100) + '%' }} />
@@ -192,23 +193,23 @@ function SessionMuscles({ session, week }) {
     <div className="sum-mus">
       {hits.length ? (
         <React.Fragment>
-          <span className="st-k">Bu antrenmanda çalışan kaslar</span>
+          <span className="st-k">{t('Bu antrenmanda çalışan kaslar')}</span>
           <div className="mus-hits">
-            {hits.map(([m, n]) => <span key={m} className="mus-hit"><b>{m}</b><span className="mono">{n} zor set</span></span>)}
+            {hits.map(([m, n]) => <span key={m} className="mus-hit"><b>{muscleName(m)}</b><span className="mono">{t('{n} zor set', { n })}</span></span>)}
           </div>
-          {helpers.size ? <p className="mus-help">Yardımcı olarak çalışanlar: {[...helpers].join(', ')}</p> : null}
+          {helpers.size ? <p className="mus-help">{t('Yardımcı olarak çalışanlar: {list}', { list: [...helpers].map(muscleName).join(', ') })}</p> : null}
         </React.Fragment>
       ) : null}
       {names.length ? (
         <div className="sum-week">
-          <div className="sum-week-h"><span className="st-k">Son 7 gün · kas başına zor set</span><span className="mus-leg mono">hedef 10–20</span></div>
+          <div className="sum-week-h"><span className="st-k">{t('Son 7 gün · kas başına zor set')}</span><span className="mus-leg mono">{t('hedef 10–20')}</span></div>
           <MuscleBars muscles={week} list={names} compact mark={here} status />
-          <p className="chart-note">Taralı şerit haftada 10–20 zor set: kas gelişimi için sık önerilen aralık. +n bu antrenmanın katkısı. Zor set: bitişe 4 tekrar ya da daha az kala biten set.</p>
+          <p className="chart-note">{t('Taralı şerit haftada 10–20 zor set: kas gelişimi için sık önerilen aralık. +n bu antrenmanın katkısı. Zor set: bitişe 4 tekrar ya da daha az kala biten set.')}</p>
           <div className="mus-warn">
-            {low.length ? <p className="mw low"><b>Az</b>{low.map((m) => m + ' ' + week[m]).join(', ')}: haftalık 10 setin altında.</p> : null}
-            {none.length ? <p className="mw none"><b>Bu hafta hiç</b>{none.join(', ')}</p> : null}
-            {high.length ? <p className="mw high"><b>Fazla</b>{high.map((m) => m + ' ' + week[m]).join(', ')}: 20 setin üstünde, toparlanmaya dikkat.</p> : null}
-            {!low.length && !none.length && !high.length ? <p className="mw ok"><b>Dengeli</b>Bütün ana kaslar haftalık aralıkta.</p> : null}
+            {low.length ? <p className="mw low"><b>{t('Az')}</b>{t('{list}: haftalık 10 setin altında.', { list: low.map((m) => muscleName(m) + ' ' + week[m]).join(', ') })}</p> : null}
+            {none.length ? <p className="mw none"><b>{t('Bu hafta hiç')}</b>{none.map(muscleName).join(', ')}</p> : null}
+            {high.length ? <p className="mw high"><b>{t('Fazla')}</b>{t('{list}: 20 setin üstünde, toparlanmaya dikkat.', { list: high.map((m) => muscleName(m) + ' ' + week[m]).join(', ') })}</p> : null}
+            {!low.length && !none.length && !high.length ? <p className="mw ok"><b>{t('Dengeli')}</b>{t('Bütün ana kaslar haftalık aralıkta.')}</p> : null}
           </div>
         </div>
       ) : null}
@@ -217,30 +218,30 @@ function SessionMuscles({ session, week }) {
 }
 function exDot(e) {
   if (!e) return null;
-  if (e.kind === 'beceri') return <span className="sdot" title="Beceri" />;
-  return e.kind === 'plyo' ? <span className={'pdot i' + (e.int || 2)} title={'Yoğunluk: ' + PLYO_INT[e.int || 2]} /> : e.fat ? <span className={'fatdot f' + e.fat} title={'Yorgunluk: ' + FAT[e.fat]} /> : null;
+  if (e.kind === 'beceri') return <span className="sdot" title={t('Beceri')} />;
+  return e.kind === 'plyo' ? <span className={'pdot i' + (e.int || 2)} title={t('Yoğunluk: {x}', { x: PLYO_INT[e.int || 2] })} /> : e.fat ? <span className={'fatdot f' + e.fat} title={t('Yorgunluk: {x}', { x: FAT[e.fat] })} /> : null;
 }
 function exLine(e) {
-  if (!e.eq) return e.muscle;
-  if (e.kind === 'beceri') return e.muscle + ' · ' + EQ[e.eq] + ' · beceri' + (e.h ? ' · süre' : '');
-  return e.muscle + ' · ' + EQ[e.eq] + ' · ' + (e.kind === 'plyo' ? 'yoğunluk ' + PLYO_INT[e.int || 2].split(' ')[0].toLocaleLowerCase('tr') : PROF[e.prof].k);
+  if (!e.eq) return muscleName(e.muscle);
+  if (e.kind === 'beceri') return muscleName(e.muscle) + ' · ' + EQ[e.eq] + ' · ' + t('beceri') + (e.h ? ' · ' + t('süre') : '');
+  return muscleName(e.muscle) + ' · ' + EQ[e.eq] + ' · ' + (e.kind === 'plyo' ? t('yoğunluk {x}', { x: lower(PLYO_INT[e.int || 2].split(' ')[0]) }) : PROF[e.prof].k);
 }
 function FactChips({ ex }) {
   if (!ex) return null;
   return (
     <div className="facts">
-      <span className="fact"><b>{ex.muscle}</b>{ex.sec && ex.sec.length ? ' + ' + ex.sec.join(', ') : ''}</span>
+      <span className="fact"><b>{muscleName(ex.muscle)}</b>{ex.sec && ex.sec.length ? ' + ' + ex.sec.map(muscleName).join(', ') : ''}</span>
       {ex.eq ? <span className="fact">{EQ[ex.eq]}</span> : null}
-      {ex.kind && ex.kind !== 'kuvvet' ? <span className={'fact ' + (ex.kind === 'beceri' ? 'skill' : 'kind')}>{ex.kind === 'plyo' ? 'Pliometrik' : ex.kind === 'beceri' ? 'Beceri' : 'Olimpik'}</span> : null}
-      {ex.kind === 'beceri' && ex.h ? <span className="fact skill">Süreyle tutulur</span> : null}
+      {ex.kind && ex.kind !== 'kuvvet' ? <span className={'fact ' + (ex.kind === 'beceri' ? 'skill' : 'kind')}>{ex.kind === 'plyo' ? t('Pliometrik') : ex.kind === 'beceri' ? t('Beceri') : t('Olimpik')}</span> : null}
+      {ex.kind === 'beceri' && ex.h ? <span className="fact skill">{t('Süreyle tutulur')}</span> : null}
       {ex.kind === 'plyo'
-        ? <span className={'fact fat' + Math.min(3, ex.int || 2)}>Yoğunluk: {PLYO_INT[ex.int || 2]}</span>
-        : <span className={'fact fat' + ex.fat}>Yorgunluk: {FAT[ex.fat]}</span>}
+        ? <span className={'fact fat' + Math.min(3, ex.int || 2)}>{t('Yoğunluk: {x}', { x: PLYO_INT[ex.int || 2] })}</span>
+        : <span className={'fact fat' + ex.fat}>{t('Yorgunluk: {x}', { x: FAT[ex.fat] })}</span>}
       {ex.kind !== 'plyo' && ex.kind !== 'beceri' && ex.prof ? <span className="fact prof" title={PROF[ex.prof].d}>{PROF[ex.prof].k}</span> : null}
     </div>
   );
 }
-const EX_KINDS = [['all', 'Tümü'], ['kuvvet', 'Kuvvet'], ['olimpik', 'Olimpik'], ['plyo', 'Pliometrik'], ['beceri', 'Beceri']];
+const EX_KINDS = [['all', 'Tümü'], ['kuvvet', 'Kuvvet'], ['olimpik', 'Olimpik'], ['plyo', 'Pliometrik'], ['beceri', 'Beceri']]; // etiketler gösterimde t() ile
 function useExFilter(all, initGrp) {
   const [q, setQ0] = useState('');
   const [kind, setKind0] = useState('all');
@@ -249,28 +250,29 @@ function useExFilter(all, initGrp) {
   const [lim, setLim] = useState(40);
   const wrap = (f) => (v) => { f(v); setLim(40); };
   const toks = normTr(q).split(/\s+/).filter(Boolean);
-  const hay = useMemo(() => new Map(all.map((e) => [e, normTr(e.name + ' ' + (e.en || '') + ' ' + e.muscle + ' ' + (EQ[e.eq] || ''))])), [all]);
-  const base = toks.length ? all.filter((e) => toks.every((t) => hay.get(e).includes(t))) : all;
+  // Arama iki dilde de eşleşir: Türkçe ve İngilizce ad, kas ve ekipman.
+  const hay = useMemo(() => new Map(all.map((e) => [e, normTr(e.name + ' ' + (e.en || '') + ' ' + e.muscle + ' ' + muscleName(e.muscle) + ' ' + (EQ[e.eq] || ''))])), [all]);
+  const base = toks.length ? all.filter((e) => toks.every((tok) => hay.get(e).includes(tok))) : all;
   const byKind = base.filter((e) => kind === 'all' || (e.kind || 'kuvvet') === kind);
   const list = byKind.filter((e) => (!grp || e.muscle === grp) && (!eq || e.eq === eq));
   const groups = MUSCLES.map((m) => [m, byKind.filter((e) => e.muscle === m && (!eq || e.eq === eq)).length]).filter((x) => x[1]);
   const eqs = Object.keys(EQ).map((k) => [k, byKind.filter((e) => e.eq === k && (!grp || e.muscle === grp)).length]).filter((x) => x[1]);
-  const kinds = EX_KINDS.map(([k, t]) => [k, t, k === 'all' ? base.length : base.filter((e) => (e.kind || 'kuvvet') === k).length]);
+  const kinds = EX_KINDS.map(([k, label]) => [k, t(label), k === 'all' ? base.length : base.filter((e) => (e.kind || 'kuvvet') === k).length]);
   return { q, setQ: wrap(setQ0), kind, setKind: wrap(setKind0), grp, setGrp: wrap(setGrp0), eq, setEq: wrap(setEq0), lim, more: () => setLim(lim + 60), list, groups, eqs, kinds };
 }
 function ExFilterBar({ f, idp, placeholder }) {
   return (
     <div className="exf">
-      <input id={idp + '-search'} className="search" type="search" placeholder={placeholder || 'Hareket ara (Türkçe ya da İngilizce)'} value={f.q} onChange={(e) => f.setQ(e.target.value)} autoComplete="off" />
-      <div className="segmented seg5-scroll" role="tablist" aria-label="Hareket türü">
-        {f.kinds.map(([k, t]) => <button key={k} type="button" role="tab" id={idp + '-kind-' + k} aria-selected={f.kind === k} className={f.kind === k ? 'on' : ''} onClick={() => f.setKind(k)}>{t}</button>)}
+      <input id={idp + '-search'} className="search" type="search" placeholder={placeholder || t('Hareket ara (Türkçe ya da İngilizce)')} value={f.q} onChange={(e) => f.setQ(e.target.value)} autoComplete="off" />
+      <div className="segmented seg5-scroll" role="tablist" aria-label={t('Hareket türü')}>
+        {f.kinds.map(([k, label]) => <button key={k} type="button" role="tab" id={idp + '-kind-' + k} aria-selected={f.kind === k} className={f.kind === k ? 'on' : ''} onClick={() => f.setKind(k)}>{label}</button>)}
       </div>
-      <div className="chips-scroll" role="group" aria-label="Kas grubu">
-        <button type="button" className={'fchip' + (!f.grp ? ' on' : '')} onClick={() => f.setGrp(null)}>Tüm kaslar</button>
-        {f.groups.map(([m, n]) => <button key={m} type="button" id={idp + '-g-' + normTr(m).replace(/[^a-z]/g, '')} className={'fchip' + (f.grp === m ? ' on' : '')} onClick={() => f.setGrp(f.grp === m ? null : m)}>{m} <span className="mono fchip-n">{n}</span></button>)}
+      <div className="chips-scroll" role="group" aria-label={t('Kas grubu')}>
+        <button type="button" className={'fchip' + (!f.grp ? ' on' : '')} onClick={() => f.setGrp(null)}>{t('Tüm kaslar')}</button>
+        {f.groups.map(([m, n]) => <button key={m} type="button" id={idp + '-g-' + normTr(m).replace(/[^a-z]/g, '')} className={'fchip' + (f.grp === m ? ' on' : '')} onClick={() => f.setGrp(f.grp === m ? null : m)}>{muscleName(m)} <span className="mono fchip-n">{n}</span></button>)}
       </div>
-      <div className="chips-scroll" role="group" aria-label="Ekipman">
-        <button type="button" className={'fchip sm' + (!f.eq ? ' on' : '')} onClick={() => f.setEq(null)}>Tüm ekipman</button>
+      <div className="chips-scroll" role="group" aria-label={t('Ekipman')}>
+        <button type="button" className={'fchip sm' + (!f.eq ? ' on' : '')} onClick={() => f.setEq(null)}>{t('Tüm ekipman')}</button>
         {f.eqs.map(([k, n]) => <button key={k} type="button" id={idp + '-eq-' + k} className={'fchip sm' + (f.eq === k ? ' on' : '')} onClick={() => f.setEq(f.eq === k ? null : k)}>{EQ[k]} <span className="mono fchip-n">{n}</span></button>)}
       </div>
     </div>
@@ -500,7 +502,7 @@ function StartView({ st, startSession, newPlan, openSheet }) {
   const groups = [];
   visibleDone.forEach((s) => {
     const d = new Date(s.startedAt);
-    const label = MONTHS_LONG[d.getMonth()].toLocaleUpperCase('tr') + ' ' + d.getFullYear();
+    const label = upper(MONTHS_LONG[d.getMonth()]) + ' ' + d.getFullYear();
     const g = groups[groups.length - 1];
     if (!g || g.label !== label) groups.push({ label, items: [s] });
     else g.items.push(s);
@@ -509,17 +511,17 @@ function StartView({ st, startSession, newPlan, openSheet }) {
   return (
     <div className="screen pxt">
       <ScreenHead
-        title="Antrenman"
-        sub={last ? 'Son: ' + dateTxt(last.startedAt) + ' · ' + sessionName(last) : 'Bir antrenman planı seç ya da plansız başla'}
+        title={t('Antrenman')}
+        sub={last ? t('Son: {x}', { x: dateTxt(last.startedAt) }) + ' · ' + sessionName(last) : t('Bir antrenman planı seç ya da plansız başla')}
       />
       <div className="scr">
         <div className="start-actions">
-          <button type="button" id="free-session" className="btn ghost" onClick={() => startSession(null, null)}><PxIcon name="plus" size={16} /> Plansız antrenman</button>
-          <button type="button" id="new-plan" className="btn ghost" onClick={() => newPlan('antrenman')}><PxIcon name="plus" size={16} /> Yeni plan</button>
+          <button type="button" id="free-session" className="btn ghost" onClick={() => startSession(null, null)}><PxIcon name="plus" size={16} /> {t('Plansız antrenman')}</button>
+          <button type="button" id="new-plan" className="btn ghost" onClick={() => newPlan('antrenman')}><PxIcon name="plus" size={16} /> {t('Yeni plan')}</button>
         </div>
 
         <section className="plan-sec">
-          <div className="sec2-h"><span className="eyebrow">Planlarım</span>{plans.length ? <span className="mono">{plans.length}</span> : null}</div>
+          <div className="sec2-h"><span className="eyebrow">{t('Planlarım')}</span>{plans.length ? <span className="mono">{plans.length}</span> : null}</div>
           {plans.length ? (
             <ul className="wtypes plan-list">
               {plans.map(({ programId, day: d }) => {
@@ -528,22 +530,22 @@ function StartView({ st, startSession, newPlan, openSheet }) {
                   <li key={d.id} className="wtype">
                     <button type="button" id={'plan-' + d.id} className="wtype-main" onClick={() => openSheet('wtype', { pid: programId, did: d.id })}>
                       <span className="wtype-t">
-                        <span className="wtype-n"><strong>{d.name || 'Adsız'}</strong></span>
-                        <small>{d.items.length + ' hareket' + (wds ? ' · ' + wds : '')}</small>
+                        <span className="wtype-n"><strong>{dayLabel(d.name)}</strong></span>
+                        <small>{t('{n} hareket', { n: d.items.length }) + (wds ? ' · ' + wds : '')}</small>
                       </span>
                     </button>
-                    <button type="button" className="wtype-more" aria-label={(d.name || 'Plan') + ' seçenekleri'} onClick={() => openSheet('wtype', { pid: programId, did: d.id })}><Icon name="more" size={18} /></button>
+                    <button type="button" className="wtype-more" aria-label={t('{x} seçenekleri', { x: d.name ? dayLabel(d.name) : t('Plan') })} onClick={() => openSheet('wtype', { pid: programId, did: d.id })}><Icon name="more" size={18} /></button>
                   </li>
                 );
               })}
             </ul>
           ) : (
-            <p className="plan-empty">Planın yok. Plansız başla ya da bir plan oluştur.</p>
+            <p className="plan-empty">{t('Planın yok. Plansız başla ya da bir plan oluştur.')}</p>
           )}
         </section>
 
         <section className="hsec hist-inline">
-          <div className="sec2-h"><span className="eyebrow">Geçmiş</span><span className="mono">{done.length}</span></div>
+          <div className="sec2-h"><span className="eyebrow">{t('Geçmiş')}</span><span className="mono">{done.length}</span></div>
           {done.length ? (
             <React.Fragment>
               {groups.map((g) => (
@@ -562,7 +564,7 @@ function StartView({ st, startSession, newPlan, openSheet }) {
                             <span className="hrow-t">
                               <strong>{sessionName(s)}</strong>
                               <small className="mono">{WD_SHORT[d.getDay()]} {hm(s.startedAt)}–{hm(s.endedAt || s.startedAt)} · {durTxt(ss.dur)}</small>
-                              <small className="mono">{ss.sets.length} set · {sessionSubTxt(ss)}{nn ? ' · ✎ ' + nn : ''}</small>
+                              <small className="mono">{t('{n} set', { n: ss.sets.length })} · {sessionSubTxt(ss)}{nn ? ' · ✎ ' + nn : ''}</small>
                             </span>
                             {f != null ? <span className="hrow-f mono" style={{ color: zoneOf(f).c, borderColor: zoneOf(f).c }}>{Math.round(f)}</span> : <span />}
                           </button>
@@ -573,11 +575,11 @@ function StartView({ st, startSession, newPlan, openSheet }) {
                 </div>
               ))}
               {done.length > histLim ? (
-                <button type="button" id="hist-more" className="btn ghost full" onClick={() => setHistLim(histLim + 30)}>Daha fazla göster</button>
+                <button type="button" id="hist-more" className="btn ghost full" onClick={() => setHistLim(histLim + 30)}>{t('Daha fazla göster')}</button>
               ) : null}
             </React.Fragment>
           ) : (
-            <p className="muted-p">Bitirdiğin antrenmanlar burada listelenir.</p>
+            <p className="muted-p">{t('Bitirdiğin antrenmanlar burada listelenir.')}</p>
           )}
         </section>
       </div>
@@ -590,7 +592,7 @@ function WtypeMenuBody({ st, pid, did, put, del, onStart, onEdit, onClose }) {
   const rawDay = p && p.days.find((x) => x.id === did);
   const d = rawDay ? normalizeDay(rawDay) : null;
   const [name, setName] = useState(d ? d.name : '');
-  if (!d) return <p className="muted-p">Bu plan artık yok.</p>;
+  if (!d) return <p className="muted-p">{t('Bu plan artık yok.')}</p>;
   const saveDay = (fn) => {
     const nextDay = normalizeDay(clone(d));
     fn(nextDay);
@@ -607,7 +609,7 @@ function WtypeMenuBody({ st, pid, did, put, del, onStart, onEdit, onClose }) {
     onClose();
   };
   const copyPlan = () => {
-    const cp = newPlanDoc((d.name || 'Plan') + ' (kopya)');
+    const cp = newPlanDoc(t('{x} (kopya)', { x: d.name ? dayLabel(d.name) : t('Plan') }));
     cp.days[0].items = clone(d.items).map((it) => ({ ...it, id: newId('i') }));
     cp.days[0].weekdays = [...(d.weekdays || [])];
     put('programs', cp);
@@ -615,14 +617,14 @@ function WtypeMenuBody({ st, pid, did, put, del, onStart, onEdit, onClose }) {
   };
   return (
     <div className="wmenu">
-      <input id="wtype-name" className="text-in" aria-label="Plan adı" value={name} onChange={(e) => setName(e.target.value)} onBlur={rename} onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }} />
-      <p className="wmenu-k mono">{d.items.length} hareket · {total} set · ~{dayMinutes(d)} dk{runs.length ? ' · ' + runs.length + ' kez yapıldı, son ' + dateTxt(runs[0].startedAt) : ''}</p>
+      <input id="wtype-name" className="text-in" aria-label={t('Plan adı')} value={name} onChange={(e) => setName(e.target.value)} onBlur={rename} onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }} />
+      <p className="wmenu-k mono">{t('{n} hareket', { n: d.items.length })} · {t('{n} set', { n: total })} · ~{t('{n} dk', { n: dayMinutes(d) })}{runs.length ? ' · ' + t('{n} kez yapıldı, son {x}', { n: runs.length, x: dateTxt(runs[0].startedAt) }) : ''}</p>
       {d.items.length ? (
         <ol className="wmenu-items">
-          {d.items.map((it) => <li key={it.id}><span>{it.name}{it.note ? <small className="wmenu-note">{it.note}</small> : null}</span><b className="mono">{it.sets} × {repTxt(it.repMin, it.repMax)}</b></li>)}
+          {d.items.map((it) => <li key={it.id}><span>{exName(it)}{it.note ? <small className="wmenu-note">{noteLabel(it.note)}</small> : null}</span><b className="mono">{it.sets} × {repTxt(it.repMin, it.repMax)}</b></li>)}
         </ol>
-      ) : <p className="muted-p">Bu planda henüz hareket yok.</p>}
-      <span className="st-k">Her hafta</span>
+      ) : <p className="muted-p">{t('Bu planda henüz hareket yok.')}</p>}
+      <span className="st-k">{t('Her hafta')}</span>
       <div className="wd-pick">
         {WEEK_ORDER.map((w) => {
           const on = (d.weekdays || []).includes(w);
@@ -642,11 +644,11 @@ function WtypeMenuBody({ st, pid, did, put, del, onStart, onEdit, onClose }) {
         })}
       </div>
       <div className="wmenu-act">
-        {d.items.length ? <button type="button" id="wtype-start" className="btn primary" onClick={() => onStart(p, d)}><Icon name="play" size={13} /> Başlat</button> : null}
-        <button type="button" id="wtype-edit" className="btn ghost" onClick={() => onEdit(p, d)}><Icon name="edit" size={14} /> Düzenle</button>
-        <button type="button" id="wtype-copy" className="btn ghost" onClick={copyPlan}>Kopyala</button>
+        {d.items.length ? <button type="button" id="wtype-start" className="btn primary" onClick={() => onStart(p, d)}><Icon name="play" size={13} /> {t('Başlat')}</button> : null}
+        <button type="button" id="wtype-edit" className="btn ghost" onClick={() => onEdit(p, d)}><Icon name="edit" size={14} /> {t('Düzenle')}</button>
+        <button type="button" id="wtype-copy" className="btn ghost" onClick={copyPlan}>{t('Kopyala')}</button>
       </div>
-      <HoldButton id="wtype-del" className="btn ghost danger-t wmenu-del" aria-label="Planı sil (1 saniye basılı tut; geçmiş kayıtlar kalır)" onHold={remove}><Icon name="trash" size={14} /> Planı sil</HoldButton>
+      <HoldButton id="wtype-del" className="btn ghost danger-t wmenu-del" aria-label={t('Planı sil (1 saniye basılı tut; geçmiş kayıtlar kalır)')} onHold={remove}><Icon name="trash" size={14} /> {t('Planı sil')}</HoldButton>
     </div>
   );
 }
@@ -658,21 +660,21 @@ function SpeedStage({ reps, lvl, exId }) {
   const c = vlColor(SPEED[lvl].vl);
   const bench = BENCH_IDS.includes(exId);
   const rel = Math.round((vN / v0) * 100);
-  const left = rir >= 5 ? '5+ tekrar kaldı' : rir === 0 ? 'tükeniş' : rir + ' tekrar kaldı';
+  const left = rir >= 5 ? t('5+ tekrar kaldı') : rir === 0 ? t('tükeniş') : t('{n} tekrar kaldı', { n: rir });
   return (
     <div className="spwrap">
       <div className="spstage">
-        <Lane v={v0} label="1. tekrar" color="var(--neuro)" playing txt={bench ? null : '%100'} />
+        <Lane v={v0} label={t('1. tekrar')} color="var(--neuro)" playing txt={bench ? null : pct(100)} />
         <div className="spstage-mid">
           <span className="mono spstage-band" style={{ color: c }}>{left}</span>
-          <span className="spstage-k">RPE {rpeLabel(clamp(10 - rir, 6, 10), rir)}{bench ? '' : ' · temsili hız'}</span>
+          <span className="spstage-k">RPE {rpeLabel(clamp(10 - rir, 6, 10), rir)}{bench ? '' : ' · ' + t('temsili hız')}</span>
         </div>
-        <Lane v={vN} label="Son tekrar" color={c} playing txt={bench ? null : '%' + rel} />
+        <Lane v={vN} label={t('Son tekrar')} color={c} playing txt={bench ? null : pct(rel)} />
       </div>
       <div className="spmini" aria-hidden="true">
         <div className="spm-bars">
-          <span className="spm-r"><small>1. tekrar</small><i><b style={{ width: '100%', background: 'var(--neuro)' }} /></i><em className="mono">{bench ? nf(v0, 2) : '%100'}</em></span>
-          <span className="spm-r"><small>Son tekrar</small><i><b style={{ width: rel + '%', background: c }} /></i><em className="mono" style={{ color: c }}>{bench ? nf(vN, 2) : '%' + rel}</em></span>
+          <span className="spm-r"><small>{t('1. tekrar')}</small><i><b style={{ width: '100%', background: 'var(--neuro)' }} /></i><em className="mono">{bench ? nf(v0, 2) : pct(100)}</em></span>
+          <span className="spm-r"><small>{t('Son tekrar')}</small><i><b style={{ width: rel + '%', background: c }} /></i><em className="mono" style={{ color: c }}>{bench ? nf(vN, 2) : pct(rel)}</em></span>
         </div>
         <div className="spm-out"><b className="mono" style={{ color: c }}>{left}</b><small className="mono">RPE {rpeLabel(clamp(10 - rir, 6, 10), rir)}{bench ? ' · m/s' : ''}</small></div>
       </div>
@@ -683,19 +685,19 @@ function SpeedStage({ reps, lvl, exId }) {
 function SetTable({ item, entry, rpe, onOpen, bodyRef, free }) {
   if (isSkill(item.exId)) return <SkillTable item={item} entry={entry} onOpen={onOpen} bodyRef={bodyRef} free={free} />;
   if (isPlyo(item.exId)) return <PlyoTable item={item} entry={entry} onOpen={onOpen} bodyRef={bodyRef} free={free} />;
-  const t = item.target;
+  const tg = item.target;
   const done = item.sets;
-  const extra = done.length >= t.sets;
-  const inRange = (r) => free || ((!hasNum(t.repMin) || r >= Number(t.repMin)) && (!hasNum(t.repMax) || r <= Number(t.repMax)));
+  const extra = done.length >= tg.sets;
+  const inRange = (r) => free || ((!hasNum(tg.repMin) || r >= Number(tg.repMin)) && (!hasNum(tg.repMax) || r <= Number(tg.repMax)));
   const plan = [];
-  for (let j = done.length + 1; j < t.sets; j++) plan.push(j);
-  const tRpe = hasNum(t.rpeMin) ? rpeTxt(t.rpeMin, t.rpeMax).replace('RPE ', '') : '–';
+  for (let j = done.length + 1; j < tg.sets; j++) plan.push(j);
+  const tRpe = hasNum(tg.rpeMin) ? rpeTxt(tg.rpeMin, tg.rpeMax).replace('RPE ', '') : '–';
   return (
     <div className="stable">
-      <div className="srow sh" aria-hidden="true"><span>Set</span><span>Kilo</span><span>Tekrar</span><span>RPE</span><span>Son tekrar</span><span>Saat</span></div>
+      <div className="srow sh" aria-hidden="true"><span>{t('Set')}</span><span>{t('Kilo')}</span><span>{t('Tekrar')}</span><span>RPE</span><span>{t('Son tekrar')}</span><span>{t('Saat')}</span></div>
       <div className="sbody" ref={bodyRef}>
         {done.map((x, j) => (
-          <button key={x.at + '-' + j} type="button" className="srow done" onClick={() => onOpen(j)} aria-label={'Set ' + (j + 1) + ': ' + nf(Number(x.kg)) + ' kilo, ' + x.reps + ' tekrar. Ayrıntı'}>
+          <button key={x.at + '-' + j} type="button" className="srow done" onClick={() => onOpen(j)} aria-label={t('Set {n}: {kg} kilo, {r} tekrar. Ayrıntı', { n: j + 1, kg: nf(Number(x.kg)), r: x.reps })}>
             <span className="s-i mono"><Icon name="check" size={12} />{j + 1}</span>
             <span className="s-v mono">{nf(Number(x.kg))}</span>
             <span className={'s-v mono' + (inRange(x.reps) ? '' : ' off')}>{x.reps}</span>
@@ -704,46 +706,46 @@ function SetTable({ item, entry, rpe, onOpen, bodyRef, free }) {
             <span className="s-t mono">{hm(x.at)}{x.note || (x.tags && x.tags.length) ? <em>✎</em> : null}</span>
           </button>
         ))}
-        {free && !done.length ? <div className="srow first-set">İlk setini kaydet</div> : null}
+        {free && !done.length ? <div className="srow first-set">{t('İlk setini kaydet')}</div> : null}
         {!free && !extra ? (
-          <div className="srow now" aria-label={'Set ' + (done.length + 1) + ' sırada'}>
+          <div className="srow now" aria-label={t('Set {n} sırada', { n: done.length + 1 })}>
             <span className="s-i mono">{done.length + 1}</span>
             <span className="s-v mono">{nf(Number(entry.kg))}</span>
             <span className={'s-v mono' + (inRange(entry.reps) ? '' : ' off')}>{entry.reps}</span>
             <span className="s-v mono">{rpe <= 6 ? '≤6' : rpe}</span>
             <span className="s-sp" style={{ '--c': vlColor(SPEED[entry.lvl].vl) }}><i />{SPEED_SHORT[entry.lvl]}</span>
-            <span className="s-t now-t">sırada</span>
+            <span className="s-t now-t">{t('sırada')}</span>
           </div>
         ) : null}
         {!free && plan.map((j) => (
           <div key={'p' + j} className="srow plan">
             <span className="s-i mono">{j + 1}</span>
-            <span className="s-v mono">{hasNum(t.kg) ? nf(Number(t.kg)) : '–'}</span>
-            <span className="s-v mono">{repTxt(t.repMin, t.repMax)}</span>
+            <span className="s-v mono">{hasNum(tg.kg) ? nf(Number(tg.kg)) : '–'}</span>
+            <span className="s-v mono">{repTxt(tg.repMin, tg.repMax)}</span>
             <span className="s-v mono">{tRpe}</span>
             <span className="s-sp none">–</span>
             <span className="s-t" />
           </div>
         ))}
-        {!free && extra ? <div className="srow fin"><Icon name="check" size={13} /> Hedef tamam · istersen ek set kaydet</div> : null}
+        {!free && extra ? <div className="srow fin"><Icon name="check" size={13} /> {t('Hedef tamam · istersen ek set kaydet')}</div> : null}
       </div>
     </div>
   );
 }
 
 function PlyoTable({ item, entry, onOpen, bodyRef, free }) {
-  const t = item.target;
+  const tg = item.target;
   const done = item.sets;
-  const extra = done.length >= t.sets;
+  const extra = done.length >= tg.sets;
   const plan = [];
-  for (let j = done.length + 1; j < t.sets; j++) plan.push(j);
+  for (let j = done.length + 1; j < tg.sets; j++) plan.push(j);
   const q = (i) => PLYO_Q[i || 0];
   return (
     <div className="stable plyo">
-      <div className="srow sh" aria-hidden="true"><span>Set</span><span>Ek yük</span><span>Temas</span><span /><span>Kalite</span><span>Saat</span></div>
+      <div className="srow sh" aria-hidden="true"><span>{t('Set')}</span><span>{t('Ek yük')}</span><span>{t('Temas')}</span><span /><span>{t('Kalite')}</span><span>{t('Saat')}</span></div>
       <div className="sbody" ref={bodyRef}>
         {done.map((x, j) => (
-          <button key={x.at + '-' + j} type="button" className="srow done" onClick={() => onOpen(j)} aria-label={'Set ' + (j + 1) + ': ' + x.reps + ' temas. Ayrıntı'}>
+          <button key={x.at + '-' + j} type="button" className="srow done" onClick={() => onOpen(j)} aria-label={t('Set {n}: {r} temas. Ayrıntı', { n: j + 1, r: x.reps })}>
             <span className="s-i mono"><Icon name="check" size={12} />{j + 1}</span>
             <span className="s-v mono">{Number(x.kg) ? nf(Number(x.kg)) : '–'}</span>
             <span className="s-v mono">{x.reps}</span>
@@ -752,7 +754,7 @@ function PlyoTable({ item, entry, onOpen, bodyRef, free }) {
             <span className="s-t mono">{hm(x.at)}{x.note || (x.tags && x.tags.length) ? <em>✎</em> : null}</span>
           </button>
         ))}
-        {free && !done.length ? <div className="srow first-set">İlk setini kaydet</div> : null}
+        {free && !done.length ? <div className="srow first-set">{t('İlk setini kaydet')}</div> : null}
         {!free && !extra ? (
           <div className="srow now">
             <span className="s-i mono">{done.length + 1}</span>
@@ -760,73 +762,73 @@ function PlyoTable({ item, entry, onOpen, bodyRef, free }) {
             <span className="s-v mono">{entry.reps}</span>
             <span />
             <span className="s-sp" style={{ '--c': q(entry.q).c }}><i />{q(entry.q).k}</span>
-            <span className="s-t now-t">sırada</span>
+            <span className="s-t now-t">{t('sırada')}</span>
           </div>
         ) : null}
         {!free && plan.map((j) => (
           <div key={'p' + j} className="srow plan">
             <span className="s-i mono">{j + 1}</span>
-            <span className="s-v mono">{hasNum(t.kg) && Number(t.kg) ? nf(Number(t.kg)) : '–'}</span>
-            <span className="s-v mono">{repTxt(t.repMin, t.repMax)}</span>
+            <span className="s-v mono">{hasNum(tg.kg) && Number(tg.kg) ? nf(Number(tg.kg)) : '–'}</span>
+            <span className="s-v mono">{repTxt(tg.repMin, tg.repMax)}</span>
             <span />
             <span className="s-sp none">–</span>
             <span className="s-t" />
           </div>
         ))}
-        {!free && extra ? <div className="srow fin"><Icon name="check" size={13} /> Hedef tamam · kalite düşmeden bitir</div> : null}
+        {!free && extra ? <div className="srow fin"><Icon name="check" size={13} /> {t('Hedef tamam · kalite düşmeden bitir')}</div> : null}
       </div>
     </div>
   );
 }
 
 function SkillTable({ item, entry, onOpen, bodyRef, free }) {
-  const t = item.target;
+  const tg = item.target;
   const done = item.sets;
-  const extra = done.length >= t.sets;
+  const extra = done.length >= tg.sets;
   const lib = libById(item.exId);
   const hasHold = !!(lib && lib.h);
   const plan = [];
-  for (let j = done.length + 1; j < t.sets; j++) plan.push(j);
+  for (let j = done.length + 1; j < tg.sets; j++) plan.push(j);
   const q = (i) => SKILL_Q[i || 0] || SKILL_Q[0];
   return (
     <div className={'stable skill' + (hasHold ? ' has-hold' : '')}>
       <div className="srow sh" aria-hidden="true">
-        <span>Set</span>
-        <span>Deneme</span>
-        {hasHold ? <span>Süre</span> : null}
-        <span>Kalite</span>
-        <span>Saat</span>
+        <span>{t('Set')}</span>
+        <span>{t('Deneme')}</span>
+        {hasHold ? <span>{t('Süre')}</span> : null}
+        <span>{t('Kalite')}</span>
+        <span>{t('Saat')}</span>
       </div>
       <div className="sbody" ref={bodyRef}>
         {done.map((x, j) => (
-          <button key={x.at + '-' + j} type="button" className="srow done" onClick={() => onOpen(j)} aria-label={'Set ' + (j + 1) + ': ' + skillSetTxt(x) + '. Ayrıntı'}>
+          <button key={x.at + '-' + j} type="button" className="srow done" onClick={() => onOpen(j)} aria-label={t('Set {n}: {x}. Ayrıntı', { n: j + 1, x: skillSetTxt(x) })}>
             <span className="s-i mono"><Icon name="check" size={12} />{j + 1}</span>
             <span className="s-v mono">{x.reps}</span>
-            {hasHold ? <span className="s-v mono">{Number(x.hold) > 0 ? nf(Number(x.hold)) + ' sn' : '–'}</span> : null}
+            {hasHold ? <span className="s-v mono">{Number(x.hold) > 0 ? t('{n} sn', { n: nf(Number(x.hold)) }) : '–'}</span> : null}
             <span className="s-sp" style={{ '--c': q(x.q).c }}><i />{q(x.q).k}</span>
             <span className="s-t mono">{hm(x.at)}{x.note || (x.tags && x.tags.length) ? <em>✎</em> : null}</span>
           </button>
         ))}
-        {free && !done.length ? <div className="srow first-set">İlk setini kaydet</div> : null}
+        {free && !done.length ? <div className="srow first-set">{t('İlk setini kaydet')}</div> : null}
         {!free && !extra ? (
           <div className="srow now">
             <span className="s-i mono">{done.length + 1}</span>
             <span className="s-v mono">{entry.reps}</span>
-            {hasHold ? <span className="s-v mono">{Number(entry.hold) > 0 ? nf(Number(entry.hold)) + ' sn' : '–'}</span> : null}
+            {hasHold ? <span className="s-v mono">{Number(entry.hold) > 0 ? t('{n} sn', { n: nf(Number(entry.hold)) }) : '–'}</span> : null}
             <span className="s-sp" style={{ '--c': q(entry.q).c }}><i />{q(entry.q).k}</span>
-            <span className="s-t now-t">sırada</span>
+            <span className="s-t now-t">{t('sırada')}</span>
           </div>
         ) : null}
         {!free && plan.map((j) => (
           <div key={'p' + j} className="srow plan">
             <span className="s-i mono">{j + 1}</span>
-            <span className="s-v mono">{repTxt(t.repMin, t.repMax)}</span>
+            <span className="s-v mono">{repTxt(tg.repMin, tg.repMax)}</span>
             {hasHold ? <span className="s-v mono">–</span> : null}
             <span className="s-sp none">–</span>
             <span className="s-t" />
           </div>
         ))}
-        {!free && extra ? <div className="srow fin"><Icon name="check" size={13} /> Hedef tamam · kalite düşmeden bitir</div> : null}
+        {!free && extra ? <div className="srow fin"><Icon name="check" size={13} /> {t('Hedef tamam · kalite düşmeden bitir')}</div> : null}
       </div>
     </div>
   );
@@ -838,14 +840,14 @@ function PlyoStage({ lib, item, session, compact }) {
   return (
     <div className={'plyostage' + (lastQ === 2 ? ' warn' : '') + (compact ? ' compact' : '')}>
       <div className="ps-l">
-        <span className="ps-k">Yoğunluk</span>
+        <span className="ps-k">{t('Yoğunluk')}</span>
         <b>{PLYO_INT[(lib && lib.int) || 2]}</b>
       </div>
       <div className="ps-m">
-        {lastQ === 2 ? <span>Kalite düştü: bu hareketi bitir ya da dinlenmeyi uzat.</span> : <span>Her tekrarda en yükseğe, en hızlıya. Kalite düşünce dur; tükenişe gitme.</span>}
+        {lastQ === 2 ? <span>{t('Kalite düştü: bu hareketi bitir ya da dinlenmeyi uzat.')}</span> : <span>{t('Her tekrarda en yükseğe, en hızlıya. Kalite düşünce dur; tükenişe gitme.')}</span>}
       </div>
       <div className="ps-r">
-        <span className="ps-k">Seans teması</span>
+        <span className="ps-k">{t('Seans teması')}</span>
         <b className={'mono' + (total > 140 ? ' over' : '')}>{total}</b>
       </div>
     </div>
@@ -859,8 +861,8 @@ function SkillStage({ item, st, compact }) {
   return (
     <div className={'skillstage' + (compact ? ' compact' : '')}>
       {g
-        ? <span>Hedef: <b>{SKILL_STAGES[g.stage]}</b> · <span className="mono">{stats.n + 1}. pratik</span></span>
-        : <span>Kalite iki set üst üste düşerse bu hareketi bitir.</span>}
+        ? <span>{t('Hedef:')} <b>{SKILL_STAGES[g.stage]}</b> · <span className="mono">{t('{n}. pratik', { n: stats.n + 1 })}</span></span>
+        : <span>{t('Kalite iki set üst üste düşerse bu hareketi bitir.')}</span>}
     </div>
   );
 }
@@ -906,7 +908,7 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
   const rpe = entry.rpe != null ? entry.rpe : rpeEst;
   const rirFinal = entry.rpe != null ? (entry.rpe === 6 ? Math.max(4, rirInt) : 10 - entry.rpe) : rirInt;
   const prev = item ? prevPerf(st.sessions, item, s.startedAt) : null;
-  const t = item ? item.target : null;
+  const tg = item ? item.target : null;
   const lib = item ? exMeta(item.exId, item.name) : null;
   const plyo = !!(lib && lib.kind === 'plyo');
   const skill = !!(lib && lib.kind === 'beceri');
@@ -914,7 +916,7 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
   useEffect(() => {
     const r = sRef.current.rest;
     if (r && r.start + r.total * 1000 > Date.now()) {
-      void startRest(r, sRef.current.items.find(it => it.exId === r.exId)?.name || 'Antrenman');
+      void startRest(r, exName(sRef.current.items.find(it => it.exId === r.exId)) || t('Antrenman'));
     }
   }, []);
   useLayoutEffect(() => {
@@ -973,7 +975,7 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
     if (entry.tags.length) set.tags = entry.tags;
     const nextRest = { start: set.at, total: restDuration(sRef.current, item, prefsRef.current), exId: item.exId, setNo: item.sets.length + 1 };
     mutate((ns) => { delete ns.rest; ns.items[cur].sets.push(set); ns.rest = nextRest; });
-    void stopRest(); void startRest(nextRest, item.name);
+    void stopRest(); void startRest(nextRest, exName(item));
     setEntry({ ...entry, rpe: null, q: 0, note: '', tags: [] });
   };
   const addItem = (ex) => {
@@ -982,7 +984,7 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
     go(ns.items.length - 1);
   };
   const openNote = () => openSheet('note', {
-    title: item.name,
+    title: exName(item),
     init: { note: entry.note, tags: entry.tags, memo: item.memo || '', canProgram: !!(sRef.current.programId && item.srcId) },
     onSave: (r) => {
       setEntry((e) => ({ ...e, note: r.note, tags: r.tags }));
@@ -1000,7 +1002,7 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
   });
   const openSet = (j) => {
     const ci = cur;
-    openSheet('setdetail', { title: item.name, exId: item.exId, set: item.sets[j], idx: j, onDelete: () => mutate((ns) => { ns.items[ci].sets.splice(j, 1); }) });
+    openSheet('setdetail', { title: exName(item), exId: item.exId, set: item.sets[j], idx: j, onDelete: () => mutate((ns) => { ns.items[ci].sets.splice(j, 1); }) });
   };
   const openList = () => openSheet('exlist', { getSession: () => sRef.current, onGo: (i) => go(i), onAdd: addItem });
   const skipRest = () => { mutate(ns => { delete ns.rest; }); void stopRest(); };
@@ -1009,7 +1011,7 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
     const next = changeRest(sRef.current, sRef.current.rest, delta, prefsRef.current);
     mutate(ns => { ns.rest = next.rest; });
     if (next.prefs) { prefsRef.current = next.prefs; put('settings', { key: 'restPrefs', value: next.prefs }); }
-    void startRest(next.rest, sRef.current.items.find(it => it.exId === next.rest.exId)?.name || item.name);
+    void startRest(next.rest, exName(sRef.current.items.find(it => it.exId === next.rest.exId) || item));
   };
   const discard = () => { void stopRest(); del('sessions', s.id); onDiscarded(); };
   const removeItem = (i) => {
@@ -1034,8 +1036,8 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
       <header className="shead ses2-head">
         <div className="shead-row">
           <span className="live-dot" />
-          <div className="shead-t"><h1 className="ses2-name">{sessionName(s)}</h1><span className="shead-sub mono">{hm(s.startedAt)} başladı · {mmss(now - s.startedAt)} · {totalSets} set</span></div>
-          <HoldButton id="finish-btn" className="btn fire sm" ms={500} tone="go" onHold={() => { if (totalSets) finish(); else setConfirm('finish'); }}>Bitir</HoldButton>
+          <div className="shead-t"><h1 className="ses2-name">{sessionName(s)}</h1><span className="shead-sub mono">{t('{x} başladı', { x: hm(s.startedAt) })} · {mmss(now - s.startedAt)} · {t('{n} set', { n: totalSets })}</span></div>
+          <HoldButton id="finish-btn" className="btn fire sm" ms={500} tone="go" onHold={() => { if (totalSets) finish(); else setConfirm('finish'); }}>{t('Bitir')}</HoldButton>
         </div>
       </header>
 
@@ -1043,19 +1045,19 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
         <div className="pop">
           {confirm === 'finish' ? (
             <React.Fragment>
-              <p>{totalSets ? `Antrenmanı bitir? ${totalSets} set kaydedildi.` : 'Hiç set yok. Kaydetmeden çıkabilirsin.'}</p>
+              <p>{totalSets ? t('Antrenmanı bitir? {n} set kaydedildi.', { n: totalSets }) : t('Hiç set yok. Kaydetmeden çıkabilirsin.')}</p>
               <div className="confirm-inline">
-                {totalSets ? <button type="button" id="finish-yes" className="btn fire sm" onClick={finish}>Bitir ve özetle</button> : <HoldButton id="discard-yes" className="btn danger sm" onHold={discard}>Kaydetmeden çık</HoldButton>}
-                <button type="button" className="btn ghost sm" onClick={() => setConfirm(null)}>Devam</button>
-                {totalSets ? <HoldButton className="btn ghost sm danger-t" onHold={discard}>Sil</HoldButton> : null}
+                {totalSets ? <button type="button" id="finish-yes" className="btn fire sm" onClick={finish}>{t('Bitir ve özetle')}</button> : <HoldButton id="discard-yes" className="btn danger sm" onHold={discard}>{t('Kaydetmeden çık')}</HoldButton>}
+                <button type="button" className="btn ghost sm" onClick={() => setConfirm(null)}>{t('Devam')}</button>
+                {totalSets ? <HoldButton className="btn ghost sm danger-t" onHold={discard}>{t('Sil')}</HoldButton> : null}
               </div>
             </React.Fragment>
           ) : (
             <React.Fragment>
-              <p>Bu antrenman ve {totalSets} set silinsin mi?</p>
+              <p>{t('Bu antrenman ve {n} set silinsin mi?', { n: totalSets })}</p>
               <div className="confirm-inline">
-                <HoldButton className="btn danger sm" onHold={discard}>Sil</HoldButton>
-                <button type="button" className="btn ghost sm" onClick={() => setConfirm(null)}>Vazgeç</button>
+                <HoldButton className="btn danger sm" onHold={discard}>{t('Sil')}</HoldButton>
+                <button type="button" className="btn ghost sm" onClick={() => setConfirm(null)}>{t('Vazgeç')}</button>
               </div>
             </React.Fragment>
           )}
@@ -1064,56 +1066,56 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
 
       {!item ? (
         <div className="scr">
-          <div className="empty"><strong>Plansız antrenman</strong><p>Yaptığın hareketi ekle, setlerini kaydet.</p>
-            <button type="button" id="ses-add-first" className="btn primary" onClick={() => openSheet('picker', { onPick: addItem })}><Icon name="plus" size={14} /> Hareket ekle</button>
+          <div className="empty"><strong>{t('Plansız antrenman')}</strong><p>{t('Yaptığın hareketi ekle, setlerini kaydet.')}</p>
+            <button type="button" id="ses-add-first" className="btn primary" onClick={() => openSheet('picker', { onPick: addItem })}><Icon name="plus" size={14} /> {t('Hareket ekle')}</button>
           </div>
         </div>
       ) : (
         <div className="ses2-body" ref={sessionBodyRef}>
           {free ? <React.Fragment>
-            <div className="fx-strip" ref={stripRef} aria-label="Antrenmandaki hareketler">
+            <div className="fx-strip" ref={stripRef} aria-label={t('Antrenmandaki hareketler')}>
               {s.items.map((it, i) => <div key={it.id} className={'fx-chip' + (i === cur ? ' on' : '')}>
-                <button type="button" onClick={() => go(i)} aria-pressed={i === cur}><span className="fx-label">{it.name}</span><span className="mono">{it.sets.length || ''}</span></button>
-                {!it.sets.length ? <button type="button" className="fx-remove" aria-label={it.name + ' hareketini çıkar'} onClick={() => removeItem(i)}>×</button> : null}
+                <button type="button" onClick={() => go(i)} aria-pressed={i === cur}><span className="fx-label">{exName(it)}</span><span className="mono">{it.sets.length || ''}</span></button>
+                {!it.sets.length ? <button type="button" className="fx-remove" aria-label={t('{x} hareketini çıkar', { x: exName(it) })} onClick={() => removeItem(i)}>×</button> : null}
               </div>)}
-              <button type="button" id="fx-add" className="fx-add" onClick={() => openSheet('picker', { onPick: addItem })}>+ Hareket</button>
+              <button type="button" id="fx-add" className="fx-add" onClick={() => openSheet('picker', { onPick: addItem })}>+ {t('Hareket')}</button>
             </div>
-            <div className="fx-title"><span className="exnav-n">{item.name}</span><button type="button" id="ex-info" className="nav-arrow info" aria-label="Hareket bilgisi" onClick={() => openSheet('exercise', { exId: item.exId, name: item.name })}><Icon name="info" size={17} /></button></div>
+            <div className="fx-title"><span className="exnav-n">{exName(item)}</span><button type="button" id="ex-info" className="nav-arrow info" aria-label={t('Hareket bilgisi')} onClick={() => openSheet('exercise', { exId: item.exId, name: item.name })}><Icon name="info" size={17} /></button></div>
           </React.Fragment> : <React.Fragment>
-          <div className="exprog" aria-label="Hareket ilerlemesi">
+          <div className="exprog" aria-label={t('Hareket ilerlemesi')}>
             {s.items.map((it, i) => (
-              <button key={it.id} type="button" className={'exp' + (i === cur ? ' on' : '') + (it.sets.length >= it.target.sets ? ' done' : '')} onClick={() => go(i)} aria-label={(i + 1) + '. hareket: ' + it.name + ', ' + it.sets.length + '/' + it.target.sets + ' set'}>
+              <button key={it.id} type="button" className={'exp' + (i === cur ? ' on' : '') + (it.sets.length >= it.target.sets ? ' done' : '')} onClick={() => go(i)} aria-label={t('{i}. hareket: {x}, {d}/{n} set', { i: i + 1, x: exName(it), d: it.sets.length, n: it.target.sets })}>
                 <i style={{ width: Math.min(100, (it.sets.length / Math.max(1, it.target.sets)) * 100) + '%' }} />
               </button>
             ))}
           </div>
           <div className="exnav">
-            <button type="button" className="nav-arrow" aria-label="Önceki hareket" disabled={cur === 0} onClick={() => go(cur - 1)}><Icon name="left" size={18} /></button>
+            <button type="button" className="nav-arrow" aria-label={t('Önceki hareket')} disabled={cur === 0} onClick={() => go(cur - 1)}><Icon name="left" size={18} /></button>
             <button type="button" id="exnav-list" className="exnav-mid" onClick={openList}>
-              <span className="exnav-k mono">Hareket {cur + 1}/{n} · {item.muscle}</span>
-              <span className="exnav-n">{item.name}</span>
+              <span className="exnav-k mono">{t('Hareket')} {cur + 1}/{n} · {muscleName(item.muscle)}</span>
+              <span className="exnav-n">{exName(item)}</span>
             </button>
-            <button type="button" id="ex-info" className="nav-arrow info" aria-label="Hareket bilgisi" onClick={() => openSheet('exercise', { exId: item.exId, name: item.name })}><Icon name="info" size={17} /></button>
-            <button type="button" className="nav-arrow" aria-label="Sonraki hareket" disabled={cur >= n - 1} onClick={() => go(cur + 1)}><Icon name="right" size={18} /></button>
+            <button type="button" id="ex-info" className="nav-arrow info" aria-label={t('Hareket bilgisi')} onClick={() => openSheet('exercise', { exId: item.exId, name: item.name })}><Icon name="info" size={17} /></button>
+            <button type="button" className="nav-arrow" aria-label={t('Sonraki hareket')} disabled={cur >= n - 1} onClick={() => go(cur + 1)}><Icon name="right" size={18} /></button>
           </div>
 
           <div className="tgt2">
             <div className="tg-main">
-              <span className="tg-k">Hedef</span>
-              <span className="tg-big mono">{t.sets}<i>×</i>{repTxt(t.repMin, t.repMax)}</span>
-              <span className="tg-u">{plyo ? 'set × temas' : skill ? 'set × deneme' : 'set × tekrar'}</span>
+              <span className="tg-k">{t('Hedef')}</span>
+              <span className="tg-big mono">{tg.sets}<i>×</i>{repTxt(tg.repMin, tg.repMax)}</span>
+              <span className="tg-u">{plyo ? t('set × temas') : skill ? t('set × deneme') : t('set × tekrar')}</span>
             </div>
-            <div className="tg-cell"><b className="mono">{!skill && hasNum(t.kg) && (Number(t.kg) || !plyo) ? nf(Number(t.kg)) : '–'}</b><small>{plyo ? 'ek kg' : 'kg'}</small></div>
+            <div className="tg-cell"><b className="mono">{!skill && hasNum(tg.kg) && (Number(tg.kg) || !plyo) ? nf(Number(tg.kg)) : '–'}</b><small>{plyo ? t('ek kg') : 'kg'}</small></div>
             {plyo
-              ? <div className="tg-cell"><b className="tg-int">{PLYO_INT[lib.int || 2].split(' ')[0]}</b><small>yoğunluk</small></div>
+              ? <div className="tg-cell"><b className="tg-int">{PLYO_INT[lib.int || 2].split(' ')[0]}</b><small>{t('yoğunluk')}</small></div>
               : skill
-                ? <div className="tg-cell"><b style={{ color: 'var(--skill)', fontSize: '14px' }}>Beceri</b><small>kalite</small></div>
-                : <div className="tg-cell"><b className="mono">{hasNum(t.rpeMin) ? rpeTxt(t.rpeMin, t.rpeMax).replace('RPE ', '') : '–'}</b><small>RPE</small></div>}
-            <div className="tg-cell"><b className="mono">{restTxt(t.rest || 120).replace(' dk', '')}</b><small>dk ara</small></div>
+                ? <div className="tg-cell"><b style={{ color: 'var(--skill)', fontSize: '14px' }}>{t('Beceri')}</b><small>{t('kalite')}</small></div>
+                : <div className="tg-cell"><b className="mono">{hasNum(tg.rpeMin) ? rpeTxt(tg.rpeMin, tg.rpeMax).replace('RPE ', '') : '–'}</b><small>RPE</small></div>}
+            <div className="tg-cell"><b className="mono">{(tg.rest || 120) % 60 ? nf((tg.rest || 120) / 60, 1) : String((tg.rest || 120) / 60)}</b><small>{t('dk ara')}</small></div>
             {prev || item.memo || item.note ? (
               <div className="tg-foot">
-                {item.memo || item.note ? <span className="tg-memo"><Icon name="edit" size={11} /> {item.memo || item.note}</span> : null}
-                {prev ? <span className="tg-prev mono">Son sefer {prev}</span> : null}
+                {item.memo || item.note ? <span className="tg-memo"><Icon name="edit" size={11} /> {item.memo || noteLabel(item.note)}</span> : null}
+                {prev ? <span className="tg-prev mono">{t('Son sefer {x}', { x: prev })}</span> : null}
               </div>
             ) : null}
           </div>
@@ -1139,41 +1141,41 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
             {skill ? (
               <React.Fragment>
                 <div className="dock-steps" style={lib?.h ? undefined : { gridTemplateColumns: 'minmax(0, 1fr)' }}>
-                  <Stepper id={'reps-' + item.id} label="Deneme" value={entry.reps} step={1} min={1} max={30} decimals={0} onChange={(v) => setEntry({ ...entry, reps: Math.round(v) })} />
+                  <Stepper id={'reps-' + item.id} label={t('Deneme')} value={entry.reps} step={1} min={1} max={30} decimals={0} onChange={(v) => setEntry({ ...entry, reps: Math.round(v) })} />
                   {lib?.h ? (
-                    <Stepper id={'hold-' + item.id} label="En iyi süre (sn)" value={entry.hold || 0} step={1} min={0} max={300} decimals={0} onChange={(v) => setEntry({ ...entry, hold: Math.round(v) })} />
+                    <Stepper id={'hold-' + item.id} label={t('En iyi süre (sn)')} value={entry.hold || 0} step={1} min={0} max={300} decimals={0} onChange={(v) => setEntry({ ...entry, hold: Math.round(v) })} />
                   ) : null}
                 </div>
                 <div className="spd">
-                  <div className="spd-h"><span className="st-k">Kalite</span><span className="spd-v" style={{ color: SKILL_Q[entry.q || 0].c }}>{SKILL_Q[entry.q || 0].d}</span></div>
-                  <div className="pq-row" role="radiogroup" aria-label="Beceri kalitesi">
+                  <div className="spd-h"><span className="st-k">{t('Kalite')}</span><span className="spd-v" style={{ color: SKILL_Q[entry.q || 0].c }}>{SKILL_Q[entry.q || 0].d}</span></div>
+                  <div className="pq-row" role="radiogroup" aria-label={t('Beceri kalitesi')}>
                     {SKILL_Q.map((sq, i) => (
                       <button key={i} type="button" id={'sq-' + i} role="radio" aria-checked={(entry.q || 0) === i} className={'pq' + ((entry.q || 0) === i ? ' on' : '')} style={{ '--c': sq.c }} onClick={() => setEntry({ ...entry, q: i })}>{sq.k}</button>
                     ))}
-                    <button type="button" id="note-btn" className={'note-btn' + (entry.note || entry.tags.length || item.memo ? ' has' : '')} onClick={openNote} aria-label="Not ekle"><Icon name="edit" size={17} /></button>
+                    <button type="button" id="note-btn" className={'note-btn' + (entry.note || entry.tags.length || item.memo ? ' has' : '')} onClick={openNote} aria-label={t('Not ekle')}><Icon name="edit" size={17} /></button>
                   </div>
                 </div>
               </React.Fragment>
             ) : (
               <React.Fragment>
                 <div className="dock-steps">
-                  <Stepper id={'kg-' + item.id} label={plyo ? 'Ek yük (kg)' : 'Kilo'} value={entry.kg} step={2.5} min={0} max={500} onChange={(v) => setEntry({ ...entry, kg: v, rpe: null })} />
-                  <Stepper id={'reps-' + item.id} label={plyo ? 'Temas' : 'Tekrar'} value={entry.reps} step={1} min={1} max={60} decimals={0} onChange={(v) => setEntry({ ...entry, reps: Math.round(v), rpe: null })} />
+                  <Stepper id={'kg-' + item.id} label={plyo ? t('Ek yük (kg)') : t('Kilo')} value={entry.kg} step={2.5} min={0} max={500} onChange={(v) => setEntry({ ...entry, kg: v, rpe: null })} />
+                  <Stepper id={'reps-' + item.id} label={plyo ? t('Temas') : t('Tekrar')} value={entry.reps} step={1} min={1} max={60} decimals={0} onChange={(v) => setEntry({ ...entry, reps: Math.round(v), rpe: null })} />
                 </div>
                 {plyo ? (
                   <div className="spd">
-                    <div className="spd-h"><span className="st-k">Son tekrarların kalitesi</span><span className="spd-v" style={{ color: PLYO_Q[entry.q || 0].c }}>{PLYO_Q[entry.q || 0].d}</span></div>
-                    <div className="pq-row" role="radiogroup" aria-label="Sıçrama kalitesi">
+                    <div className="spd-h"><span className="st-k">{t('Son tekrarların kalitesi')}</span><span className="spd-v" style={{ color: PLYO_Q[entry.q || 0].c }}>{PLYO_Q[entry.q || 0].d}</span></div>
+                    <div className="pq-row" role="radiogroup" aria-label={t('Sıçrama kalitesi')}>
                       {PLYO_Q.map((pq, i) => (
                         <button key={i} type="button" id={'pq-' + i} role="radio" aria-checked={(entry.q || 0) === i} className={'pq' + ((entry.q || 0) === i ? ' on' : '')} style={{ '--c': pq.c }} onClick={() => setEntry({ ...entry, q: i })}>{pq.k}</button>
                       ))}
-                      <button type="button" id="note-btn" className={'note-btn' + (entry.note || entry.tags.length || item.memo ? ' has' : '')} onClick={openNote} aria-label="Not ekle"><Icon name="edit" size={17} /></button>
+                      <button type="button" id="note-btn" className={'note-btn' + (entry.note || entry.tags.length || item.memo ? ' has' : '')} onClick={openNote} aria-label={t('Not ekle')}><Icon name="edit" size={17} /></button>
                     </div>
                   </div>
                 ) : <React.Fragment>
                 <div className="spd">
-                  <div className="spd-h"><span className="st-k">Son tekrarın hızı</span><span className="spd-v" style={{ color: vlColor(SPEED[entry.lvl].vl) }}>{SPEED[entry.lvl].d}</span></div>
-                  <div className="seg5s" role="radiogroup" aria-label="Son tekrarın hızı">
+                  <div className="spd-h"><span className="st-k">{t('Son tekrarın hızı')}</span><span className="spd-v" style={{ color: vlColor(SPEED[entry.lvl].vl) }}>{SPEED[entry.lvl].d}</span></div>
+                  <div className="seg5s" role="radiogroup" aria-label={t('Son tekrarın hızı')}>
                     {SPEED.map((sp, i) => (
                       <button key={i} type="button" id={'speed-' + i} role="radio" aria-checked={entry.lvl === i} className={'seg5' + (entry.lvl === i ? ' on' : '')} style={{ '--c': vlColor(sp.vl) }} onClick={() => setEntry({ ...entry, lvl: i, rpe: null })}>
                         <i><b style={{ height: Math.round((1 - sp.vl) * 100) + '%' }} /></i>
@@ -1190,7 +1192,7 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
                       </button>
                     ))}
                   </div>
-                  <button type="button" id="note-btn" className={'note-btn' + (entry.note || entry.tags.length || item.memo ? ' has' : '')} onClick={openNote} aria-label="Not ekle"><Icon name="edit" size={17} /></button>
+                  <button type="button" id="note-btn" className={'note-btn' + (entry.note || entry.tags.length || item.memo ? ' has' : '')} onClick={openNote} aria-label={t('Not ekle')}><Icon name="edit" size={17} /></button>
                 </div>
                 </React.Fragment>}
               </React.Fragment>
@@ -1201,14 +1203,14 @@ function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarde
               return (
                 <div className={'dock-go' + (two ? ' two' : '') + (chip ? ' r' : '')}>
                   {chip ? <RestChip rest={rest} now={now} onAdjust={adjustRest} onClose={skipRest} /> : null}
-                  {needsKg ? <small className="kg-hint">Kiloyu gir</small> : null}
+                  {needsKg ? <small className="kg-hint">{t('Kiloyu gir')}</small> : null}
                   {two ? (
                     <React.Fragment>
-                      <button type="button" id="log-set" className="btn ghost big" onClick={logSet}>Ek set</button>
-                      <button type="button" id="next-ex" className="btn primary big" onClick={() => go(cur + 1)}>{rest ? 'Sonraki' : 'Sonraki hareket'} <Icon name="right" /></button>
+                      <button type="button" id="log-set" className="btn ghost big" onClick={logSet}>{t('Ek set')}</button>
+                      <button type="button" id="next-ex" className="btn primary big" onClick={() => go(cur + 1)}>{rest ? t('Sonraki') : t('Sonraki hareket')} <Icon name="right" /></button>
                     </React.Fragment>
                   ) : (
-                    <button type="button" id="log-set" className="btn fire big" disabled={needsKg} onClick={logSet}>{free ? 'Seti kaydet' : <>Set {item.sets.length + 1}{item.sets.length < item.target.sets ? '/' + item.target.sets : ''} kaydet{item.sets.length >= item.target.sets ? ' · ek' : ''}</>}</button>
+                    <button type="button" id="log-set" className="btn fire big" disabled={needsKg} onClick={logSet}>{free ? t('Seti kaydet') : t(item.sets.length >= item.target.sets ? 'Set {x} kaydet · ek' : 'Set {x} kaydet', { x: (item.sets.length + 1) + (item.sets.length < item.target.sets ? '/' + item.target.sets : '') })}</button>
                   )}
                 </div>
               );
@@ -1227,19 +1229,19 @@ function SetDetailBody({ set, idx, exId, name, onDelete, onClose }) {
     return (
       <div className="setd">
         <div className="setd-top">
-          <span className="setd-n mono">Set {idx + 1}</span>
+          <span className="setd-n mono">{t('Set')} {idx + 1}</span>
           <span className="setd-v mono">{skillSetTxt(set)}</span>
           <span className="setd-t mono">{hm(set.at)}</span>
         </div>
         <div className="setd-grid two">
-          <div><small>Kalite</small><b style={{ color: q.c }}>{q.k}</b></div>
-          <div><small>Süre</small><b className="mono">{Number(set.hold) > 0 ? nf(Number(set.hold)) + ' sn' : '–'}</b></div>
-          <div><small>Yorgunluk payı</small><b className="mono">{nf(Math.round(set.reps * SKILL_W[(lib && lib.fat) || 1] * 100) / 100)}</b></div>
-          <div><small>Zor set</small><b className="mono" style={{ color: 'var(--faint)' }}>hayır</b></div>
+          <div><small>{t('Kalite')}</small><b style={{ color: q.c }}>{q.k}</b></div>
+          <div><small>{t('Süre')}</small><b className="mono">{Number(set.hold) > 0 ? t('{n} sn', { n: nf(Number(set.hold)) }) : '–'}</b></div>
+          <div><small>{t('Yorgunluk payı')}</small><b className="mono">{nf(Math.round(set.reps * SKILL_W[(lib && lib.fat) || 1] * 100) / 100)}</b></div>
+          <div><small>{t('Zor set')}</small><b className="mono" style={{ color: 'var(--faint)' }}>{t('hayır')}</b></div>
         </div>
-        {set.tags && set.tags.length ? <div className="chips-wrap">{set.tags.map((x) => <span key={x} className="fchip on">{x}</span>)}</div> : null}
+        {set.tags && set.tags.length ? <div className="chips-wrap">{set.tags.map((x) => <span key={x} className="fchip on">{t(x)}</span>)}</div> : null}
         {set.note ? <p className="sd-note">{set.note}</p> : null}
-        {onDelete ? <HoldButton id="set-del" className="btn ghost sm danger-t setd-del" onHold={() => { onDelete(); onClose(); }}><Icon name="trash" size={13} /> Seti sil</HoldButton> : null}
+        {onDelete ? <HoldButton id="set-del" className="btn ghost sm danger-t setd-del" onHold={() => { onDelete(); onClose(); }}><Icon name="trash" size={13} /> {t('Seti sil')}</HoldButton> : null}
       </div>
     );
   }
@@ -1249,19 +1251,19 @@ function SetDetailBody({ set, idx, exId, name, onDelete, onClose }) {
     return (
       <div className="setd">
         <div className="setd-top">
-          <span className="setd-n mono">Set {idx + 1}</span>
-          <span className="setd-v mono">{set.reps} temas{Number(set.kg) ? ' · +' + nf(Number(set.kg)) + ' kg' : ''}</span>
+          <span className="setd-n mono">{t('Set')} {idx + 1}</span>
+          <span className="setd-v mono">{t('{n} temas', { n: set.reps })}{Number(set.kg) ? ' · +' + nf(Number(set.kg)) + ' kg' : ''}</span>
           <span className="setd-t mono">{hm(set.at)}</span>
         </div>
         <div className="setd-grid two">
-          <div><small>Kalite</small><b style={{ color: q.c }}>{q.k}</b></div>
-          <div><small>Yoğunluk</small><b>{PLYO_INT[(lib && lib.int) || 2].split(' ')[0]}</b></div>
-          <div><small>Yorgunluk payı</small><b className="mono">{nf(Math.round(set.reps * PLYO_W[(lib && lib.int) || 2] * 100) / 100)}</b></div>
-          <div><small>Zor set</small><b className="mono" style={{ color: 'var(--faint)' }}>hayır</b></div>
+          <div><small>{t('Kalite')}</small><b style={{ color: q.c }}>{q.k}</b></div>
+          <div><small>{t('Yoğunluk')}</small><b>{PLYO_INT[(lib && lib.int) || 2].split(' ')[0]}</b></div>
+          <div><small>{t('Yorgunluk payı')}</small><b className="mono">{nf(Math.round(set.reps * PLYO_W[(lib && lib.int) || 2] * 100) / 100)}</b></div>
+          <div><small>{t('Zor set')}</small><b className="mono" style={{ color: 'var(--faint)' }}>{t('hayır')}</b></div>
         </div>
-        {set.tags && set.tags.length ? <div className="chips-wrap">{set.tags.map((x) => <span key={x} className="fchip on">{x}</span>)}</div> : null}
+        {set.tags && set.tags.length ? <div className="chips-wrap">{set.tags.map((x) => <span key={x} className="fchip on">{t(x)}</span>)}</div> : null}
         {set.note ? <p className="sd-note">{set.note}</p> : null}
-        {onDelete ? <HoldButton id="set-del" className="btn ghost sm danger-t setd-del" onHold={() => { onDelete(); onClose(); }}><Icon name="trash" size={13} /> Seti sil</HoldButton> : null}
+        {onDelete ? <HoldButton id="set-del" className="btn ghost sm danger-t setd-del" onHold={() => { onDelete(); onClose(); }}><Icon name="trash" size={13} /> {t('Seti sil')}</HoldButton> : null}
       </div>
     );
   }
@@ -1269,26 +1271,26 @@ function SetDetailBody({ set, idx, exId, name, onDelete, onClose }) {
   return (
     <div className="setd">
       <div className="setd-top">
-        <span className="setd-n mono">Set {idx + 1}</span>
+        <span className="setd-n mono">{t('Set')} {idx + 1}</span>
         <span className="setd-v mono">{nf(Number(set.kg))} kg × {set.reps}</span>
         <span className="setd-t mono">{hm(set.at)}</span>
       </div>
       <SetReplay set={set} bench={BENCH_IDS.includes(exId)} />
       <div className="setd-grid">
         <div><small>RPE</small><b className="mono">{rpeLabel(set.rpe, set.rir)}</b></div>
-        <div><small>Kalan tekrar</small><b className="mono">{rirTxt(set.rir)}</b></div>
-        <div><small>Zor set</small><b className="mono" style={{ color: set.rir <= 4 ? 'var(--ok)' : 'var(--faint)' }}>{set.rir <= 4 ? 'evet' : 'hayır'}</b></div>
+        <div><small>{t('Kalan tekrar')}</small><b className="mono">{rirTxt(set.rir)}</b></div>
+        <div><small>{t('Zor set')}</small><b className="mono" style={{ color: set.rir <= 4 ? 'var(--ok)' : 'var(--faint)' }}>{set.rir <= 4 ? t('evet') : t('hayır')}</b></div>
         <div><small>e1RM</small><b className="mono">{e1 ? nf(e1) : '–'}</b></div>
       </div>
       {/* Set kaydında seçilenler: son tekrarın hızı, ROM ve tonaj */}
       <div className="setd-grid three">
-        <div><small>Son tekrar hızı</small><b style={{ color: set.lvl != null && PX_SPEED[set.lvl] ? PX_SPEED_COLORS[set.lvl] : undefined }}>{set.lvl != null && PX_SPEED[set.lvl] ? PX_SPEED[set.lvl].k : '–'}</b></div>
-        <div><small>ROM</small><b className="mono">{hasNum(set.rom) ? '%' + Math.round(Number(set.rom)) : '%100'}</b></div>
-        <div><small>Tonaj</small><b className="mono">{nf(Math.round((Number(set.kg) || 0) * set.reps * dbMultiplier(exId, name) * 10) / 10)} kg</b></div>
+        <div><small>{t('Son tekrar hızı')}</small><b style={{ color: set.lvl != null && PX_SPEED[set.lvl] ? PX_SPEED_COLORS[set.lvl] : undefined }}>{set.lvl != null && PX_SPEED[set.lvl] ? PX_SPEED[set.lvl].k : '–'}</b></div>
+        <div><small>ROM</small><b className="mono">{pct(hasNum(set.rom) ? Math.round(Number(set.rom)) : 100)}</b></div>
+        <div><small>{t('Tonaj')}</small><b className="mono">{nf(Math.round((Number(set.kg) || 0) * set.reps * dbMultiplier(exId, name) * 10) / 10)} kg</b></div>
       </div>
-      {set.tags && set.tags.length ? <div className="chips-wrap">{set.tags.map((x) => <span key={x} className="fchip on">{x}</span>)}</div> : null}
+      {set.tags && set.tags.length ? <div className="chips-wrap">{set.tags.map((x) => <span key={x} className="fchip on">{t(x)}</span>)}</div> : null}
       {set.note ? <p className="sd-note">{set.note}</p> : null}
-      {onDelete ? <HoldButton id="set-del" className="btn ghost sm danger-t setd-del" onHold={() => { onDelete(); onClose(); }}><Icon name="trash" size={13} /> Seti sil</HoldButton> : null}
+      {onDelete ? <HoldButton id="set-del" className="btn ghost sm danger-t setd-del" onHold={() => { onDelete(); onClose(); }}><Icon name="trash" size={13} /> {t('Seti sil')}</HoldButton> : null}
     </div>
   );
 }
@@ -1300,17 +1302,17 @@ function RestChip({ rest, now, onAdjust, onClose }) {
   const k = clamp(el / rest.total);
   const R = 14, L = 2 * Math.PI * R;
   return (
-    <div className={'restchip' + (over ? ' over' : '')} role="timer" aria-label={over ? 'Dinlenme bitti' : 'Dinlenme ' + mmss(left * 1000)}>
+    <div className={'restchip' + (over ? ' over' : '')} role="timer" aria-label={over ? t('Dinlenme bitti') : t('Dinlenme') + ' ' + mmss(left * 1000)}>
       <div className="rc-main">
         <svg viewBox="0 0 34 34" className="rc-ring" aria-hidden="true">
           <circle cx="17" cy="17" r={R} className="rr-bg" />
           <circle cx="17" cy="17" r={R} className="rr-fg" style={{ strokeDasharray: `${(1 - k) * L} ${L}` }} transform="rotate(-90 17 17)" />
         </svg>
-        <span className="rc-t"><small>{over ? 'Hazırsın' : 'Dinlen'}</small><b className="mono">{over ? '+' + mmss(-left * 1000) : mmss(left * 1000)}</b></span>
+        <span className="rc-t"><small>{over ? t('Hazırsın') : t('Dinlen')}</small><b className="mono">{over ? '+' + mmss(-left * 1000) : mmss(left * 1000)}</b></span>
       </div>
-      <button type="button" className="rc-add mono" onClick={() => onAdjust(-15)} aria-label="15 saniye azalt">−15</button>
-      <button type="button" className="rc-add mono" onClick={() => onAdjust(15)} aria-label="15 saniye ekle">+15</button>
-      <button type="button" className="rc-add" onClick={onClose}>Atla</button>
+      <button type="button" className="rc-add mono" onClick={() => onAdjust(-15)} aria-label={t('15 saniye azalt')}>−15</button>
+      <button type="button" className="rc-add mono" onClick={() => onAdjust(15)} aria-label={t('15 saniye ekle')}>+15</button>
+      <button type="button" className="rc-add" onClick={onClose}>{t('Atla')}</button>
     </div>
   );
 }
@@ -1328,12 +1330,12 @@ function RestBig({ rest, now, onAdjust, onClose }) {
         <circle cx="50" cy="50" r={R} className="rr-fg" style={{ strokeDasharray: `${(1 - k) * L} ${L}` }} transform="rotate(-90 50 50)" />
       </svg>
       <div className="rb-t">
-        <span className="rest-k">{over ? 'Hazırsın' : 'Dinlenme'}</span>
+        <span className="rest-k">{over ? t('Hazırsın') : t('Dinlenme')}</span>
         <span className="mono rb-v">{over ? '+' + mmss(-left * 1000) : mmss(left * 1000)}</span>
         <div className="rb-a">
-          <button type="button" className="btn ghost sm" onClick={() => onAdjust(-15)} aria-label="15 saniye azalt">−15</button>
-          <button type="button" className="btn ghost sm" onClick={() => onAdjust(15)} aria-label="15 saniye ekle">+15</button>
-          <button type="button" className="btn ghost sm" onClick={onClose}>Atla</button>
+          <button type="button" className="btn ghost sm" onClick={() => onAdjust(-15)} aria-label={t('15 saniye azalt')}>−15</button>
+          <button type="button" className="btn ghost sm" onClick={() => onAdjust(15)} aria-label={t('15 saniye ekle')}>+15</button>
+          <button type="button" className="btn ghost sm" onClick={onClose}>{t('Atla')}</button>
         </div>
       </div>
     </div>
@@ -1345,20 +1347,20 @@ function NoteSheetBody({ init, onSave, onClose }) {
   const [tags, setTags] = useState(init.tags || []);
   const [memo, setMemo] = useState(init.memo || '');
   const [toProgram, setToProgram] = useState(false);
-  const tog = (t) => setTags(tags.includes(t) ? tags.filter((x) => x !== t) : [...tags, t]);
+  const tog = (tag) => setTags(tags.includes(tag) ? tags.filter((x) => x !== tag) : [...tags, tag]);
   return (
     <div className="note-sheet">
-      <span className="st-k">Sonraki set</span>
+      <span className="st-k">{t('Sonraki set')}</span>
       <div className="chips-wrap">
-        {NOTE_TAGS.map((t) => <button key={t} type="button" className={'fchip' + (tags.includes(t) ? ' on' : '')} onClick={() => tog(t)}>{t}</button>)}
+        {NOTE_TAGS.map((tag) => <button key={tag} type="button" className={'fchip' + (tags.includes(tag) ? ' on' : '')} onClick={() => tog(tag)}>{t(tag)}</button>)}
       </div>
-      <input id="set-note" className="text-in" placeholder="Set notu (isteğe bağlı)" value={note} onChange={(e) => setNote(e.target.value)} />
-      <label className="st-k" htmlFor="ex-memo">Hareket notu</label>
-      <textarea id="ex-memo" className="text-area" rows={2} placeholder="örn. koltuk 4. kademe, gelecek hafta 77,5 kg" value={memo} onChange={(e) => setMemo(e.target.value)} />
+      <input id="set-note" className="text-in" placeholder={t('Set notu (isteğe bağlı)')} value={note} onChange={(e) => setNote(e.target.value)} />
+      <label className="st-k" htmlFor="ex-memo">{t('Hareket notu')}</label>
+      <textarea id="ex-memo" className="text-area" rows={2} placeholder={t('örn. koltuk 4. kademe, gelecek hafta 77,5 kg')} value={memo} onChange={(e) => setMemo(e.target.value)} />
       {init.canProgram ? (
-        <label className="check-row"><input id="memo-to-program" type="checkbox" checked={toProgram} onChange={(e) => setToProgram(e.target.checked)} /> Plandaki nota da kaydet, sonraki antrenmanda görünsün</label>
+        <label className="check-row"><input id="memo-to-program" type="checkbox" checked={toProgram} onChange={(e) => setToProgram(e.target.checked)} /> {t('Plandaki nota da kaydet, sonraki antrenmanda görünsün')}</label>
       ) : null}
-      <button type="button" id="note-save" className="btn primary full" onClick={() => { onSave({ note, tags, memo, toProgram }); onClose(); }}>Kaydet</button>
+      <button type="button" id="note-save" className="btn primary full" onClick={() => { onSave({ note, tags, memo, toProgram }); onClose(); }}>{t('Kaydet')}</button>
     </div>
   );
 }
@@ -1372,13 +1374,13 @@ function ExListBody({ getSession, onGo, onAdd, onClose, openSheet }) {
           <li key={it.id} className="item">
             <button type="button" className="item-row" onClick={() => { onGo(i); onClose(); }}>
               <span className="item-i mono">{i + 1}</span>
-              <span className="item-t"><strong>{it.name}</strong><small className="mono">{it.sets.length}/{it.target.sets} set · {targetTxt(it.target, it.exId)}</small></span>
+              <span className="item-t"><strong>{exName(it)}</strong><small className="mono">{it.sets.length}/{t('{n} set', { n: it.target.sets })} · {targetTxt(it.target, it.exId)}</small></span>
               {it.sets.length >= it.target.sets ? <Icon name="check" size={15} /> : <Icon name="right" size={14} />}
             </button>
           </li>
         ))}
       </ol>
-      <button type="button" id="exlist-add" className="add-item" onClick={() => openSheet('picker', { onPick: (ex) => { onAdd(ex); onClose(); } })}>+ Hareket ekle</button>
+      <button type="button" id="exlist-add" className="add-item" onClick={() => openSheet('picker', { onPick: (ex) => { onAdd(ex); onClose(); } })}>+ {t('Hareket ekle')}</button>
     </div>
   );
 }
@@ -1394,8 +1396,8 @@ function SummaryBody({ session, st, put, del, openSheet, onDelete, onClose }) {
   );
   const notes = [];
   session.items.forEach((it) => {
-    if (it.memo) notes.push(it.name + ': ' + it.memo);
-    it.sets.forEach((x, j) => { if (x.note || (x.tags && x.tags.length)) notes.push(it.name + ' · set ' + (j + 1) + ': ' + [x.tags ? x.tags.join(', ') : '', x.note || ''].filter(Boolean).join(' · ')); });
+    if (it.memo) notes.push(exName(it) + ': ' + it.memo);
+    it.sets.forEach((x, j) => { if (x.note || (x.tags && x.tags.length)) notes.push(exName(it) + ' · ' + t('set {n}', { n: j + 1 }) + ': ' + [x.tags ? x.tags.map((tag) => t(tag)).join(', ') : '', x.note || ''].filter(Boolean).join(' · ')); });
   });
   const prevBest = (it) => {
     let b = 0;
@@ -1412,13 +1414,13 @@ function SummaryBody({ session, st, put, del, openSheet, onDelete, onClose }) {
     <div className="summary2">
       <p className="sum-when mono"><Icon name="clock" size={13} /> {fullDate(session.startedAt)} · {hm(session.startedAt)}–{hm(session.endedAt || Date.now())}</p>
       <div className="tiles">
-        <Tile k="Süre" v={durTxt(ss.dur)} unit="" />
-        <Tile k="Set" v={ss.sets.length} unit="" sub={ss.hard.length + ' zor set'} />
-        <Tile k="Tonaj" v={nf(Math.round(ss.tonnage))} unit=" kg" />
+        <Tile k={t('Süre')} v={durTxt(ss.dur)} unit="" />
+        <Tile k={t('Set')} v={ss.sets.length} unit="" sub={t('{n} zor set', { n: ss.hard.length })} />
+        <Tile k={t('Tonaj')} v={nf(Math.round(ss.tonnage))} unit=" kg" />
         <button type="button" className="tile tile-btn" onClick={() => openSheet('fatigue', {})}>
-          <span className="tile-k">Yorgunluk</span>
+          <span className="tile-k">{t('Yorgunluk')}</span>
           <span className="tile-v mono" style={{ color: zoneOf(sf.post).c }}>{Math.round(sf.pre)} → {Math.round(sf.post)}</span>
-          <span className="tile-sub">başta → sonda · {zoneOf(sf.post).k}</span>
+          <span className="tile-sub">{t('başta → sonda')} · {zoneOf(sf.post).k}</span>
         </button>
       </div>
       <ul className="sum-ex">
@@ -1428,25 +1430,25 @@ function SummaryBody({ session, st, put, del, openSheet, onDelete, onClose }) {
           return (
             <li key={it.id}>
               <div className="se-top">
-                <strong>{it.name}</strong>
+                <strong>{exName(it)}</strong>
                 <span className="mono se-e1">
                   {best
                     ? <React.Fragment>e1RM {nf(Math.round(best * 2) / 2)}{pb ? <em className={d >= 0 ? 'up' : 'down'}> {d >= 0 ? '+' : '−'}{nf(Math.abs(Math.round(d * 2) / 2))}</em> : null}</React.Fragment>
                     : skill
-                      ? it.sets.reduce((a, z) => a + z.reps, 0) + ' deneme'
+                      ? t('{n} deneme', { n: it.sets.reduce((a, z) => a + z.reps, 0) })
                       : isPlyo(it.exId)
-                        ? it.sets.reduce((a, z) => a + z.reps, 0) + ' temas'
+                        ? t('{n} temas', { n: it.sets.reduce((a, z) => a + z.reps, 0) })
                         : 'e1RM –'}
                 </span>
               </div>
               <div className="se-sets">
                 {it.sets.map((z, j) => (
-                  <button key={j} type="button" className="se-set" aria-label={'Set ' + (j + 1) + ' ayrıntısı'} onClick={() => openSheet('setdetail', { title: it.name, exId: it.exId, set: z, idx: j })}>
+                  <button key={j} type="button" className="se-set" aria-label={t('Set {n} ayrıntısı', { n: j + 1 })} onClick={() => openSheet('setdetail', { title: exName(it), exId: it.exId, set: z, idx: j })}>
                     <span className="mono">
                       {z.skill
                         ? skillSetTxt(z)
                         : z.plyo
-                          ? (Number(z.kg) ? '+' + nf(Number(z.kg)) + '×' : '') + z.reps + (Number(z.kg) ? '' : ' temas')
+                          ? (Number(z.kg) ? '+' + nf(Number(z.kg)) + '×' + z.reps : t('{n} temas', { n: z.reps }))
                           : nf(Number(z.kg)) + '×' + z.reps}
                     </span>
                     <i style={z.skill ? { background: (SKILL_Q[z.q || 0] || SKILL_Q[0]).c, width: '100%' } : z.plyo ? { background: PLYO_Q[z.q || 0].c, width: '100%' } : { background: vlColor(z.vl), width: Math.max(10, z.vl * 100) + '%' }} />
@@ -1466,27 +1468,27 @@ function SummaryBody({ session, st, put, del, openSheet, onDelete, onClose }) {
           .reduce((a, z) => a + Number(z.reps || 0), 0);
         return (
           <div key={g.id} className="sum-skill-goal">
-            <span><strong>{g.name}</strong> · <span className="mono">{cleanAttempts} temiz deneme</span></span>
+            <span><strong>{exName({ exId: g.exId, name: g.name })}</strong> · <span className="mono">{t('{n} temiz deneme', { n: cleanAttempts })}</span></span>
             {g.stage < 3 ? (
-              <button type="button" className="btn primary sm" onClick={() => advanceGoal(g.id)}>Aşamayı ilerlet</button>
+              <button type="button" className="btn primary sm" onClick={() => advanceGoal(g.id)}>{t('Aşamayı ilerlet')}</button>
             ) : (
-              <span className="badge ok">Öğrenildi ✓</span>
+              <span className="badge ok">{t('Öğrenildi ✓')}</span>
             )}
           </div>
         );
       })}
-      {notes.length ? <div className="sum-notes"><span className="st-k">Notlar</span>{notes.map((t, i) => <p key={i}>{t}</p>)}</div> : null}
+      {notes.length ? <div className="sum-notes"><span className="st-k">{t('Notlar')}</span>{notes.map((line, i) => <p key={i}>{line}</p>)}</div> : null}
       <SessionMuscles session={session} week={ls.muscles} />
       <div className="sum-actions">
-        <button type="button" id="save-tmpl" className="btn ghost" onClick={() => openSheet('saveTemplate', { session })}><Icon name="plus" size={14} /> Plan olarak kaydet</button>
-        <HoldButton id="sum-del" className="btn ghost sm danger-t" onHold={() => { onDelete(session.id); onClose(); }}>Kaydı sil</HoldButton>
+        <button type="button" id="save-tmpl" className="btn ghost" onClick={() => openSheet('saveTemplate', { session })}><Icon name="plus" size={14} /> {t('Plan olarak kaydet')}</button>
+        <HoldButton id="sum-del" className="btn ghost sm danger-t" onHold={() => { onDelete(session.id); onClose(); }}>{t('Kaydı sil')}</HoldButton>
       </div>
     </div>
   );
 }
 
 function SaveTemplateBody({ session, put, onClose, onSaved }) {
-  const [name, setName] = useState(isFree(session) ? '' : session.dayName + ' (yeni)');
+  const [name, setName] = useState(isFree(session) ? '' : t('{x} (yeni)', { x: sessionName(session) }));
   const [wds, setWds] = useState([]);
   const items = session.items.filter((it) => it.sets.length).map((it) => {
     const reps = it.sets.map((z) => z.reps);
@@ -1509,7 +1511,7 @@ function SaveTemplateBody({ session, put, onClose, onSaved }) {
     };
   });
   const save = () => {
-    const planName = name.trim() || 'Yeni plan';
+    const planName = name.trim() || t('Yeni plan');
     const p = newPlanDoc(planName);
     p.days[0].name = planName;
     p.days[0].weekdays = [...wds];
@@ -1520,9 +1522,9 @@ function SaveTemplateBody({ session, put, onClose, onSaved }) {
   };
   return (
     <div className="note-sheet">
-      <label className="st-k" htmlFor="tmpl-name">Adı</label>
-      <input id="tmpl-name" className="text-in" placeholder="örn. Omuz + kol" value={name} onChange={(e) => setName(e.target.value)} />
-      <span className="st-k">Her hafta</span>
+      <label className="st-k" htmlFor="tmpl-name">{t('Adı')}</label>
+      <input id="tmpl-name" className="text-in" placeholder={t('örn. Omuz + kol')} value={name} onChange={(e) => setName(e.target.value)} />
+      <span className="st-k">{t('Her hafta')}</span>
       <div className="wd-pick">
         {WEEK_ORDER.map((w) => {
           const on = wds.includes(w);
@@ -1533,8 +1535,8 @@ function SaveTemplateBody({ session, put, onClose, onSaved }) {
           );
         })}
       </div>
-      <p className="muted-p">{items.length} hareket, yaptığın set ve tekrar değerleriyle yeni bir plan olarak kaydedilir.</p>
-      <button type="button" id="tmpl-save" className="btn primary full" onClick={save}>Kaydet</button>
+      <p className="muted-p">{t('{n} hareket, yaptığın set ve tekrar değerleriyle yeni bir plan olarak kaydedilir.', { n: items.length })}</p>
+      <button type="button" id="tmpl-save" className="btn primary full" onClick={save}>{t('Kaydet')}</button>
     </div>
   );
 }
@@ -1596,7 +1598,7 @@ function PlanEditor({ program, dayId, st, put, del, onBack, openSheet, startSess
   const editItem = (i) => openSheet('item', {
     it: latestDay.current.items[i], idx: i, n: latestDay.current.items.length,
     onChange: (nit) => commit((nd) => { nd.items[i] = nit; }),
-    onMove: (d) => commit((nd) => { const a = nd.items; const j = i + d; if (j < 0 || j >= a.length) return; const t = a[i]; a[i] = a[j]; a[j] = t; }),
+    onMove: (d) => commit((nd) => { const a = nd.items; const j = i + d; if (j < 0 || j >= a.length) return; const tmp = a[i]; a[i] = a[j]; a[j] = tmp; }),
     onRemove: () => commit((nd) => { nd.items.splice(i, 1); }),
   });
   const addItem = () => openSheet('picker', {
@@ -1625,10 +1627,10 @@ function PlanEditor({ program, dayId, st, put, del, onBack, openSheet, startSess
     <div className="screen pxt editor2">
       <header className="shead">
         <div className="shead-row">
-          <button type="button" id="ed-back" className="nav-arrow" aria-label="Geri" onClick={() => { flush(); onBack(); }}><Icon name="left" size={18} /></button>
-          <div className="shead-t"><h1>Plan</h1></div>
-          <span className={'save-st mono' + (saved ? ' ok' : '')}>{saved ? 'Kaydedildi' : '…'}</span>
-          <HoldButton id="plan-del" className="btn ghost sm danger-t" aria-label="Planı sil (1 saniye basılı tut)" onHold={handleDelete}>Sil</HoldButton>
+          <button type="button" id="ed-back" className="nav-arrow" aria-label={t('Geri')} onClick={() => { flush(); onBack(); }}><Icon name="left" size={18} /></button>
+          <div className="shead-t"><h1>{t('Plan')}</h1></div>
+          <span className={'save-st mono' + (saved ? ' ok' : '')}>{saved ? t('Kaydedildi') : '…'}</span>
+          <HoldButton id="plan-del" className="btn ghost sm danger-t" aria-label={t('Planı sil (1 saniye basılı tut)')} onHold={handleDelete}>{t('Sil')}</HoldButton>
         </div>
       </header>
       <div className="ed2-body">
@@ -1636,15 +1638,15 @@ function PlanEditor({ program, dayId, st, put, del, onBack, openSheet, startSess
           <input
             id="plan-name"
             className="day-name prog-name2"
-            aria-label="Plan adı"
+            aria-label={t('Plan adı')}
             value={day.name}
-            placeholder="Plan adı (örn. Push)"
+            placeholder={t('Plan adı (örn. Push)')}
             onChange={(e) => commit((nd) => { nd.name = e.target.value; })}
           />
         </div>
         <div className="ed2-sec">
-          <span className="st-k">Her hafta</span>
-          <div className="wd-pick" role="group" aria-label="Her hafta">
+          <span className="st-k">{t('Her hafta')}</span>
+          <div className="wd-pick" role="group" aria-label={t('Her hafta')}>
             {WEEK_ORDER.map((w) => {
               const on = (day.weekdays || []).includes(w);
               return (
@@ -1665,7 +1667,7 @@ function PlanEditor({ program, dayId, st, put, del, onBack, openSheet, startSess
           </div>
         </div>
         <div className="ed2-list">
-          <span className="st-k">Hareketler</span>
+          <span className="st-k">{t('Hareketler')}</span>
           {day.items.length ? (
             <ol className="items">
               {day.items.map((it, i) => {
@@ -1675,9 +1677,9 @@ function PlanEditor({ program, dayId, st, put, del, onBack, openSheet, startSess
                     <button type="button" className="item-row" onClick={() => editItem(i)}>
                       <span className="item-i mono">{i + 1}</span>
                       <span className="item-t">
-                        <strong>{it.name}</strong>
+                        <strong>{exName(it)}</strong>
                         <small className="mono">{targetTxt(it, it.exId)} · {restTxt(it.rest)}</small>
-                        {it.note ? <em>{it.note}</em> : null}
+                        {it.note ? <em>{noteLabel(it.note)}</em> : null}
                       </span>
                       {exDot(m)}
                     </button>
@@ -1685,8 +1687,8 @@ function PlanEditor({ program, dayId, st, put, del, onBack, openSheet, startSess
                 );
               })}
             </ol>
-          ) : <div className="empty sm"><strong>Boş plan</strong><p>Hareketleri tek tek ekle. Listede olmayanı adını yazarak ekleyebilirsin.</p></div>}
-          <button type="button" id="add-item" className="add-item" onClick={addItem}>+ Hareket ekle</button>
+          ) : <div className="empty sm"><strong>{t('Boş plan')}</strong><p>{t('Hareketleri tek tek ekle. Listede olmayanı adını yazarak ekleyebilirsin.')}</p></div>}
+          <button type="button" id="add-item" className="add-item" onClick={addItem}>+ {t('Hareket ekle')}</button>
           <div className="ed2-foot">
             {day.items.length ? (
               <button
@@ -1699,7 +1701,7 @@ function PlanEditor({ program, dayId, st, put, del, onBack, openSheet, startSess
                   startSession(np, latestDay.current);
                 }}
               >
-                <Icon name="play" size={13} /> Başlat
+                <Icon name="play" size={13} /> {t('Başlat')}
               </button>
             ) : null}
           </div>
@@ -2048,7 +2050,7 @@ function ItemSheetBody({ it: it0, idx, n, onChange, onMove, onRemove, onClose, o
   return (
     <div className="itemsheet">
       <FactChips ex={m} />
-      {m ? <button type="button" className="mod-link" onClick={() => openSheet('exercise', { exId: m.id })}><Icon name="info" size={13} /> {m.bio ? 'Biyomekanik ve geçmiş' : 'Hareket bilgisi ve geçmiş'}</button> : null}
+      {m ? <button type="button" className="mod-link" onClick={() => openSheet('exercise', { exId: m.id })}><Icon name="info" size={13} /> {m.bio ? t('Biyomekanik ve geçmiş') : t('Hareket bilgisi ve geçmiş')}</button> : null}
       <ItemEditor it={it} idx={idx} n={n} fx={fx} onChange={(nit) => { setIt(nit); onChange(nit); }} onMove={(d) => { onMove(d); onClose(); }} onRemove={() => { onRemove(); onClose(); }} />
     </div>
   );
@@ -2066,37 +2068,37 @@ function PickerBody({ custom, addCustom, onPick, onClose, low, openSheet }) {
   const pick = (e) => { onPick(e); onClose(); };
   return (
     <div className="picker2">
-      <ExFilterBar f={f} idp="ex" placeholder="Ara ya da yeni hareket yaz" />
+      <ExFilterBar f={f} idp="ex" placeholder={t('Ara ya da yeni hareket yaz')} />
       {low && low.length && !f.q ? (
-        <div className="lowrow"><span className="st-k">Haftada 10 setin altında</span>
-          <div className="chips-scroll">{low.map((m) => <button key={m} type="button" className={'fchip warn' + (f.grp === m ? ' on' : '')} onClick={() => f.setGrp(f.grp === m ? null : m)}>{m}</button>)}</div>
+        <div className="lowrow"><span className="st-k">{t('Haftada 10 setin altında')}</span>
+          <div className="chips-scroll">{low.map((m) => <button key={m} type="button" className={'fchip warn' + (f.grp === m ? ' on' : '')} onClick={() => f.setGrp(f.grp === m ? null : m)}>{muscleName(m)}</button>)}</div>
         </div>
       ) : null}
       {f.q.trim() && !exact && (showNew || !f.list.length) ? (
         <div className="new-ex">
-          <div className="new-ex-top"><span className="badge new">Yeni</span><strong>{f.q.trim()}</strong></div>
-          <div className="chips-wrap">{MUSCLES.map((m) => <button key={m} type="button" className={'fchip sm' + (newMuscle === m ? ' on' : '')} onClick={() => setNewMuscle(m)}>{m}</button>)}</div>
-          <button type="button" id="ex-add-new" className="btn fire full" onClick={() => { const d = addCustom(f.q.trim(), newMuscle); pick({ exId: d.id, name: d.name, muscle: d.muscle, rest: 90 }); }}>Ekle</button>
+          <div className="new-ex-top"><span className="badge new">{t('Yeni')}</span><strong>{f.q.trim()}</strong></div>
+          <div className="chips-wrap">{MUSCLES.map((m) => <button key={m} type="button" className={'fchip sm' + (newMuscle === m ? ' on' : '')} onClick={() => setNewMuscle(m)}>{muscleName(m)}</button>)}</div>
+          <button type="button" id="ex-add-new" className="btn fire full" onClick={() => { const d = addCustom(f.q.trim(), newMuscle); pick({ exId: d.id, name: d.name, muscle: d.muscle, rest: 90 }); }}>{t('Ekle')}</button>
         </div>
       ) : null}
-      <span className="exf-count mono">{f.list.length} hareket</span>
+      <span className="exf-count mono">{t('{n} hareket', { n: f.list.length })}</span>
       <ul className="ex-list2">
         {f.list.slice(0, f.lim).map((e) => (
           <li key={e.src + e.id} className="exr">
             <button type="button" className="exr-main" onClick={() => pick(e)}>
-              <span className="exr-n">{e.name}</span>
+              <span className="exr-n">{exName(e)}</span>
               <span className="exr-k">
                 {exDot(e)}
                 <span>{exLine(e)}</span>
-                {e.src === 'custom' ? <span className="badge own">özel</span> : null}
+                {e.src === 'custom' ? <span className="badge own">{t('özel')}</span> : null}
               </span>
             </button>
-            {e.src === 'lib' ? <button type="button" className="nav-arrow info" aria-label={e.name + ' bilgisi'} onClick={() => openSheet('exercise', { exId: e.id })}><Icon name="info" size={16} /></button> : null}
+            {e.src === 'lib' ? <button type="button" className="nav-arrow info" aria-label={t('{x} bilgisi', { x: exName(e) })} onClick={() => openSheet('exercise', { exId: e.id })}><Icon name="info" size={16} /></button> : null}
           </li>
         ))}
       </ul>
-      {f.list.length > f.lim ? <button type="button" id="ex-more" className="btn ghost full" onClick={f.more}>Daha fazla göster ({f.list.length - f.lim})</button> : null}
-      {f.q.trim() && !exact && f.list.length && !showNew ? <button type="button" id="ex-new-open" className="add-item" onClick={() => setShowNew(true)}>+ “{f.q.trim()}” adıyla özel hareket ekle</button> : null}
+      {f.list.length > f.lim ? <button type="button" id="ex-more" className="btn ghost full" onClick={f.more}>{t('Daha fazla göster')} ({f.list.length - f.lim})</button> : null}
+      {f.q.trim() && !exact && f.list.length && !showNew ? <button type="button" id="ex-new-open" className="add-item" onClick={() => setShowNew(true)}>{t('+ “{x}” adıyla özel hareket ekle', { x: f.q.trim() })}</button> : null}
     </div>
   );
 }

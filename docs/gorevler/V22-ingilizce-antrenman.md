@@ -13,3 +13,14 @@
 ## Test
 - `i18n-screens.test.tsx`: plansız oturum (liste, set ekranı, dinlenme, özet), planlı oturum, plan düzenleyici İngilizce ve Türkçe harf yok.
 - `layout-check.mjs` → `flowEn`'e Antrenman ekranlarını ekle (İngilizce metinler daha uzun olabilir; büyük düğmeler 8'in katı Press Start 2P).
+
+## Yapılan (2026-11-19, Claude)
+- Antrenman sekmesinin tamamı `t()` ile: başlangıç, Planlarım, satır içi geçmiş, plan menüsü, plan düzenleyici ve hareket ayar penceresi (sürüklemeli barlar, hazır "nasıl yapılacak" seçenekleri), hareket seçici ve filtreler, planlı oturum (hedef kartı, set tablosu, hız animasyonu, not, set ayrıntısı, dinlenme), özet penceresi ve kas bölümü, pixel plansız oturum (liste, çoklu seçici, set ekranı, büyük dinlenme, set ayrıntısı, İDMAN/HAREKET BİTTİ), pixel özet, ağırlık görseli.
+- Kayıtlı Türkçe değerler ekranda çevrilir: hareket adı (`exName`), kas (`muscleName`), set etiketleri (`set.tags`), plan notundaki hazır seçenekler (`noteLabel`; kullanıcının serbest notu aynen).
+- Arama iki dilde: İngilizce hareket, kas ve ekipman adlarıyla da bulur.
+- Sayılar dile göre (`num`, `fk`, `pct`, `clock`); `toLocaleString('tr-TR')` kalmadı.
+- Dinlenme bildirimi metinleri ve Android bildirim kanalı adları uygulama dilinde (`channelRunning`, `channelDone`; `RestTimerPlugin.createChannels` var olan kanalın adını günceller).
+- Yerel `t` gölgelemeleri kaldırıldı (`tg`, `nowTs`, `timer`, `tag`, `line`).
+- Testler: İngilizce plansız oturum (liste → seçici → set → dinlenme → set ayrıntısı → hareketi bitir → özet → bildirim), planlı oturum + özet + plan menüsü + plan düzenleyici; `flowEn` Antrenman ekranlarını da kapsar.
+- Kısa set rozetleri İngilizcede `3a` (attempts) ve `5c` (contacts).
+

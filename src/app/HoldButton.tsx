@@ -2,6 +2,7 @@
 // Basılıyken düğmenin içi soldan sağa dolar; erken bırakılırsa iptal olur ve "basılı tut" ipucu yanıp söner.
 // Klavye / ekran okuyucu ile etkinleştirme (click.detail === 0) basılı tutmadan çalışır.
 import React, { useEffect, useRef, useState } from 'react';
+import { t } from '../i18n';
 
 type Props = Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onClick'> & {
   ms?: number;
@@ -13,11 +14,11 @@ type Props = Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onClick'> & {
 export function HoldButton({ ms = 1000, onHold, hint = 'basılı tut', tone = 'danger', className, style, children, disabled, ...rest }: Props) {
   const [on, setOn] = useState(false);
   const [nudge, setNudge] = useState(false);
-  const t = useRef(0);
+  const timer = useRef(0);
   const nt = useRef(0);
   const t0 = useRef(0);
   const fired = useRef(false);
-  useEffect(() => () => { clearTimeout(t.current); clearTimeout(nt.current); }, []);
+  useEffect(() => () => { clearTimeout(timer.current); clearTimeout(nt.current); }, []);
 
   const buzz = (p: number | number[]) => { try { if (navigator.vibrate) navigator.vibrate(p); } catch { /* yok say */ } };
   const start = (e: React.PointerEvent<HTMLButtonElement>) => {
@@ -28,9 +29,9 @@ export function HoldButton({ ms = 1000, onHold, hint = 'basılı tut', tone = 'd
     setOn(true);
     setNudge(false);
     buzz(8);
-    clearTimeout(t.current);
-    t.current = window.setTimeout(() => {
-      t.current = 0;
+    clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => {
+      timer.current = 0;
       fired.current = true;
       setOn(false);
       buzz([20, 40, 30]);
@@ -38,9 +39,9 @@ export function HoldButton({ ms = 1000, onHold, hint = 'basılı tut', tone = 'd
     }, ms);
   };
   const stop = () => {
-    if (!t.current) return;
-    clearTimeout(t.current);
-    t.current = 0;
+    if (!timer.current) return;
+    clearTimeout(timer.current);
+    timer.current = 0;
     setOn(false);
     if (!fired.current) {
       setNudge(true);
@@ -65,7 +66,7 @@ export function HoldButton({ ms = 1000, onHold, hint = 'basılı tut', tone = 'd
       <span className="px-hold-fill" aria-hidden="true" />
       <span className="px-hold-lbl">
         <span className="px-hold-t">{children}</span>
-        {hint ? <small className="px-hold-hint" aria-hidden="true">{hint}</small> : null}
+        {hint ? <small className="px-hold-hint" aria-hidden="true">{t(hint)}</small> : null}
       </span>
     </button>
   );

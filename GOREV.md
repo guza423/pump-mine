@@ -4,12 +4,12 @@ Hangi AI olursa olsun: önce `git pull --rebase origin main`, sonra `AGENTS.md`'
 
 ## Bekleyen
 Dil geçişi sekme sekme (yöntem: `docs/gorevler/V21-dil-altyapisi-ingilizce.md`). Kullanıcı bir önceki adımı telefonda görüp "devam" deyince sıradaki uygulanır.
-- [V22 · İngilizce: Antrenman sekmesi](docs/gorevler/V22-ingilizce-antrenman.md)
 - [V23 · İngilizce: Gözlem sekmesi (Insights)](docs/gorevler/V23-ingilizce-gozlem.md)
 - [V24 · İngilizce: Lab sekmesi](docs/gorevler/V24-ingilizce-lab.md)
 - [V25 · İngilizce yasal metinler + son tarama](docs/gorevler/V25-ingilizce-yasal-son-tarama.md)
 
 ## Tamamlanan
+- [V22 · İngilizce: Antrenman sekmesi](docs/gorevler/V22-ingilizce-antrenman.md): 2026-11-19 · `V22_COMMIT`
 - [V21 · Dil altyapısı, İngilizce varsayılan, Hesap ve ayarlar'da dil seçimi + Dashboard](docs/gorevler/V21-dil-altyapisi-ingilizce.md): 2026-11-19 · `8fdf12e`
 - [V20 · Yasal metinler (KVKK + GDPR), kabul kapısı, açık rıza, hesap/veri silme, akıcı animasyonlar](docs/gorevler/V20-yasal-metinler-hesap-silme.md): 2026-11-18 · `0af663b`
 - [V19 · Basılı tutma düğmeleri, göreli/hassas sürükleme, hareketi bitir, başlık bilgisi](docs/gorevler/V19-basili-tut-goreli-surukleme.md): 2026-11-18 · `3021685`

@@ -7,7 +7,7 @@ import { dbMultiplier } from '../../lib/models/session';
 import { nextPlanned } from '../plan/plans';
 import { PxKgTape, PxStair } from './PxDrag';
 import { HoldButton } from '../../app/HoldButton';
-import { byLang, num, numIn, t } from '../../i18n';
+import { byLang, lower, num, numIn, pct, t } from '../../i18n';
 
 /* ================= GÜNLÜK: program yazma + antrenman kaydı ================= */
 const WD_LONG = byLang({ tr: ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'], en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] });
@@ -227,6 +227,8 @@ function splitNote(note) {
   return { on: NOTE_PRESETS.filter((p) => toks.includes(p)), free: toks.filter((t) => !NOTE_PRESETS.includes(t)).join(' · ') };
 }
 const joinNote = (on, free) => [...NOTE_PRESETS.filter((p) => on.includes(p)), String(free || '').trim()].filter(Boolean).join(' · ');
+// Notta saklanan hazır seçenekler Türkçe kalır; gösterimde çevrilir, kullanıcının serbest metni aynen (V22).
+const noteLabel = (note) => String(note || '').split(' · ').map((x) => (NOTE_PRESETS.includes(x.trim()) ? t(x.trim()) : x)).join(' · ');
 
 function ItemEditor({ it, idx, n, onChange, onMove, onRemove, fx = { sound: true, haptic: true } }) {
   const plyo = isPlyo(it.exId);
@@ -239,35 +241,35 @@ function ItemEditor({ it, idx, n, onChange, onMove, onRemove, fx = { sound: true
     const on = parsed.on.includes(p) ? parsed.on.filter((x) => x !== p) : [...parsed.on, p];
     onChange({ ...it, note: joinNote(on, free) });
   };
-  const repWord = plyo ? 'Temas' : skill ? 'Deneme' : 'Tekrar';
+  const repWord = plyo ? t('Temas') : skill ? t('Deneme') : t('Tekrar');
   const rMin = hasNum(it.repMin) ? Number(it.repMin) : 8;
   const rMax = hasNum(it.repMax) ? Number(it.repMax) : rMin;
   return (
     <div className="item-ed">
       <div className="ied-drag">
-        <PxStair id={pid + '-sets'} label="Set" min={1} max={12} lo={Number(it.sets) || 3} onChange={(a) => onChange({ ...it, sets: a })} fx={fx} marks={[1, 4, 8, 12]} />
-        <PxStair id={pid + '-reps'} label={repWord} min={1} max={30} range lo={rMin} hi={rMax} onChange={(a, b) => onChange({ ...it, repMin: a, repMax: b })} fx={fx} marks={[1, 5, 10, 15, 20, 25, 30]} loLabel={'En az ' + repWord.toLowerCase()} hiLabel={'En çok ' + repWord.toLowerCase()} />
-        {skill ? null : <PxKgTape id={pid + '-kg'} label={plyo ? 'Ek yük' : 'Kilo'} value={hasNum(it.kg) ? Number(it.kg) : null} onChange={(x) => onChange({ ...it, kg: x })} fx={fx} />}
-        {plyo || skill ? null : <PxStair id={pid + '-rpe'} label="RPE" min={5} max={10} step={0.5} range lo={hasNum(it.rpeMin) ? Number(it.rpeMin) : 7} hi={hasNum(it.rpeMax) ? Number(it.rpeMax) : hasNum(it.rpeMin) ? Number(it.rpeMin) : 9} onChange={(a, b) => onChange({ ...it, rpeMin: a, rpeMax: b })} fx={fx} marks={[5, 6, 7, 8, 9, 10]} loLabel="En düşük RPE" hiLabel="En yüksek RPE" />}
+        <PxStair id={pid + '-sets'} label={t('Set')} min={1} max={12} lo={Number(it.sets) || 3} onChange={(a) => onChange({ ...it, sets: a })} fx={fx} marks={[1, 4, 8, 12]} />
+        <PxStair id={pid + '-reps'} label={repWord} min={1} max={30} range lo={rMin} hi={rMax} onChange={(a, b) => onChange({ ...it, repMin: a, repMax: b })} fx={fx} marks={[1, 5, 10, 15, 20, 25, 30]} loLabel={t('En az {x}', { x: lower(repWord) })} hiLabel={t('En çok {x}', { x: lower(repWord) })} />
+        {skill ? null : <PxKgTape id={pid + '-kg'} label={plyo ? t('Ek yük') : t('Kilo')} value={hasNum(it.kg) ? Number(it.kg) : null} onChange={(x) => onChange({ ...it, kg: x })} fx={fx} />}
+        {plyo || skill ? null : <PxStair id={pid + '-rpe'} label="RPE" min={5} max={10} step={0.5} range lo={hasNum(it.rpeMin) ? Number(it.rpeMin) : 7} hi={hasNum(it.rpeMax) ? Number(it.rpeMax) : hasNum(it.rpeMin) ? Number(it.rpeMin) : 9} onChange={(a, b) => onChange({ ...it, rpeMin: a, rpeMax: b })} fx={fx} marks={[5, 6, 7, 8, 9, 10]} loLabel={t('En düşük RPE')} hiLabel={t('En yüksek RPE')} />}
       </div>
       <div className="field-pair">
-        <span className="st-k">Set arası dinlenme</span>
+        <span className="st-k">{t('Set arası dinlenme')}</span>
         <div className="chips-wrap">
           {REST_OPTS.map((r) => <button key={r} type="button" className={'fchip sm' + (it.rest === r ? ' on' : '')} onClick={() => set('rest')(r)}>{restTxt(r)}</button>)}
         </div>
       </div>
       <div className="field-pair">
-        <span className="st-k">Nasıl yapılacak</span>
+        <span className="st-k">{t('Nasıl yapılacak')}</span>
         <div className="chips-wrap ied-presets">
-          {NOTE_PRESETS.map((p) => <button key={p} type="button" className={'fchip sm' + (parsed.on.includes(p) ? ' on' : '')} aria-pressed={parsed.on.includes(p)} onClick={() => togglePreset(p)}>{p}</button>)}
+          {NOTE_PRESETS.map((p) => <button key={p} type="button" className={'fchip sm' + (parsed.on.includes(p) ? ' on' : '')} aria-pressed={parsed.on.includes(p)} onClick={() => togglePreset(p)}>{t(p)}</button>)}
         </div>
-        <label className="st-k" htmlFor={pid + '-note'}>Ek not</label>
-        <input id={pid + '-note'} className="text-in" placeholder="örn. 3 sn iniş, dirsek içeride" value={free} onChange={(e) => { setFree(e.target.value); onChange({ ...it, note: joinNote(parsed.on, e.target.value) }); }} />
+        <label className="st-k" htmlFor={pid + '-note'}>{t('Ek not')}</label>
+        <input id={pid + '-note'} className="text-in" placeholder={t('örn. 3 sn iniş, dirsek içeride')} value={free} onChange={(e) => { setFree(e.target.value); onChange({ ...it, note: joinNote(parsed.on, e.target.value) }); }} />
       </div>
       <div className="ied-actions">
-        <button type="button" className="btn ghost sm" disabled={idx === 0} onClick={() => onMove(-1)} aria-label="Yukarı taşı">↑ Yukarı</button>
-        <button type="button" className="btn ghost sm" disabled={idx === n - 1} onClick={() => onMove(1)} aria-label="Aşağı taşı">↓ Aşağı</button>
-        <HoldButton className="btn ghost sm danger-t" onHold={onRemove}>Hareketi sil</HoldButton>
+        <button type="button" className="btn ghost sm" disabled={idx === 0} onClick={() => onMove(-1)} aria-label={t('Yukarı taşı')}>↑ {t('Yukarı')}</button>
+        <button type="button" className="btn ghost sm" disabled={idx === n - 1} onClick={() => onMove(1)} aria-label={t('Aşağı taşı')}>↓ {t('Aşağı')}</button>
+        <HoldButton className="btn ghost sm danger-t" onHold={onRemove}>{t('Hareketi sil')}</HoldButton>
       </div>
     </div>
   );
@@ -361,13 +363,13 @@ function SetReplay({ set, bench }) {
       </div>
       <div className="rp-info">
         <div className="rp-top">
-          <span className="mono rp-rep">Tekrar {Math.max(0, rep + 1)}/{vels.length}</span>
-          <span className="mono rp-v" style={{ color: cur ? vlColor(1 - cur / vels[0]) : 'var(--muted)' }}>{cur ? (bench ? nf(cur, 2) + ' m/s' : '%' + Math.round((cur / vels[0]) * 100) + ' hız') : '–'}</span>
+          <span className="mono rp-rep">{t('Tekrar')} {Math.max(0, rep + 1)}/{vels.length}</span>
+          <span className="mono rp-v" style={{ color: cur ? vlColor(1 - cur / vels[0]) : 'var(--muted)' }}>{cur ? (bench ? nf(cur, 2) + ' m/s' : t('{p} hız', { p: pct(Math.round((cur / vels[0]) * 100)) })) : '–'}</span>
         </div>
         <RepBars set={set} h={46} live={rep} />
         <div className="rp-foot">
-          <span className="rp-note">{bench ? 'Bench hız profiline göre tahmini' : 'Temsili: ilk tekrara göre hız'}</span>
-          <button type="button" className="btn ghost sm" onClick={() => setRun((r) => r + 1)}><Icon name="reset" size={13} /> Oynat</button>
+          <span className="rp-note">{bench ? t('Bench hız profiline göre tahmini') : t('Temsili: ilk tekrara göre hız')}</span>
+          <button type="button" className="btn ghost sm" onClick={() => setRun((r) => r + 1)}><Icon name="reset" size={13} /> {t('Oynat')}</button>
         </div>
       </div>
     </div>
@@ -408,11 +410,11 @@ function RestBar({ rest, now, onAdd, onClose }) {
         <circle cx="24" cy="24" r={R} className="rr-fg" style={{ strokeDasharray: `${(1 - k) * L} ${L}` }} transform="rotate(-90 24 24)" />
       </svg>
       <div className="rest-t">
-        <span className="rest-k">{over ? 'Dinlenme bitti' : 'Dinlenme'}</span>
+        <span className="rest-k">{over ? t('Dinlenme bitti') : t('Dinlenme')}</span>
         <span className="mono rest-v">{over ? '+' + mmss(-left * 1000) : mmss(left * 1000)}<small> / {mmss(rest.total * 1000)}</small></span>
       </div>
-      <button type="button" className="btn ghost sm" onClick={onAdd}>+30 sn</button>
-      <button type="button" className="x-btn" onClick={onClose} aria-label="Dinlenmeyi kapat">✕</button>
+      <button type="button" className="btn ghost sm" onClick={onAdd}>+{t('{n} sn', { n: 30 })}</button>
+      <button type="button" className="x-btn" onClick={onClose} aria-label={t('Dinlenmeyi kapat')}>✕</button>
     </div>
   );
 }
@@ -427,5 +429,5 @@ export {
   e1rm, rpeLabel, e1Ok, bestE1, vlColor,
   blankProgram, sessionFromDay, itemFromEx,
   repTxt, rpeTxt, targetTxt, sessionStats, weeklyHard, nextPlanned,
-  Stepper, ItemEditor, Lane, RepBars, SetReplay, firstOpen, entryFor, RestBar,
+  Stepper, ItemEditor, Lane, RepBars, SetReplay, firstOpen, entryFor, RestBar, NOTE_PRESETS, noteLabel,
 };

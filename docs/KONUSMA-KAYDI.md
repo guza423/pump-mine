@@ -513,3 +513,13 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 - Kural `AGENTS.md` › Dil: her yeni metin `t()` ile ve İngilizcesiyle birlikte eklenir.
 **Kayıt:** commit `8fdf12e`. Kontroller: `npm test` (118 test), `tsc -b`, lint, build, `test:layout` (Türkçe + İngilizce) geçti.
 
+### 2026-11-19 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** "Apk nerde"
+**Yapılan:** GitHub Actions'taki son APK bağlantısı verildi (`outmove-50`, V21 commit'i). Dosya doğrudan gönderilemedi (çalışma ortamı GitHub'ın dosya sunucusuna erişemiyor).
+
+**Kullanıcı:** "Tamam çeviriye devam et"
+**Yapılan / karar:**
+- **V22** (`docs/gorevler/V22-ingilizce-antrenman.md`): Antrenman sekmesinin tamamı İngilizce; kayıtlı Türkçe değerler (hareket, kas, set etiketleri, hazır not seçenekleri) ekranda çevrilir, veri değişmez; arama iki dilde; dinlenme bildirimi ve Android kanal adları uygulama dilinde.
+- Testler: İngilizce plansız ve planlı oturum, özet, plan düzenleyici; `flowEn` Antrenman ekranlarını da kapsar.
+**Kayıt:** commit `V22_COMMIT`. Kontroller: `npm test` (120 test), `tsc -b`, lint, build, `test:layout` (Türkçe + İngilizce) geçti.
+

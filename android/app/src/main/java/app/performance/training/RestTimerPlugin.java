@@ -41,18 +41,32 @@ public class RestTimerPlugin extends Plugin {
         }
     }
 
-    static void createChannels(Context context) {
+    static void createChannels(Context context) { createChannels(context, null, null); }
+
+    // Kanal adları uygulama dilinde JS'ten gelir (V22). Ad verilmezse (alarm alıcısı) var olan kanala dokunulmaz;
+    // kanal hiç yoksa İngilizce varsayılanla açılır. Aynı kimlikle yeniden oluşturmak yalnızca adı günceller.
+    static void createChannels(Context context, String runningName, String doneName) {
         if (Build.VERSION.SDK_INT < 26) return;
         NotificationManager manager = context.getSystemService(NotificationManager.class);
-        if (manager.getNotificationChannel(RUNNING_CHANNEL) == null) {
-            NotificationChannel running = new NotificationChannel(RUNNING_CHANNEL, "Dinlenme sayacı", NotificationManager.IMPORTANCE_LOW);
+        NotificationChannel existingRunning = manager.getNotificationChannel(RUNNING_CHANNEL);
+        if (existingRunning != null && runningName != null && !runningName.contentEquals(existingRunning.getName())) {
+            existingRunning.setName(runningName);
+            manager.createNotificationChannel(existingRunning);
+        }
+        NotificationChannel existingDone = manager.getNotificationChannel(DONE_CHANNEL);
+        if (existingDone != null && doneName != null && !doneName.contentEquals(existingDone.getName())) {
+            existingDone.setName(doneName);
+            manager.createNotificationChannel(existingDone);
+        }
+        if (existingRunning == null) {
+            NotificationChannel running = new NotificationChannel(RUNNING_CHANNEL, runningName != null ? runningName : "Rest timer", NotificationManager.IMPORTANCE_LOW);
             running.setSound(null, null);
             running.enableVibration(false);
             running.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
             manager.createNotificationChannel(running);
         }
-        if (manager.getNotificationChannel(DONE_CHANNEL) == null) {
-            NotificationChannel done = new NotificationChannel(DONE_CHANNEL, "Dinlenme bitti", NotificationManager.IMPORTANCE_HIGH);
+        if (existingDone == null) {
+            NotificationChannel done = new NotificationChannel(DONE_CHANNEL, doneName != null ? doneName : "Rest finished", NotificationManager.IMPORTANCE_HIGH);
             done.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),
                 new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION).build());
             done.enableVibration(true);
@@ -82,12 +96,12 @@ public class RestTimerPlugin extends Plugin {
         if (endAt == null || endAt <= 0) { call.reject("endAt gerekli"); return; }
         try {
             Context context = getContext();
-            createChannels(context);
+            createChannels(context, call.getString("channelRunning"), call.getString("channelDone"));
             NotificationManager manager = context.getSystemService(NotificationManager.class);
             AlarmManager alarms = context.getSystemService(AlarmManager.class);
             Intent intent = new Intent(context, RestTimerReceiver.class)
                 .putExtra("endAt", endAt.longValue())
-                .putExtra("doneTitle", call.getString("doneTitle", "Dinlenme bitti"))
+                .putExtra("doneTitle", call.getString("doneTitle", "Rest finished"))
                 .putExtra("doneBody", call.getString("doneBody", ""));
             PendingIntent pending = alarmIntent(intent);
             alarms.cancel(pending);
@@ -95,7 +109,7 @@ public class RestTimerPlugin extends Plugin {
             manager.cancel(DONE_ID);
             Notification notification = builder(context, RUNNING_CHANNEL)
                 .setSmallIcon(R.drawable.ic_stat_rest)
-                .setContentTitle(call.getString("title", "Dinlenme"))
+                .setContentTitle(call.getString("title", "Rest"))
                 .setContentText(call.getString("body", ""))
                 .setUsesChronometer(true).setChronometerCountDown(true).setWhen(endAt).setShowWhen(true)
                 .setOngoing(true).setOnlyAlertOnce(true).setCategory(Notification.CATEGORY_STOPWATCH)

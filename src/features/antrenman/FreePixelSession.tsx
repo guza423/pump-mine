@@ -17,7 +17,10 @@ import {
   eqConfig, eqLabel, fk, hms, P_ALL, P_UP, par, PX_PLYO_Q, PX_SKILL_Q, PX_SPEED, PX_SPEED_COLORS, upTr,
 } from './pixelHelpers';
 import { readGoals, matchesSkillGoal, skillStats, SKILL_STAGES } from '../bugun/goals';
+import { clock, locale, lower, muscleName, num, pct, t, upper } from '../../i18n';
+import { exName as exLabel } from '../../i18n/names';
 
+// Etiketler gösterimde t() ile çevrilir.
 const EX_KINDS: Array<[string, string]> = [
   ['all', 'Tümü'],
   ['kuvvet', 'Kuvvet'],
@@ -147,13 +150,13 @@ export const FreePixelSession: React.FC<Props> = ({
 
   const autoStart = (why: string) => {
     if (!sRef.current.ready) return;
-    const t = Date.now();
+    const nowTs = Date.now();
     mutate((ns) => {
       delete ns.ready;
-      ns.startedAt = t;
+      ns.startedAt = nowTs;
     });
-    setNow(t);
-    setToast((prev) => ({ t: why + ', süreyi başlattım', n: (prev ? prev.n : 0) + 1 }));
+    setNow(nowTs);
+    setToast((prev) => ({ t: t('{x}, süreyi başlattım', { x: t(why) }), n: (prev ? prev.n : 0) + 1 }));
     if (toastT.current) clearTimeout(toastT.current);
     toastT.current = setTimeout(() => setToast(null), 3600);
     pixelFx.autoStart(fxRef.current);
@@ -236,7 +239,7 @@ export const FreePixelSession: React.FC<Props> = ({
   useEffect(() => {
     const r = sRef.current.rest;
     if (r && r.start + r.total * 1000 > Date.now()) {
-      void startRest(r, sRef.current.items.find((it: any) => it.exId === r.exId)?.name || 'Antrenman');
+      void startRest(r, exLabel(sRef.current.items.find((it: any) => it.exId === r.exId)) || t('Antrenman'));
     }
     let tickN = 0;
     const iv = setInterval(() => {
@@ -418,7 +421,7 @@ export const FreePixelSession: React.FC<Props> = ({
     if (!item) return;
     const idx = cur;
     mutate((ns) => { if (ns.items[idx]) ns.items[idx].done = true; });
-    setExFx({ name: item.name, n: item.sets.length });
+    setExFx({ name: exLabel(item), n: item.sets.length });
     pixelFx.land(fxRef.current);
     setTimeout(() => {
       setExFx(null);
@@ -660,8 +663,8 @@ export const FreePixelSession: React.FC<Props> = ({
       prefsRef.current = next.prefs;
       put('settings', { key: 'restPrefs', value: next.prefs });
     }
-    const exName = sRef.current.items.find((it: any) => it.exId === next.rest.exId)?.name || item?.name || 'Antrenman';
-    void startRest(next.rest, exName);
+    const restEx = exLabel(sRef.current.items.find((it: any) => it.exId === next.rest.exId) || item) || t('Antrenman');
+    void startRest(next.rest, restEx);
     setFxRt((x) => x + 1);
     setNow(Date.now());
     pixelFx.addRest(fxRef.current, delta);
@@ -712,7 +715,7 @@ export const FreePixelSession: React.FC<Props> = ({
     if (sRef.current.ready) {
       autoStart('İlk setini kaydettin');
     }
-    const t = Date.now();
+    const nowTs = Date.now();
     const set: any = isSkillEx
       ? {
           kg: 0,
@@ -724,7 +727,7 @@ export const FreePixelSession: React.FC<Props> = ({
           vl: 0,
           rpe: null,
           rir: 9,
-          at: t,
+          at: nowTs,
         }
       : isPlyoEx
         ? {
@@ -736,7 +739,7 @@ export const FreePixelSession: React.FC<Props> = ({
             vl: 0,
             rpe: null,
             rir: 9,
-            at: t,
+            at: nowTs,
           }
         : {
             kg: curVals.current.kg,
@@ -747,13 +750,13 @@ export const FreePixelSession: React.FC<Props> = ({
             rir: PX_SPEED[curVals.current.lvl].rir,
             rirEst: PX_SPEED[curVals.current.lvl].rir,
             rom: curVals.current.rom,
-            at: t,
+            at: nowTs,
           };
     if (entryNote) set.note = entryNote;
     if (entryTags.length) set.tags = entryTags;
 
     const nextRest = {
-      start: t,
+      start: nowTs,
       total: restDuration(sRef.current, item, prefsRef.current),
       exId: item.exId,
       setNo: item.sets.length + 1,
@@ -767,7 +770,7 @@ export const FreePixelSession: React.FC<Props> = ({
     });
 
     void stopRest();
-    void startRest(nextRest, item.name);
+    void startRest(nextRest, exLabel(item));
 
     curVals.current.rom = 100;
     setRomState(100);
@@ -776,7 +779,7 @@ export const FreePixelSession: React.FC<Props> = ({
     setEntryTags([]);
     setSelIdx(null);
     setFxLog((x) => x + 1);
-    setNow(t);
+    setNow(nowTs);
     pixelFx.logSet(fxRef.current);
 
     // Uçan blok kaydet düğmesinden ilk set hücresine iner; dinlenme ekranı inişten sonra açılır.
@@ -811,8 +814,8 @@ export const FreePixelSession: React.FC<Props> = ({
     const h = fr ? fr.height : 34;
     const x = (fr ? fr.left : gr.left + (parseFloat(cs.paddingLeft) || 0)) - rr.left;
     const y = (fr ? fr.top : gr.top + (parseFloat(cs.paddingTop) || 0)) - rr.top;
-    const txt = isSkillEx ? `${set.reps}d` : isPlyoEx ? `${set.reps}t` : `${fk(Number(set.kg))}×${set.reps}`;
-    setFly({ n: t, x, y, w, h, dx: br.left + br.width / 2 - (rr.left + x + w / 2), dy: br.top + br.height / 2 - (rr.top + y + h / 2), txt });
+    const txt = isSkillEx ? t('{n}d', { n: set.reps }) : isPlyoEx ? t('{n}t', { n: set.reps }) : `${fk(Number(set.kg))}×${set.reps}`;
+    setFly({ n: nowTs, x, y, w, h, dx: br.left + br.width / 2 - (rr.left + x + w / 2), dy: br.top + br.height / 2 - (rr.top + y + h / 2), txt });
     pixelFx.land(fxRef.current);
     if (landT.current) clearTimeout(landT.current);
     landT.current = setTimeout(() => {
@@ -825,7 +828,7 @@ export const FreePixelSession: React.FC<Props> = ({
   const openNote = () => {
     if (!item) return;
     openSheet('note', {
-      title: item.name,
+      title: exLabel(item),
       init: { note: entryNote, tags: entryTags, memo: item.memo || '', canProgram: false },
       onSave: (r: any) => {
         setEntryNote(r.note || '');
@@ -845,9 +848,10 @@ export const FreePixelSession: React.FC<Props> = ({
     const toks = normTr(pickQ).split(/\s+/).filter(Boolean);
     const hay = allPickerExercises.map((e) => ({
       e,
-      text: normTr(e.name + ' ' + (e.en || '') + ' ' + e.muscle + ' ' + eqLabel(e.eq)),
+      // Arama iki dilde de eşleşir: Türkçe ve İngilizce ad, kas ve ekipman.
+      text: normTr(e.name + ' ' + (e.en || '') + ' ' + e.muscle + ' ' + muscleName(e.muscle) + ' ' + eqLabel(e.eq)),
     }));
-    const base = toks.length ? hay.filter((x) => toks.every((t) => x.text.includes(t))).map((x) => x.e) : allPickerExercises;
+    const base = toks.length ? hay.filter((x) => toks.every((tok) => x.text.includes(tok))).map((x) => x.e) : allPickerExercises;
     const byKind = base.filter((e) => pickKind === 'all' || (e.kind || 'kuvvet') === pickKind);
     const list = byKind.filter((e) => (!pickGrp || e.muscle === pickGrp) && (!pickEq || e.eq === pickEq));
     const groups = MUSCLES.map((m) => [m, byKind.filter((e) => e.muscle === m && (!pickEq || e.eq === pickEq)).length] as [string, number]).filter((x) => x[1] > 0);
@@ -900,7 +904,7 @@ export const FreePixelSession: React.FC<Props> = ({
   const totalSets = ss.sets.length;
   const elapsedSec = s.ready ? 0 : Math.max(0, Math.floor((now - s.startedAt) / 1000));
   const sesD = new Date(s.ready ? now : s.startedAt);
-  const sesDate = sesD.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', weekday: 'short' });
+  const sesDate = sesD.toLocaleDateString(locale(), { day: 'numeric', month: 'short', weekday: 'short' });
   const sesStart = String(sesD.getHours()).padStart(2, '0') + ':' + String(sesD.getMinutes()).padStart(2, '0');
   const rest = s.rest;
   let restTxt = '';
@@ -935,7 +939,7 @@ export const FreePixelSession: React.FC<Props> = ({
   const renderToast = () =>
     toast ? (
       <div className={'px-toast ' + (toast.n % 2 ? 'tA' : 'tB')} role="status">
-        <span className="lbl" style={{ color: 'var(--btx)', fontSize: 13 }}>İDMAN BAŞLADI</span>
+        <span className="lbl" style={{ color: 'var(--btx)', fontSize: 13 }}>{t('İDMAN BAŞLADI')}</span>
         <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--btx)' }}>{toast.t}</span>
       </div>
     ) : null;
@@ -945,14 +949,14 @@ export const FreePixelSession: React.FC<Props> = ({
     <React.Fragment>
       {endFx ? (
         <div className="px-endfx" role="status" key={'e' + endFx}>
-          <span className="px-endfx-t">İDMAN BİTTİ</span>
-          <span className="px-endfx-s">{totalSets} set · {Math.round(ss.tonnage).toLocaleString('tr-TR')} kg</span>
+          <span className="px-endfx-t">{t('İDMAN BİTTİ')}</span>
+          <span className="px-endfx-s">{t('{n} set', { n: totalSets })} · {num(Math.round(ss.tonnage))} kg</span>
         </div>
       ) : null}
       {exFx ? (
         <div className="px-endfx ex" role="status">
-          <span className="px-endfx-t">HAREKET BİTTİ</span>
-          <span className="px-endfx-s">{exFx.name} · {exFx.n} set</span>
+          <span className="px-endfx-t">{t('HAREKET BİTTİ')}</span>
+          <span className="px-endfx-s">{exFx.name} · {t('{n} set', { n: exFx.n })}</span>
         </div>
       ) : null}
     </React.Fragment>
@@ -963,15 +967,15 @@ export const FreePixelSession: React.FC<Props> = ({
     // İDMANI BİTİR basılı tutulunca doğrudan biter; bu pencere yalnızca hiç set yokken çıkar.
     return (
       <React.Fragment>
-        <button type="button" className="bd" onClick={() => setConfirmModal(null)} aria-label="Pencereyi kapat" />
-        <div className="win" role="dialog" aria-label="İdmanı iptal et">
-          <span className="lbl" style={{ color: 'var(--gold)', fontSize: 15 }}>HİÇ SET YOK</span>
-          <div style={{ fontSize: 16, color: 'var(--tx)' }}>Hiç set kaydetmedin. Kaydetmeden çıkabilirsin.</div>
+        <button type="button" className="bd" onClick={() => setConfirmModal(null)} aria-label={t('Pencereyi kapat')} />
+        <div className="win" role="dialog" aria-label={t('İdmanı iptal et')}>
+          <span className="lbl" style={{ color: 'var(--gold)', fontSize: 15 }}>{t('HİÇ SET YOK')}</span>
+          <div style={{ fontSize: 16, color: 'var(--tx)' }}>{t('Hiç set kaydetmedin. Kaydetmeden çıkabilirsin.')}</div>
           {/* Press Start yalnızca 16 px (keskin); uzun metin sığsın diye düğmeler alt alta */}
           <div style={{ display: 'flex', gap: 20, flexDirection: 'column' }}>
-            <button type="button" className="bb" style={{ flex: 'none' }} onClick={() => setConfirmModal(null)}>GERİ DÖN</button>
+            <button type="button" className="bb" style={{ flex: 'none' }} onClick={() => setConfirmModal(null)}>{t('GERİ DÖN')}</button>
             <HoldButton id="discard-yes" className="go" style={{ flex: 'none', height: 64 }} onHold={discard}>
-              <span style={{ textTransform: 'uppercase' }}>Kaydetmeden çık</span>
+              <span>{upper(t('Kaydetmeden çık'))}</span>
             </HoldButton>
           </div>
         </div>
@@ -986,64 +990,64 @@ export const FreePixelSession: React.FC<Props> = ({
         <div className="px-scr">
           <div className="px-head">
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <span style={{ fontSize: 21, fontWeight: 700, letterSpacing: '0.04em', lineHeight: 1.1 }}>PLANSIZ ANTRENMAN</span>
+              <span style={{ fontSize: 21, fontWeight: 700, letterSpacing: '0.04em', lineHeight: 1.1 }}>{upper(t('Plansız antrenman'))}</span>
               <span className="px-ses-meta">
                 <span>{sesDate}</span>
                 {s.ready ? (
-                  <span>HAZIR · <b>başlamadı</b></span>
+                  <span>{t('HAZIR')} · <b>{t('başlamadı')}</b></span>
                 ) : (
                   <React.Fragment>
-                    <span>{sesStart}'de başladı</span>
-                    <span>SÜRE <b className="nm">{hms(elapsedSec)}</b></span>
+                    <span>{t("{x}'de başladı", { x: sesStart })}</span>
+                    <span>{t('SÜRE')} <b className="nm">{hms(elapsedSec)}</b></span>
                   </React.Fragment>
                 )}
               </span>
             </div>
             {s.ready ? (
-              <HoldButton id="discard-ready-btn" className="ib px-ib-hold" aria-label="İdmanı iptal et (1 saniye basılı tut)" onHold={discard} hint="basılı tut">
-                İPTAL
+              <HoldButton id="discard-ready-btn" className="ib px-ib-hold" aria-label={t('İdmanı iptal et (1 saniye basılı tut)')} onHold={discard} hint="basılı tut">
+                {t('İPTAL')}
               </HoldButton>
             ) : null}
           </div>
 
           <div className="pxb" style={{ margin: '8px 3px 0', padding: '10px 12px', display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10, flex: '0 0 auto' }}>
             <span style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span className="lbl" style={{ fontSize: 13 }}>HAREKET</span>
+              <span className="lbl" style={{ fontSize: 13 }}>{t('HAREKET')}</span>
               <span className="nm" style={{ fontSize: 18 }}>{s.items.length}</span>
             </span>
             <span style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span className="lbl" style={{ fontSize: 13 }}>SET</span>
+              <span className="lbl" style={{ fontSize: 13 }}>{t('SET')}</span>
               <span className="nm" style={{ fontSize: 18 }}>{totalSets}</span>
             </span>
             <span style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span className="lbl" style={{ fontSize: 13 }}>TONAJ</span>
+              <span className="lbl" style={{ fontSize: 13 }}>{t('TONAJ')}</span>
               <span className="nm" style={{ fontSize: 17, color: 'var(--gold)' }}>
-                {Math.round(ss.tonnage).toLocaleString('tr-TR')} kg
+                {num(Math.round(ss.tonnage))} kg
               </span>
             </span>
           </div>
 
           <div style={{ height: 22, marginTop: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 3px', flex: '0 0 auto' }}>
-            <span className="lbl">HAREKETLER</span>
-            <span style={{ fontSize: 13, color: 'var(--mt)' }}>dokun: devam et</span>
+            <span className="lbl">{t('HAREKETLER')}</span>
+            <span style={{ fontSize: 13, color: 'var(--mt)' }}>{t('dokun: devam et')}</span>
           </div>
 
           <div ref={listRef} className="px-scroll" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', marginTop: 8, padding: '4px 3px 8px', display: 'flex', flexDirection: 'column', gap: 12 }}>
             {s.items.map((it: any, k: number) => {
               const lib = exMeta(it.exId, it.name);
-              const eqTxt = lib ? eqLabel(lib.eq) : 'Özel';
+              const eqTxt = lib ? eqLabel(lib.eq) : t('Özel');
               const mult = dbMultiplier(it.exId, it.name);
               const plyo = !!(lib && lib.kind === 'plyo');
               const skill = !!(lib && lib.kind === 'beceri');
               const n = it.sets.length;
               const ton = it.sets.reduce((a: number, x: any) => a + (x.plyo || x.skill ? 0 : (Number(x.kg) || 0) * x.reps * mult), 0);
               const sum = !n
-                ? 'set yok'
+                ? t('set yok')
                 : plyo
-                  ? `${n} set · ${it.sets.reduce((a: number, x: any) => a + x.reps, 0)} temas`
+                  ? t('{n} set', { n }) + ' · ' + t('{n} temas', { n: it.sets.reduce((a: number, x: any) => a + x.reps, 0) })
                   : skill
-                    ? `${n} set · ${it.sets.reduce((a: number, x: any) => a + x.reps, 0)} deneme`
-                    : `${n} set · ${Math.round(ton).toLocaleString('tr-TR')} kg`;
+                    ? t('{n} set', { n }) + ' · ' + t('{n} deneme', { n: it.sets.reduce((a: number, x: any) => a + x.reps, 0) })
+                    : t('{n} set', { n }) + ' · ' + num(Math.round(ton)) + ' kg';
               const recent = it.sets.slice(-4).reverse();
 
               return (
@@ -1052,19 +1056,19 @@ export const FreePixelSession: React.FC<Props> = ({
                     type="button"
                     className="card-main"
                     onClick={() => enterEx(k)}
-                    aria-label={`${it.name}, ${n} set. Devam etmek için dokun.`}
+                    aria-label={t('{x}, {n} set. Devam etmek için dokun.', { x: exLabel(it), n })}
                   >
                     <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
                       <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: '0.03em', color: 'var(--tx)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {it.name}
+                        {exLabel(it)}
                       </span>
-                      {it.done ? <span className="px-done-tag">BİTTİ</span> : null}
+                      {it.done ? <span className="px-done-tag">{t('BİTTİ')}</span> : null}
                       <svg width="14" height="14" viewBox="0 0 9 9" shapeRendering="crispEdges" aria-hidden="true" style={{ flex: '0 0 auto', color: 'var(--mt)' }}>
                         <path d="M2 1h2v1H2zM3 2h2v1H3zM4 3h2v1H4zM5 4h2v1H5zM4 5h2v1H4zM3 6h2v1H3zM2 7h2v1H2z" fill="currentColor" />
                       </svg>
                     </span>
                     <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, fontSize: 13, color: 'var(--mt)' }}>
-                      <span>{eqTxt} · {it.muscle}</span>
+                      <span>{eqTxt} · {muscleName(it.muscle)}</span>
                       <span style={{ color: n ? 'var(--tx)' : 'var(--mt)' }}>{sum}</span>
                     </span>
                     {n > 0 ? (
@@ -1076,9 +1080,9 @@ export const FreePixelSession: React.FC<Props> = ({
                               ? PX_SKILL_Q[x.q || 0].c
                               : PX_SPEED_COLORS[x.lvl ?? 1];
                           const chipTxt = x.skill
-                            ? `${x.reps}d`
+                            ? t('{n}d', { n: x.reps })
                             : x.plyo
-                              ? `${Number(x.kg) ? '+' + fk(Number(x.kg)) + '×' : ''}${x.reps}t`
+                              ? (Number(x.kg) ? '+' + fk(Number(x.kg)) + '×' : '') + t('{n}t', { n: x.reps })
                               : `${fk(Number(x.kg))}×${x.reps}`;
                           return (
                             <span key={rIdx} className="chp nm" style={{ color: chipColor }}>{chipTxt}</span>
@@ -1089,7 +1093,7 @@ export const FreePixelSession: React.FC<Props> = ({
                     ) : null}
                   </button>
                   {n === 0 ? (
-                    <HoldButton className="card-del" aria-label={it.name + ' hareketini çıkar'} onHold={() => removeItem(k)} hint="tut">
+                    <HoldButton className="card-del" aria-label={t('{x} hareketini çıkar', { x: exLabel(it) })} onHold={() => removeItem(k)} hint="tut">
                       ×
                     </HoldButton>
                   ) : null}
@@ -1106,21 +1110,21 @@ export const FreePixelSession: React.FC<Props> = ({
               <svg width="16" height="16" viewBox="0 0 8 8" shapeRendering="crispEdges" aria-hidden="true">
                 <path d="M3 0h2v8H3zM0 3h8v2H0z" fill="currentColor" />
               </svg>
-              HAREKET EKLE
+              {t('HAREKET EKLE')}
             </button>
           </div>
 
           <div className="px-actions" style={{ marginTop: 10 }}>
             {rest ? (
-              <button type="button" className="px-rchip" onClick={restToLog} aria-label="Dinlenme sayacı: devam eden harekete dön">
+              <button type="button" className="px-rchip" onClick={restToLog} aria-label={t('Dinlenme sayacı: devam eden harekete dön')}>
                 <span className="nm" style={{ fontSize: 19 }}>{restTxt}</span>
                 <i style={{ position: 'absolute', left: 0, bottom: 0, height: 6, width: restPct + '%', background: 'var(--gold)' }} />
               </button>
             ) : null}
             {s.ready ? (
-              <button type="button" id="start-ses-btn" className="go" onClick={startSes}>İDMANI BAŞLAT</button>
+              <button type="button" id="start-ses-btn" className="go" onClick={startSes}>{t('İDMANI BAŞLAT')}</button>
             ) : (
-              <HoldButton id="finish-btn" className="go end" ms={500} tone="go" onHold={endSes}>İDMANI BİTİR</HoldButton>
+              <HoldButton id="finish-btn" className="go end" ms={500} tone="go" onHold={endSes}>{t('İDMANI BİTİR')}</HoldButton>
             )}
           </div>
         </div>
@@ -1141,14 +1145,14 @@ export const FreePixelSession: React.FC<Props> = ({
       <div className={'screen px night' + (motionOn ? ' px-motion' : '')}>
         <div className="px-scr">
           <div className="px-head">
-            <button type="button" className="ib" onClick={pickBack} aria-label="Geri: antrenman listesi">
+            <button type="button" className="ib" onClick={pickBack} aria-label={t('Geri: antrenman listesi')}>
               <svg width="22" height="22" viewBox="0 0 9 9" shapeRendering="crispEdges" aria-hidden="true">
                 <path d="M5 1h2v1H5zM4 2h2v1H4zM3 3h2v1H3zM2 4h2v1H2zM3 5h2v1H3zM4 6h2v1H4zM5 7h2v1H5z" fill="currentColor" />
               </svg>
             </button>
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <span style={{ fontSize: 19, fontWeight: 700, letterSpacing: '0.04em', lineHeight: 1.1 }}>HAREKET EKLE</span>
-              <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--mt)', letterSpacing: '0.08em' }}>TEK TEK YA DA BİRKAÇ TANE SEÇ</span>
+              <span style={{ fontSize: 19, fontWeight: 700, letterSpacing: '0.04em', lineHeight: 1.1 }}>{t('HAREKET EKLE')}</span>
+              <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--mt)', letterSpacing: '0.08em' }}>{t('TEK TEK YA DA BİRKAÇ TANE SEÇ')}</span>
             </div>
           </div>
 
@@ -1156,19 +1160,19 @@ export const FreePixelSession: React.FC<Props> = ({
             <svg width="18" height="18" viewBox="0 0 9 9" shapeRendering="crispEdges" aria-hidden="true" style={{ flex: '0 0 auto', color: 'var(--mt)' }}>
               <path d="M2 1h3v1H2zM1 2h1v3H1zM5 2h1v3H5zM2 5h3v1H2zM5 6h1v1H5zM6 7h1v1H6zM7 8h1v1H7z" fill="currentColor" />
             </svg>
-            <span className="visually-hidden">Hareket ara</span>
+            <span className="visually-hidden">{t('Hareket ara')}</span>
             <input
               id="ex-search"
               className="q"
               type="search"
               value={pickQ}
               onChange={(e) => { setPickQ(e.target.value); setPickLim(40); }}
-              placeholder="Hareket ara: bench, curl, omuz…"
+              placeholder={t('Hareket ara: bench, curl, omuz…')}
               autoComplete="off"
             />
           </label>
 
-          <div className="px-fchips" style={{ marginTop: 8 }} role="tablist" aria-label="Hareket türü">
+          <div className="px-fchips" style={{ marginTop: 8 }} role="tablist" aria-label={t('Hareket türü')}>
             {EX_KINDS.map(([k, lbl]) => (
               <button
                 key={k}
@@ -1178,14 +1182,14 @@ export const FreePixelSession: React.FC<Props> = ({
                 className={'px-fchip' + (pickKind === k ? ' on' : '')}
                 onClick={() => { setPickKind(k); setPickLim(40); }}
               >
-                {lbl}
+                {t(lbl)}
               </button>
             ))}
           </div>
 
-          <div className="px-fchips" style={{ marginTop: 4 }} role="group" aria-label="Kas grubu">
+          <div className="px-fchips" style={{ marginTop: 4 }} role="group" aria-label={t('Kas grubu')}>
             <button type="button" className={'px-fchip' + (!pickGrp ? ' on' : '')} onClick={() => { setPickGrp(null); setPickLim(40); }}>
-              Tüm kaslar
+              {t('Tüm kaslar')}
             </button>
             {pickerFiltered.groups.map(([m, cnt]) => (
               <button
@@ -1194,7 +1198,7 @@ export const FreePixelSession: React.FC<Props> = ({
                 className={'px-fchip' + (pickGrp === m ? ' on' : '')}
                 onClick={() => { setPickGrp(pickGrp === m ? null : m); setPickLim(40); }}
               >
-                {m} ({cnt})
+                {muscleName(m)} ({cnt})
               </button>
             ))}
           </div>
@@ -1202,10 +1206,10 @@ export const FreePixelSession: React.FC<Props> = ({
           {pickQ.trim() && !exactMatch && (showNewEx || !pickerFiltered.list.length) ? (
             <div className="pxb" style={{ margin: '8px 3px 0', padding: 10, display: 'flex', flexDirection: 'column', gap: 8, flex: '0 0 auto' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span className="chp" style={{ color: 'var(--gold)' }}>YENİ</span>
+                <span className="chp" style={{ color: 'var(--gold)' }}>{t('YENİ')}</span>
                 <strong style={{ fontSize: 15 }}>{pickQ.trim()}</strong>
               </div>
-              <div className="px-fchips" role="group" aria-label="Kas grubu seç">
+              <div className="px-fchips" role="group" aria-label={t('Kas grubu seç')}>
                 {MUSCLES.map((m) => (
                   <button
                     key={m}
@@ -1213,7 +1217,7 @@ export const FreePixelSession: React.FC<Props> = ({
                     className={'px-fchip' + (newExMuscle === m ? ' on' : '')}
                     onClick={() => setNewExMuscle(m)}
                   >
-                    {m}
+                    {muscleName(m)}
                   </button>
                 ))}
               </div>
@@ -1229,7 +1233,7 @@ export const FreePixelSession: React.FC<Props> = ({
                   setShowNewEx(false);
                 }}
               >
-                Özel hareketi seçime ekle
+                {t('Özel hareketi seçime ekle')}
               </button>
             </div>
           ) : null}
@@ -1238,7 +1242,7 @@ export const FreePixelSession: React.FC<Props> = ({
             {pickerFiltered.list.slice(0, pickLim).map((e: any) => {
               const alreadyIn = inSesIds.includes(e.exId);
               const isOn = picked.includes(e.exId);
-              const meta = `${eqLabel(e.eq)} · ${e.muscle}`;
+              const meta = `${eqLabel(e.eq)} · ${muscleName(e.muscle)}`;
               return (
                 <button
                   key={e.src + e.id}
@@ -1246,17 +1250,17 @@ export const FreePixelSession: React.FC<Props> = ({
                   className={'pk' + (alreadyIn ? ' in' : isOn ? ' on' : '')}
                   disabled={alreadyIn}
                   aria-pressed={alreadyIn ? false : isOn}
-                  aria-label={e.name + (alreadyIn ? ', zaten listede' : isOn ? ', seçili' : ', seçmek için dokun')}
+                  aria-label={exLabel(e) + ', ' + (alreadyIn ? t('zaten listede') : isOn ? t('seçili') : t('seçmek için dokun'))}
                   onClick={() => { if (!alreadyIn) togglePick(e.exId); }}
                 >
                   <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
                     <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--tx)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {e.name}
+                      {exLabel(e)}
                     </span>
                     <span style={{ fontSize: 13, color: 'var(--mt)' }}>{meta}</span>
                   </span>
                   {alreadyIn ? (
-                    <span style={{ flex: '0 0 auto', fontSize: 13, fontWeight: 600, color: 'var(--gold)' }}>listede</span>
+                    <span style={{ flex: '0 0 auto', fontSize: 13, fontWeight: 600, color: 'var(--gold)' }}>{t('listede')}</span>
                   ) : null}
                   <i className="box" />
                 </button>
@@ -1265,24 +1269,24 @@ export const FreePixelSession: React.FC<Props> = ({
 
             {pickerFiltered.list.length > pickLim ? (
               <button type="button" id="ex-more" className="px-fchip" style={{ height: 44 }} onClick={() => setPickLim(pickLim + 60)}>
-                Daha fazla göster ({pickerFiltered.list.length - pickLim})
+                {t('Daha fazla göster')} ({pickerFiltered.list.length - pickLim})
               </button>
             ) : null}
 
             {pickerFiltered.list.length === 0 ? (
-              <div style={{ padding: '20px 10px', textAlign: 'center', fontSize: 14, color: 'var(--mt)' }}>Eşleşen hareket yok.</div>
+              <div style={{ padding: '20px 10px', textAlign: 'center', fontSize: 14, color: 'var(--mt)' }}>{t('Eşleşen hareket yok.')}</div>
             ) : null}
 
             {pickQ.trim() && !exactMatch && pickerFiltered.list.length > 0 && !showNewEx ? (
               <button type="button" id="ex-new-open" className="addrow" onClick={() => setShowNewEx(true)}>
-                + “{pickQ.trim()}” özel hareket ekle
+                {t('+ “{x}” özel hareket ekle', { x: pickQ.trim() })}
               </button>
             ) : null}
           </div>
 
           <div className="px-actions" style={{ marginTop: 8 }}>
             <button type="button" id="pick-add" className="go" disabled={picked.length === 0} onClick={addPicked}>
-              {picked.length === 0 ? 'HAREKET SEÇ' : `${picked.length} HAREKET EKLE`}
+              {picked.length === 0 ? t('HAREKET SEÇ') : t('{n} HAREKET EKLE', { n: picked.length })}
             </button>
           </div>
         </div>
@@ -1300,7 +1304,7 @@ export const FreePixelSession: React.FC<Props> = ({
   const nS = sets.length;
   const mult = dbMultiplier(item.exId, item.name);
   const vol = sets.reduce((a: number, x: any) => a + (x.plyo || x.skill ? 0 : (Number(x.kg) || 0) * x.reps * mult), 0);
-  const eqNameUpper = (itemLib ? eqLabel(itemLib.eq) : 'Özel').toLocaleUpperCase('tr');
+  const eqNameUpper = upper(itemLib ? eqLabel(itemLib.eq) : t('Özel'));
   const hasNote = !!(entryNote || entryTags.length || item.memo);
 
   const hasMore = nS > 6;
@@ -1365,7 +1369,7 @@ export const FreePixelSession: React.FC<Props> = ({
         <div className={'px-log-inner ' + par(fxShake, 'shA', 'shB')}>
           {/* Üst başlık */}
           <div className="px-head">
-            <button type="button" className="ib" onClick={goList} aria-label="Geri: antrenman listesi">
+            <button type="button" className="ib" onClick={goList} aria-label={t('Geri: antrenman listesi')}>
               <svg width="22" height="22" viewBox="0 0 9 9" shapeRendering="crispEdges" aria-hidden="true">
                 <path d="M5 1h2v1H5zM4 2h2v1H4zM3 3h2v1H3zM2 4h2v1H2zM3 5h2v1H3zM4 6h2v1H4zM5 7h2v1H5z" fill="currentColor" />
               </svg>
@@ -1374,14 +1378,14 @@ export const FreePixelSession: React.FC<Props> = ({
               type="button"
               className="px-head-btn"
               onClick={() => openSheet('exercise', { exId: item.exId, name: item.name })}
-              aria-label={item.name + ' bilgisi'}
+              aria-label={t('{x} bilgisi', { x: exLabel(item) })}
             >
-              <span className="px-head-title">{upTr(item.name)}</span>
+              <span className="px-head-title">{upTr(exLabel(item))}</span>
               <span className="px-head-sub">
-                PLANSIZ · SET {sets.length + 1} · <span style={{ color: 'var(--gold)' }}>{eqNameUpper}</span>
+                {t('PLANSIZ')} · {t('SET')} {sets.length + 1} · <span style={{ color: 'var(--gold)' }}>{eqNameUpper}</span>
               </span>
             </button>
-            <button type="button" id="note-btn" className={'ib' + (hasNote ? ' has' : '')} onClick={openNote} aria-label="Not ekle">
+            <button type="button" id="note-btn" className={'ib' + (hasNote ? ' has' : '')} onClick={openNote} aria-label={t('Not ekle')}>
               <svg width="22" height="22" viewBox="0 0 9 9" shapeRendering="crispEdges" aria-hidden="true">
                 <path d="M6 1h2v2H6zM5 3h2v1H5zM4 4h2v1H4zM3 5h2v1H3zM2 6h1v1H2zM1 8h7v1H1z" fill="currentColor" />
               </svg>
@@ -1391,13 +1395,13 @@ export const FreePixelSession: React.FC<Props> = ({
           {/* Setler kutusu */}
           <div className={'pxb px-sets-box ' + par(fxLog, 'px-pnlA', 'px-pnlB')}>
             <div className="px-sets-head">
-              <span className="lbl">SETLER</span>
+              <span className="lbl">{t('SETLER')}</span>
               <span className="px-sets-sum">
                 {isPlyoEx
-                  ? `${sets.length} set · ${sets.reduce((a: number, x: any) => a + x.reps, 0)} temas`
+                  ? t('{n} set', { n: sets.length }) + ' · ' + t('{n} temas', { n: sets.reduce((a: number, x: any) => a + x.reps, 0) })
                   : isSkillEx
-                    ? `${sets.length} set · ${sets.reduce((a: number, x: any) => a + x.reps, 0)} deneme`
-                    : `${sets.length} set · tonaj ${Math.round(vol).toLocaleString('tr-TR')} kg`}
+                    ? t('{n} set', { n: sets.length }) + ' · ' + t('{n} deneme', { n: sets.reduce((a: number, x: any) => a + x.reps, 0) })
+                    : t('{n} set', { n: sets.length }) + ' · ' + t('tonaj {x} kg', { x: num(Math.round(vol)) })}
               </span>
             </div>
             <div className="px-sets-wrap">
@@ -1414,9 +1418,9 @@ export const FreePixelSession: React.FC<Props> = ({
                       ? PX_SKILL_Q[x.q || 0].c
                       : PX_SPEED_COLORS[x.lvl ?? 1];
                   const mainTxt = x.skill
-                    ? `${x.reps}d${Number(x.hold) > 0 ? '·' + x.hold + 's' : ''}`
+                    ? t('{n}d', { n: x.reps }) + (Number(x.hold) > 0 ? '·' + x.hold + 's' : '')
                     : x.plyo
-                      ? `${Number(x.kg) ? '+' + fk(Number(x.kg)) + '×' : ''}${x.reps}t`
+                      ? (Number(x.kg) ? '+' + fk(Number(x.kg)) + '×' : '') + t('{n}t', { n: x.reps })
                       : `${fk(Number(x.kg))}×${x.reps}`;
                   const rightBadge = x.skill
                     ? PX_SKILL_Q[x.q || 0].k.slice(0, 3)
@@ -1424,10 +1428,10 @@ export const FreePixelSession: React.FC<Props> = ({
                       ? (x.q === 0 ? '✓' : x.q === 1 ? '~' : '!')
                       : rpeForSet(x);
                   const aria = x.skill
-                    ? `Set ${i + 1}: ${skillSetTxt(x)}. Ayrıntı`
+                    ? t('Set {n}: {x}. Ayrıntı', { n: i + 1, x: skillSetTxt(x) })
                     : x.plyo
-                      ? `Set ${i + 1}: ${x.reps} temas. Ayrıntı`
-                      : `Set ${i + 1}: ${fk(Number(x.kg))} kilo, ${x.reps} tekrar, RPE ${rightBadge}. Ayrıntı için dokun.`;
+                      ? t('Set {n}: {r} temas. Ayrıntı', { n: i + 1, r: x.reps })
+                      : t('Set {n}: {kg} kilo, {r} tekrar, RPE {rpe}. Ayrıntı için dokun.', { n: i + 1, kg: fk(Number(x.kg)), r: x.reps, rpe: rightBadge });
 
                   return (
                     <button
@@ -1442,14 +1446,14 @@ export const FreePixelSession: React.FC<Props> = ({
                     </button>
                   );
                 })}
-                {sets.length === 0 ? <div className="px-sets-empty">İlk setini kaydet</div> : null}
+                {sets.length === 0 ? <div className="px-sets-empty">{t('İlk setini kaydet')}</div> : null}
               </div>
               {hasMore && !listEnd ? (
                 <span className="more">
                   <svg width="10" height="10" viewBox="0 0 6 6" shapeRendering="crispEdges" aria-hidden="true">
                     <path d="M0 1h6v1H0zM1 2h4v1H1zM2 3h2v1H2z" fill="currentColor" />
                   </svg>
-                  {nS - 6} eski set daha
+                  {t('{n} eski set daha', { n: nS - 6 })}
                 </span>
               ) : null}
             </div>
@@ -1461,23 +1465,23 @@ export const FreePixelSession: React.FC<Props> = ({
               {isPlyoEx ? (
                 <div className={'pxb px-alt-stage' + (lastPlyoQ === 2 ? ' px-warn' : '')}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <span className="lbl" style={{ fontSize: 12 }}>YOĞUNLUK</span>
+                    <span className="lbl" style={{ fontSize: 12 }}>{t('YOĞUNLUK')}</span>
                     <strong style={{ fontSize: 14, color: 'var(--gold)' }}>{PLYO_INT[(itemLib && itemLib.int) || 2]}</strong>
                   </div>
                   <div style={{ flex: 1, fontSize: 12, color: 'var(--mt)', lineHeight: 1.3 }}>
-                    {lastPlyoQ === 2 ? 'Kalite düştü: dinlenmeyi uzat ya da bitir.' : 'Her tekrarda en yükseğe, en hızlıya.'}
+                    {lastPlyoQ === 2 ? t('Kalite düştü: dinlenmeyi uzat ya da bitir.') : t('Her tekrarda en yükseğe, en hızlıya.')}
                   </div>
                   <div className="ps-r" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <span className="lbl" style={{ fontSize: 11 }}>TEMAS</span>
+                    <span className="lbl" style={{ fontSize: 11 }}>{t('TEMAS')}</span>
                     <b className="nm" style={{ fontSize: 18, color: totalContacts > 140 ? 'var(--bad)' : 'var(--tx)' }}>{totalContacts}</b>
                   </div>
                 </div>
               ) : (
                 <div className="pxb px-alt-stage">
                   {matchingGoal && skillStat ? (
-                    <span style={{ fontSize: 13 }}>Hedef: <strong style={{ color: 'var(--gold)' }}>{SKILL_STAGES[matchingGoal.stage]}</strong> · {skillStat.n + 1}. pratik</span>
+                    <span style={{ fontSize: 13 }}>{t('Hedef:')} <strong style={{ color: 'var(--gold)' }}>{SKILL_STAGES[matchingGoal.stage]}</strong> · {t('{n}. pratik', { n: skillStat.n + 1 })}</span>
                   ) : (
-                    <span style={{ fontSize: 13, color: 'var(--mt)' }}>Kalite iki set üst üste düşerse bitir.</span>
+                    <span style={{ fontSize: 13, color: 'var(--mt)' }}>{t('Kalite iki set üst üste düşerse bitir.')}</span>
                   )}
                 </div>
               )}
@@ -1486,26 +1490,26 @@ export const FreePixelSession: React.FC<Props> = ({
                 {isPlyoEx ? (
                   <React.Fragment>
                     <div className="pxb px-stepper">
-                      <label htmlFor={'kg-' + item.id} className="lbl" style={{ fontSize: 12 }}>EK YÜK (KG)</label>
+                      <label htmlFor={'kg-' + item.id} className="lbl" style={{ fontSize: 12 }}>{t('EK YÜK (KG)')}</label>
                       <div className="px-stepper-ctrl">
-                        <button type="button" className="px-stepper-btn" aria-label="Ek yük azalt" onClick={() => setKgState((v) => Math.max(0, v - 2.5))}>−</button>
+                        <button type="button" className="px-stepper-btn" aria-label={t('Ek yük azalt')} onClick={() => setKgState((v) => Math.max(0, v - 2.5))}>−</button>
                         <input
                           id={'kg-' + item.id}
                           className="px-stepper-in"
                           inputMode="decimal"
-                          value={String(kg).replace('.', ',')}
+                          value={fk(kg)}
                           onChange={(e) => {
                             const n = parseFloat(e.target.value.replace(',', '.'));
                             if (Number.isFinite(n)) setKgState(clamp(n, 0, 500));
                           }}
                         />
-                        <button type="button" className="px-stepper-btn" aria-label="Ek yük artır" onClick={() => setKgState((v) => Math.min(500, v + 2.5))}>+</button>
+                        <button type="button" className="px-stepper-btn" aria-label={t('Ek yük artır')} onClick={() => setKgState((v) => Math.min(500, v + 2.5))}>+</button>
                       </div>
                     </div>
                     <div className="pxb px-stepper">
-                      <label htmlFor={'reps-' + item.id} className="lbl" style={{ fontSize: 12 }}>TEMAS</label>
+                      <label htmlFor={'reps-' + item.id} className="lbl" style={{ fontSize: 12 }}>{t('TEMAS')}</label>
                       <div className="px-stepper-ctrl">
-                        <button type="button" className="px-stepper-btn" aria-label="Temas azalt" onClick={() => setRepsState((v) => Math.max(1, v - 1))}>−</button>
+                        <button type="button" className="px-stepper-btn" aria-label={t('Temas azalt')} onClick={() => setRepsState((v) => Math.max(1, v - 1))}>−</button>
                         <input
                           id={'reps-' + item.id}
                           className="px-stepper-in"
@@ -1516,16 +1520,16 @@ export const FreePixelSession: React.FC<Props> = ({
                             if (Number.isFinite(n)) setRepsState(clamp(n, 1, 60));
                           }}
                         />
-                        <button type="button" className="px-stepper-btn" aria-label="Temas artır" onClick={() => setRepsState((v) => Math.min(60, v + 1))}>+</button>
+                        <button type="button" className="px-stepper-btn" aria-label={t('Temas artır')} onClick={() => setRepsState((v) => Math.min(60, v + 1))}>+</button>
                       </div>
                     </div>
                   </React.Fragment>
                 ) : (
                   <React.Fragment>
                     <div className="pxb px-stepper">
-                      <label htmlFor={'reps-' + item.id} className="lbl" style={{ fontSize: 12 }}>DENEME</label>
+                      <label htmlFor={'reps-' + item.id} className="lbl" style={{ fontSize: 12 }}>{t('DENEME')}</label>
                       <div className="px-stepper-ctrl">
-                        <button type="button" className="px-stepper-btn" aria-label="Deneme azalt" onClick={() => setRepsState((v) => Math.max(1, v - 1))}>−</button>
+                        <button type="button" className="px-stepper-btn" aria-label={t('Deneme azalt')} onClick={() => setRepsState((v) => Math.max(1, v - 1))}>−</button>
                         <input
                           id={'reps-' + item.id}
                           className="px-stepper-in"
@@ -1536,14 +1540,14 @@ export const FreePixelSession: React.FC<Props> = ({
                             if (Number.isFinite(n)) setRepsState(clamp(n, 1, 30));
                           }}
                         />
-                        <button type="button" className="px-stepper-btn" aria-label="Deneme artır" onClick={() => setRepsState((v) => Math.min(30, v + 1))}>+</button>
+                        <button type="button" className="px-stepper-btn" aria-label={t('Deneme artır')} onClick={() => setRepsState((v) => Math.min(30, v + 1))}>+</button>
                       </div>
                     </div>
                     {itemLib?.h ? (
                       <div className="pxb px-stepper">
-                        <label htmlFor={'hold-' + item.id} className="lbl" style={{ fontSize: 12 }}>SÜRE (SN)</label>
+                        <label htmlFor={'hold-' + item.id} className="lbl" style={{ fontSize: 12 }}>{t('SÜRE (SN)')}</label>
                         <div className="px-stepper-ctrl">
-                          <button type="button" className="px-stepper-btn" aria-label="Süre azalt" onClick={() => setHold((v) => Math.max(0, v - 1))}>−</button>
+                          <button type="button" className="px-stepper-btn" aria-label={t('Süre azalt')} onClick={() => setHold((v) => Math.max(0, v - 1))}>−</button>
                           <input
                             id={'hold-' + item.id}
                             className="px-stepper-in"
@@ -1554,7 +1558,7 @@ export const FreePixelSession: React.FC<Props> = ({
                               if (Number.isFinite(n)) setHold(clamp(n, 0, 300));
                             }}
                           />
-                          <button type="button" className="px-stepper-btn" aria-label="Süre artır" onClick={() => setHold((v) => Math.min(300, v + 1))}>+</button>
+                          <button type="button" className="px-stepper-btn" aria-label={t('Süre artır')} onClick={() => setHold((v) => Math.min(300, v + 1))}>+</button>
                         </div>
                       </div>
                     ) : null}
@@ -1564,12 +1568,12 @@ export const FreePixelSession: React.FC<Props> = ({
 
               <div style={{ marginTop: 10 }}>
                 <div className="px-ctl-head">
-                  <span className="lbl">{isPlyoEx ? 'SON TEKRARLARIN KALİTESİ' : 'KALİTE'}</span>
+                  <span className="lbl">{isPlyoEx ? t('SON TEKRARLARIN KALİTESİ') : t('KALİTE')}</span>
                   <span className="px-ctl-hint" style={{ color: (isPlyoEx ? PX_PLYO_Q : PX_SKILL_Q)[qQuality].c }}>
                     {(isPlyoEx ? PX_PLYO_Q : PX_SKILL_Q)[qQuality].d}
                   </span>
                 </div>
-                <div className="px-q-row" role="radiogroup" aria-label={isPlyoEx ? 'Sıçrama kalitesi' : 'Beceri kalitesi'}>
+                <div className="px-q-row" role="radiogroup" aria-label={isPlyoEx ? t('Sıçrama kalitesi') : t('Beceri kalitesi')}>
                   {(isPlyoEx ? PX_PLYO_Q : PX_SKILL_Q).map((qOpt, i) => (
                     <button
                       key={i}
@@ -1595,12 +1599,12 @@ export const FreePixelSession: React.FC<Props> = ({
               {/* Kilo barı */}
               <div className="px-kg-sec">
                 <div className="px-ctl-head">
-                  <span className="lbl">KİLO</span>
+                  <span className="lbl">{t('KİLO')}</span>
                   <span className={'px-kg-inline ' + kgPop}>
                     <span className="num" style={{ fontSize: 20, color: 'var(--tx)' }}>{fk(kg)}</span>
                     <span className="nm" style={{ fontSize: 13, color: 'var(--mt)' }}>KG</span>
                   </span>
-                  {kgDrag && fine < 1 ? <span className="px-fine">HASSAS 1/{Math.round(1 / fine)}</span> : <span className="px-ctl-hint">sürükle · uzaklaş: hassas</span>}
+                  {kgDrag && fine < 1 ? <span className="px-fine">{t('HASSAS')} 1/{Math.round(1 / fine)}</span> : <span className="px-ctl-hint">{t('sürükle · uzaklaş: hassas')}</span>}
                 </div>
                 <div
                   ref={kgTrackRef}
@@ -1608,11 +1612,11 @@ export const FreePixelSession: React.FC<Props> = ({
                   className="ctl pxb px-kg-bar"
                   role="slider"
                   tabIndex={0}
-                  aria-label="Kilo"
+                  aria-label={t('Kilo')}
                   aria-valuemin={cfg.min}
                   aria-valuemax={cfg.max}
                   aria-valuenow={kg}
-                  aria-valuetext={fk(kg) + ' kilogram'}
+                  aria-valuetext={t('{x} kilogram', { x: fk(kg) })}
                   onPointerDown={kgDown}
                   onPointerMove={kgMove}
                   onPointerUp={kgUp}
@@ -1649,7 +1653,7 @@ export const FreePixelSession: React.FC<Props> = ({
               {/* Tekrar barı */}
               <div className="px-rep-sec">
                 <div className="px-rep-head">
-                  <span className="lbl">TEKRAR</span>
+                  <span className="lbl">{t('TEKRAR')}</span>
                   {repD.current && fine < 1 ? <span className="px-fine">HASSAS 1/{Math.round(1 / fine)}</span> : null}
                   <span className={'num px-rep-num ' + repPop}>{reps}</span>
                 </div>
@@ -1658,7 +1662,7 @@ export const FreePixelSession: React.FC<Props> = ({
                   className="ctl pxb px-rep-bar"
                   role="slider"
                   tabIndex={0}
-                  aria-label="Tekrar"
+                  aria-label={t('Tekrar')}
                   aria-valuemin={1}
                   aria-valuemax={30}
                   aria-valuenow={reps}
@@ -1698,13 +1702,13 @@ export const FreePixelSession: React.FC<Props> = ({
               {/* Son tekrarın hızı */}
               <div className="px-spd-sec">
                 <div className="px-spd-head">
-                  <span className="lbl">SON TEKRARIN HIZI</span>
+                  <span className="lbl">{t('SON TEKRARIN HIZI')}</span>
                   <span className="px-spd-desc" style={{ color: PX_SPEED_COLORS[lvl] }}>{curSp.d}</span>
                 </div>
                 <div
                   className="ctl px-spd-row"
                   role="radiogroup"
-                  aria-label="Son tekrarın hızı"
+                  aria-label={t('Son tekrarın hızı')}
                   onPointerDown={lvDown}
                   onPointerMove={lvMove}
                   onPointerUp={lvUp}
@@ -1760,11 +1764,11 @@ export const FreePixelSession: React.FC<Props> = ({
                   className={'ro ctl' + (rom < 100 ? ' px-part' : '')}
                   role="slider"
                   tabIndex={0}
-                  aria-label="Hareket açıklığı (ROM)"
+                  aria-label={t('Hareket açıklığı (ROM)')}
                   aria-valuemin={10}
                   aria-valuemax={100}
                   aria-valuenow={rom}
-                  aria-valuetext={'yüzde ' + rom}
+                  aria-valuetext={t('yüzde {n}', { n: rom })}
                   onPointerDown={romDown}
                   onPointerMove={romMove}
                   onPointerUp={romUp}
@@ -1774,7 +1778,7 @@ export const FreePixelSession: React.FC<Props> = ({
                 >
                   <span className="ro-k">ROM<span style={{ letterSpacing: 0 }}>&lt;&gt;</span></span>
                   <span className={'nm ro-v ' + par(fxRom, 'popA', 'popB')} style={{ color: rom < 100 ? 'var(--gold)' : 'var(--tx)', transformOrigin: '0 100%' }}>
-                    %{rom}
+                    {pct(rom)}
                   </span>
                   <span style={{ display: 'flex', gap: 2, height: 4 }}>
                     {Array.from({ length: 10 }, (_, idx) => (
@@ -1791,10 +1795,10 @@ export const FreePixelSession: React.FC<Props> = ({
           {/* Alt kaydet satırı */}
           <div className="px-actions">
             {rest && !restOpen ? (
-              <button type="button" className="px-restbar" onClick={openRest} aria-label="Dinlenme sürüyor: sayacı aç">
+              <button type="button" className="px-restbar" onClick={openRest} aria-label={t('Dinlenme sürüyor: sayacı aç')}>
                 <span className="px-restbar-l">
-                  <span className="lbl" style={{ color: 'var(--gold)' }}>DİNLENİYOR</span>
-                  <span className="px-restbar-h">dokun: sayacı aç</span>
+                  <span className="lbl" style={{ color: 'var(--gold)' }}>{t('DİNLENİYOR')}</span>
+                  <span className="px-restbar-h">{t('dokun: sayacı aç')}</span>
                 </span>
                 <span className="num px-restbar-t">{restTxt}</span>
                 <i style={{ position: 'absolute', left: 0, bottom: 0, height: 6, width: restPct + '%', background: 'var(--gold)' }} />
@@ -1807,12 +1811,12 @@ export const FreePixelSession: React.FC<Props> = ({
                 className={'go' + (!isPlyoEx && !isSkillEx ? ' px-lv' + lvl : '')}
                 onClick={logSet}
               >
-                SET {sets.length + 1} BİTTİ
+                {t('SET {n} BİTTİ', { n: sets.length + 1 })}
               </button>
             )}
             {sets.length ? (
-              <HoldButton id="ex-done" className="px-exdone" ms={500} tone="go" onHold={finishEx} aria-label="Hareketi bitir (yarım saniye basılı tut)">
-                HAREKETİ BİTİR
+              <HoldButton id="ex-done" className="px-exdone" ms={500} tone="go" onHold={finishEx} aria-label={t('Hareketi bitir (yarım saniye basılı tut)')}>
+                {t('HAREKETİ BİTİR')}
               </HoldButton>
             ) : null}
             <div style={{ position: 'absolute', left: '50%', top: 28, width: 0, height: 0, pointerEvents: 'none' }}>
@@ -1827,17 +1831,17 @@ export const FreePixelSession: React.FC<Props> = ({
 
         {/* Büyük dinlenme ekranı (#rest-big) */}
         {rest && restOpen && lastLogged ? (
-          <div id="rest-big" className="ov" role="timer" aria-label="Dinlenme sayacı">
+          <div id="rest-big" className="ov" role="timer" aria-label={t('Dinlenme sayacı')}>
             <div className="pxb" style={{ margin: '3px 3px 0', padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6, flex: '0 0 auto' }}>
               <span className="lbl" style={{ color: 'var(--gold)' }}>
-                SET {sets.length} BİTTİ{!lastLogged.plyo && !lastLogged.skill && (lastLogged.rom ?? 100) < 100 ? ` · %${lastLogged.rom} ROM` : ''}
+                {t('SET {n} BİTTİ', { n: sets.length })}{!lastLogged.plyo && !lastLogged.skill && (lastLogged.rom ?? 100) < 100 ? ' · ' + pct(lastLogged.rom) + ' ROM' : ''}
               </span>
               <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                 <span className="nm" style={{ fontSize: 21, color: 'var(--tx)' }}>
                   {lastLogged.skill
                     ? skillSetTxt(lastLogged)
                     : lastLogged.plyo
-                      ? `${Number(lastLogged.kg) ? '+' + fk(Number(lastLogged.kg)) + '×' : ''}${lastLogged.reps} temas`
+                      ? (Number(lastLogged.kg) ? '+' + fk(Number(lastLogged.kg)) + '×' : '') + t('{n} temas', { n: lastLogged.reps })
                       : `${fk(Number(lastLogged.kg))} × ${lastLogged.reps}`}
                 </span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, color: 'var(--mt)' }}>
@@ -1857,18 +1861,18 @@ export const FreePixelSession: React.FC<Props> = ({
                     ? PX_PLYO_Q[lastLogged.q || 0].k
                     : lastLogged.skill
                       ? PX_SKILL_Q[lastLogged.q || 0].k
-                      : 'hız: ' + PX_SPEED[lastLogged.lvl ?? 1].k}
+                      : t('hız: {x}', { x: PX_SPEED[lastLogged.lvl ?? 1].k })}
                 </span>
               </span>
             </div>
 
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 14, minHeight: 0 }}>
-              <div className="lbl" style={{ textAlign: 'center', fontSize: 18, color: 'var(--gold)' }}>DİNLEN</div>
+              <div className="lbl" style={{ textAlign: 'center', fontSize: 18, color: 'var(--gold)' }}>{t('DİNLEN')}</div>
               <div
                 className="ctl"
                 role="slider"
                 tabIndex={0}
-                aria-label="Dinlenme süresi"
+                aria-label={t('Dinlenme süresi')}
                 aria-valuemin={0}
                 aria-valuemax={600}
                 aria-valuenow={restSec}
@@ -1886,7 +1890,7 @@ export const FreePixelSession: React.FC<Props> = ({
                   {restSegs.map((g, idx) => <i key={idx} className={'rs' + (g.on ? ' on' : '')} />)}
                 </span>
                 <span style={{ display: 'flex', justifyContent: 'space-between', width: '100%', fontSize: 13, color: 'var(--mt)' }}>
-                  <span>&lt;&lt; -15 sn</span><span>sürükle</span><span>+15 sn &gt;&gt;</span>
+                  <span>&lt;&lt; -{t('{n} sn', { n: 15 })}</span><span>{t('sürükle')}</span><span>+{t('{n} sn', { n: 15 })} &gt;&gt;</span>
                 </span>
                 <div style={{ position: 'absolute', left: '50%', top: 44, width: 0, height: 0, pointerEvents: 'none' }}>
                   {burst(P_UP, fxRt).map((p, idx) => (
@@ -1898,17 +1902,17 @@ export const FreePixelSession: React.FC<Props> = ({
               </div>
 
               <div style={{ display: 'flex', gap: 14, padding: '0 4px' }}>
-                <button type="button" className="bb" aria-label="15 saniye azalt" onClick={() => { pixelFx.unlock(fxRef.current); adjustRest(-15); }}>-15 SN</button>
-                <button type="button" className="bb" aria-label="15 saniye ekle" onClick={() => { pixelFx.unlock(fxRef.current); adjustRest(15); }}>+15 SN</button>
+                <button type="button" className="bb" aria-label={t('15 saniye azalt')} onClick={() => { pixelFx.unlock(fxRef.current); adjustRest(-15); }}>-{t('15 SN')}</button>
+                <button type="button" className="bb" aria-label={t('15 saniye ekle')} onClick={() => { pixelFx.unlock(fxRef.current); adjustRest(15); }}>+{t('15 SN')}</button>
               </div>
               <div style={{ textAlign: 'center', fontSize: 14, color: 'var(--mt)' }}>
-                sıradaki: SET {sets.length + 1} · {isSkillEx ? `${reps} deneme` : `${fk(kg)} kg`}
+                {t('sıradaki: SET {n}', { n: sets.length + 1 })} · {isSkillEx ? t('{n} deneme', { n: reps }) : `${fk(kg)} kg`}
               </div>
             </div>
 
             <div className="px-actions">
-              <button type="button" className="bb" onClick={hideRest}>GİZLE</button>
-              <button type="button" className="go" onClick={skipRest}>GEÇ</button>
+              <button type="button" className="bb" onClick={hideRest}>{t('GİZLE')}</button>
+              <button type="button" className="go" onClick={skipRest}>{t('GEÇ')}</button>
             </div>
           </div>
         ) : null}
@@ -1916,12 +1920,12 @@ export const FreePixelSession: React.FC<Props> = ({
         {/* Set ayrıntısı penceresi */}
         {sx != null && selIdx != null ? (
           <React.Fragment>
-            <button type="button" className="bd" onClick={closeSel} aria-label="Pencereyi kapat" />
-            <div className="win" role="dialog" aria-label="Set ayrıntısı">
+            <button type="button" className="bd" onClick={closeSel} aria-label={t('Pencereyi kapat')} />
+            <div className="win" role="dialog" aria-label={t('Set ayrıntısı')}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span className="lbl" style={{ color: 'var(--gold)', fontSize: 15 }}>SET {selIdx + 1}</span>
+                <span className="lbl" style={{ color: 'var(--gold)', fontSize: 15 }}>{t('SET')} {selIdx + 1}</span>
                 <span style={{ fontSize: 13, color: 'var(--mt)' }}>
-                  {sx.skill ? 'beceri' : sx.plyo ? 'pliometrik' : mult === 2 ? 'tek el kilo' : eqLabel(itemLib?.eq).toLocaleLowerCase('tr')}
+                  {sx.skill ? t('beceri') : sx.plyo ? t('pliometrik') : mult === 2 ? t('tek el kilo') : lower(eqLabel(itemLib?.eq))}
                 </span>
               </div>
 
@@ -1929,22 +1933,22 @@ export const FreePixelSession: React.FC<Props> = ({
                 <React.Fragment>
                   <div className="num" style={{ fontSize: 20, lineHeight: 1.2 }}>{skillSetTxt(sx)}</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
-                    <div className="cell"><span className="k">KALİTE</span><span className="v" style={{ color: PX_SKILL_Q[sx.q || 0].c }}>{PX_SKILL_Q[sx.q || 0].k}</span></div>
-                    <div className="cell"><span className="k">SÜRE</span><span className="v">{Number(sx.hold) > 0 ? fk(Number(sx.hold)) + ' sn' : '–'}</span></div>
-                    <div className="cell"><span className="k">YORGUNLUK</span><span className="v">{fk(Math.round(sx.reps * SKILL_W[(itemLib && itemLib.fat) || 1] * 100) / 100)}</span></div>
-                    <div className="cell"><span className="k">SAAT</span><span className="v">{new Date(sx.at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span></div>
+                    <div className="cell"><span className="k">{t('KALİTE')}</span><span className="v" style={{ color: PX_SKILL_Q[sx.q || 0].c }}>{PX_SKILL_Q[sx.q || 0].k}</span></div>
+                    <div className="cell"><span className="k">{t('SÜRE')}</span><span className="v">{Number(sx.hold) > 0 ? t('{n} sn', { n: fk(Number(sx.hold)) }) : '–'}</span></div>
+                    <div className="cell"><span className="k">{t('YORGUNLUK')}</span><span className="v">{fk(Math.round(sx.reps * SKILL_W[(itemLib && itemLib.fat) || 1] * 100) / 100)}</span></div>
+                    <div className="cell"><span className="k">{t('SAAT')}</span><span className="v">{clock(sx.at)}</span></div>
                   </div>
                 </React.Fragment>
               ) : sx.plyo ? (
                 <React.Fragment>
                   <div className="num" style={{ fontSize: 20, lineHeight: 1.2 }}>
-                    {sx.reps} temas{Number(sx.kg) ? ` · +${fk(Number(sx.kg))} kg` : ''}
+                    {t('{n} temas', { n: sx.reps })}{Number(sx.kg) ? ` · +${fk(Number(sx.kg))} kg` : ''}
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
-                    <div className="cell"><span className="k">KALİTE</span><span className="v" style={{ color: PX_PLYO_Q[sx.q || 0].c }}>{PX_PLYO_Q[sx.q || 0].k}</span></div>
-                    <div className="cell"><span className="k">YOĞUNLUK</span><span className="v">{PLYO_INT[(itemLib && itemLib.int) || 2].split(' ')[0]}</span></div>
-                    <div className="cell"><span className="k">YORGUNLUK</span><span className="v">{fk(Math.round(sx.reps * PLYO_W[(itemLib && itemLib.int) || 2] * 100) / 100)}</span></div>
-                    <div className="cell"><span className="k">SAAT</span><span className="v">{new Date(sx.at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span></div>
+                    <div className="cell"><span className="k">{t('KALİTE')}</span><span className="v" style={{ color: PX_PLYO_Q[sx.q || 0].c }}>{PX_PLYO_Q[sx.q || 0].k}</span></div>
+                    <div className="cell"><span className="k">{t('YOĞUNLUK')}</span><span className="v">{PLYO_INT[(itemLib && itemLib.int) || 2].split(' ')[0]}</span></div>
+                    <div className="cell"><span className="k">{t('YORGUNLUK')}</span><span className="v">{fk(Math.round(sx.reps * PLYO_W[(itemLib && itemLib.int) || 2] * 100) / 100)}</span></div>
+                    <div className="cell"><span className="k">{t('SAAT')}</span><span className="v">{clock(sx.at)}</span></div>
                   </div>
                 </React.Fragment>
               ) : (
@@ -1955,27 +1959,27 @@ export const FreePixelSession: React.FC<Props> = ({
                   const sRom = sx.rom ?? 100;
                   const sOk = e1Ok(sx);
                   const sE1 = sOk ? fk(Math.round(e1rm(sx.kg, sx.reps, sRir) * 2) / 2) + ' kg' : '—';
-                  const noE1Reason = sOk ? '' : sRir > 4 ? 'RIR 4 üstü' : sx.reps + sRir > 12 ? 'tekrar + RIR 12 üstü' : sRom < 90 ? 'ROM %90 altı' : 'kilo 0';
-                  const sTon = Math.round(Number(sx.kg) * sx.reps * mult).toLocaleString('tr-TR') + ' kg';
+                  const noE1Reason = sOk ? '' : sRir > 4 ? t('RIR 4 üstü') : sx.reps + sRir > 12 ? t('tekrar + RIR 12 üstü') : sRom < 90 ? t('ROM {p} altı', { p: pct(90) }) : t('kilo 0');
+                  const sTon = num(Math.round(Number(sx.kg) * sx.reps * mult)) + ' kg';
                   return (
                     <React.Fragment>
                       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10 }}>
                         <span className="num" style={{ fontSize: 24, lineHeight: 1, color: 'var(--tx)' }}>{fk(Number(sx.kg))} × {sx.reps}</span>
-                        <span style={{ fontSize: 13, color: 'var(--mt)', paddingBottom: 2 }}>kg × tekrar</span>
+                        <span style={{ fontSize: 13, color: 'var(--mt)', paddingBottom: 2 }}>{t('kg × tekrar')}</span>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
-                        <div className="cell"><span className="k">HIZ</span><span className="v" style={{ color: PX_SPEED_COLORS[sLvl] }}>{sSp.k}</span></div>
-                        <div className="cell"><span className="k">TONAJ</span><span className="v" style={{ color: 'var(--gold)' }}>{sTon}</span></div>
+                        <div className="cell"><span className="k">{t('HIZ')}</span><span className="v" style={{ color: PX_SPEED_COLORS[sLvl] }}>{sSp.k}</span></div>
+                        <div className="cell"><span className="k">{t('TONAJ')}</span><span className="v" style={{ color: 'var(--gold)' }}>{sTon}</span></div>
                         <div className="cell"><span className="k">RIR</span><span className="v">{sRir >= 5 ? '5+' : '~' + sRir}</span></div>
                         <div className="cell"><span className="k">RPE</span><span className="v">{rpeForSet(sx)}</span></div>
-                        <div className="cell"><span className="k">ROM</span><span className="v" style={{ color: sRom < 100 ? 'var(--gold)' : 'var(--tx)' }}>%{sRom}</span></div>
+                        <div className="cell"><span className="k">ROM</span><span className="v" style={{ color: sRom < 100 ? 'var(--gold)' : 'var(--tx)' }}>{pct(sRom)}</span></div>
                         <div className="cell"><span className="k">e1RM</span><span className="v">{sE1}</span></div>
                       </div>
                       <div style={{ fontSize: 13, color: 'var(--mt)' }}>
                         {sSp.d}
-                        {mult === 2 ? ' · tonaj iki el' : ''}
-                        {!sOk ? ' · e1RM yok: ' + noE1Reason : ''}
-                        {' · ' + new Date(sx.at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                        {mult === 2 ? ' · ' + t('tonaj iki el') : ''}
+                        {!sOk ? ' · ' + t('e1RM yok: {x}', { x: noE1Reason }) : ''}
+                        {' · ' + clock(sx.at)}
                       </div>
                     </React.Fragment>
                   );
@@ -1984,7 +1988,7 @@ export const FreePixelSession: React.FC<Props> = ({
 
               {sx.tags && sx.tags.length ? (
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {sx.tags.map((t: string) => <span key={t} className="chp" style={{ color: 'var(--gold)' }}>{t}</span>)}
+                  {sx.tags.map((tag: string) => <span key={tag} className="chp" style={{ color: 'var(--gold)' }}>{t(tag)}</span>)}
                 </div>
               ) : null}
               {sx.note ? <div style={{ fontSize: 13, color: 'var(--gold)' }}>{sx.note}</div> : null}
@@ -2000,12 +2004,12 @@ export const FreePixelSession: React.FC<Props> = ({
                     closeSel();
                   }}
                 >
-                  Seti sil
+                  {t('Seti sil')}
                 </HoldButton>
               </div>
 
               <div style={{ display: 'flex' }}>
-                <button type="button" className="bb" onClick={closeSel}>KAPAT</button>
+                <button type="button" className="bb" onClick={closeSel}>{t('KAPAT')}</button>
               </div>
             </div>
           </React.Fragment>

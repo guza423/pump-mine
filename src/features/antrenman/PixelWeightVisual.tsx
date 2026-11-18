@@ -1,5 +1,6 @@
 import React from 'react';
 import { computeBarPlates, fk, PL_COLORS, PL_DIM, type VisKind } from './pixelHelpers';
+import { t } from '../../i18n';
 
 interface Props {
   vis: VisKind;
@@ -41,10 +42,10 @@ export const PixelWeightVisual: React.FC<Props> = ({ vis, eq, kg, kgPop, itemNam
               <span className="nm px-vis-unit">KG</span>
             </div>
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--gold)' }}>
-              {pinNo > 0 ? `pim: ${pinNo}. plaka` : 'yüksüz'}
+              {pinNo > 0 ? t('pim: {n}. plaka', { n: pinNo }) : t('yüksüz')}
               {extra > 0 ? ` · +${fk(extra)} kg` : ''}
             </div>
-            <div style={{ fontSize: 13, color: 'var(--mt)' }}>20 plaka × 5 kg</div>
+            <div style={{ fontSize: 13, color: 'var(--mt)' }}>{t('20 plaka × 5 kg')}</div>
           </div>
         </div>
       </div>
@@ -58,13 +59,13 @@ export const PixelWeightVisual: React.FC<Props> = ({ vis, eq, kg, kgPop, itemNam
 
   const sideTxt =
     vis === 'bar'
-      ? 'taraf başına: ' + (plates.length ? plates.map((p) => fk(p)).join(' + ') : kg < 20 ? 'bar ağırlığının altında' : 'boş bar')
+      ? t('taraf başına: {x}', { x: plates.length ? plates.map((p) => fk(p)).join(' + ') : kg < 20 ? t('bar ağırlığının altında') : t('boş bar') })
       : vis === 'db'
         ? itemName.startsWith('Tek ')
-          ? 'tek el'
-          : 'tek el · iki dambıl toplam ' + fk(kg * 2) + ' kg'
+          ? t('tek el')
+          : t('tek el · iki dambıl toplam {x} kg', { x: fk(kg * 2) })
         : eq === 'bw'
-          ? 'ek yük'
+          ? t('ek yük')
           : '';
 
   return (

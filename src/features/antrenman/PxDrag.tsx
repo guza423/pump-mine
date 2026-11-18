@@ -3,6 +3,7 @@
 // PxStair: tek değer ya da aralık (en az–en çok; dokunulan yere yakın uç oynar). PxKgTape: isteğe bağlı kilo; kenarda tutunca kayar.
 import React, { useEffect, useRef, useState } from 'react';
 import { pixelFx } from '../../lib/native/fx';
+import { lower, t } from '../../i18n';
 import type { FxSettings } from '../../lib/store/types';
 
 const clampN = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
@@ -108,7 +109,7 @@ export function PxStair({ id, label, min, max, step = 1, lo, hi, range = false, 
     <div className="px-dr" id={id}>
       <div className="px-dr-head">
         <span className="px-dr-k">{label}</span>
-        {fine < 1 ? <span className="px-dr-fine">HASSAS 1/{Math.round(1 / fine)}</span> : null}
+        {fine < 1 ? <span className="px-dr-fine">{t('HASSAS')} 1/{Math.round(1 / fine)}</span> : null}
         <span className="px-dr-v">{shown}{unit ? <small>{unit}</small> : null}</span>
       </div>
       <div
@@ -126,8 +127,8 @@ export function PxStair({ id, label, min, max, step = 1, lo, hi, range = false, 
             const h = Math.round(12 + (30 * i) / Math.max(1, n - 1));
             return <i key={i} className={'px-dr-sg' + (on ? ' on' : '') + (end ? ' end' : '')} style={{ height: h }} />;
           })}
-          {thumb('lo', loI, range ? (loLabel || 'En az ' + label.toLowerCase()) : label)}
-          {range ? thumb('hi', hiI, hiLabel || 'En çok ' + label.toLowerCase()) : null}
+          {thumb('lo', loI, range ? (loLabel || t('En az {x}', { x: lower(label) })) : label)}
+          {range ? thumb('hi', hiI, hiLabel || t('En çok {x}', { x: lower(label) })) : null}
         </div>
       </div>
       <div className="px-dr-scale" aria-hidden="true">
@@ -232,8 +233,8 @@ export function PxKgTape({ id, label, value, onChange, fx, step = 2.5, span = 40
     <div className="px-dr px-dr-kg" id={id}>
       <div className="px-dr-head">
         <span className="px-dr-k">{label}</span>
-        {fine < 1 ? <span className="px-dr-fine">HASSAS 1/{Math.round(1 / fine)}</span> : null}
-        {has ? <span className="px-dr-v">{fmtN(v as number)}<small>kg</small></span> : <span className="px-dr-none">isteğe bağlı · sürükle</span>}
+        {fine < 1 ? <span className="px-dr-fine">{t('HASSAS')} 1/{Math.round(1 / fine)}</span> : null}
+        {has ? <span className="px-dr-v">{fmtN(v as number)}<small>kg</small></span> : <span className="px-dr-none">{t('isteğe bağlı · sürükle')}</span>}
       </div>
       <div
         className={'px-dr-bar px-dr-tape' + (has ? '' : ' off')}
@@ -243,7 +244,7 @@ export function PxKgTape({ id, label, value, onChange, fx, step = 2.5, span = 40
         aria-valuemin={0}
         aria-valuemax={max}
         aria-valuenow={has ? (v as number) : undefined}
-        aria-valuetext={has ? fmtN(v as number) + ' kg' : 'hedef kilo yok'}
+        aria-valuetext={has ? fmtN(v as number) + ' kg' : t('hedef kilo yok')}
         onPointerDown={down}
         onPointerMove={move}
         onPointerUp={up}
@@ -262,7 +263,7 @@ export function PxKgTape({ id, label, value, onChange, fx, step = 2.5, span = 40
         {/* kenara yapışan etiketler yarım görünmesin diye pencerenin iç kısmındakiler yazılır */}
         {segs.filter((x) => Math.abs(x % 10) < 1e-6 && pct(x) > 4 && pct(x) < 96).map((x) => <span key={x} style={{ left: pct(x) + '%' }}>{x}</span>)}
       </div>
-      {has ? <button type="button" className="px-dr-clear" onClick={() => onChange(null)}>Kilo hedefini kaldır</button> : null}
+      {has ? <button type="button" className="px-dr-clear" onClick={() => onChange(null)}>{t('Kilo hedefini kaldır')}</button> : null}
     </div>
   );
 }

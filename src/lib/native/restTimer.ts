@@ -1,11 +1,12 @@
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import type { PermissionState } from '@capacitor/core';
 import type { SessionRest } from '../store/types';
+import { t } from '../../i18n';
 
 interface RestTimerPlugin {
   checkPermissions(): Promise<{ notifications: PermissionState }>;
   requestPermissions(): Promise<{ notifications: PermissionState }>;
-  start(options: { endAt: number; title: string; body: string; doneTitle: string; doneBody: string }): Promise<void>;
+  start(options: { endAt: number; title: string; body: string; doneTitle: string; doneBody: string; channelRunning?: string; channelDone?: string }): Promise<void>;
   stop(): Promise<void>;
 }
 const RestTimer = registerPlugin<RestTimerPlugin>('RestTimer', {
@@ -34,8 +35,10 @@ export function startRest(rest: SessionRest, exName: string) {
     if (permission.notifications !== 'granted') return;
     await RestTimer.start({
       endAt: rest.start + rest.total * 1000,
-      title: 'Dinlenme · ' + exName, body: (rest.setNo + 1) + '. set sırada',
-      doneTitle: 'Dinlenme bitti', doneBody: exName + ' · ' + (rest.setNo + 1) + '. set zamanı',
+      title: t('Dinlenme · {x}', { x: exName }), body: t('{n}. set sırada', { n: rest.setNo + 1 }),
+      doneTitle: t('Dinlenme bitti'), doneBody: t('{x} · {n}. set zamanı', { x: exName, n: rest.setNo + 1 }),
+      // Android bildirim kanallarının adı (Ayarlar › Bildirimler'de görünür)
+      channelRunning: t('Dinlenme sayacı'), channelDone: t('Dinlenme bitti'),
     });
   });
 }
