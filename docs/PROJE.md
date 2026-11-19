@@ -200,10 +200,15 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 **Herkese açmadan önce:**
 - Firebase Blaze planına geç, 1 $ bütçe uyarısı kur, günlük Firestore yedeğini aç (7 gün saklama).
 - Yasal (V20): `src/legal/meta.ts`'ye şirket adresi ve gizlilik e-postası; VERBİS kaydı (Türkiye'de veri sorumlusu temsilcisi); Google ile KVKK standart sözleşmesi + 5 iş günü içinde Kuruma bildirim; AB kullanıcısı alınacaksa GDPR m.27 temsilcisi; Play'de gizlilik ve hesap silme bağlantısı `legal.html#gizlilik` / `#silme` (İngilizce: `#privacy-en` / `#deletion-en`); metinleri hukukçuya kontrol ettir. Firestore günlük yedeği açılırsa saklama süresi Gizlilik Politikası Bölüm 8'e yazılır.
-- Play Store'a çıkılacaksa:
-  - Gerçek bir yayın imza anahtarı oluştur.
-  - `USE_EXACT_ALARM` için gerekçe hazırla.
-  - Yeni anahtarın SHA'larını Firebase'e ekle.
+- Play Store (19 Kasım'da başladı):
+  - Play Console hesabı açıldı: **kuruluş hesabı "wworks"**, PRWAGON LLC adına. Kuruluş hesabı olduğu için 12 test kullanıcısı / 14 gün kapalı test şartı yok.
+  - Hesap kurulumu bitmeden "Uygulama oluştur" kapalı: (1) kuruluş web sitesi doğrulaması, (2) telefon doğrulaması (Google kuruluş ve kimlik belgelerini onaylayınca açılır).
+  - Web sitesi: alan adı alınmayacak; `https://guza423.github.io/pump-mine/` Search Console'da URL öneki + HTML dosyası (`public/google….html`) ile doğrulanacak. Search Console'da Play Console'daki Google hesabı kullanılmalı (aynı hesapsa istek otomatik onaylanır). Google bu adresi kabul etmezse tek yol alan adı.
+  - Paket adı kararı bekliyor: `app.performance.training` ilk yüklemeden sonra değişmez.
+  - Yayın (upload) anahtarı + CI'da `bundleRelease` (AAB); anahtar GitHub Secrets'ta.
+  - Play App Signing anahtarının SHA-1/SHA-256'sı Firebase'e eklenmeli, yoksa Play'den inen sürümde Google girişi çalışmaz.
+  - `USE_EXACT_ALARM` Play'de yalnızca çekirdek işlevi alarm/takvim olan uygulamalara veriliyor; dinlenme sayacı için ret riski yüksek. `SCHEDULE_EXACT_ALARM` (kullanıcı izni) + izin yoksa gecikmeli bildirim yedeğine geçilecek.
+  - Play Console formları: mağaza sayfası (EN ana, TR ek), gizlilik `legal.html#privacy-en`, hesap silme `#deletion-en`, veri güvenliği, içerik derecelendirmesi, hedef kitle 18+, sağlık uygulaması beyanı (Fitness), inceleme için test hesabı.
 
 **Önerildi, henüz istenmedi:**
 - **WhatsApp içe aktarma:** yıllardır WhatsApp grubuna yazılan antrenmanlar. WhatsApp → Sohbeti dışa aktar → Medya olmadan → .txt → uygulama biçimine çevir.
@@ -278,6 +283,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | 2026-11-19 | **Yalnızca Latin alfabeli diller** eklenecek (Arapça ve sağdan sola diller yok). Yeni dil = dil satırı + sözlük + (isteğe bağlı) hareket adları + yasal metinler; eksik metin İngilizce görünür | Kullanıcı: "arapça yapmayız sadece latin alfebeler … sonra bir iki dil daha eklemek isterim" |
 | 2026-11-19 | Yasal metinlerin İngilizcesi ayrı metinler (`*-en.md`), Türkçeyle bölüm bölüm aynı. Türkiye'deki kullanıcı için Türkçe, diğerleri için İngilizce metin esas; KVKK Aydınlatma'nın İngilizcesi bilgi amaçlı çeviri. `LEGAL.VERSION` ve `CONSENT_VERSION` artırılmadı (içerik anlamca değişmedi, kullanıcılar kapıyı yeniden görmez) | V25 görev dosyası; kullanıcı: "onada bitsin sona" |
 | 2026-11-19 | İngilizce adlar: sekmeler Dashboard · Workout · Insights · Lab; Plansız antrenman → **Quick workout**; hesap silme onayı **DELETE** | Kısa ve doğal İngilizce; "Free workout" ücretsiz gibi okunuyordu |
+| 2026-11-19 | Play Store: PRWAGON LLC adına kuruluş hesabı "wworks"; kuruluş web sitesi olarak alan adı yerine GitHub Pages adresi (`guza423.github.io/pump-mine/`) doğrulanacak | Kullanıcı: "github syafasıın verelim ya üff uraşmiyim github linki iyidir" |
 | 2026-11-17 | Pixel'e geçiş bir **tema katmanıyla** yapılır (`px-theme.css`, kök sınıf `.pxt`): var olan DOM ve kimlikler aynen kalır, yalnızca görünüm değişir. Yeni pixel bileşenleri `pixel.css`'te `px-` önekiyle yazılır | "sadece stil değişicek"; testler ve akışlar bozulmasın |
 
 ---

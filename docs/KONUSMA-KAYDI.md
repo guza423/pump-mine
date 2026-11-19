@@ -565,3 +565,19 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 ### 2026-11-19 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
 **Kullanıcı:** "Bu outmove 56 apk sı ne için şimdi"
 **Cevap:** outmove-56 = V26 (çok dil hazırlığı); ekranda fark yok, altyapı. outmove-55 yalnızca kayıt commit'i, 54 ile aynı. Her push APK üretiyor (yalnız belge değişse de); belge commit'lerinde APK üretilmemesi önerildi, karar kullanıcıda. Bu kayıt `[skip ci]` ile gönderildi (gereksiz APK çıkmasın).
+
+### 2026-11-19 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** "outmove yi yavaştan playstoreye yükleyim ne dersin. neler gerekiyor şimdi"
+**Cevap:** Önce iç test kanalı. Kararlar: hesap türü, paket adı (`app.performance.training` ilk yüklemeden sonra değişmez). Repoda: yayın anahtarı + AAB, Play App Signing SHA'ları Firebase'e, `USE_EXACT_ALARM` yerine `SCHEDULE_EXACT_ALARM`. Play Console formları ve herkese açmadan önce Blaze + yedek + `meta.ts`'de adres/e-posta. targetSdk 36 şartı zaten karşılanıyor.
+
+**Kullanıcı:** "play sytore hesabı açtık ya biz .unttun mu .prwagon llc üstüne açtım hani wworks adında"
+**Cevap:** Kuruluş hesabıysa 12 test kullanıcısı / 14 gün şartı yok. Bekleyen tek karar paket adı.
+
+**Kullanıcı:** (ekran görüntüsü: Play Console "wworks hesabınıza hoş geldiniz · Kurumsal hesap"; "Geliştirici hesabınızın kurulumunu tamamlayın": "Kuruluşunuzun web sitesini doğrulayın · İşlem gerekli", "Telefon numaralarınızı doğrulama · İşlem gerekli · Telefon numaralarınızı doğrulamak için diğer doğrulama görevlerini tamamlayın. Bu kapsamda, kuruluşunuzun ve kimliğinizin doğrulanıp belgelerinizin Google tarafından onaylanması gerekir."; "Uygulama oluşturmak için hesap doğrulama işlemlerini tamamlayın", "Uygulama oluştur" kapalı) "bunlara gerek yok heralde"
+**Cevap:** Gerekli; ikisi bitmeden "Uygulama oluştur" açılmaz. Web sitesi Search Console ile doğrulanır; telefon, Google belgeleri onaylayınca açılır.
+
+**Kullanıcı:** "ya kendi iş yaptım siteleri girmek istemium ya"
+**Kullanıcı:** "ya üff buna bide domain falan mı almak lazım off of hiç yapasım yok bu google altta yoksa oluştur falan dio google sites ile olmaz mı ?"
+**Kullanıcı:** "e tamam github syafasıın verelim ya üff uraşmiyim github linki iyidir"
+**Yapılan / karar:** Kuruluş web sitesi olarak GitHub Pages adresi doğrulanacak (Google Sites da alt adres, avantajı yok). Claude Chrome'dan Search Console'u açtı; bu Chrome'da oturum açık üç Google hesabının hiçbiri "wworks" Play Console hesabı değil, giriş kullanıcıya kaldı. Play Store yol haritası `docs/PROJE.md` › Açık işler'e yazıldı.
+**Kayıt:** bu commit (`[skip ci]`).
