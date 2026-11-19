@@ -1,10 +1,11 @@
 // @ts-nocheck
 import { PxIcon } from '../../app/PxIcon';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Icon, Switch } from '../lab/Cns';
 import { BackupPanel, exportBackup } from '../programlar/BackupPanel';
 import { accountError } from '../../lib/cloud/errors';
 import { readFxSettings } from '../../lib/native/fx';
+import { exactAlarmStatus, openExactAlarmSettings } from '../../lib/native/restTimer';
 import { allPlans } from '../plan/plans';
 import { HoldButton } from '../../app/HoldButton';
 import { appDocId, appDocs, appDocTitle } from '../../legal/appDocs';
@@ -21,6 +22,19 @@ function AccountChip({ acct, onClick }) {
       <i className="acct-dot" />
     </button>
   );
+}
+// V27: Android 12+ tam zamanlı alarm izni; ayar ekranından dönünce (görünürlük değişince) yeniden okunur.
+function useExactAlarm() {
+  const [state, setState] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    const check = () => exactAlarmStatus().then((v) => { if (alive) setState(v); });
+    const onVisible = () => { if (document.visibilityState === 'visible') check(); };
+    check();
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { alive = false; document.removeEventListener('visibilitychange', onVisible); };
+  }, []);
+  return state;
 }
 function AccountBody({ st, acct, actions, openSheet, onClose, put }) {
   const [mode, setMode] = useState(null); // null | 'email'
@@ -40,6 +54,7 @@ function AccountBody({ st, acct, actions, openSheet, onClose, put }) {
   const n = { p: allPlans(st.programs).length, s: st.sessions.filter((x) => x.status === 'done').length, c: st.checkins.length };
   const valid = /.+@.+\..+/.test(email) && pass.length >= 6;
   const fx = readFxSettings(st.settings);
+  const alarm = useExactAlarm();
   const sysReduce = typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const fxSection = put ? (
     <div className="acct-fx" style={{ display: 'grid', gap: '8px' }}>
@@ -47,6 +62,12 @@ function AccountBody({ st, acct, actions, openSheet, onClose, put }) {
       <Switch id="fx-haptic" label={t('Titreşim')} on={fx.haptic} onChange={(v) => put('settings', { key: 'fx', value: { ...fx, haptic: v } })} />
       <Switch id="fx-motion" label={t('Animasyonlar (cihaz azaltsa da)')} on={fx.motion} onChange={(v) => put('settings', { key: 'fx', value: { ...fx, motion: v } })} />
       {sysReduce && !fx.motion ? <p className="acct-fx-note">{t('Bu cihaz animasyonları azaltıyor. Bu yüzden set kutucuğa uçmuyor, yerinde yanıp sönüyor. Açarsan tam oynar.')}</p> : null}
+      {alarm && alarm.needed && !alarm.allowed ? (
+        <div className="acct-fx-note" id="exact-alarm">
+          <p>{t('Dinlenme bitti bildirimi gecikebilir. Tam zamanında çalması için "Alarmlar ve hatırlatıcılar" iznini aç.')}</p>
+          <button type="button" className="btn ghost" onClick={() => openExactAlarmSettings()}>{t('İzni aç')}</button>
+        </div>
+      ) : null}
     </div>
   ) : null;
   if (acct.mode === 'guest') {

@@ -8,12 +8,18 @@ interface RestTimerPlugin {
   requestPermissions(): Promise<{ notifications: PermissionState }>;
   start(options: { endAt: number; title: string; body: string; doneTitle: string; doneBody: string; channelRunning?: string; channelDone?: string }): Promise<void>;
   stop(): Promise<void>;
+  exactAlarm(): Promise<ExactAlarm>;
+  openExactAlarmSettings(): Promise<void>;
 }
+/** Tam zamanlı alarm izni (V27). `needed`: Android 12+; `allowed`: kullanıcı izin vermiş. */
+export interface ExactAlarm { needed: boolean; allowed: boolean }
+const NO_NEED: ExactAlarm = { needed: false, allowed: true };
 const RestTimer = registerPlugin<RestTimerPlugin>('RestTimer', {
   web: async () => ({
     checkPermissions: async () => ({ notifications: 'denied' as const }),
     requestPermissions: async () => ({ notifications: 'denied' as const }),
     start: async () => {}, stop: async () => {},
+    exactAlarm: async () => NO_NEED, openExactAlarmSettings: async () => {},
   }),
 });
 
@@ -43,3 +49,12 @@ export function startRest(rest: SessionRest, exName: string) {
   });
 }
 export const stopRest = () => enqueue(() => RestTimer.stop());
+
+// V27: izin yoksa dinlenme bildirimi gecikebilir; Hesap ve ayarlar bunu gösterir ve ayar ekranını açar.
+export async function exactAlarmStatus(): Promise<ExactAlarm> {
+  if (!Capacitor.isNativePlatform()) return NO_NEED;
+  try { return await RestTimer.exactAlarm(); } catch { return NO_NEED; }
+}
+export async function openExactAlarmSettings() {
+  try { if (Capacitor.isNativePlatform()) await RestTimer.openExactAlarmSettings(); } catch { /* ayar ekranı açılamazsa sessiz geç */ }
+}

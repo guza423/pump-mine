@@ -10,7 +10,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Build;
+import android.provider.Settings;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -123,6 +125,29 @@ public class RestTimerPlugin extends Plugin {
             }
             call.resolve();
         } catch (Exception error) { call.reject("Could not start the rest notification", error); }
+    }
+
+    // V27: tam zamanlı alarm izni (Android 12+). Android 13+ yeni kurulumda kapalı gelir; kullanıcı
+    // Ayarlar › Alarmlar ve hatırlatıcılar'dan açar. Kapalıyken start() gecikmeli alarmla çalışmaya devam eder.
+    @PluginMethod
+    public void exactAlarm(PluginCall call) {
+        boolean needed = Build.VERSION.SDK_INT >= 31;
+        boolean allowed = !needed || getContext().getSystemService(AlarmManager.class).canScheduleExactAlarms();
+        JSObject result = new JSObject();
+        result.put("needed", needed);
+        result.put("allowed", allowed);
+        call.resolve(result);
+    }
+
+    @PluginMethod
+    public void openExactAlarmSettings(PluginCall call) {
+        if (Build.VERSION.SDK_INT < 31) { call.resolve(); return; }
+        try {
+            Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:" + getContext().getPackageName()));
+            if (getActivity() != null) getActivity().startActivity(intent);
+            else getContext().startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            call.resolve();
+        } catch (Exception error) { call.reject("Could not open alarm settings", error); }
     }
 
     @PluginMethod

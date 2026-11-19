@@ -135,4 +135,4 @@ Telefonda APK'ya dokun ve istendiğinde kullandığın tarayıcı/dosya yönetic
 
 ### Bilinen notlar
 
-Dinlenme bitişi için `USE_EXACT_ALARM` kullanılır; APK doğrudan kuruluyor. Play Store'a çıkarken bu iznin gerekçesi ve mağaza politikası yeniden değerlendirilecek. Kesin alarm izni bulunmayan cihazlarda sistem alarmı geciktirebilir. [Android alarm belgeleri](https://developer.android.com/develop/background-work/services/alarms/schedule).
+Dinlenme bitişi için `SCHEDULE_EXACT_ALARM` kullanılır (V27; Play politikası nedeniyle `USE_EXACT_ALARM` yok). Android 13+ bu izni yeni kurulumda kapalı verir; kullanıcı Hesap ve ayarlar'daki uyarıdan açabilir. İzin yoksa sistem alarmı geciktirebilir. Play Store AAB'si `.github/workflows/release.yml` ile üretilir. [Android alarm belgeleri](https://developer.android.com/develop/background-work/services/alarms/schedule).

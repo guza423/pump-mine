@@ -588,3 +588,11 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Kullanıcı:** (ekran görüntüsü: Search Console "Sahipliği doğrulayın · https://guza423.github.io/pump-mine/", HTML dosyası `googlee79f34a5cab79898.html`, "Doğrulanmış olarak kalmak için, doğrulama başarılı olduktan sonra bile dosyayı kaldırmayın.")
 **Yapılan:** Doğrulama dosyası `public/googlee79f34a5cab79898.html` olarak eklendi (Pages'ta `…/pump-mine/googlee79f34a5cab79898.html`). **Silinmemeli**, yoksa Search Console ve Play doğrulaması düşer.
 **Kayıt:** bu commit.
+
+### 2026-11-19 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** "tamam oldu şimdi" (Search Console ve Play Console'da web sitesi doğrulandı)
+**Yapılan / karar:**
+- Paket adı değişmedi (`app.performance.training`, önceki karar).
+- **V27** (`docs/gorevler/V27-play-store-hazirligi.md`): `USE_EXACT_ALARM` kaldırıldı, `SCHEDULE_EXACT_ALARM` her sürümde; Hesap ve ayarlar'da Android 12+ ve izin kapalıyken uyarı + "İzni aç". Yükleme anahtarı üretildi (anahtar ve şifre repoda yok, kullanıcıya dosya olarak verildi); `build.gradle` release imzası ortam değişkenlerinden; `release.yml` imzalı AAB üretir (`android/release.txt` değişince ya da elle).
+- Kullanıcıya kalan: GitHub Secrets'a iki sır, AAB'yi Play Console'a yükleme, Play App Signing SHA'larını Firebase'e ekleme.
+**Kayıt:** bu commit. Kontroller: `npm test` (136 test), `tsc -b`, lint, build, `test:layout` geçti; Java derlemesi CI'da (debug APK).

@@ -1022,6 +1022,9 @@
 .pxt .mw.ok b { color: var(--ok); }
 
 .pxt .acct-fx-note { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--px-gold); }
+/* V27: tam zamanlı alarm izni uyarısı (metin + düğme) */
+.pxt #exact-alarm { display: grid; gap: 6px; justify-items: start; }
+.pxt #exact-alarm p { margin: 0; }
 
 /* "Çıkmak için tekrar bas" uyarısı (bütün uygulama, .pxt dışında da) */
 .back-toast {

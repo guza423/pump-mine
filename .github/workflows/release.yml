@@ -1,0 +1,84 @@
+name: Build Play Store AAB
+
+# V27: Play Console'a yüklenecek imzalı AAB. android/release.txt (sürüm adı) main'de değişince
+# ya da Actions › "Build Play Store AAB" › Run workflow ile çalışır. versionCode = bu iş akışının çalışma sayısı.
+on:
+  push:
+    branches: [main]
+    paths: ['android/release.txt']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-release
+  cancel-in-progress: false
+
+jobs:
+  build-aab:
+    name: Build signed AAB
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Signing key from secrets
+        env:
+          UPLOAD_KEYSTORE_BASE64: ${{ secrets.UPLOAD_KEYSTORE_BASE64 }}
+          UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.UPLOAD_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$UPLOAD_KEYSTORE_BASE64" ] || [ -z "$UPLOAD_KEYSTORE_PASSWORD" ]; then
+            echo "::error::GitHub Secrets'ta UPLOAD_KEYSTORE_BASE64 ve UPLOAD_KEYSTORE_PASSWORD gerekli (docs/PROJE.md › Play Store)."
+            exit 1
+          fi
+          echo "$UPLOAD_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          echo "OUTMOVE_VERSION_NAME=$(tr -d '[:space:]' < android/release.txt)" >> "$GITHUB_ENV"
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build and sync Android assets
+        run: npm run android:sync
+
+      - name: Build signed AAB
+        working-directory: android
+        env:
+          UPLOAD_KEYSTORE_FILE: ${{ runner.temp }}/upload.jks
+          UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.UPLOAD_KEYSTORE_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew bundleRelease
+
+      - name: Verify upload key
+        run: |
+          keytool -printcert -jarfile android/app/build/outputs/bundle/release/app-release.aab | tee cert.txt
+          grep -q "11:D6:85:D1:7F:91:94:16:1C:6F:5E:6A:4C:15:44:E7:73:B5:DA:7C:8F:8E:35:B9:84:D2:70:FF:40:E8:9B:92" cert.txt
+          rm -f "$RUNNER_TEMP/upload.jks"
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v7
+        with:
+          name: outmove-play-${{ env.OUTMOVE_VERSION_NAME }}-${{ github.run_number }}
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

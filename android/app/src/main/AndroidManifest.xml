@@ -42,6 +42,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />
+    <!-- V27: Play yalnızca çekirdek işlevi alarm/takvim olan uygulamalara USE_EXACT_ALARM veriyor.
+         Dinlenme sayacı kullanıcının açtığı SCHEDULE_EXACT_ALARM'ı kullanır; izin yoksa gecikmeli alarm yedeği çalışır. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 </manifest>

@@ -204,10 +204,11 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
   - Play Console hesabı açıldı: **kuruluş hesabı "wworks"**, PRWAGON LLC adına. Kuruluş hesabı olduğu için 12 test kullanıcısı / 14 gün kapalı test şartı yok.
   - Hesap kurulumu bitmeden "Uygulama oluştur" kapalı: (1) kuruluş web sitesi doğrulaması, (2) telefon doğrulaması (Google kuruluş ve kimlik belgelerini onaylayınca açılır).
   - Web sitesi: alan adı alınmayacak; `https://guza423.github.io/pump-mine/` Search Console'da URL öneki + HTML dosyası ile doğrulanıyor: `public/googlee79f34a5cab79898.html` (**silinmez**). Search Console'da Play Console'daki Google hesabı kullanılmalı (aynı hesapsa istek otomatik onaylanır). Google bu adresi kabul etmezse tek yol alan adı.
-  - Paket adı kararı bekliyor: `app.performance.training` ilk yüklemeden sonra değişmez.
-  - Yayın (upload) anahtarı + CI'da `bundleRelease` (AAB); anahtar GitHub Secrets'ta.
-  - Play App Signing anahtarının SHA-1/SHA-256'sı Firebase'e eklenmeli, yoksa Play'den inen sürümde Google girişi çalışmaz.
-  - `USE_EXACT_ALARM` Play'de yalnızca çekirdek işlevi alarm/takvim olan uygulamalara veriliyor; dinlenme sayacı için ret riski yüksek. `SCHEDULE_EXACT_ALARM` (kullanıcı izni) + izin yoksa gecikmeli bildirim yedeğine geçilecek.
+  - Kuruluş web sitesi doğrulandı (19 Kasım). Telefon doğrulaması Google'ın belge onayını bekliyor.
+  - Paket adı `app.performance.training` kalıyor (önceki karar: güncelleme sürekliliği; mağazada yalnızca adreste görünür). İlk yüklemeden sonra değişmez.
+  - **V27 bitti:** yayın anahtarı + `release.yml` (imzalı AAB), `USE_EXACT_ALARM` kaldırıldı (`SCHEDULE_EXACT_ALARM` + Hesap ve ayarlar'da izin uyarısı). Ayrıntı `docs/gorevler/V27-play-store-hazirligi.md`.
+  - Kullanıcıya kalan: GitHub Secrets'a `UPLOAD_KEYSTORE_BASE64` ve `UPLOAD_KEYSTORE_PASSWORD`; AAB'yi Actions › "Build Play Store AAB" yapıtından indirip Play Console'a yükle; Play App Signing SHA-1/SHA-256'sını Firebase'e ekle (yoksa Play'den inen sürümde Google girişi çalışmaz); Play'den kurmadan önce debug APK'yı kaldır.
+  - Yeni Play sürümü: `android/release.txt`'teki sürüm adını artır, push (versionCode kendiliğinden artar).
   - Play Console formları: mağaza sayfası (EN ana, TR ek), gizlilik `legal.html#privacy-en`, hesap silme `#deletion-en`, veri güvenliği, içerik derecelendirmesi, hedef kitle 18+, sağlık uygulaması beyanı (Fitness), inceleme için test hesabı.
 
 **Önerildi, henüz istenmedi:**
@@ -284,6 +285,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | 2026-11-19 | Yasal metinlerin İngilizcesi ayrı metinler (`*-en.md`), Türkçeyle bölüm bölüm aynı. Türkiye'deki kullanıcı için Türkçe, diğerleri için İngilizce metin esas; KVKK Aydınlatma'nın İngilizcesi bilgi amaçlı çeviri. `LEGAL.VERSION` ve `CONSENT_VERSION` artırılmadı (içerik anlamca değişmedi, kullanıcılar kapıyı yeniden görmez) | V25 görev dosyası; kullanıcı: "onada bitsin sona" |
 | 2026-11-19 | İngilizce adlar: sekmeler Dashboard · Workout · Insights · Lab; Plansız antrenman → **Quick workout**; hesap silme onayı **DELETE** | Kısa ve doğal İngilizce; "Free workout" ücretsiz gibi okunuyordu |
 | 2026-11-19 | Play Store: PRWAGON LLC adına kuruluş hesabı "wworks"; kuruluş web sitesi olarak alan adı yerine GitHub Pages adresi (`guza423.github.io/pump-mine/`) doğrulanacak | Kullanıcı: "github syafasıın verelim ya üff uraşmiyim github linki iyidir" |
+| 2026-11-19 | Play Store: `USE_EXACT_ALARM` kaldırıldı, `SCHEDULE_EXACT_ALARM` kullanılır (izin yoksa gecikmeli alarm). Play AAB'si ayrı iş akışında (`release.yml`), yükleme anahtarı GitHub Secrets'ta; paket adı değişmedi | Play politikası `USE_EXACT_ALARM`'ı yalnızca çekirdek işlevi alarm/takvim olan uygulamalara veriyor; anahtar herkese açık repoya giremez |
 | 2026-11-17 | Pixel'e geçiş bir **tema katmanıyla** yapılır (`px-theme.css`, kök sınıf `.pxt`): var olan DOM ve kimlikler aynen kalır, yalnızca görünüm değişir. Yeni pixel bileşenleri `pixel.css`'te `px-` önekiyle yazılır | "sadece stil değişicek"; testler ve akışlar bozulmasın |
 
 ---

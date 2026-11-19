@@ -13,6 +13,8 @@ export const account: Record<string, Entry> = {
   "Titreşim": "Vibration",
   "Animasyonlar (cihaz azaltsa da)": "Animations (even if the device reduces motion)",
   "Bu cihaz animasyonları azaltıyor. Bu yüzden set kutucuğa uçmuyor, yerinde yanıp sönüyor. Açarsan tam oynar.": "This device reduces motion, so a logged set flashes in place instead of flying into its tile. Turn this on to play the full animation.",
+  "Dinlenme bitti bildirimi gecikebilir. Tam zamanında çalması için \"Alarmlar ve hatırlatıcılar\" iznini aç.": "The rest-over alert may come late. To make it ring on time, turn on \"Alarms & reminders\".",
+  "İzni aç": "Turn on",
   "Kayıtların şu an yalnızca bu telefonda": "Your records are only on this phone",
   "Giriş yap: her set buluta yedeklenir, telefon değişse de hesabınla geri gelir. İnternet yokken de kaydeder, bağlantı gelince gönderir.": "Sign in and every set is backed up to the cloud, so it follows your account to a new phone. It still logs offline and syncs when you're back online.",
   "İnternete bağlanınca taşınacak. Yerel kayıtların korunuyor.": "They'll move once you're online. Your local records are safe.",
