@@ -609,3 +609,10 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Kullanıcı:** "tamam oldu ilk uygulamanızı oluşturun dio . ne yapalım şimdi"
 **Cevap:** Play Console hesap kurulumu bitti. Uygulama oluşturma: ad OUTMOVE, varsayılan dil English (United States), Uygulama, Ücretsiz (sonradan ücretliye çevrilemez). Sonra Dahili test: testçi listesi (kendi e-postası), yeni sürüm, Play App Signing (Google'ın anahtarı), `outmove-play-1.0.0-1` AAB'si; ardından Uygulama bütünlüğü'ndeki SHA'lar Firebase'e.
 **Kayıt:** bu commit (`[skip ci]`).
+
+**Kullanıcı:** (ekran görüntüsü: "Uygulama oluştur" formu; Uygulama adı OUTMOVE, "Paket adı · Uygulama paket adını girin", Varsayılan dil en-US, Uygulama) 
+**Cevap:** Paket adı `app.performance.training` (kalıcı; uygulamadaki adla aynı olmalı), Ücretsiz, beyanlar.
+
+**Kullanıcı:** (ekran görüntüsü: Dahili test; "Geçici uygulama adınız: \"app.performance.training (unreviewed)\""; sürüm test1 "Dahili test kullanıcıları tarafından kullanılabilir · 1 sürüm kodu · 19 Kas 21:39 tarihinde kullanıma sunuldu · İncelenmedi")
+**Yapılan:** Play Console'da uygulama oluşturuldu, ilk AAB (1.0.0, versionCode 1) dahili teste çıktı. Sırada: Play App Signing SHA-1/SHA-256'sı Firebase'e (Google girişi için), debug APK'yı kaldırıp test bağlantısından Play'den kurmak.
+**Kayıt:** bu commit (`[skip ci]`).

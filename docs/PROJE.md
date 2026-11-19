@@ -204,7 +204,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
   - Play Console hesabı açıldı: **kuruluş hesabı "wworks"**, PRWAGON LLC adına. Kuruluş hesabı olduğu için 12 test kullanıcısı / 14 gün kapalı test şartı yok.
   - Hesap kurulumu bitmeden "Uygulama oluştur" kapalı: (1) kuruluş web sitesi doğrulaması, (2) telefon doğrulaması (Google kuruluş ve kimlik belgelerini onaylayınca açılır).
   - Web sitesi: alan adı alınmayacak; `https://guza423.github.io/pump-mine/` Search Console'da URL öneki + HTML dosyası ile doğrulanıyor: `public/googlee79f34a5cab79898.html` (**silinmez**). Search Console'da Play Console'daki Google hesabı kullanılmalı (aynı hesapsa istek otomatik onaylanır). Google bu adresi kabul etmezse tek yol alan adı.
-  - Kuruluş web sitesi doğrulandı (19 Kasım). Telefon doğrulaması Google'ın belge onayını bekliyor.
+  - Hesap kurulumu bitti (web sitesi + telefon, 19 Kasım). Uygulama oluşturuldu; ilk AAB (1.0.0) **dahili testte** (`test1`). Uygulama incelenene kadar testçiler geçici adı görür: "app.performance.training (unreviewed)".
   - Paket adı `app.performance.training` kalıyor (önceki karar: güncelleme sürekliliği; mağazada yalnızca adreste görünür). İlk yüklemeden sonra değişmez.
   - **V27 bitti:** yayın anahtarı + `release.yml` (imzalı AAB), `USE_EXACT_ALARM` kaldırıldı (`SCHEDULE_EXACT_ALARM` + Hesap ve ayarlar'da izin uyarısı). Ayrıntı `docs/gorevler/V27-play-store-hazirligi.md`.
   - Kullanıcıya kalan: GitHub Secrets'a `UPLOAD_KEYSTORE_BASE64` ve `UPLOAD_KEYSTORE_PASSWORD`; AAB'yi Actions › "Build Play Store AAB" yapıtından indirip Play Console'a yükle; Play App Signing SHA-1/SHA-256'sını Firebase'e ekle (yoksa Play'den inen sürümde Google girişi çalışmaz); Play'den kurmadan önce debug APK'yı kaldır.
