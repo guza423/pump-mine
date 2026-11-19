@@ -207,7 +207,8 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
   - Hesap kurulumu bitti (web sitesi + telefon, 19 Kasım). Uygulama oluşturuldu; ilk AAB (1.0.0) **dahili testte** (`test1`). Uygulama incelenene kadar testçiler geçici adı görür: "app.performance.training (unreviewed)".
   - Paket adı `app.performance.training` kalıyor (önceki karar: güncelleme sürekliliği; mağazada yalnızca adreste görünür). İlk yüklemeden sonra değişmez.
   - **V27 bitti:** yayın anahtarı + `release.yml` (imzalı AAB), `USE_EXACT_ALARM` kaldırıldı (`SCHEDULE_EXACT_ALARM` + Hesap ve ayarlar'da izin uyarısı). Ayrıntı `docs/gorevler/V27-play-store-hazirligi.md`.
-  - Kullanıcıya kalan: GitHub Secrets'a `UPLOAD_KEYSTORE_BASE64` ve `UPLOAD_KEYSTORE_PASSWORD`; AAB'yi Actions › "Build Play Store AAB" yapıtından indirip Play Console'a yükle; Play App Signing SHA-1/SHA-256'sını Firebase'e ekle (yoksa Play'den inen sürümde Google girişi çalışmaz); Play'den kurmadan önce debug APK'yı kaldır.
+  - Yapıldı (19 Kasım): GitHub Secrets eklendi, AAB üretildi ve dahili teste yüklendi, Play App Signing SHA-1/SHA-256 Firebase'e eklendi (parmak izleri V27 dosyasında). Play'den kurmadan önce debug APK kaldırılır.
+  - Herkese açmadan önce kalan: mağaza sayfası ve uygulama içeriği formları, Firebase Blaze + bütçe uyarısı + günlük yedek, `meta.ts`'de adres ve gizlilik e-postası, yasal adımlar (VERBİS vb.).
   - Yeni Play sürümü: `android/release.txt`'teki sürüm adını artır, push (versionCode kendiliğinden artar).
   - Play Console formları: mağaza sayfası (EN ana, TR ek), gizlilik `legal.html#privacy-en`, hesap silme `#deletion-en`, veri güvenliği, içerik derecelendirmesi, hedef kitle 18+, sağlık uygulaması beyanı (Fitness), inceleme için test hesabı.
 

@@ -628,3 +628,7 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Kullanıcı:** "0E:E3:42:3A:61:E7:DA:9B:4C:46:3E:80:E3:CC:AF:EB:5D:47:2F:1C · 78:7A:2B:CE:E7:88:1F:70:92:3C:C7:C1:94:58:59:5B:90:AB:70:8A:AB:6A:1E:E3:DF:25:41:31:94:E2:27:29" (Klasik anahtar SHA-1 ve SHA-256)
 **Yapılan:** Parmak izleri `docs/gorevler/V27-play-store-hazirligi.md` › Play App Signing'e yazıldı. Kullanıcıya Firebase'e ekleme adımı verildi.
 **Kayıt:** bu commit (`[skip ci]`).
+
+**Kullanıcı:** (ekran görüntüsü: Firebase › Android uygulaması `app.performance.training` › SHA certificate fingerprints: debug SHA-1 `c5:34:…:c3:1f:64` ve SHA-256 `ee:71:…:7b:f6`, Play SHA-1 `0e:e3:…:2f:1c` ve SHA-256 `78:7a:…:27:29`)
+**Yapılan:** Play App Signing parmak izleri Firebase'e eklendi (debug olanlar da duruyor; debug APK'da da giriş çalışmaya devam eder). Sırada: eski APK'yı kaldırıp test bağlantısından kurmak, Google girişini denemek.
+**Kayıt:** bu commit (`[skip ci]`).
