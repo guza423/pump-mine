@@ -544,4 +544,4 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 - **V25** (`docs/gorevler/V25-ingilizce-yasal-son-tarama.md`): yasal metinlerin İngilizcesi (Terms of Use, KVKK Privacy Notice, Explicit Consent Notice, Account and data deletion), Privacy Policy Türkçeyle eşitlendi; uygulama metni etkin dilde açar; `legal.html` iki dilde, dil geçiş bağlantılı. Türkiye'deki kullanıcı için Türkçe metin esas. Metin sürümleri artırılmadı (kapı yeniden çıkmaz).
 - Son tarama: Türkçe harf taşımayan Türkçe kelimeler de test ediliyor; biyomekanikte bir Türkçe satır ve V24'te kaybolan "target" etiketi düzeltildi. `index.html`, PWA açıklaması ve Android hata kayıtları İngilizce.
 - Dil geçişi bitti; `GOREV.md`'de bekleyen görev yok. İngilizce yasal metinler de hukukçu kontrolüne girmeli.
-**Kayıt:** commit `HASH`. Kontroller: `npm test` (127 test), `tsc -b`, lint, build, `test:layout` (Türkçe + İngilizce + yasal sayfa) geçti.
+**Kayıt:** commit `bd32d3d`. Kontroller: `npm test` (127 test), `tsc -b`, lint, build, `test:layout` (Türkçe + İngilizce + yasal sayfa) geçti.

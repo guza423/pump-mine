@@ -6,7 +6,7 @@ Hangi AI olursa olsun: önce `git pull --rebase origin main`, sonra `AGENTS.md`'
 Şu an bekleyen görev yok. Dil geçişi (V21–V25) bitti.
 
 ## Tamamlanan
-- [V25 · İngilizce yasal metinler + son tarama](docs/gorevler/V25-ingilizce-yasal-son-tarama.md): 2026-11-19 · `HASH`
+- [V25 · İngilizce yasal metinler + son tarama](docs/gorevler/V25-ingilizce-yasal-son-tarama.md): 2026-11-19 · `bd32d3d`
 - [V24 · İngilizce: Lab sekmesi](docs/gorevler/V24-ingilizce-lab.md): 2026-11-19 · `d0b1de3`
 - [V23 · İngilizce: Gözlem sekmesi (Insights)](docs/gorevler/V23-ingilizce-gozlem.md): 2026-11-19 · `8416315`
 - [V22 · İngilizce: Antrenman sekmesi](docs/gorevler/V22-ingilizce-antrenman.md): 2026-11-19 · `40fcfb8`
