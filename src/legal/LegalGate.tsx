@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { LegalDoc } from './LegalDoc';
-import { appDocId, appDocTitle } from './docs';
+import { appDocId, appDocTitle } from './appDocs';
 import { t } from '../i18n';
 import { LEGAL } from './meta';
 import { readAcceptance, saveAcceptance } from './acceptance';

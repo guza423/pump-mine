@@ -7,7 +7,7 @@ import { accountError } from '../../lib/cloud/errors';
 import { readFxSettings } from '../../lib/native/fx';
 import { allPlans } from '../plan/plans';
 import { HoldButton } from '../../app/HoldButton';
-import { appDocId, appDocs, appDocTitle } from '../../legal/docs';
+import { appDocId, appDocs, appDocTitle } from '../../legal/appDocs';
 import { LANGS, clock, setLang, t, upper, useLang } from '../../i18n';
 import { LEGAL } from '../../legal/meta';
 import '../../legal/legal.css';
@@ -163,7 +163,7 @@ function LegalLinks({ openSheet }) {
     <div className="lg-acct">
       <p className="lg-acct-h">{t('Yasal')}</p>
       <div className="lg-acct-links">
-        {appDocs().map((d) => <button key={d.id} type="button" id={'legal-' + d.id} className="linkbtn" onClick={() => openSheet('legal', { doc: d.id })}>{appDocTitle(d.id)}</button>)}
+        {appDocs().map((id) => <button key={id} type="button" id={'legal-' + id} className="linkbtn" onClick={() => openSheet('legal', { doc: id })}>{appDocTitle(id)}</button>)}
       </div>
       <p className="lg-acct-co">{LEGAL.COMPANY} · {t('metin sürümü {v}', { v: LEGAL.VERSION })}</p>
     </div>

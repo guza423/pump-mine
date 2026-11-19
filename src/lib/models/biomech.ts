@@ -175,9 +175,9 @@ export const BIO = (function () {
       { id: 'clav', k: 'Üst göğüs', sub: 'klaviküler baş', v: clav },
       { id: 'stern', k: 'Orta-alt göğüs', sub: 'sternokostal baş', v: stern },
       { id: 'delt', k: 'Ön omuz', sub: 'anterior deltoid', v: delt },
-      { k: 'Triceps', sub: 'dirsek ekstansiyonu', v: tri },
+      { id: 'tri', k: 'Triceps', sub: 'dirsek ekstansiyonu', v: tri },
     ];
-    return all.map(function (m) { return { k: m.k, sub: m.sub, v: clamp(m.v, 0.15, 1) }; });
+    return all.map(function (m) { return { id: m.id, k: m.k, sub: m.sub, v: clamp(m.v, 0.15, 1) }; });
   }
 
   /* ================= ROMANIAN DEADLIFT ================= */

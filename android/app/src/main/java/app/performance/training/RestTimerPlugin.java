@@ -122,7 +122,7 @@ public class RestTimerPlugin extends Plugin {
                 alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, endAt, pending);
             }
             call.resolve();
-        } catch (Exception error) { call.reject("Dinlenme bildirimi başlatılamadı", error); }
+        } catch (Exception error) { call.reject("Could not start the rest notification", error); }
     }
 
     @PluginMethod
@@ -135,6 +135,6 @@ public class RestTimerPlugin extends Plugin {
             manager.cancel(RUNNING_ID);
             manager.cancel(DONE_ID);
             call.resolve();
-        } catch (Exception error) { call.reject("Dinlenme bildirimi kapatılamadı", error); }
+        } catch (Exception error) { call.reject("Could not stop the rest notification", error); }
     }
 }

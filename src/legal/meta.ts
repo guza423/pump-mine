@@ -25,21 +25,28 @@ export const LEGAL = {
   MIN_AGE: 18,
 } as const;
 
-const missing = (what: string) => `[${what} yayın öncesi eklenecek]`;
+/** İngilizce metinlerde Türkçe alanların karşılıkları (V25). Ad, adres, e-posta dilden bağımsızdır. */
+const LEGAL_EN = {
+  COMPANY_DESC: 'a limited liability company organized in the State of Wyoming, USA',
+  REGION: 'Frankfurt, Germany (Google Cloud europe-west3)',
+} as const;
 
-/** Metindeki {{ANAHTAR}} yer tutucularını doldurur. */
-export function fillLegal(md: string): string {
+const missing = (what: string, lang: 'tr' | 'en') => (lang === 'en' ? `[${what} to be added before launch]` : `[${what} yayın öncesi eklenecek]`);
+
+/** Metindeki {{ANAHTAR}} yer tutucularını metnin diliyle doldurur. */
+export function fillLegal(md: string, lang: 'tr' | 'en' = 'tr'): string {
+  const en = lang === 'en';
   const map: Record<string, string> = {
     SURUM: LEGAL.VERSION,
     UYGULAMA: LEGAL.APP,
     SIRKET: LEGAL.COMPANY,
-    SIRKET_ACIKLAMA: LEGAL.COMPANY_DESC,
-    ADRES: LEGAL.ADDRESS || missing('Şirket adresi'),
-    EPOSTA: LEGAL.EMAIL || missing('İletişim e-postası'),
-    TR_TEMSILCI: LEGAL.TR_REP || 'Atandığında bu metinde ve VERBİS’te ilan edilir.',
-    AB_TEMSILCI: LEGAL.EU_REP || 'Atandığında bu metinde ilan edilir.',
+    SIRKET_ACIKLAMA: en ? LEGAL_EN.COMPANY_DESC : LEGAL.COMPANY_DESC,
+    ADRES: LEGAL.ADDRESS || (en ? missing('Company address', lang) : missing('Şirket adresi', lang)),
+    EPOSTA: LEGAL.EMAIL || (en ? missing('Contact email', lang) : missing('İletişim e-postası', lang)),
+    TR_TEMSILCI: LEGAL.TR_REP || (en ? 'Will be announced in this text and in the VERBIS registry once appointed.' : 'Atandığında bu metinde ve VERBİS’te ilan edilir.'),
+    AB_TEMSILCI: LEGAL.EU_REP || (en ? 'Will be announced in this text once appointed.' : 'Atandığında bu metinde ilan edilir.'),
     WEB: LEGAL.WEB,
-    BOLGE: LEGAL.REGION,
+    BOLGE: en ? LEGAL_EN.REGION : LEGAL.REGION,
     YAS: String(LEGAL.MIN_AGE),
   };
   return md.replace(/\{\{([A-Z_]+)\}\}/g, (m, k) => (k in map ? map[k] : m));

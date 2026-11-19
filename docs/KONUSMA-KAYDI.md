@@ -537,3 +537,11 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 - **V24** (`docs/gorevler/V24-ingilizce-lab.md`): Lab sekmesi İngilizce: temeller, "How is fatigue measured?", dört sinir sistemi dersi, biyomekanik (incline bench, RDL, lateral raise) ve hareket sayfası; bilimsel terimler (RIR, motor unit, rate coding, CNS) ve kaynaklar korunur. Yorgunluk ölçerdeki ders kısayolları da artık İngilizce.
 - Testler: İngilizce Lab ekran testi; `flowEn` Lab ekranlarını da kapsar.
 **Kayıt:** commit `d0b1de3`. Kontroller: `npm test` (122 test), `tsc -b`, lint, build, `test:layout` (Türkçe + İngilizce) geçti.
+
+### 2026-11-19 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** "Tamam geç onada bitsin sona yavaştan"
+**Yapılan / karar:**
+- **V25** (`docs/gorevler/V25-ingilizce-yasal-son-tarama.md`): yasal metinlerin İngilizcesi (Terms of Use, KVKK Privacy Notice, Explicit Consent Notice, Account and data deletion), Privacy Policy Türkçeyle eşitlendi; uygulama metni etkin dilde açar; `legal.html` iki dilde, dil geçiş bağlantılı. Türkiye'deki kullanıcı için Türkçe metin esas. Metin sürümleri artırılmadı (kapı yeniden çıkmaz).
+- Son tarama: Türkçe harf taşımayan Türkçe kelimeler de test ediliyor; biyomekanikte bir Türkçe satır ve V24'te kaybolan "target" etiketi düzeltildi. `index.html`, PWA açıklaması ve Android hata kayıtları İngilizce.
+- Dil geçişi bitti; `GOREV.md`'de bekleyen görev yok. İngilizce yasal metinler de hukukçu kontrolüne girmeli.
+**Kayıt:** commit `HASH`. Kontroller: `npm test` (127 test), `tsc -b`, lint, build, `test:layout` (Türkçe + İngilizce + yasal sayfa) geçti.

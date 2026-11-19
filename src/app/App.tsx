@@ -4,7 +4,7 @@ import { BackupContext } from '../lib/store/BackupContext';
 import { AccountChip, AccountBody, ConsentBody, PrivacyBody } from '../features/hesap/Account';
 import { LegalGate } from '../legal/LegalGate';
 import { LegalDoc } from '../legal/LegalDoc';
-import { legalDoc } from '../legal/docs';
+import { appDocId, appDocTitle } from '../legal/appDocs';
 import { acceptanceCurrent } from '../legal/acceptance';
 import { BiomechTab, Tile } from '../features/lab/Biomekanik';
 import { CompactCtx, Icon, NeedleGauge, Range, STAGES, StageFatigue, StageRate, StageRecruit, StageSignal, Switch, clamp } from '../features/lab/Cns';
@@ -2732,7 +2732,7 @@ function App() {
       case 'account': return <AccountBody st={st} acct={acct} actions={actions} openSheet={openSheet} onClose={close} put={put} />;
       case 'consent': return <ConsentBody onAccept={actions.acceptConsent} onClose={actions.rejectConsent} busy={acct.busy} openSheet={openSheet} />;
       case 'privacy': return <PrivacyBody openSheet={openSheet} />;
-      case 'legal': return <LegalDoc id={p.doc} onOpen={(id) => openSheet('legal', { doc: id })} hideTitle />;
+      case 'legal': return <LegalDoc id={appDocId(p.doc)} onOpen={(id) => openSheet('legal', { doc: id })} hideTitle />;
       case 'fatigue': { const init = p.sim || simFromLogs(st); return <FatigueBody st={st} init={init} source={p.source || init.src} showNow={!p.sim} openSheet={openSheet} />; }
       case 'lesson': return <LessonBody stage={p.stage} />;
       case 'measure': return <MeasureBody openSheet={openSheet} />;
@@ -2754,7 +2754,7 @@ function App() {
   const sheetTitle = (sh) => {
     const p = sh.props;
     if (sh.type === 'exercise') return exName(exMeta(p.exId, p.name) || { name: p.name }) || t('Hareket');
-    if (sh.type === 'legal') return legalDoc(p.doc).title;
+    if (sh.type === 'legal') return appDocTitle(p.doc);
     if (sh.type === 'note' || sh.type === 'item' || sh.type === 'setdetail') return p.title || (p.it && exName(p.it)) || t(SHEET_TITLES[sh.type]);
     if (sh.type === 'wtype') { const pr = st.programs.find((x) => x.id === p.pid); const d = pr && pr.days.find((x) => x.id === p.did); return d ? dayLabel(d.name) : t(SHEET_TITLES.wtype); }
     return t(SHEET_TITLES[sh.type]);

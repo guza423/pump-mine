@@ -7,6 +7,12 @@ Android telefonları hedefleyen, çevrimdışı çalışan antrenman uygulaması
 - **Gözlem (Antrenman plan ve gözlem):** 42 hücreli aylık takvim, seçili gün paneli (tek günlük veya haftalık planlama), ay özeti, yorgunluk/uyarılar, hareket gelişimi (1RM eğrisi) ve haftalık yük analizi.
 - **Lab:** Temeller dersleri ve Türkçe/İngilizce arama, tür, kas, ekipman filtreleriyle 466 hareket (359 kuvvet, 28 olimpik, 51 pliometrik, 28 beceri).
 
+## Arayüz dili
+
+Varsayılan dil **İngilizce**; **Hesap ve ayarlar › Language · Dil** ile Türkçeye geçilir ve seçim cihazda saklanır. Dört sekme, pencereler, bildirimler ve yasal metinler iki dilde (V21–V25). Kaynak metin Türkçedir ve sözlük anahtarıdır: `t('Kaydet')` İngilizcede `Save`; İngilizce sözlük `src/i18n/en/*.ts`. Kayıtlı veri (kas, hareket, gün adı) Türkçe saklanır, ekranda çevrilir. Kural ve testler: `AGENTS.md` › Dil.
+
+Yasal metinler herkese açık sayfada iki dilde: Türkçe `legal.html#gizlilik`, `#kosullar`, `#aydinlatma`, `#riza`, `#silme`; İngilizce `#privacy-en`, `#terms-en`, `#kvkk-en`, `#consent-en`, `#deletion-en`. Sayfanın üstündeki bağlantı aynı metnin diğer dildekini açar.
+
 ## Yapay zekâ ile çalışma
 
 Bu repo projenin tek hafızasıdır. Hangi AI çalışırsa çalışsın kullanıcı yalnızca şunu yazar: `AGENTS.md'yi oku ve uygula`.

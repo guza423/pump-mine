@@ -3,10 +3,10 @@
 Hangi AI olursa olsun: önce `git pull --rebase origin main`, sonra `AGENTS.md`'yi (özellikle "Kayıt kuralı"), `docs/PROJE.md`'yi ve bu dosyayı oku. "Bekleyen" listesindeki görevleri **sırayla** uygula. Her görev bitince satırını "Tamamlanan"a taşı (tarih + commit kısa kodu) ve `docs/KONUSMA-KAYDI.md`'ye "uygulandı" satırı ekle. `AGENTS.md`'deki "Her görevin sonunda" kuralı her görev için geçerli: test + build + layout geçsin, doğrudan `main`'e push.
 
 ## Bekleyen
-Dil geçişi sekme sekme (yöntem: `docs/gorevler/V21-dil-altyapisi-ingilizce.md`). Kullanıcı bir önceki adımı telefonda görüp "devam" deyince sıradaki uygulanır.
-- [V25 · İngilizce yasal metinler + son tarama](docs/gorevler/V25-ingilizce-yasal-son-tarama.md)
+Şu an bekleyen görev yok. Dil geçişi (V21–V25) bitti.
 
 ## Tamamlanan
+- [V25 · İngilizce yasal metinler + son tarama](docs/gorevler/V25-ingilizce-yasal-son-tarama.md): 2026-11-19 · `HASH`
 - [V24 · İngilizce: Lab sekmesi](docs/gorevler/V24-ingilizce-lab.md): 2026-11-19 · `d0b1de3`
 - [V23 · İngilizce: Gözlem sekmesi (Insights)](docs/gorevler/V23-ingilizce-gozlem.md): 2026-11-19 · `8416315`
 - [V22 · İngilizce: Antrenman sekmesi](docs/gorevler/V22-ingilizce-antrenman.md): 2026-11-19 · `40fcfb8`

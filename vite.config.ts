@@ -20,8 +20,8 @@ export default defineConfig(({ mode }) => {
         manifest: {
           name: 'OUTMOVE',
           short_name: 'OUTMOVE',
-          description: 'Her türlü antrenmanı takip et, yorgunluğunu yönet',
-          lang: 'tr',
+          description: 'Track every kind of training and manage your fatigue',
+          lang: 'en',
           start_url: base,
           scope: base,
           display: 'standalone',

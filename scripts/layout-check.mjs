@@ -320,6 +320,11 @@ async function flowEn(viewport, scale = 1, tablet = false, safeArea = false) {
     await page.locator('.lg-gate-doc').waitFor();
     await check(page, label, screen, { tablet });
     await page.locator('#legal-back').click();
+    screen = 'gate-terms';
+    await page.locator('#legal-open-kosullar').click();
+    await page.getByRole('dialog', { name: 'Terms of Use' }).waitFor();
+    await check(page, label, screen, { tablet });
+    await page.locator('#legal-back').click();
     await page.locator('#legal-terms').check();
     await page.locator('#legal-notice').check();
     await page.locator('#legal-go').click();
@@ -350,6 +355,13 @@ async function flowEn(viewport, scale = 1, tablet = false, safeArea = false) {
     await page.locator('#account-btn').click();
     await page.getByRole('dialog', { name: 'Account & settings' }).waitFor();
     await check(page, label, screen);
+    // V25 · uygulama içindeki İngilizce yasal metin
+    screen = 'account-legal-privacy';
+    await page.locator('#legal-gizlilik').click();
+    await page.getByRole('dialog', { name: 'Privacy Policy' }).waitFor();
+    await check(page, label, screen);
+    await page.getByRole('dialog').last().getByRole('button', { name: 'Close', exact: true }).last().click();
+    await page.waitForFunction(() => document.querySelectorAll('[role="dialog"]').length === 1);
     screen = 'account-tr';
     await page.locator('#lang-tr').click();
     await page.getByRole('dialog', { name: 'Hesap ve ayarlar' }).waitFor();
@@ -501,6 +513,34 @@ async function flowEn(viewport, scale = 1, tablet = false, safeArea = false) {
   }
 }
 
+// V25 · herkese açık yasal sayfa (legal.html): on metin, iki dil; yatay taşma olmamalı.
+async function legalPages(viewport) {
+  const context = await browser.newContext({ viewport, deviceScaleFactor: 1, reducedMotion: 'reduce', serviceWorkers: 'block' });
+  const page = await context.newPage();
+  const label = `legal-${viewport.width}x${viewport.height}`;
+  try {
+    for (const id of ['kosullar', 'gizlilik', 'aydinlatma', 'riza', 'silme', 'terms-en', 'privacy-en', 'kvkk-en', 'consent-en', 'deletion-en']) {
+      await page.goto(`${url}legal.html#${id}`);
+      await page.locator('.lg-doc').waitFor();
+      await page.evaluate(() => document.fonts.ready);
+      const errors = await page.evaluate(() => {
+        const out = [];
+        if (document.scrollingElement.scrollWidth > innerWidth) out.push('yatay taşma');
+        if (!document.querySelector('.lgp-nav [aria-current="page"]')) out.push('seçili sekme yok');
+        if (!document.querySelector('#lgp-lang')) out.push('dil bağlantısı yok');
+        return out;
+      });
+      failures.push(...errors.map((e) => `${label} · ${id} · ${e}`));
+      if (errors.length || process.env.LAYOUT_SHOTS) await page.screenshot({ path: resolve(shots, `${label}-${id}.png`) });
+    }
+    console.log(`${label}: yasal sayfa tamam`);
+  } catch (error) {
+    failures.push(`${label} · ${error.message}`);
+  } finally {
+    await context.close();
+  }
+}
+
 try {
   await mkdir(shots, { recursive: true });
   await Promise.race([serverError, (async () => {
@@ -517,6 +557,7 @@ try {
     await flow({ width, height }, scale, width === 884, safeArea);
     await flowEn({ width, height }, scale, width === 884, safeArea);
   }
+  for (const [width, height] of [[320, 568], [884, 1104]]) await legalPages({ width, height });
   if (failures.length) {
     console.error(failures.join('\n'));
     console.error(`Başarısız ekranlar: ${shots}`);

@@ -14,10 +14,4 @@ export const legal: Record<string, Entry> = {
   "[KVKK Aydınlatma Metni]’ni ve [Gizlilik Politikası]’nı okudum.": "I have read the [KVKK Privacy Notice] and the [Privacy Policy].",
   "Aydınlatma metni bir onay değildir; yalnızca bilgilendirildiğini gösterir. Sağlıkla ilgili verilerin için açık rıza, yalnızca hesap açarsan ayrıca sorulur.": "The privacy notice isn't a consent; it only shows you've been informed. Explicit consent for health-related data is asked separately, and only if you create an account.",
   "Sürüm {v}": "Version {v}",
-  "Kullanım Koşulları": "Terms of Use",
-  "Gizlilik Politikası": "Privacy Policy",
-  "KVKK Aydınlatma Metni": "KVKK Privacy Notice",
-  "Açık Rıza Metni": "Explicit Consent Notice",
-  "Hesap ve veri silme": "Account and data deletion",
-  "Privacy Policy (English)": "Privacy Policy",
 };

@@ -59,6 +59,8 @@ Object.defineProperty(SVGElement.prototype, 'getPointAtLength', {
   value: vi.fn((length) => ({ x: length, y: length / 2 })),
 });
 
+import { EN } from '../i18n/en';
+
 const canvasContext = {
   setTransform: vi.fn(), clearRect: vi.fn(), fillRect: vi.fn(), beginPath: vi.fn(), moveTo: vi.fn(), lineTo: vi.fn(), stroke: vi.fn(), fill: vi.fn(), arc: vi.fn(),
   save: vi.fn(), restore: vi.fn(), translate: vi.fn(), scale: vi.fn(), closePath: vi.fn(), fillText: vi.fn(), measureText: vi.fn(() => ({ width: 20 })),
@@ -73,14 +75,23 @@ Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
 // V21 · İngilizce (varsayılan dil) ekranları: Dashboard, Hesap ve ayarlar, yasal kapı, yorgunluk ölçer.
 // Kullanıcının yazdığı adlar (plan, gün) Türkçe kalabilir; ekranın kendi metinlerinde Türkçe harf olmamalı.
 const TR_CHARS = /[çğıöşüÇĞİÖŞÜ]/;
+// V25 · Türkçe harf taşımayan Türkçe kelimeler de yakalanır ("Tekrar", "Kilo", "Kapat"…): sözlük anahtarlarında geçip
+// İngilizce karşılıkların hiçbirinde geçmeyen kelimeler.
+const wordsOf = (v) => String(v).replace(/\{\w+\}/g, ' ').toLowerCase().match(/[a-zçğıöşü]+/g) || [];
+const EN_WORDS = new Set(Object.values(EN).flat().flatMap(wordsOf));
+const TR_ONLY = new Set(Object.keys(EN).map((k) => k.replace(/^[a-z]+\|/, '')).flatMap(wordsOf).filter((w) => w.length >= 3 && !TR_CHARS.test(w) && !EN_WORDS.has(w)));
 const turkishIn = (el, skip = []) => {
   const clone = el.cloneNode(true);
   for (const sel of skip) clone.querySelectorAll(sel).forEach((n) => n.remove());
-  return (clone.textContent.match(/\S*[çğıöşüÇĞİÖŞÜ]\S*/g) || []);
+  // Bitişik öğelerin metni birleşmesin diye her metin düğümü ayrı okunur.
+  const texts = [];
+  const walker = document.createTreeWalker(clone, NodeFilter.SHOW_TEXT);
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) texts.push(n.nodeValue);
+  return texts.flatMap((tx) => tx.match(/\S+/g) || []).filter((w) => TR_CHARS.test(w) || wordsOf(w).some((x) => TR_ONLY.has(x)));
 };
 const attrsTurkish = (el, skip = []) => [...el.querySelectorAll('[aria-label], [placeholder], [title]')]
   .filter((n) => !skip.some((sel) => n.closest(sel)))
-  .flatMap((n) => ['aria-label', 'placeholder', 'title'].map((a) => n.getAttribute(a)).filter((v) => v && TR_CHARS.test(v)));
+  .flatMap((n) => ['aria-label', 'placeholder', 'title'].map((a) => n.getAttribute(a)).filter((v) => v && (TR_CHARS.test(v) || wordsOf(v).some((x) => TR_ONLY.has(x)))));
 
 describe('İngilizce arayüz (V21)', () => {
   beforeEach(async () => {
@@ -203,6 +214,56 @@ describe('İngilizce arayüz (V21)', () => {
     fireEvent.click(container.querySelector('#legal-notice'));
     fireEvent.click(container.querySelector('#legal-go'));
     await waitFor(() => expect(container.querySelector('.lg-gate')).toBeNull());
+  });
+  // V25 · yasal metinlerin İngilizcesi
+  it('yasal metinler İngilizce: kapıdaki üç metin ve Hesap › Legal altındaki beş metin; Türkçede Türkçe açılır', async () => {
+    // KVKK bent harfleri, ör. "Art. 5(2)(ç)", İngilizce metinde de aynen yazılır.
+    const turkishDoc = (el) => turkishIn(el).filter((w) => TR_CHARS.test(w.replace(/\(?[çğ]\)/g, '')));
+    localStorage.removeItem(LEGAL_KEY);
+    const { container } = render(<App />);
+    const click = (selector) => fireEvent.click(container.querySelector(selector));
+    await screen.findByRole('dialog', { name: 'Before you start' });
+    for (const [id, title] of [['kosullar', 'Terms of Use'], ['aydinlatma', 'KVKK Privacy Notice'], ['gizlilik', 'Privacy Policy']]) {
+      expect(container.querySelector('#legal-open-' + id + ' span').textContent).toBe(title);
+      click('#legal-open-' + id);
+      const doc = await screen.findByRole('dialog', { name: title });
+      expect(turkishDoc(doc)).toEqual([]);
+      click('#legal-back');
+    }
+    click('#legal-terms');
+    click('#legal-notice');
+    click('#legal-go');
+    await waitFor(() => expect(container.querySelector('.lg-gate')).toBeNull());
+    click('#account-btn');
+    await screen.findByRole('dialog', { name: 'Account & settings' });
+    const titles = { kosullar: 'Terms of Use', gizlilik: 'Privacy Policy', aydinlatma: 'KVKK Privacy Notice', riza: 'Explicit Consent Notice', silme: 'Account and data deletion' };
+    for (const [id, title] of Object.entries(titles)) {
+      expect(container.querySelector('#legal-' + id).textContent).toBe(title);
+      click('#legal-' + id);
+      const sheet = await screen.findByRole('dialog', { name: title });
+      expect(turkishDoc(sheet)).toEqual([]);
+      fireEvent.click(within(sheet).getAllByRole('button', { name: 'Close' }).at(-1));
+      await waitFor(() => expect(screen.queryByRole('dialog', { name: title })).toBeNull());
+    }
+    // Metin içi bağlantı aynı dildeki metni açar.
+    click('#legal-silme');
+    const deletion = await screen.findByRole('dialog', { name: 'Account and data deletion' });
+    expect(within(deletion).getByText(/Type DELETE in the box/)).toBeTruthy();
+    fireEvent.click(within(deletion).getAllByRole('button', { name: 'Close' }).at(-1));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Account and data deletion' })).toBeNull());
+    click('#legal-kosullar');
+    const terms = await screen.findByRole('dialog', { name: 'Terms of Use' });
+    fireEvent.click(within(terms).getByRole('link', { name: 'Privacy Policy' }));
+    expect(await screen.findByRole('dialog', { name: 'Privacy Policy' })).toBeTruthy();
+    // Türkçeye geçince aynı bağlantılar Türkçe metinleri açar.
+    fireEvent.click(screen.getAllByRole('button', { name: 'Close' }).at(-1));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Close' }).at(-1));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Terms of Use' })).toBeNull());
+    fireEvent.click(screen.getByRole('radio', { name: 'Türkçe' }));
+    await screen.findByRole('dialog', { name: 'Hesap ve ayarlar' });
+    expect(container.querySelector('#legal-kosullar').textContent).toBe('Kullanım Koşulları');
+    click('#legal-riza');
+    expect(await screen.findByRole('dialog', { name: 'Açık Rıza Metni' })).toBeTruthy();
   });
   // V22 · Antrenman sekmesi
   it('plansız oturum İngilizce: liste, seçici, set ekranı, dinlenme, set ayrıntısı, özet ve bildirim', async () => {
@@ -392,7 +453,11 @@ describe('İngilizce arayüz (V21)', () => {
       const sheet = (await screen.findAllByRole('dialog')).at(-1);
       expect(turkishIn(sheet, ['.ex-en'])).toEqual([]);
       expect(attrsTurkish(sheet)).toEqual([]);
-      if (id === 'egimli-bench') expect(within(sheet).getByText(/^Turkish: /)).toBeTruthy();
+      if (id === 'egimli-bench') {
+        expect(within(sheet).getByText(/^Turkish: /)).toBeTruthy();
+        // Kas vurgusunda hedef etiketi kimlikle seçilir: üst göğüs ve ön omuz (V24'te kimlik düşmüştü, V25'te düzeldi).
+        expect([...sheet.querySelectorAll('.emph-row')].filter((r) => r.querySelector('.goal-tag:not(.ghost)')).map((r) => r.querySelector('.emph-k span').textContent)).toEqual(['Upper chest', 'Front delts']);
+      }
       await closeTop();
     }
   });

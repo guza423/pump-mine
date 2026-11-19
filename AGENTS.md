@@ -100,11 +100,13 @@ src/
   - `simulatePlan(hipertrofiProgram())` ve `simulatePlan(weekProgram([hipertrofiProgram()]))` (test fikstürü, `src/test/fixtures.ts`): seans başı ortalama ≈21, en yüksek tepe ≈76
 - Her PR'da `npm run build` ve `npm test` geçmeli.
 
-## Dil (V21; ayrıntı `docs/gorevler/V21-dil-altyapisi-ingilizce.md`)
+## Dil (V21–V25; ayrıntı `docs/gorevler/V21-dil-altyapisi-ingilizce.md`)
 - Varsayılan dil **İngilizce**; kullanıcı **Hesap ve ayarlar › Language · Dil**'den Türkçeye geçer (`localStorage['outmove.lang']`).
 - Arayüze giren **her yeni metin** `t('Türkçe metin')`, `tc('bağlam', '…')` ya da `byLang({ tr, en })` ile yazılır ve İngilizcesi **aynı committe** `src/i18n/en/*.ts`'ye eklenir. Sayı/yüzde/saat için `num()`, `pct()`, `clock()`; `toLocaleString('tr-TR')` yazma.
 - Veri Türkçe saklanır (kas adı, kütüphane hareket adı, `Plansız antrenman`, `1. gün`); gösterimde `muscleName()`, `exName()`, `dayLabel()` ile çevrilir. Metne göre karar verme (regex/eşitlik); kimlik kullan.
 - `t` adını yerel değişkene verme (`i18n.test.ts` gölgelemeyi yakalar). Testler Türkçe başlar (`src/test/setup.ts`); İngilizce ekran testleri `src/test/i18n-screens.test.tsx`, İngilizce yerleşim `layout-check.mjs` → `flowEn`.
+- `t(değişken)` ile çevrilen metinler (sabit listeler, `SHEET_TITLES`, hata mesajları, kütüphane notları) tarayıcıya görünmez: sözlüğe elle ekle. İngilizce ekran testleri Türkçe harfi ve Türkçe harf taşımayan Türkçe kelimeyi ("Tekrar", "dirsek") birlikte yakalar; yeni ekranı bu testlere ekle.
+- **Yasal metinler iki dilde** (`src/legal/texts/`; Türkçe `kosullar.md` … , İngilizce `*-en.md`). Bir metni değiştirirsen karşılığını **aynı committe** değiştir; `legal.test.ts` bölüm, madde ve tablo satırı sayılarını karşılaştırır. Uygulama metne Türkçe kimlikle başvurur (`APP_DOC_IDS`), gösterirken `appDocId()` etkin dildekini açar. Türkçe kimlikler (Play bağlantıları) değişmez. Yer tutucular `meta.ts` › `fillLegal(md, lang)`.
 
 ## Fazlar
 1. **Web uygulaması.** Vite + React + TS iskeleti, prototipin birebir taşınması, IndexedDB store, yedekleme, PWA. Her push'ta GitHub Pages'e deploy eden workflow (Vite `base` ayarını repo adına göre yap).
