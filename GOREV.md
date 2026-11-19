@@ -8,7 +8,7 @@ Dil geçişi sekme sekme (yöntem: `docs/gorevler/V21-dil-altyapisi-ingilizce.md
 - [V25 · İngilizce yasal metinler + son tarama](docs/gorevler/V25-ingilizce-yasal-son-tarama.md)
 
 ## Tamamlanan
-- [V23 · İngilizce: Gözlem sekmesi (Insights)](docs/gorevler/V23-ingilizce-gozlem.md): 2026-11-19 · `V23_COMMIT`
+- [V23 · İngilizce: Gözlem sekmesi (Insights)](docs/gorevler/V23-ingilizce-gozlem.md): 2026-11-19 · `8416315`
 - [V22 · İngilizce: Antrenman sekmesi](docs/gorevler/V22-ingilizce-antrenman.md): 2026-11-19 · `40fcfb8`
 - [V21 · Dil altyapısı, İngilizce varsayılan, Hesap ve ayarlar'da dil seçimi + Dashboard](docs/gorevler/V21-dil-altyapisi-ingilizce.md): 2026-11-19 · `8fdf12e`
 - [V20 · Yasal metinler (KVKK + GDPR), kabul kapısı, açık rıza, hesap/veri silme, akıcı animasyonlar](docs/gorevler/V20-yasal-metinler-hesap-silme.md): 2026-11-18 · `0af663b`

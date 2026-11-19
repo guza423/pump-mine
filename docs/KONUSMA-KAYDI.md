@@ -528,5 +528,5 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Yapılan / karar:**
 - **V23** (`docs/gorevler/V23-ingilizce-gozlem.md`): Gözlem sekmesi İngilizce (başlık Plan & insights); tarih İngilizcede ay önce; ay özeti etiketleri çoğul (Workouts, Sets); dar ekranda uzun ay adı için takvim başlığı küçülebilir.
 - Testler: İngilizce Insights ekran testi; `flowEn` Insights'ı da kapsar.
-**Kayıt:** commit `V23_COMMIT`. Kontroller: `npm test` (121 test), `tsc -b`, lint, build, `test:layout` (Türkçe + İngilizce) geçti.
+**Kayıt:** commit `8416315`. Kontroller: `npm test` (121 test), `tsc -b`, lint, build, `test:layout` (Türkçe + İngilizce) geçti.
 
