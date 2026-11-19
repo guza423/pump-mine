@@ -561,3 +561,7 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 - **V26** (`docs/gorevler/V26-cok-dil-hazirligi.md`): yeni dil artık dil satırı + sözlük (+ isteğe bağlı hareket adları) + yasal metin klasörüyle eklenir; eksik metin İngilizce görünür. Çoğul ve sayılar dilin kurallarıyla (`Intl`). Yasal metinler `texts/<dil>/` altında. İş listesi komutu (Almanca için 1111 metin, 466 hareket adı, 5 yasal metin). Sözde dil testi koda gömülü metni yakalar (Lab'de "Bar", "band" bulundu, düzeldi). Yerleşim akışı her dilde koşar; %40 uzun sözde dil denemesinde taşan dört yer CSS ile düzeldi.
 - Adımlar `AGENTS.md` › Dil › "Yeni dil ekleme". Kullanıcı eklenecek dilleri söyleyince uygulanır.
 **Kayıt:** commit `ffa4c47`. Kontroller: `npm test` (136 test), `tsc -b`, lint, build, `test:layout` (Türkçe + İngilizce + yasal sayfa; sözde dil denemesi) geçti.
+
+### 2026-11-19 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** "Bu outmove 56 apk sı ne için şimdi"
+**Cevap:** outmove-56 = V26 (çok dil hazırlığı); ekranda fark yok, altyapı. outmove-55 yalnızca kayıt commit'i, 54 ile aynı. Her push APK üretiyor (yalnız belge değişse de); belge commit'lerinde APK üretilmemesi önerildi, karar kullanıcıda. Bu kayıt `[skip ci]` ile gönderildi (gereksiz APK çıkmasın).
