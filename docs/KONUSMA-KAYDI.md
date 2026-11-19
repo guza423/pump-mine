@@ -632,3 +632,8 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Kullanıcı:** (ekran görüntüsü: Firebase › Android uygulaması `app.performance.training` › SHA certificate fingerprints: debug SHA-1 `c5:34:…:c3:1f:64` ve SHA-256 `ee:71:…:7b:f6`, Play SHA-1 `0e:e3:…:2f:1c` ve SHA-256 `78:7a:…:27:29`)
 **Yapılan:** Play App Signing parmak izleri Firebase'e eklendi (debug olanlar da duruyor; debug APK'da da giriş çalışmaya devam eder). Sırada: eski APK'yı kaldırıp test bağlantısından kurmak, Google girişini denemek.
 **Kayıt:** bu commit (`[skip ci]`).
+
+**Kullanıcı:** "account reuth failed dio google ile giriş yap diyince bu test sürümü olarak indirdim playstoredan şimdi"
+**Teşhis:** Google girişi Credential Manager ile (`@capacitor-firebase/authentication`, `skipNativeAuth`). Bunun için Google Cloud'da paket adı + **Play SHA-1** (`0E:E3:…:2F:1C`) için bir Android OAuth istemcisi gerekir; `google-services.json`'da yalnızca debug SHA-1'li istemci var (`c534…`). SHA-1 Firebase'e yeni eklendi, istemcinin oluşması/yayılması birkaç dakika sürebilir. Uygulamanın yeniden derlenmesi gerekmez (web istemci kimliği aynı).
+**Cevap:** 10–15 dk bekle, uygulamayı kapatıp yeniden dene. Düzelmezse Google Cloud › APIs & Services › Credentials'ta `app.performance.training` + Play SHA-1 için Android istemcisi var mı bak; yoksa oluştur.
+**Kayıt:** bu commit (`[skip ci]`).
