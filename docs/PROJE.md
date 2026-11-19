@@ -203,7 +203,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 - Play Store (19 Kasım'da başladı):
   - Play Console hesabı açıldı: **kuruluş hesabı "wworks"**, PRWAGON LLC adına. Kuruluş hesabı olduğu için 12 test kullanıcısı / 14 gün kapalı test şartı yok.
   - Hesap kurulumu bitmeden "Uygulama oluştur" kapalı: (1) kuruluş web sitesi doğrulaması, (2) telefon doğrulaması (Google kuruluş ve kimlik belgelerini onaylayınca açılır).
-  - Web sitesi: alan adı alınmayacak; `https://guza423.github.io/pump-mine/` Search Console'da URL öneki + HTML dosyası (`public/google….html`) ile doğrulanacak. Search Console'da Play Console'daki Google hesabı kullanılmalı (aynı hesapsa istek otomatik onaylanır). Google bu adresi kabul etmezse tek yol alan adı.
+  - Web sitesi: alan adı alınmayacak; `https://guza423.github.io/pump-mine/` Search Console'da URL öneki + HTML dosyası ile doğrulanıyor: `public/googlee79f34a5cab79898.html` (**silinmez**). Search Console'da Play Console'daki Google hesabı kullanılmalı (aynı hesapsa istek otomatik onaylanır). Google bu adresi kabul etmezse tek yol alan adı.
   - Paket adı kararı bekliyor: `app.performance.training` ilk yüklemeden sonra değişmez.
   - Yayın (upload) anahtarı + CI'da `bundleRelease` (AAB); anahtar GitHub Secrets'ta.
   - Play App Signing anahtarının SHA-1/SHA-256'sı Firebase'e eklenmeli, yoksa Play'den inen sürümde Google girişi çalışmaz.

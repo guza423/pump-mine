@@ -581,3 +581,10 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Kullanıcı:** "e tamam github syafasıın verelim ya üff uraşmiyim github linki iyidir"
 **Yapılan / karar:** Kuruluş web sitesi olarak GitHub Pages adresi doğrulanacak (Google Sites da alt adres, avantajı yok). Claude Chrome'dan Search Console'u açtı; bu Chrome'da oturum açık üç Google hesabının hiçbiri "wworks" Play Console hesabı değil, giriş kullanıcıya kaldı. Play Store yol haritası `docs/PROJE.md` › Açık işler'e yazıldı.
 **Kayıt:** bu commit (`[skip ci]`).
+
+**Kullanıcı:** "tamam sen bana de ben yapim ya üff"
+**Cevap:** Adımlar verildi: Search Console (wworks hesabı) › URL öneki `https://guza423.github.io/pump-mine/` › HTML dosyası › dosya adı Claude'a › Doğrula › Play Console'da web sitesini doğrula.
+
+**Kullanıcı:** (ekran görüntüsü: Search Console "Sahipliği doğrulayın · https://guza423.github.io/pump-mine/", HTML dosyası `googlee79f34a5cab79898.html`, "Doğrulanmış olarak kalmak için, doğrulama başarılı olduktan sonra bile dosyayı kaldırmayın.")
+**Yapılan:** Doğrulama dosyası `public/googlee79f34a5cab79898.html` olarak eklendi (Pages'ta `…/pump-mine/googlee79f34a5cab79898.html`). **Silinmemeli**, yoksa Search Console ve Play doğrulaması düşer.
+**Kayıt:** bu commit.
