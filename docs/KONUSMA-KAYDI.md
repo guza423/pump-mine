@@ -601,3 +601,7 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Kullanıcı:** "tamam bunları ekledim" (GitHub Secrets: yükleme anahtarı ve şifresi)
 **Yapılan:** "Build Play Store AAB" yeniden çalıştırıldı ve geçti: ilk imzalı AAB `outmove-play-1.0.0-1` (sürüm 1.0.0, versionCode 1), yükleme anahtarı SHA-256 ile doğrulandı. Sırada: telefon doğrulaması → Play Console'da uygulama oluşturma → AAB'yi iç test kanalına yükleme → Play App Signing SHA'larını Firebase'e ekleme.
 **Kayıt:** bu commit (`[skip ci]`).
+
+**Kullanıcı:** (ekran görüntüsü: Play Console, "Kuruluşunuzun web sitesini doğrulayın · İşlem gerekli" hâlâ duruyor) "ya hala sitede kalmış bu önüme yeşiş çıkmmıştı bitti die bu hala burda yeniledim gitmio"
+**Cevap:** Yeşil onay Search Console'daki sahiplik doğrulamasıydı. Play tarafı ayrı istek: Hesap ayrıntıları › Kuruluş web sitesi tam olarak `https://guza423.github.io/pump-mine/` olmalı, sonra "Web sitesini doğrula / doğrulama isteği gönder". Aynı hesapsa onay otomatik, birkaç dakika sürebilir.
+**Kayıt:** bu commit (`[skip ci]`).
