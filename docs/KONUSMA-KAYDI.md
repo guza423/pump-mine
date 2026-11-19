@@ -596,3 +596,8 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 - **V27** (`docs/gorevler/V27-play-store-hazirligi.md`): `USE_EXACT_ALARM` kaldırıldı, `SCHEDULE_EXACT_ALARM` her sürümde; Hesap ve ayarlar'da Android 12+ ve izin kapalıyken uyarı + "İzni aç". Yükleme anahtarı üretildi (anahtar ve şifre repoda yok, kullanıcıya dosya olarak verildi); `build.gradle` release imzası ortam değişkenlerinden; `release.yml` imzalı AAB üretir (`android/release.txt` değişince ya da elle).
 - Kullanıcıya kalan: GitHub Secrets'a iki sır, AAB'yi Play Console'a yükleme, Play App Signing SHA'larını Firebase'e ekleme.
 **Kayıt:** commit `6216612`. Kontroller: `npm test` (136 test), `tsc -b`, lint, build, `test:layout` geçti; Java derlemesi CI'da (debug APK).
+
+### 2026-11-19 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** "tamam bunları ekledim" (GitHub Secrets: yükleme anahtarı ve şifresi)
+**Yapılan:** "Build Play Store AAB" yeniden çalıştırıldı ve geçti: ilk imzalı AAB `outmove-play-1.0.0-1` (sürüm 1.0.0, versionCode 1), yükleme anahtarı SHA-256 ile doğrulandı. Sırada: telefon doğrulaması → Play Console'da uygulama oluşturma → AAB'yi iç test kanalına yükleme → Play App Signing SHA'larını Firebase'e ekleme.
+**Kayıt:** bu commit (`[skip ci]`).
