@@ -536,4 +536,4 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Yapılan / karar:**
 - **V24** (`docs/gorevler/V24-ingilizce-lab.md`): Lab sekmesi İngilizce: temeller, "How is fatigue measured?", dört sinir sistemi dersi, biyomekanik (incline bench, RDL, lateral raise) ve hareket sayfası; bilimsel terimler (RIR, motor unit, rate coding, CNS) ve kaynaklar korunur. Yorgunluk ölçerdeki ders kısayolları da artık İngilizce.
 - Testler: İngilizce Lab ekran testi; `flowEn` Lab ekranlarını da kapsar.
-**Kayıt:** commit `HASH`. Kontroller: `npm test` (122 test), `tsc -b`, lint, build, `test:layout` (Türkçe + İngilizce) geçti.
+**Kayıt:** commit `d0b1de3`. Kontroller: `npm test` (122 test), `tsc -b`, lint, build, `test:layout` (Türkçe + İngilizce) geçti.
