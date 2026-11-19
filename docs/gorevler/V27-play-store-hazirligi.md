@@ -25,3 +25,12 @@ Amaç: Play Console'a yüklenecek imzalı AAB'yi CI'da üretmek ve Play'in redde
 - GitHub Secrets'a iki sır; sonra `release.txt`'i değiştir ya da Actions'tan çalıştır.
 - Play Console'da uygulama oluşturulunca Play App Signing açık kalsın; App integrity'deki **uygulama imzalama anahtarı** SHA-1/SHA-256'sını (ve isteğe bağlı yükleme anahtarı SHA-1'ini) Firebase › Proje ayarları › Android uygulaması'na ekle. Yoksa Play'den inen sürümde Google girişi çalışmaz.
 - Play'den kurmadan önce telefondaki debug APK kaldırılmalı (paket adı aynı, imza farklı). Hesapla giriş yapan kullanıcının bulut verisi etkilenmez.
+
+## Play App Signing (19 Kasım, Play Console › Google Play ile korunanlar › Uygulama imzalama)
+Google'ın uygulama imzalama anahtarı; Play'den inen sürüm bununla imzalı. Firebase'de Android uygulamasına eklenmesi gereken bunlar (Klasik anahtar):
+- SHA-1: `0E:E3:42:3A:61:E7:DA:9B:4C:46:3E:80:E3:CC:AF:EB:5D:47:2F:1C`
+- SHA-256: `78:7A:2B:CE:E7:88:1F:70:92:3C:C7:C1:94:58:59:5B:90:AB:70:8A:AB:6A:1E:E3:DF:25:41:31:94:E2:27:29`
+
+Kuantum sonrası kriptografi anahtarı (Beta, bilgi için; bugünkü cihazlar ve Google girişi klasik imzaya bakar):
+- SHA-1: `9C:4D:DB:FE:AB:0A:72:37:A7:AE:9B:94:F9:BC:7F:27:D2:30:B1:29`
+- SHA-256: `0C:DF:FD:A4:8C:DD:5B:A3:1E:47:9C:C0:80:ED:79:6F:C8:29:23:AD:DF:E7:96:59:81:84:69:E5:2C:2C:8E:2C`
