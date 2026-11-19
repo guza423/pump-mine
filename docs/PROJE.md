@@ -208,6 +208,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 - **WhatsApp içe aktarma:** yıllardır WhatsApp grubuna yazılan antrenmanlar. WhatsApp → Sohbeti dışa aktar → Medya olmadan → .txt → uygulama biçimine çevir.
 - **Drive yedeği:** haftalık otomatik JSON yedeğini Google Drive'a alma.
 - **Ad kontrolü:** OUTMOVE için alan adı ve TÜRKPATENT marka kontrolü.
+- **Yeni diller (Almanca, Fransızca, Arapça…):** önce bir kerelik hazırlık: dil başına sözlük dosyası, eksikte İngilizceye düşme, gün/ay/sayı `Intl`'den, genel çoğul (`Intl.PluralRules`), her dilde eksik çeviri + yerleşim testi, iskelet komutu. Sonra Almanca + Fransızca tek oturum. Arapça ayrı: sağdan sola düzen, Arapça font, 6 çoğul hali.
 
 **Dil (V21'den itibaren, sekme sekme):**
 - **Dil geçişi bitti** (V21–V25): uygulamanın tamamı ve yasal metinler İngilizce (varsayılan) ve Türkçe.

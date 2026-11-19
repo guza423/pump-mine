@@ -545,3 +545,11 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 - Son tarama: Türkçe harf taşımayan Türkçe kelimeler de test ediliyor; biyomekanikte bir Türkçe satır ve V24'te kaybolan "target" etiketi düzeltildi. `index.html`, PWA açıklaması ve Android hata kayıtları İngilizce.
 - Dil geçişi bitti; `GOREV.md`'de bekleyen görev yok. İngilizce yasal metinler de hukukçu kontrolüne girmeli.
 **Kayıt:** commit `bd32d3d`. Kontroller: `npm test` (127 test), `tsc -b`, lint, build, `test:layout` (Türkçe + İngilizce + yasal sayfa) geçti.
+
+### 2026-11-19 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** "tamamdır peki her yeni dil için bukdr uğraşmı gerekicek. mesela almanca. frech falanda eklemek istiom diyelimlki yada arapça falan hersefrinde bukdr uzun sürmeden yapmak nası olur."
+**Cevap (öneri, henüz istenmedi):**
+- Uzun süren kısım bir kerelikti (metinleri bulup `t()`'ye bağlamak, veriyi ekranda çevirmek, testler). Yeni dil artık çoğunlukla çeviri: ~960 arayüz metni, 5 yasal metin (+ o dil için hukukçu kontrolü), isteğe bağlı 466 hareket adı (yoksa İngilizce kalır).
+- Hızlandırmak için bir kerelik hazırlık önerildi: dil başına dosya ve eksik metinde İngilizceye düşme; gün/ay adları ve sayılar `Intl`'den; genel çoğul kuralı (`Intl.PluralRules`); testler her dilde eksik çeviriyi ve yerleşimi denetlesin; yeni dil iskeleti çıkaran komut. Sonra Almanca + Fransızca tek oturumda.
+- Arapça ayrı adım: sağdan sola düzen (CSS'te ~190 sol/sağ kuralı, aynalanan oklar/kaydırıcılar/grafikler), Arapça font (pixel fontta Arapça harf yok), 6 çoğul hali.
+**Kayıt:** yalnızca öneri; `docs/PROJE.md` › Önerildi, henüz istenmedi.
