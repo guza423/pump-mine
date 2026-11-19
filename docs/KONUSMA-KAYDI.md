@@ -620,3 +620,7 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Kullanıcı:** (iki ekran görüntüsü: "Uygulama bütünlüğü ayarları taşındı · artık Google Play ile korunanlar sayfasında"; "Google Play ile korunanlar" sayfası: Otomatik koruma 1/1, Play Integrity API 0/7, Google Play Store koruması 6/7, Faturalandırma koruması 0/4)
 **Cevap:** SHA'lar artık Google Play ile korunanlar › Google Play Store koruması (aç) › Uygulama imzalama anahtarını koruyun › Play Uygulama İmzalama'yı yönet › "Uygulama imzalama anahtarı sertifikası".
 **Kayıt:** bu commit (`[skip ci]`).
+
+**Kullanıcı:** (ekran görüntüsü: Uygulama imzalama; "Uygulama imzalama anahtarı · Kullanımda · Kuantum uyumlu (Beta)", iki sütun: "Klasik anahtar" ve "Kuantum sonrası kriptografi anahtarı", her birinde SHA-256 ve SHA-1; altta "Anahtarı yükleyin") "0C:DF:FD:A4:8C:DD:5B:A3:1E:47:9C:C0:80:ED:79:6F:C8:29:23:AD:DF:E7:96:59:81:84:69:E5:2C:2C:8E:2C · 9C:4D:DB:FE:AB:0A:72:37:A7:AE:9B:94:F9:BC:7F:27:D2:30:B1:29 · kuantumları seçtim"
+**Cevap:** Firebase'e **Klasik anahtar** sütunundaki SHA-1 ve SHA-256 gerekli (bugünkü telefonlar ve Google girişi klasik imzaya bakar). Kuantum sonrası olanları eklemek zarar vermez ama tek başına yetmez. Firebase adımları verildi.
+**Kayıt:** bu commit (`[skip ci]`).
