@@ -637,3 +637,9 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Teşhis:** Google girişi Credential Manager ile (`@capacitor-firebase/authentication`, `skipNativeAuth`). Bunun için Google Cloud'da paket adı + **Play SHA-1** (`0E:E3:…:2F:1C`) için bir Android OAuth istemcisi gerekir; `google-services.json`'da yalnızca debug SHA-1'li istemci var (`c534…`). SHA-1 Firebase'e yeni eklendi, istemcinin oluşması/yayılması birkaç dakika sürebilir. Uygulamanın yeniden derlenmesi gerekmez (web istemci kimliği aynı).
 **Cevap:** 10–15 dk bekle, uygulamayı kapatıp yeniden dene. Düzelmezse Google Cloud › APIs & Services › Credentials'ta `app.performance.training` + Play SHA-1 için Android istemcisi var mı bak; yoksa oluştur.
 **Kayıt:** bu commit (`[skip ci]`).
+
+### 2026-11-20 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** (telefon ekran görüntüsü, Play'den kurulan dahili test sürümü: Account & settings, kırmızı "[16] Account reauth failed.", altında Continue with Google / Continue with email) "Böyle şuan"
+**Teşhis:** Bir saatten fazla geçti, hâlâ aynı: Play imza anahtarı (SHA-1 `0E:E3:…:2F:1C`) için Google Cloud'da Android OAuth istemcisi büyük ihtimalle oluşmamış. Firebase'e SHA eklemek bunu her zaman kendiliğinden yapmıyor.
+**Cevap:** Google Cloud › APIs & Services › Credentials › Create credentials › OAuth client ID › Android, paket `app.performance.training`, SHA-1 Play'inki. Beş dakika sonra yeniden dene. E-postayla giriş bu arada çalışır.
+**Kayıt:** bu commit (`[skip ci]`).
