@@ -605,3 +605,7 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Kullanıcı:** (ekran görüntüsü: Play Console, "Kuruluşunuzun web sitesini doğrulayın · İşlem gerekli" hâlâ duruyor) "ya hala sitede kalmış bu önüme yeşiş çıkmmıştı bitti die bu hala burda yeniledim gitmio"
 **Cevap:** Yeşil onay Search Console'daki sahiplik doğrulamasıydı. Play tarafı ayrı istek: Hesap ayrıntıları › Kuruluş web sitesi tam olarak `https://guza423.github.io/pump-mine/` olmalı, sonra "Web sitesini doğrula / doğrulama isteği gönder". Aynı hesapsa onay otomatik, birkaç dakika sürebilir.
 **Kayıt:** bu commit (`[skip ci]`).
+
+**Kullanıcı:** "tamam oldu ilk uygulamanızı oluşturun dio . ne yapalım şimdi"
+**Cevap:** Play Console hesap kurulumu bitti. Uygulama oluşturma: ad OUTMOVE, varsayılan dil English (United States), Uygulama, Ücretsiz (sonradan ücretliye çevrilemez). Sonra Dahili test: testçi listesi (kendi e-postası), yeni sürüm, Play App Signing (Google'ın anahtarı), `outmove-play-1.0.0-1` AAB'si; ardından Uygulama bütünlüğü'ndeki SHA'lar Firebase'e.
+**Kayıt:** bu commit (`[skip ci]`).
