@@ -1,6 +1,6 @@
 // EN · Hesap ve ayarlar, açık rıza, gizlilik özeti, yedek, hata mesajları (V21)
 // Anahtar: Türkçe kaynak metin. Değer: İngilizce; [tekil, çoğul] ise {n}'e göre seçilir.
-import type { Entry } from '../index';
+import type { Entry } from '../types';
 
 export const account: Record<string, Entry> = {
   "Misafir: kayıtlar yalnızca bu telefonda": "Guest: records live only on this phone",

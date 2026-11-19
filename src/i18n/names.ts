@@ -2,18 +2,19 @@
    Belgelerde hareket ve gün adları Türkçe saklanır; veri değişmez, yalnızca ekranda çevrilir.
    Kullanıcının kendi yazdığı adlar (plan adı, özel hareket) olduğu gibi kalır. */
 import { EX_LIB } from '../lib/data/exlib';
-import { getLang, t } from './index';
+import { exerciseNameIn, getLang, t } from './index';
 
 const BY_ID = new Map(EX_LIB.map((e) => [e.id, e]));
 const BY_NAME = new Map(EX_LIB.map((e) => [e.name, e]));
 
 type Named = { exId?: string | null; id?: string | null; name?: string | null } | null | undefined;
 
-/** Hareket adı: kütüphane hareketi İngilizcede kütüphanenin İngilizce adıyla, özel hareket yazıldığı gibi. */
+/** Hareket adı: kütüphane hareketi Türkçede Türkçe adıyla, diğer dillerde dil paketindeki adıyla (yoksa İngilizce adıyla);
+    özel hareket yazıldığı gibi. */
 export function exName(x: Named, fallback = ''): string {
   if (!x) return fallback;
   const lib = (x.exId && BY_ID.get(x.exId)) || (x.id && BY_ID.get(x.id)) || (x.name ? BY_NAME.get(x.name) : undefined);
-  if (lib) return getLang() === 'en' ? lib.en : (x.name || lib.name);
+  if (lib) return getLang() === 'tr' ? (x.name || lib.name) : (exerciseNameIn(lib.id) || lib.en);
   return x.name || fallback;
 }
 

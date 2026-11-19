@@ -992,7 +992,7 @@ export const FreePixelSession: React.FC<Props> = ({
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
               <span style={{ fontSize: 21, fontWeight: 700, letterSpacing: '0.04em', lineHeight: 1.1 }}>{upper(t('Plansız antrenman'))}</span>
               <span className="px-ses-meta">
-                <span>{sesDate}</span>
+                <span className="px-ses-date">{sesDate}</span>
                 {s.ready ? (
                   <span>{t('HAZIR')} · <b>{t('başlamadı')}</b></span>
                 ) : (

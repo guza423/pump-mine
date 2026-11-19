@@ -100,13 +100,20 @@ src/
   - `simulatePlan(hipertrofiProgram())` ve `simulatePlan(weekProgram([hipertrofiProgram()]))` (test fikstürü, `src/test/fixtures.ts`): seans başı ortalama ≈21, en yüksek tepe ≈76
 - Her PR'da `npm run build` ve `npm test` geçmeli.
 
-## Dil (V21–V25; ayrıntı `docs/gorevler/V21-dil-altyapisi-ingilizce.md`)
-- Varsayılan dil **İngilizce**; kullanıcı **Hesap ve ayarlar › Language · Dil**'den Türkçeye geçer (`localStorage['outmove.lang']`).
-- Arayüze giren **her yeni metin** `t('Türkçe metin')`, `tc('bağlam', '…')` ya da `byLang({ tr, en })` ile yazılır ve İngilizcesi **aynı committe** `src/i18n/en/*.ts`'ye eklenir. Sayı/yüzde/saat için `num()`, `pct()`, `clock()`; `toLocaleString('tr-TR')` yazma.
+## Dil (V21–V26; ayrıntı `docs/gorevler/V21-dil-altyapisi-ingilizce.md`, `V26-cok-dil-hazirligi.md`)
+- Diller `src/i18n/langs.ts`'de. Varsayılan ve yedek dil **İngilizce**; kullanıcı **Hesap ve ayarlar › Language · Dil**'den seçer (`localStorage['outmove.lang']`). Yalnızca Latin alfabeli, soldan sağa diller (kullanıcı kararı; Arapça yok).
+- Arayüze giren **her yeni metin** `t('Türkçe metin')`, `tc('bağlam', '…')` ya da `byLang('bağlam', { tr, en })` ile yazılır ve İngilizcesi **aynı committe** `src/i18n/en/*.ts`'ye eklenir; ek dil varsa onun sözlüğüne de (test eksiği yakalar). `byLang` bağlam adı tek ve küçük harf. Sayı/yüzde/saat için `num()`, `numIn()`, `pct()`, `clock()`; ondalık ayırıcı `decimalSep()`; `toLocaleString('tr-TR')` ya da `getLang() === 'tr'` ile biçim kurma.
 - Veri Türkçe saklanır (kas adı, kütüphane hareket adı, `Plansız antrenman`, `1. gün`); gösterimde `muscleName()`, `exName()`, `dayLabel()` ile çevrilir. Metne göre karar verme (regex/eşitlik); kimlik kullan.
-- `t` adını yerel değişkene verme (`i18n.test.ts` gölgelemeyi yakalar). Testler Türkçe başlar (`src/test/setup.ts`); İngilizce ekran testleri `src/test/i18n-screens.test.tsx`, İngilizce yerleşim `layout-check.mjs` → `flowEn`.
-- `t(değişken)` ile çevrilen metinler (sabit listeler, `SHEET_TITLES`, hata mesajları, kütüphane notları) tarayıcıya görünmez: sözlüğe elle ekle. İngilizce ekran testleri Türkçe harfi ve Türkçe harf taşımayan Türkçe kelimeyi ("Tekrar", "dirsek") birlikte yakalar; yeni ekranı bu testlere ekle.
-- **Yasal metinler iki dilde** (`src/legal/texts/`; Türkçe `kosullar.md` … , İngilizce `*-en.md`). Bir metni değiştirirsen karşılığını **aynı committe** değiştir; `legal.test.ts` bölüm, madde ve tablo satırı sayılarını karşılaştırır. Uygulama metne Türkçe kimlikle başvurur (`APP_DOC_IDS`), gösterirken `appDocId()` etkin dildekini açar. Türkçe kimlikler (Play bağlantıları) değişmez. Yer tutucular `meta.ts` › `fillLegal(md, lang)`.
+- `t` adını yerel değişkene verme (`i18n.test.ts` gölgelemeyi yakalar). Testler Türkçe başlar (`src/test/setup.ts`); İngilizce ve sözde dil ekran testleri `src/test/i18n-screens.test.tsx`, Türkçe dışı yerleşim `layout-check.mjs` → `flowLang` (ekran adları sözlükten).
+- `t(değişken)` ile çevrilen metinler (sabit listeler, `SHEET_TITLES`, hata mesajları, kütüphane notları) tarayıcıya görünmez: sözlüğe elle ekle. İngilizce ekran testleri Türkçe harfi ve Türkçe harf taşımayan Türkçe kelimeyi ("Tekrar", "dirsek") yakalar; **sözde dil testi** sözlükten geçmeyen her metni (koda gömülü İngilizce dahil) yakalar. Yeni ekranı bu testlere ekle.
+- **Yasal metinler dillere göre klasörde**: `src/legal/texts/<dil>/<taban>.md` (taban: kosullar, gizlilik, aydinlatma, riza, silme). Bir metni değiştirirsen her dildeki karşılığını **aynı committe** değiştir; `legal.test.ts` bölüm, madde ve tablo satırı sayılarını Türkçeyle karşılaştırır. Metin içi bağlantı taban adla (`#doc:riza`) yazılır, okunan metnin dilinde açılır. Uygulama metne taban adla başvurur, `appDocId()` etkin dildekini (yoksa İngilizcesini) açar. Adresler: Türkçe taban ad (Play bağlantıları, değişmez), diğerleri `<kısa ad>-<dil>` (`privacy-en`). Yer tutucular `meta.ts` › `LEGAL_L10N`.
+
+### Yeni dil ekleme (V26)
+1. `src/i18n/langs.ts` › `LANG_META`: `{ id: 'de', label: 'Deutsch', locale: 'de-DE' }`.
+2. İş listesi: `I18N_WORKLIST=de npm run i18n:worklist` → `i18n-worklist-de.json` (depoya girmez): çevrilecek her metin İngilizcesiyle (`bağlam|metin` anahtarları dahil), hareket adları, eksik yasal metinler.
+3. `src/i18n/de/index.ts`: `export const DE: Dict = { … }` (anahtar = iş listesindeki anahtar; çoğul `[tekil, çoğul]` ya da `{ one, few, many, other }`, seçimi `Intl.PluralRules` yapar), isteğe bağlı `DE_EXERCISES` (hareket kimliği → ad; yoksa İngilizce ad görünür). `src/i18n/dicts.ts`: `de: { dict: DE, exercises: DE_EXERCISES }`.
+4. Yasal: `src/legal/texts/de/` altına beş metin (İngilizceden çevrilir; yapı aynı kalır; "hangi metin esas" cümlesi o dile göre) ve `meta.ts` › `LEGAL_L10N.de`. Hukukçu kontrolü gerekir. Yoksa uygulama İngilizcesini gösterir.
+5. Kontrol: `npm test` (eksik/fazla anahtar, değişken, çoğul, yasal yapı), `LAYOUT_LANGS=de npm run test:layout` (`LAYOUT_SHOTS=1` ile ekran görüntüsüne bak; uzun kelimeler en çok 320 px ve %115 yazıda taşar), sonra tam `test:layout`.
 
 ## Fazlar
 1. **Web uygulaması.** Vite + React + TS iskeleti, prototipin birebir taşınması, IndexedDB store, yedekleme, PWA. Her push'ta GitHub Pages'e deploy eden workflow (Vite `base` ayarını repo adına göre yap).

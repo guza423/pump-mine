@@ -150,7 +150,7 @@ function LangPicker() {
   return (
     <div className="acct-lang">
       <span className="st-k" id="lang-k">Language · Dil</span>
-      <div className="segmented seg2" role="radiogroup" aria-labelledby="lang-k">
+      <div className="segmented seg2" style={LANGS.length > 2 ? { gridTemplateColumns: 'repeat(' + Math.min(LANGS.length, 3) + ', minmax(0, 1fr))' } : undefined} role="radiogroup" aria-labelledby="lang-k">
         {LANGS.map((l) => (
           <button key={l.id} type="button" role="radio" id={'lang-' + l.id} lang={l.id} aria-checked={lang === l.id} className={lang === l.id ? 'on' : ''} onClick={() => setLang(l.id)}>{l.label}</button>
         ))}

@@ -2,7 +2,7 @@
 
 Version date: {{SURUM}}
 
-This notice has been prepared under Article 10 of the Turkish Personal Data Protection Law No. 6698 ("KVKK") and the Communiqué on the Procedures and Principles for Fulfilling the Obligation to Inform, to inform people who use the {{UYGULAMA}} app. It is not a consent form; it is for information only. Processing that requires explicit consent is covered by a separate [Explicit Consent Notice](#doc:consent-en).
+This notice has been prepared under Article 10 of the Turkish Personal Data Protection Law No. 6698 ("KVKK") and the Communiqué on the Procedures and Principles for Fulfilling the Obligation to Inform, to inform people who use the {{UYGULAMA}} app. It is not a consent form; it is for information only. Processing that requires explicit consent is covered by a separate [Explicit Consent Notice](#doc:riza).
 
 This English text is a translation provided for information. The Turkish text is the authoritative version.
 
@@ -48,7 +48,7 @@ Because the data controller is established in the United States, when you use an
 
 ## 6. Retention period
 
-Account and training data are kept while your account exists; special category data is kept while your explicit consent lasts. When you delete your account or withdraw your consent, the related data is deleted immediately. Details are in Section 8 of the [Privacy Policy](#doc:privacy-en).
+Account and training data are kept while your account exists; special category data is kept while your explicit consent lasts. When you delete your account or withdraw your consent, the related data is deleted immediately. Details are in Section 8 of the [Privacy Policy](#doc:gizlilik).
 
 ## 7. Your rights under KVKK Article 11
 
@@ -56,4 +56,4 @@ By applying to the data controller, you have the right to: learn whether your pe
 
 ## 8. How to apply
 
-You can send your request to {{EPOSTA}} from the email address registered in the app, in writing to {{ADRES}}, or by registered electronic mail (KEP), secure electronic signature or mobile signature. Your request will be concluded free of charge within 30 days at the latest. The application procedure and your right to complain are described in Section 10 of the [Privacy Policy](#doc:privacy-en).
+You can send your request to {{EPOSTA}} from the email address registered in the app, in writing to {{ADRES}}, or by registered electronic mail (KEP), secure electronic signature or mobile signature. Your request will be concluded free of charge within 30 days at the latest. The application procedure and your right to complain are described in Section 10 of the [Privacy Policy](#doc:gizlilik).

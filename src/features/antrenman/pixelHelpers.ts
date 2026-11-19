@@ -1,5 +1,5 @@
 import { EQ } from '../../lib/data/exlib';
-import { byLang, getLang, t } from '../../i18n';
+import { byLang, decimalSep, getLang, t } from '../../i18n';
 
 export type VisKind = 'bar' | 'mk' | 'db' | 'other';
 
@@ -47,9 +47,9 @@ const PX_SPEED_EN = [
   { ...PX_SPEED_TR[3], k: 'Big', d: 'Very slow · ~1 left' },
   { ...PX_SPEED_TR[4], k: 'Grind', d: 'Barely got it · failure' },
 ] as const;
-export const PX_SPEED = byLang<readonly (typeof PX_SPEED_TR)[number][]>({ tr: PX_SPEED_TR, en: PX_SPEED_EN as never });
+export const PX_SPEED = byLang<readonly (typeof PX_SPEED_TR)[number][]>('pxspeed', { tr: PX_SPEED_TR, en: PX_SPEED_EN as never });
 
-export const PX_PLYO_Q = byLang({
+export const PX_PLYO_Q = byLang('pxplyoq', {
   tr: [
     { k: 'Korundu', d: 'Yükseklik ve hız korundu', c: '#52e07c' },
     { k: 'Biraz düştü', d: 'Son tekrarlar biraz alçaldı', c: '#ffc53d' },
@@ -62,7 +62,7 @@ export const PX_PLYO_Q = byLang({
   ],
 });
 
-export const PX_SKILL_Q = byLang({
+export const PX_SKILL_Q = byLang('pxskillq', {
   tr: [
     { k: 'Temiz', d: 'Temiz tekrar', c: '#52e07c' },
     { k: 'Kısmen', d: 'Kısmen çıktı', c: '#ffc53d' },
@@ -112,10 +112,9 @@ export function upTr(s: string): string {
     .join(' ');
 }
 
-// Kilo yazısı: Türkçede 82,5 · İngilizcede 82.5 (binlik ayırıcı yok)
+// Kilo yazısı: Türkçede 82,5 · İngilizcede 82.5 (binlik ayırıcı yok; ayırıcı dilden gelir)
 export function fk(v: number): string {
-  const s = String(Math.round(v * 100) / 100);
-  return getLang() === 'tr' ? s.replace('.', ',') : s;
+  return String(Math.round(v * 100) / 100).replace('.', decimalSep());
 }
 
 export function hms(sec: number): string {

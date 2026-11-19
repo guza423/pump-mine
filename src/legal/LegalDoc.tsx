@@ -1,5 +1,5 @@
 import React from 'react';
-import { legalDoc } from './docs';
+import { legalDoc, linkTarget } from './docs';
 import './legal.css';
 
 // Hukuki metinler için küçük, bağımlılıksız markdown okuyucu.
@@ -114,5 +114,7 @@ export function Markdown({ md, onOpen, hideTitle }: { md: string; onOpen?: Open;
 }
 
 export function LegalDoc({ id, onOpen, hideTitle }: { id: string; onOpen?: Open; hideTitle?: boolean }) {
-  return <Markdown md={legalDoc(id).md} onOpen={onOpen} hideTitle={hideTitle} />;
+  // Taban adla yazılmış bağlantılar (#doc:riza) okunan metnin dilindeki karşılığa gider (V26).
+  const md = legalDoc(id).md.replace(/\(#doc:([a-z-]+)\)/g, (_m, to) => `(#doc:${linkTarget(id, to)})`);
+  return <Markdown md={md} onOpen={onOpen} hideTitle={hideTitle} />;
 }

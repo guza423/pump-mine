@@ -10,7 +10,7 @@ const exMeta = (id?: string | null, name?: string | null) =>
 export type { Goal, PerfGoal, SkillGoal };
 
 // Gösterim etiketleri; dile göre (V21). Aşama verisi sayı olarak (0–3) saklanır.
-export const SKILL_STAGES = byLang<readonly string[]>({
+export const SKILL_STAGES = byLang<readonly string[]>('skillstages', {
   tr: ['Başladım', 'Parçalarını yapıyorum', 'İlk temiz tekrar', 'Oturdu'],
   en: ['Started', 'Working on the parts', 'First clean rep', 'Locked in'],
 });

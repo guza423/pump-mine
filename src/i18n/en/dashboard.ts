@@ -1,6 +1,6 @@
 // EN · Dashboard, hedef ve yorgunluk ölçer penceresi, yorgunluk önerileri ve uyarıları (V21)
 // Anahtar: Türkçe kaynak metin. Değer: İngilizce; [tekil, çoğul] ise {n}'e göre seçilir.
-import type { Entry } from '../index';
+import type { Entry } from '../types';
 
 export const dashboard: Record<string, Entry> = {
   "Kayıtlar yalnızca bu telefonda": "Records live only on this phone",

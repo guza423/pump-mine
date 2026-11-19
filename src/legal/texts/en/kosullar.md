@@ -4,7 +4,7 @@ Effective date and version: {{SURUM}}
 
 These Terms of Use (the "Terms") govern your use of the {{UYGULAMA}} app, its web version and related services (the "Service") provided by {{SIRKET}} ({{SIRKET_ACIKLAMA}}; the "Company", "we", "us"). Please read them carefully before using the Service. By ticking "I have read and accept the Terms of Use" in the app, or by using the Service, you accept these Terms. If you do not accept them, do not use the Service.
 
-These Terms do not cover your personal data; that is covered by the [Privacy Policy](#doc:privacy-en) and the [KVKK Privacy Notice](#doc:kvkk-en). These Terms are available in English and Turkish. If the two versions differ, the Turkish version prevails for users in Turkey; for all other users this English version prevails.
+These Terms do not cover your personal data; that is covered by the [Privacy Policy](#doc:gizlilik) and the [KVKK Privacy Notice](#doc:aydinlatma). These Terms are available in English and Turkish. If the two versions differ, the Turkish version prevails for users in Turkey; for all other users this English version prevails.
 
 ## 1. What the Service is
 
@@ -29,7 +29,7 @@ These Terms do not cover your personal data; that is covered by the [Privacy Pol
 - The core features of the Service can be used without an account. Cloud sync requires an account.
 - When you create an account, you must provide accurate information, keep your sign-in details confidential and not share your account with anyone. You are responsible for activity in your account.
 - If you believe your account has been used without your permission, change your password immediately and let us know.
-- Storing data that may qualify as health data in the cloud also requires your [explicit consent](#doc:consent-en).
+- Storing data that may qualify as health data in the cloud also requires your [explicit consent](#doc:riza).
 
 ## 5. Guest use and your data
 
@@ -83,7 +83,7 @@ To the extent permitted by mandatory law, you agree to cover reasonable losses a
 
 ## 14. Termination
 
-- You may stop using the Service at any time and delete your account from within the app. Details: [Account and data deletion](#doc:deletion-en).
+- You may stop using the Service at any time and delete your account from within the app. Details: [Account and data deletion](#doc:silme).
 - If you seriously or repeatedly breach these Terms, or to protect the security of the Service, or where required by law, we may suspend or close your account. Where possible, we will notify you in advance and give you a chance to export your data.
 - Provisions that by their nature should survive termination (the health notice, intellectual property, liability and governing law) remain in force.
 

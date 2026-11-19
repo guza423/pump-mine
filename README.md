@@ -9,9 +9,9 @@ Android telefonları hedefleyen, çevrimdışı çalışan antrenman uygulaması
 
 ## Arayüz dili
 
-Varsayılan dil **İngilizce**; **Hesap ve ayarlar › Language · Dil** ile Türkçeye geçilir ve seçim cihazda saklanır. Dört sekme, pencereler, bildirimler ve yasal metinler iki dilde (V21–V25). Kaynak metin Türkçedir ve sözlük anahtarıdır: `t('Kaydet')` İngilizcede `Save`; İngilizce sözlük `src/i18n/en/*.ts`. Kayıtlı veri (kas, hareket, gün adı) Türkçe saklanır, ekranda çevrilir. Kural ve testler: `AGENTS.md` › Dil.
+Varsayılan dil **İngilizce**; **Hesap ve ayarlar › Language · Dil** ile Türkçeye geçilir ve seçim cihazda saklanır. Dört sekme, pencereler, bildirimler ve yasal metinler iki dilde (V21–V25). Yeni Latin alfabeli dil yalnızca çeviri dosyalarıyla eklenir (V26): adımlar `AGENTS.md` › Dil › "Yeni dil ekleme"; çevrilecekler listesi `I18N_WORKLIST=de npm run i18n:worklist`. Kaynak metin Türkçedir ve sözlük anahtarıdır: `t('Kaydet')` İngilizcede `Save`; İngilizce sözlük `src/i18n/en/*.ts`. Kayıtlı veri (kas, hareket, gün adı) Türkçe saklanır, ekranda çevrilir. Kural ve testler: `AGENTS.md` › Dil.
 
-Yasal metinler herkese açık sayfada iki dilde: Türkçe `legal.html#gizlilik`, `#kosullar`, `#aydinlatma`, `#riza`, `#silme`; İngilizce `#privacy-en`, `#terms-en`, `#kvkk-en`, `#consent-en`, `#deletion-en`. Sayfanın üstündeki bağlantı aynı metnin diğer dildekini açar.
+Yasal metinler (`src/legal/texts/<dil>/`) herkese açık sayfada: Türkçe `legal.html#gizlilik`, `#kosullar`, `#aydinlatma`, `#riza`, `#silme`; İngilizce `#privacy-en`, `#terms-en`, `#kvkk-en`, `#consent-en`, `#deletion-en` (yeni dil: `#privacy-de` …). Sayfanın üstündeki bağlantılar aynı metnin diğer dillerdekini açar.
 
 ## Yapay zekâ ile çalışma
 

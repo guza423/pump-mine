@@ -8,7 +8,12 @@ import { db } from '../lib/store/database';
 import { hipertrofiProgram } from './fixtures';
 import { resetTestRuntime, testEnvironment } from './cloudRuntime';
 import { LEGAL_KEY } from '../legal/acceptance';
-import { LANG_KEY, getLang, setLang } from '../i18n';
+import { LANG_KEY, LANGS, byLangKeys, getLang, registerLang, setLang } from '../i18n';
+import { PACKS } from '../i18n/dicts';
+import { EX_LIB } from '../lib/data/exlib';
+import { LEGAL_BASES, docIn } from '../legal/docs';
+import { writeFileSync } from 'node:fs';
+import { resolve as resolvePath } from 'node:path';
 import { LEGAL } from '../legal/meta';
 
 const native = vi.hoisted(() => ({ start: vi.fn(), stop: vi.fn(), checkPermissions: vi.fn(), requestPermissions: vi.fn() }));
@@ -460,5 +465,197 @@ describe('İngilizce arayüz (V21)', () => {
       }
       await closeTop();
     }
+  });
+});
+
+// V26 · yeni dil hazırlığı.
+// Katalog: çevrilecek her metin = İngilizce sözlüğün anahtarları + byLang yapılarının "bağlam|Türkçe" metinleri
+// (App içe aktarıldığı için bütün byLang sabitleri kayıtlı). Yeni dil bu kataloğun tamamını çevirir.
+const catalog = () => {
+  const m = new Map(Object.entries(EN));
+  for (const [k, en] of byLangKeys()) m.set(k, en);
+  return m;
+};
+const formsOf = (v) => (typeof v === 'string' ? [v] : Array.isArray(v) ? v : Object.values(v));
+const varsOf = (s) => [...String(s).matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join(',');
+
+describe('yeni dil hazırlığı (V26)', () => {
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    native.start.mockResolvedValue(undefined);
+    native.stop.mockResolvedValue(undefined);
+    native.checkPermissions.mockResolvedValue({ notifications: 'granted' });
+    resetTestRuntime();
+    window.location.hash = '';
+    localStorage.clear();
+    localStorage.setItem(LEGAL_KEY, JSON.stringify({ v: LEGAL.VERSION, at: 1 }));
+    await db.delete();
+    await db.open();
+  });
+  afterEach(async () => {
+    cleanup();
+    setLang('tr', false);
+    db.close();
+    await db.delete();
+  });
+
+  it('byLang yapılarının her metninin İngilizcesi var', () => {
+    const keys = byLangKeys();
+    expect(keys.size).toBeGreaterThan(100);
+    const bad = [...keys].filter(([, en]) => !en || TR_CHARS.test(en)).map(([k]) => k);
+    expect(bad).toEqual([]);
+  });
+
+  // I18N_WORKLIST=de npm run i18n:worklist → i18n-worklist-de.json: eksik metinler (İngilizcesiyle), hareket adları, yasal metinler.
+  it('her ek dilin sözlüğü eksiksiz, değişkenleri ve çoğulları doğru (iş listesi: I18N_WORKLIST=<dil>)', () => {
+    const cat = catalog();
+    const extra = LANGS.map((l) => l.id).filter((id) => id !== 'tr' && id !== 'en');
+    const want = process.env.I18N_WORKLIST;
+    const langs = want ? [want] : extra;
+    const problems = [];
+    for (const lang of langs) {
+      const pack = PACKS[lang] || { dict: {} };
+      const missing = {};
+      for (const [k, en] of cat) {
+        const v = pack.dict[k];
+        if (v == null) { missing[k] = en; continue; }
+        for (const f of formsOf(v)) {
+          if (varsOf(f) !== varsOf(formsOf(en)[0])) problems.push(`${lang} değişken: ${k} → ${f}`);
+          if (/[ığşİĞŞ]/.test(f)) problems.push(`${lang} Türkçe harf: ${k} → ${f}`);
+        }
+        if (Array.isArray(v) && v.length !== 2) problems.push(`${lang} çoğul: ${k}`);
+        if (v && typeof v === 'object' && !Array.isArray(v) && !v.other) problems.push(`${lang} çoğul (other yok): ${k}`);
+      }
+      for (const k of Object.keys(pack.dict)) if (!cat.has(k)) problems.push(`${lang} artık kullanılmayan: ${k}`);
+      for (const id of Object.keys(pack.exercises || {})) if (!EX_LIB.some((e) => e.id === id)) problems.push(`${lang} bilinmeyen hareket: ${id}`);
+      if (want) {
+        const exercises = Object.fromEntries(EX_LIB.filter((e) => !(pack.exercises || {})[e.id]).map((e) => [e.id, { tr: e.name, en: e.en }]));
+        const legal = LEGAL_BASES.filter((b) => docIn(b, lang).lang !== lang).map((b) => `src/legal/texts/${lang}/${b}.md ← src/legal/texts/en/${b}.md`);
+        const file = resolvePath(import.meta.dirname, '../..', `i18n-worklist-${lang}.json`);
+        writeFileSync(file, JSON.stringify({ lang, missing, exercises, legal }, null, 1));
+        console.log(`${file}: ${Object.keys(missing).length} metin, ${Object.keys(exercises).length} hareket adı, ${legal.length} yasal metin`);
+      } else if (Object.keys(missing).length) problems.push(`${lang}: ${Object.keys(missing).length} eksik metin (ör. ${Object.keys(missing).slice(0, 3).join(' · ')})`);
+    }
+    expect(problems).toEqual([]);
+  });
+
+  // Sözde dil: her metin İngilizcesinin ünlüleri vurgulanmış hali ("Save" → "Sávé"). Ekranda vurgusuz ünlü taşıyan kelime
+  // sözlükten geçmemiş demektir (koda gömülü İngilizce ya da Türkçe metin); yeni dile çevrilmeden kalırdı.
+  it('sözde dilde ekrandaki her metin sözlükten gelir', async () => {
+    const ACC = { a: 'á', e: 'é', i: 'í', o: 'ó', u: 'ú', A: 'Á', E: 'É', I: 'Í', O: 'Ó', U: 'Ú' };
+    const ps = (s) => String(s).replace(/(\{\w+\}|\*\*)|([aeiouAEIOU])/g, (m, keep, v) => keep || ACC[v]);
+    const dict = {};
+    for (const [k, en] of catalog()) dict[k] = typeof en === 'string' ? ps(en) : Array.isArray(en) ? en.map(ps) : Object.fromEntries(Object.entries(en).map(([c, f]) => [c, ps(f)]));
+    registerLang({ id: 'xx', label: 'Pseudo', locale: 'de-DE' }, { dict, exercises: Object.fromEntries(EX_LIB.map((e) => [e.id, ps(e.en)])) });
+    setLang('xx', false);
+    // İzinli: marka ve kısaltmalar; yasal metin başlıkları (bu dilin yasal metni yoksa İngilizcesi açılır, beklenen);
+    // Intl'nin dilin kendi yerel ayarıyla yazdığı tarih (.px-ses-date); hareket sayfasındaki İngilizce ad satırı (.ex-en).
+    const ALLOW = new Set(['OUTMOVE', 'PRWAGON', 'LLC', 'Google', 'JSON', 'RPE', 'RIR', 'ROM', 'NSCA', 'EMG']);
+    const SKIP = 'script, style, .acct-lang, .lg-acct-links, .px-ses-date, .ex-en';
+    const leaks = new Set();
+    const scan = (where) => {
+      const root = document.body;
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+        if (n.parentElement?.closest(SKIP)) continue;
+        for (const w of n.nodeValue.match(/[A-Za-zÀ-ÿĀ-ž]{3,}/g) || []) if (/[aeiouAEIOU]/.test(w) && !ALLOW.has(w)) leaks.add(`${where}: ${w} ‹${n.parentElement?.className || n.parentElement?.localName}›`);
+      }
+      for (const el of root.querySelectorAll('[aria-label], [placeholder], [title]')) {
+        for (const a of ['aria-label', 'placeholder', 'title']) {
+          for (const w of (el.getAttribute(a) || '').match(/[A-Za-zÀ-ÿĀ-ž]{3,}/g) || []) if (/[aeiouAEIOU]/.test(w) && !ALLOW.has(w)) leaks.add(`${where} [${a}]: ${w}`);
+        }
+      }
+    };
+    const { container } = render(<App />);
+    const click = (sel) => fireEvent.click(container.querySelector(sel));
+    const closeTop = async () => {
+      fireEvent.click(screen.getAllByRole('button', { name: ps('Close') }).at(-1));
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    };
+    const sheet = async (sel, where) => {
+      click(sel);
+      await waitFor(() => expect(screen.getAllByRole('dialog').length).toBeGreaterThan(0));
+      scan(where);
+      await closeTop();
+    };
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    scan('dashboard');
+    await sheet('#ready-ring', 'yorgunluk');
+    await sheet('#account-btn', 'hesap');
+    await sheet('#goal-add', 'hedef');
+    // Antrenman: plan düzenleyici, plansız oturum, seçici, set, dinlenme, set ayrıntısı, özet
+    click('#tab-antrenman');
+    scan('antrenman');
+    click('#new-plan');
+    await waitFor(() => expect(container.querySelector('.editor2')).toBeTruthy());
+    scan('plan-duzenleyici');
+    click('#ed-back');
+    click('#free-session');
+    await waitFor(() => expect(container.querySelector('#ses-add-first')).toBeTruthy());
+    scan('plansiz');
+    click('#ses-add-first');
+    scan('secici');
+    // Arama kutusuna yazılan metin "özel hareket ekle" satırında aynen görünür (kullanıcı verisi); taramadan sonra yazılır.
+    fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'incline barbell bench' } });
+    fireEvent.click(container.querySelector('.pk'));
+    click('#pick-add');
+    await waitFor(() => expect(container.querySelector('.card-main')).toBeTruthy());
+    scan('liste');
+    fireEvent.click(container.querySelector('.card-main'));
+    scan('set');
+    click('#log-set');
+    await waitFor(() => expect(container.querySelector('#rest-big')).toBeTruthy());
+    scan('dinlenme');
+    fireEvent.click(screen.getByRole('button', { name: ps('SKIP') }));
+    await waitFor(() => expect(container.querySelector('#log-set')).toBeTruthy());
+    fireEvent.click(container.querySelector('.st'));
+    await waitFor(() => expect(screen.getAllByRole('dialog').length).toBeGreaterThan(0));
+    scan('set-ayrinti');
+    fireEvent.click(within(screen.getAllByRole('dialog').at(-1)).getByRole('button', { name: ps('CLOSE') }));
+    await waitFor(() => expect(container.querySelector('#ex-done')).toBeTruthy());
+    click('#ex-done');
+    await waitFor(() => expect(container.querySelector('.px-done-tag')).toBeTruthy(), { timeout: 3000 });
+    click('#finish-btn');
+    await waitFor(() => expect(container.querySelector('#pixel-summary')).toBeTruthy(), { timeout: 3000 });
+    scan('ozet');
+    click('#summary-done');
+    await waitFor(() => expect(container.querySelector('.hist-inline .hrow')).toBeTruthy());
+    scan('gecmis');
+    // Gözlem (kayıt dolu)
+    click('#tab-gozlem');
+    await waitFor(() => expect(container.querySelector('#day-panel')).toBeTruthy());
+    scan('gozlem');
+    // Lab: temeller, ölçüm, dersler, hareketler, biyomekanikli hareket sayfası
+    click('#tab-lab');
+    scan('lab');
+    await sheet('#lab-measure', 'olcum');
+    click('#lab-signal');
+    await waitFor(() => expect(screen.getAllByRole('dialog').length).toBeGreaterThan(0));
+    for (const [i, tab] of within(screen.getAllByRole('dialog').at(-1)).getAllByRole('tab').entries()) { fireEvent.click(tab); scan('ders-' + (i + 1)); }
+    await closeTop();
+    click('#lab-part-hareket');
+    scan('hareketler');
+    for (const [q, id] of [['incline barbell', 'egimli-bench'], ['romanian', 'rdl'], ['band lateral', 'band-yana-acis']]) {
+      fireEvent.change(container.querySelector('#lab-search'), { target: { value: q } });
+      await waitFor(() => expect(container.querySelector('#labex-' + id)).toBeTruthy());
+      await sheet('#labex-' + id, 'hareket-' + id);
+    }
+    // Planlı oturum: plan düzenleyicide hareket ayarı, planlı set ekranı ve dinlenme
+    click('#tab-antrenman');
+    click('#new-plan');
+    await waitFor(() => expect(container.querySelector('.editor2')).toBeTruthy());
+    click('#add-item');
+    fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'barbell bench' } });
+    fireEvent.click(container.querySelector('.exr-main'));
+    await waitFor(() => expect(container.querySelector('.itemsheet')).toBeTruthy());
+    scan('plan-hareket-ayari');
+    await closeTop();
+    click('#ed-start');
+    await waitFor(() => expect(container.querySelector('.tgt2')).toBeTruthy());
+    scan('planli');
+    click('#log-set');
+    await waitFor(() => expect(container.querySelector('.restchip')).toBeTruthy());
+    scan('planli-dinlenme');
+    expect([...leaks]).toEqual([]);
   });
 });

@@ -10,10 +10,10 @@ import { HoldButton } from '../../app/HoldButton';
 import { byLang, lower, num, numIn, pct, t } from '../../i18n';
 
 /* ================= GÜNLÜK: program yazma + antrenman kaydı ================= */
-const WD_LONG = byLang({ tr: ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'], en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] });
-const WD_SHORT = byLang({ tr: ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'], en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] });
+const WD_LONG = byLang('wdlong', { tr: ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'], en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] });
+const WD_SHORT = byLang('wdshort', { tr: ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'], en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] });
 const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
-const MONTHS = byLang({ tr: ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'], en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] });
+const MONTHS = byLang('months', { tr: ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'], en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] });
 const MUSCLES = Object.values(MUS_CODE);
 const REST_OPTS = [60, 75, 90, 120, 150, 180, 240, 300];
 // EX_LIB, MUS_CODE, EQ, KIND, PLYO_INT: exlib.js
@@ -30,15 +30,15 @@ const PROF_EN = {
   d: { k: 'Even', d: 'Resistance stays similar through the whole rep' },
 };
 for (const P of [PROF_TR, PROF_EN]) { P.alt = P.a; P.ust = P.u; P.dengeli = P.d; }
-const PROF = byLang({ tr: PROF_TR, en: PROF_EN });
-const FAT = byLang({ tr: ['', 'Düşük', 'Orta', 'Yüksek'], en: ['', 'Low', 'Moderate', 'High'] });
+const PROF = byLang('prof', { tr: PROF_TR, en: PROF_EN });
+const FAT = byLang('fat', { tr: ['', 'Düşük', 'Orta', 'Yüksek'], en: ['', 'Low', 'Moderate', 'High'] });
 const LIB_MAP = new Map(EX_LIB.map((e) => [e.id, e]));
 const libById = (id) => (id ? LIB_MAP.get(id) : undefined);
 const isPlyo = (exId) => { const e = libById(exId); return !!(e && e.kind === 'plyo'); };
 const isSkill = (exId) => { const e = libById(exId); return !!(e && e.kind === 'beceri'); };
 // Pliometrik yorgunluk: temas başına yük, yoğunluğa göre (düşük, orta, yüksek, şok). 100 orta temas ≈ 5 orta maliyetli zor set.
 const PLYO_W = [0, 0.03, 0.05, 0.08, 0.12];
-const PLYO_Q = byLang({
+const PLYO_Q = byLang('plyoq', {
   tr: [
     { k: 'Korundu', d: 'Yükseklik ve hız korundu', c: 'var(--neuro)' },
     { k: 'Biraz düştü', d: 'Son tekrarlar biraz alçaldı', c: 'var(--amber)' },
@@ -51,7 +51,7 @@ const PLYO_Q = byLang({
   ],
 });
 const SKILL_W = [0, 0.02, 0.04, 0.06];
-const SKILL_Q = byLang({
+const SKILL_Q = byLang('skillq', {
   tr: [
     { k: 'Temiz', d: 'Temiz tekrar', c: 'var(--ok)' },
     { k: 'Kısmen', d: 'Kısmen çıktı', c: 'var(--warn)' },
@@ -100,7 +100,7 @@ const SPEED_EN_TXT = [
   ['Very slow', 'Very slow · ~1 left'],
   ['Grinding', 'Barely got it · failure'],
 ];
-const SPEED = byLang({ tr: SPEED_TR, en: SPEED_TR.map((x, i) => ({ ...x, k: SPEED_EN_TXT[i][0], d: SPEED_EN_TXT[i][1] })) });
+const SPEED = byLang('speed', { tr: SPEED_TR, en: SPEED_TR.map((x, i) => ({ ...x, k: SPEED_EN_TXT[i][0], d: SPEED_EN_TXT[i][1] })) });
 const rirTxt = (rir) => (rir >= 5 ? '5+' : nf(Math.round(rir)));
 const V_MIN = 0.17;      // bench press'te 1RM / tükeniş tekrarı ortalama itiş hızı (m/s)
 const ROM_M = 0.4;       // animasyon için nominal hareket açıklığı (m)

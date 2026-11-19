@@ -25,28 +25,45 @@ export const LEGAL = {
   MIN_AGE: 18,
 } as const;
 
-/** İngilizce metinlerde Türkçe alanların karşılıkları (V25). Ad, adres, e-posta dilden bağımsızdır. */
-const LEGAL_EN = {
-  COMPANY_DESC: 'a limited liability company organized in the State of Wyoming, USA',
-  REGION: 'Frankfurt, Germany (Google Cloud europe-west3)',
-} as const;
-
-const missing = (what: string, lang: 'tr' | 'en') => (lang === 'en' ? `[${what} to be added before launch]` : `[${what} yayın öncesi eklenecek]`);
+/** Dile bağlı yer tutucu metinleri (V25, çok dil V26). Ad, adres, e-posta dilden bağımsızdır.
+    Yeni dilin yasal metinleri eklenince buraya o dilin satırı da eklenir; yoksa İngilizcesi kullanılır. */
+interface LegalL10n { COMPANY_DESC: string; REGION: string; MISSING: string; ADDRESS: string; EMAIL: string; TR_REP: string; EU_REP: string }
+export const LEGAL_L10N: Record<string, LegalL10n> = {
+  tr: {
+    COMPANY_DESC: LEGAL.COMPANY_DESC,
+    REGION: LEGAL.REGION,
+    MISSING: '[{x} yayın öncesi eklenecek]',
+    ADDRESS: 'Şirket adresi',
+    EMAIL: 'İletişim e-postası',
+    TR_REP: 'Atandığında bu metinde ve VERBİS’te ilan edilir.',
+    EU_REP: 'Atandığında bu metinde ilan edilir.',
+  },
+  en: {
+    COMPANY_DESC: 'a limited liability company organized in the State of Wyoming, USA',
+    REGION: 'Frankfurt, Germany (Google Cloud europe-west3)',
+    MISSING: '[{x} to be added before launch]',
+    ADDRESS: 'Company address',
+    EMAIL: 'Contact email',
+    TR_REP: 'Will be announced in this text and in the VERBIS registry once appointed.',
+    EU_REP: 'Will be announced in this text once appointed.',
+  },
+};
 
 /** Metindeki {{ANAHTAR}} yer tutucularını metnin diliyle doldurur. */
-export function fillLegal(md: string, lang: 'tr' | 'en' = 'tr'): string {
-  const en = lang === 'en';
+export function fillLegal(md: string, lang = 'tr'): string {
+  const l = LEGAL_L10N[lang] || LEGAL_L10N.en;
+  const missing = (what: string) => l.MISSING.replace('{x}', what);
   const map: Record<string, string> = {
     SURUM: LEGAL.VERSION,
     UYGULAMA: LEGAL.APP,
     SIRKET: LEGAL.COMPANY,
-    SIRKET_ACIKLAMA: en ? LEGAL_EN.COMPANY_DESC : LEGAL.COMPANY_DESC,
-    ADRES: LEGAL.ADDRESS || (en ? missing('Company address', lang) : missing('Şirket adresi', lang)),
-    EPOSTA: LEGAL.EMAIL || (en ? missing('Contact email', lang) : missing('İletişim e-postası', lang)),
-    TR_TEMSILCI: LEGAL.TR_REP || (en ? 'Will be announced in this text and in the VERBIS registry once appointed.' : 'Atandığında bu metinde ve VERBİS’te ilan edilir.'),
-    AB_TEMSILCI: LEGAL.EU_REP || (en ? 'Will be announced in this text once appointed.' : 'Atandığında bu metinde ilan edilir.'),
+    SIRKET_ACIKLAMA: l.COMPANY_DESC,
+    ADRES: LEGAL.ADDRESS || missing(l.ADDRESS),
+    EPOSTA: LEGAL.EMAIL || missing(l.EMAIL),
+    TR_TEMSILCI: LEGAL.TR_REP || l.TR_REP,
+    AB_TEMSILCI: LEGAL.EU_REP || l.EU_REP,
     WEB: LEGAL.WEB,
-    BOLGE: en ? LEGAL_EN.REGION : LEGAL.REGION,
+    BOLGE: l.REGION,
     YAS: String(LEGAL.MIN_AGE),
   };
   return md.replace(/\{\{([A-Z_]+)\}\}/g, (m, k) => (k in map ? map[k] : m));

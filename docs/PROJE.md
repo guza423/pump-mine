@@ -8,7 +8,7 @@
 > Konuşmaların kronolojik kaydı `docs/KONUSMA-KAYDI.md`'de. Kalıcı her karar bu dosyaya da işlenir (bkz. §9 Karar günlüğü).
 > Repo **herkese açık**. Buraya şifre, token ya da kişisel sağlık/vücut verisi yazılmaz.
 
-Son güncelleme: 2026-11-19 · V25 (dil geçişi tamam: uygulama ve yasal metinler İngilizce + Türkçe).
+Son güncelleme: 2026-11-19 · V26 (çok dil hazırlığı: yeni Latin alfabeli dil yalnızca çeviri dosyalarıyla eklenir).
 
 ---
 
@@ -78,7 +78,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
   - `RestTimerPlugin` + `RestTimerReceiver`: dinlenme bildirimi, kesin alarm.
   - `@capacitor/app`: geri tuşu.
   - `@capacitor-firebase/authentication`: Google girişi.
-- **Dil (V21–V25):** `src/i18n/`. Kaynak metin Türkçe ve anahtar; `t()` / `tc()` / `byLang()`; İngilizce sözlük `src/i18n/en/*.ts`. Veri Türkçe saklanır, gösterimde `muscleName()` / `exName()` / `dayLabel()` çevirir. Dil değişince `.device-wrap` `key={lang}` ile yeniden kurulur. Yasal metinler `src/legal/texts/` altında iki dilde; `docs.ts` her metni karşılığıyla eşler (`pair`), uygulama `appDocs.ts` ile etkin dildekini açar, `legal.html` dil bağlantısıyla iki dili gösterir.
+- **Dil (V21–V26):** `src/i18n/` (diller `langs.ts`, paketler `dicts.ts`). Kaynak metin Türkçe ve anahtar; `t()` / `tc()` / `byLang()`; İngilizce sözlük `src/i18n/en/*.ts`. Veri Türkçe saklanır, gösterimde `muscleName()` / `exName()` / `dayLabel()` çevirir. Dil değişince `.device-wrap` `key={lang}` ile yeniden kurulur. Ek dil: eksik metin İngilizce, çoğul `Intl.PluralRules`, `byLang` sabitleri sözlükten türer. Yasal metinler `src/legal/texts/<dil>/<taban>.md`; uygulama `appDocs.ts` ile etkin dildekini (yoksa İngilizcesini) açar, `legal.html` metnin yazılı olduğu dillere bağlantı verir.
 - **Veri:** misafirde Dexie (IndexedDB `performance-training`). Hesapta Firebase Auth + Firestore, kalıcı yerel önbellekle (çevrimdışı önce telefona). Ayrıntı §5.
 - **CI** (`.github/workflows/`):
   - `android.yml`: her push'ta debug APK (artifact `outmove-<no>`), sabit debug anahtarıyla imzalı.
@@ -185,6 +185,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | V11 | 2026-11-14 | Sade plansız antrenman, bildirimli dinlenme sayacı, Android geri tuşu | `c5c588d` |
 | V12 | 2026-11-15 | Dashboard, antrenman planları (program katmanı kalktı), Gözlem takvimi, satır içi geçmiş, öğrenme hedefleri, 28 beceri hareketi | `c2f274b` (Antigravity) |
 | V14–V20 | 2026-11-17 → 18 | Pixel tema bütün sekmelere (V14–V17), plan ayarları ve özet (V18), basılı tutma ve göreli sürükleme (V19), yasal metinler, kabul kapısı, hesap/veri silme (V20) | `docs/gorevler/V14…V20` |
+| V26 | 2026-11-19 | Çok dil hazırlığı: dil listesi ve paketleri, İngilizceye düşme, `Intl` çoğul ve sayı, yasal metinler dil klasörlerinde, sözde dil taraması, iş listesi komutu, yerleşim akışı her dilde, uzun dillere CSS | `docs/gorevler/V26-cok-dil-hazirligi.md` |
 | V25 | 2026-11-19 | Yasal metinlerin İngilizcesi (Terms of Use, KVKK Privacy Notice, Explicit Consent Notice, Account and data deletion; Privacy Policy Türkçeyle eşitlendi), `legal.html` iki dilde, son tarama | `docs/gorevler/V25-ingilizce-yasal-son-tarama.md` |
 | V24 | 2026-11-19 | Lab sekmesi İngilizce: temeller, yorgunluk ölçümü, sinir sistemi dersleri, biyomekanik, hareket sayfası | `docs/gorevler/V24-ingilizce-lab.md` |
 | V23 | 2026-11-19 | Gözlem sekmesi İngilizce (Plan & insights): takvim, gün paneli, ay özeti, uyarılar, 1RM, haftalık yük | `docs/gorevler/V23-ingilizce-gozlem.md` |
@@ -208,7 +209,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 - **WhatsApp içe aktarma:** yıllardır WhatsApp grubuna yazılan antrenmanlar. WhatsApp → Sohbeti dışa aktar → Medya olmadan → .txt → uygulama biçimine çevir.
 - **Drive yedeği:** haftalık otomatik JSON yedeğini Google Drive'a alma.
 - **Ad kontrolü:** OUTMOVE için alan adı ve TÜRKPATENT marka kontrolü.
-- **Yeni diller (Almanca, Fransızca, Arapça…):** önce bir kerelik hazırlık: dil başına sözlük dosyası, eksikte İngilizceye düşme, gün/ay/sayı `Intl`'den, genel çoğul (`Intl.PluralRules`), her dilde eksik çeviri + yerleşim testi, iskelet komutu. Sonra Almanca + Fransızca tek oturum. Arapça ayrı: sağdan sola düzen, Arapça font, 6 çoğul hali.
+- **Yeni diller:** hazırlık bitti (V26). Kullanıcı "bir iki dil" ekleyecek; hangileri henüz söylenmedi. Yöntem `AGENTS.md` › Dil › "Yeni dil ekleme". Arapça yapılmayacak (yalnız Latin alfabeli diller).
 
 **Dil (V21'den itibaren, sekme sekme):**
 - **Dil geçişi bitti** (V21–V25): uygulamanın tamamı ve yasal metinler İngilizce (varsayılan) ve Türkçe.
@@ -274,6 +275,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | 2026-11-19 | **Dil seçeneği; varsayılan İngilizce** (telefon dili ne olursa olsun), Türkçe seçilebilir. Seçim cihazda saklanır. Çeviri sekme sekme (V21 altyapı + Dashboard + Hesap, V22–V25 kalanlar) | Kullanıcı: "İngilizce ile başlayalım ve asıl default dil olsun … Ayarlardan dil seçeneği olsun" |
 | 2026-11-19 | Kaynak metin Türkçe kalır ve sözlük anahtarıdır (gettext yöntemi); veri (kas, hareket, gün adı) Türkçe saklanır, yalnızca ekranda çevrilir | Mevcut kayıtlar ve testler bozulmaz; dil değişince geçmiş veri de doğru dilde görünür |
 | 2026-11-19 | "Hesap ve yedek" penceresi **Hesap ve ayarlar** oldu; dil seçici en üstte, etiketi iki dilde (`Language · Dil`) | Dil bir ayar; yanlış dilde kalan da bulsun |
+| 2026-11-19 | **Yalnızca Latin alfabeli diller** eklenecek (Arapça ve sağdan sola diller yok). Yeni dil = dil satırı + sözlük + (isteğe bağlı) hareket adları + yasal metinler; eksik metin İngilizce görünür | Kullanıcı: "arapça yapmayız sadece latin alfebeler … sonra bir iki dil daha eklemek isterim" |
 | 2026-11-19 | Yasal metinlerin İngilizcesi ayrı metinler (`*-en.md`), Türkçeyle bölüm bölüm aynı. Türkiye'deki kullanıcı için Türkçe, diğerleri için İngilizce metin esas; KVKK Aydınlatma'nın İngilizcesi bilgi amaçlı çeviri. `LEGAL.VERSION` ve `CONSENT_VERSION` artırılmadı (içerik anlamca değişmedi, kullanıcılar kapıyı yeniden görmez) | V25 görev dosyası; kullanıcı: "onada bitsin sona" |
 | 2026-11-19 | İngilizce adlar: sekmeler Dashboard · Workout · Insights · Lab; Plansız antrenman → **Quick workout**; hesap silme onayı **DELETE** | Kısa ve doğal İngilizce; "Free workout" ücretsiz gibi okunuyordu |
 | 2026-11-17 | Pixel'e geçiş bir **tema katmanıyla** yapılır (`px-theme.css`, kök sınıf `.pxt`): var olan DOM ve kimlikler aynen kalır, yalnızca görünüm değişir. Yeni pixel bileşenleri `pixel.css`'te `px-` önekiyle yazılır | "sadece stil değişicek"; testler ve akışlar bozulmasın |

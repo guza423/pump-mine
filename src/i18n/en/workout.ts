@@ -1,6 +1,6 @@
 // EN · Antrenman sekmesi: planlar, geçmiş, plansız ve planlı oturum, set kaydı, özet, plan düzenleyici (V22)
 // Anahtar: Türkçe kaynak metin. Değer: İngilizce; [tekil, çoğul] ise {n}'e göre seçilir.
-import type { Entry } from '../index';
+import type { Entry } from '../types';
 
 export const workout: Record<string, Entry> = {
   "Son: {x}": "Last: {x}",

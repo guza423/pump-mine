@@ -1,6 +1,6 @@
 // EN · ortak: gezinme, pencere başlıkları, birimler, kas adları (V21)
 // Anahtar: Türkçe kaynak metin. Değer: İngilizce; [tekil, çoğul] ise {n}'e göre seçilir.
-import type { Entry } from '../index';
+import type { Entry } from '../types';
 
 export const common: Record<string, Entry> = {
   "Dashboard": "Dashboard",

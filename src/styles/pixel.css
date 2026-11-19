@@ -2165,3 +2165,10 @@
 @keyframes pxEndBurst { 0% { transform: scale(0.2); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
 @container (max-height: 820px) { .px .px-exdone { height: 52px; } }
 @container (max-height: 710px) { .px .px-exdone { height: 46px; flex-basis: 88px; } .px .px-exdone .px-hold-hint { display: none; } }
+
+/* V26 · uzun dillere hazırlık (Almanca, Fransızca…): İngilizceden uzun etiket tek satıra sığmazsa taşmaz.
+   Büyük düğme ve dar sütundaki etiket alt satıra iner; basılı tut ipucu "…" ile kısalır.
+   Metin sığdığı sürece (İngilizce, Türkçe) görünüm değişmez. Deneme: geçici %40 uzun sözde dille test:layout. */
+.px .go { white-space: normal; text-align: center; line-height: 1.15; overflow-wrap: break-word; hyphens: auto; }
+.px .lbl { min-width: 0; overflow-wrap: anywhere; }
+.px .px-hold-hint { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -1,6 +1,6 @@
 // EN · yasal kabul kapısı ve metin başlıkları (V21; metinlerin kendisi V25)
 // Anahtar: Türkçe kaynak metin. Değer: İngilizce; [tekil, çoğul] ise {n}'e göre seçilir.
-import type { Entry } from '../index';
+import type { Entry } from '../types';
 
 export const legal: Record<string, Entry> = {
   "Metinler güncellendi": "Our terms have been updated",

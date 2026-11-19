@@ -4,6 +4,7 @@ html, body { margin: 0; background: #100e1b; color: #f5f1e8; }
 .lgp-head { position: sticky; top: 0; z-index: 2; display: grid; gap: 12px; padding: 16px 20px 12px; background: #1b1830; box-shadow: 0 2px 0 #3c3660; }
 .lgp-head .lg-brand { text-decoration: none; }
 .lgp-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.lgp-langs { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
 .lgp-lang { flex: none; padding: 6px 10px; border: 2px solid #3c3660; color: #f5f1e8; font: 600 13px 'IBM Plex Sans', system-ui, sans-serif; text-decoration: none; }
 .lgp-lang:hover, .lgp-lang:focus-visible { border-color: #ffc53d; color: #ffc53d; }
 .lgp-nav { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }

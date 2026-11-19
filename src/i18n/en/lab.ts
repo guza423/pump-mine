@@ -1,6 +1,6 @@
 // EN · Lab sekmesi: temeller, yorgunluk ölçümü, sinir sistemi dersleri, biyomekanik, hareket bilgisi (V24)
 // Anahtar: Türkçe kaynak metin. Değer: İngilizce; [tekil, çoğul] ise {n}'e göre seçilir.
-import type { Entry } from '../index';
+import type { Entry } from '../types';
 
 export const lab: Record<string, Entry> = {
   "Antrenmanın arkasındaki bilim": "The science behind training",
@@ -219,6 +219,8 @@ export const lab: Record<string, Entry> = {
   "bio|Kalça": "Hip",
   "Yükün kaynağı": "Load source",
   "bar": "bar",
+  "Bar": "Bar",
+  "band": "band",
   "{p} gövde ağırlığı": "{p} body weight",
   "Hamstring": "Hamstrings",
   "dik duruşa göre uzama": "lengthening vs. standing",

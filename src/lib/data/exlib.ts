@@ -9,12 +9,12 @@ import { byLang } from '../../i18n';
 
 const MUS_CODE = { G: 'Göğüs', OO: 'Omuz (ön)', OY: 'Omuz (yan)', OA: 'Omuz (arka)', S: 'Sırt', T: 'Trapez', B: 'Bel', BI: 'Biceps', TR: 'Triceps', OK: 'Ön kol', K: 'Karın', Q: 'Quadriceps', H: 'Hamstring', KA: 'Kalça', AD: 'Adduktor', BA: 'Baldır', TI: 'Tibialis', BO: 'Boyun', TV: 'Tüm vücut' };
 // Etiketler gösterim içindir; dile göre değişir (V21). Kas adları (MUS_CODE) ise veri olarak Türkçe saklanır.
-const EQ = byLang({
+const EQ = byLang('eq', {
   tr: { bb: 'Barbell', db: 'Dumbbell', kb: 'Kettlebell', ez: 'EZ bar', tb: 'Trap bar', sm: 'Smith', cb: 'Kablo', mk: 'Makine', bw: 'Vücut ağırlığı', bd: 'Band', lm: 'Landmine', mb: 'Sağlık topu', pl: 'Plaka', sb: 'Özel bar', kz: 'Kızak', kt: 'Kutu / engel', sg: 'Strongman', dg: 'Diğer' },
   en: { bb: 'Barbell', db: 'Dumbbell', kb: 'Kettlebell', ez: 'EZ bar', tb: 'Trap bar', sm: 'Smith', cb: 'Cable', mk: 'Machine', bw: 'Bodyweight', bd: 'Band', lm: 'Landmine', mb: 'Medicine ball', pl: 'Plate', sb: 'Specialty bar', kz: 'Sled', kt: 'Box / hurdle', sg: 'Strongman', dg: 'Other' },
 });
-const KIND = byLang({ tr: { k: 'Kuvvet', o: 'Olimpik', p: 'Pliometrik', b: 'Beceri' }, en: { k: 'Strength', o: 'Olympic', p: 'Plyometric', b: 'Skill' } });
-const PLYO_INT = byLang({ tr: ['', 'Düşük', 'Orta', 'Yüksek', 'Şok (reaktif)'], en: ['', 'Low', 'Moderate', 'High', 'Shock (reactive)'] });
+const KIND = byLang('kind', { tr: { k: 'Kuvvet', o: 'Olimpik', p: 'Pliometrik', b: 'Beceri' }, en: { k: 'Strength', o: 'Olympic', p: 'Plyometric', b: 'Skill' } });
+const PLYO_INT = byLang('plyoint', { tr: ['', 'Düşük', 'Orta', 'Yüksek', 'Şok (reaktif)'], en: ['', 'Low', 'Moderate', 'High', 'Shock (reactive)'] });
 type Extra = { k?: 'o' | 'p' | 'b'; i?: 1 | 2 | 3 | 4; h?: 1; r?: number; bio?: 'bench' | 'rdl' | 'yanaacis'; not?: string };
 export interface LibraryExercise {
   id: string; name: string; en: string; muscle: string; sec: string[];

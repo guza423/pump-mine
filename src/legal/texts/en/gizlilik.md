@@ -2,7 +2,7 @@
 
 Effective date and version: {{SURUM}}
 
-This policy explains how your personal data is processed when you use {{UYGULAMA}} (the Android app, the web version at [{{WEB}}]({{WEB}}) and these pages; together the "Service"). For users in Turkey it is based on the Turkish Personal Data Protection Law No. 6698 ("KVKK"); for users in the European Economic Area (EEA) and the United Kingdom, on the EU General Data Protection Regulation (2016/679, "GDPR") and the UK GDPR. Users in Turkey are also given the [KVKK Privacy Notice](#doc:kvkk-en); the two are consistent with each other. If this English version and the Turkish version differ, the Turkish version prevails for users in Turkey; for all other users this English version prevails.
+This policy explains how your personal data is processed when you use {{UYGULAMA}} (the Android app, the web version at [{{WEB}}]({{WEB}}) and these pages; together the "Service"). For users in Turkey it is based on the Turkish Personal Data Protection Law No. 6698 ("KVKK"); for users in the European Economic Area (EEA) and the United Kingdom, on the EU General Data Protection Regulation (2016/679, "GDPR") and the UK GDPR. Users in Turkey are also given the [KVKK Privacy Notice](#doc:aydinlatma); the two are consistent with each other. If this English version and the Turkish version differ, the Turkish version prevails for users in Turkey; for all other users this English version prevails.
 
 ## 1. In short
 
@@ -10,7 +10,7 @@ This policy explains how your personal data is processed when you use {{UYGULAMA
 - The app contains no advertising, analytics, crash-reporting or user-tracking software.
 - Without an account, your records stay only on your own device and never reach us.
 - With an account, your records are stored on Google Firebase servers in Frankfurt, Germany, and only you can access them.
-- Data that may relate to your health (sleep, effort, fatigue, notes) is stored in the cloud only with your separate [explicit consent](#doc:consent-en), which you can withdraw at any time.
+- Data that may relate to your health (sleep, effort, fatigue, notes) is stored in the cloud only with your separate [explicit consent](#doc:riza), which you can withdraw at any time.
 - You can view, correct, export (JSON) and delete your data from inside the app at any time, and delete your account there yourself.
 
 ## 2. Data controller
@@ -141,7 +141,7 @@ You have the right of access (Art. 15), rectification (Art. 16), erasure (Art. 1
 - Portability: Account › Export my data (JSON).
 - Deletion: delete individual records, or delete your account and all your cloud data with Account › Delete account. As a guest, use Account › Delete data on this phone.
 - Withdrawing consent: Account › Withdraw my consent. Your cloud data is deleted and your records stay on this device in guest mode.
-- Details: [Account and data deletion](#doc:deletion-en).
+- Details: [Account and data deletion](#doc:silme).
 
 ### 10.4 How to apply and response times
 
@@ -182,4 +182,4 @@ We may update this policy. Each version is published with its date above. For ma
 {{ADRES}}
 {{EPOSTA}}
 
-Related documents: [KVKK Privacy Notice](#doc:kvkk-en) · [Explicit Consent Notice](#doc:consent-en) · [Terms of Use](#doc:terms-en) · [Account and data deletion](#doc:deletion-en)
+Related documents: [KVKK Privacy Notice](#doc:aydinlatma) · [Explicit Consent Notice](#doc:riza) · [Terms of Use](#doc:kosullar) · [Account and data deletion](#doc:silme)

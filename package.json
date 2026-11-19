@@ -13,7 +13,8 @@
     "lint": "eslint \"src/**/*.tsx\"",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:layout": "node scripts/layout-check.mjs"
+    "test:layout": "node scripts/layout-check.mjs",
+    "i18n:worklist": "vitest run src/test/i18n-screens.test.tsx -t \"iş listesi\""
   },
   "dependencies": {
     "@capacitor-firebase/authentication": "^8.6.0",

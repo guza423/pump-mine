@@ -1,5 +1,5 @@
 // İngilizce sözlük: alan dosyaları birleşir. Aynı anahtar iki dosyada farklı değerle olamaz (i18n.test.ts denetler).
-import type { Entry } from '../index';
+import type { Entry } from '../types';
 import { common } from './common';
 import { dashboard } from './dashboard';
 import { account } from './account';

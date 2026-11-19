@@ -3,7 +3,7 @@ import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { chromium } from 'playwright';
-import { loadConfigFromFile } from 'vite';
+import { createServer, loadConfigFromFile } from 'vite';
 
 const root = resolve(import.meta.dirname, '..');
 const loaded = await loadConfigFromFile({ command: 'serve', mode: 'production' }, resolve(root, 'vite.config.ts'));
@@ -16,6 +16,17 @@ let serverOutput = '';
 server.stdout.on('data', data => { serverOutput += data; });
 server.stderr.on('data', data => { serverOutput += data; });
 const serverError = new Promise((_, reject) => server.once('error', reject));
+// V26 · ekran adları uygulamanın kendi sözlüğünden: aynı akış her dilde koşar (Türkçe akış ayrı, flow()).
+const i18nServer = await createServer({ root, configFile: resolve(root, 'vite.config.ts'), server: { middlewareMode: true, hmr: false }, appType: 'custom', logLevel: 'error', optimizeDeps: { noDiscovery: true, include: [] } });
+const i18n = await i18nServer.ssrLoadModule('/src/i18n/index.ts');
+const names = await i18nServer.ssrLoadModule('/src/i18n/names.ts');
+const appDocs = await i18nServer.ssrLoadModule('/src/legal/appDocs.ts');
+await i18nServer.close();
+const LANG_IDS = i18n.LANGS.map((l) => l.id).filter((id) => id !== 'tr');
+const words = (lang) => {
+  const on = (f) => (...a) => { i18n.setLang(lang, false); return f(...a); };
+  return { T: on(i18n.t), X: on((id) => names.exName({ exId: id })), D: on(appDocs.appDocTitle) };
+};
 const shots = resolve(root, 'layout-shots');
 const failures = [];
 let browser;
@@ -298,9 +309,10 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
   }
 }
 
-// V21 · İngilizce ekranlar (varsayılan dil). Sekmeler çevrildikçe bu akış genişler (V22–V25).
-async function flowEn(viewport, scale = 1, tablet = false, safeArea = false) {
-  const label = `en-${viewport.width}x${viewport.height}${scale !== 1 ? '-115' : ''}${safeArea ? '-insets' : ''}`;
+// V21 · İngilizce ekranlar (varsayılan dil); V26'dan beri Türkçe dışındaki her dil için aynı akış (adlar sözlükten).
+async function flowLang(lang, viewport, scale = 1, tablet = false, safeArea = false) {
+  const { T, X, D } = words(lang);
+  const label = `${lang}-${viewport.width}x${viewport.height}${scale !== 1 ? '-115' : ''}${safeArea ? '-insets' : ''}`;
   const context = await browser.newContext({ viewport, isMobile: true, hasTouch: true, deviceScaleFactor: 1, reducedMotion: 'reduce', serviceWorkers: 'block' });
   const page = await context.newPage();
   page.setDefaultTimeout(10000);
@@ -308,12 +320,14 @@ async function flowEn(viewport, scale = 1, tablet = false, safeArea = false) {
   await page.route('**/*firebase*/**', route => route.abort());
   let screen = 'gate';
   try {
+    // İngilizce varsayılan dildir (seçim yok); diğer diller açılmadan önce seçilmiş gibi başlar.
+    if (lang !== 'en') await page.addInitScript((l) => localStorage.setItem('outmove.lang', l), lang);
     await page.goto(url);
     await page.locator('#legal-go').waitFor();
     await page.evaluate(() => document.fonts.ready);
     await scaleFonts(page, scale);
     if (safeArea) await page.addStyleTag({ content: ':root { --sat: 24px; --sab: 24px; }' });
-    if (await page.evaluate(() => document.documentElement.lang) !== 'en') throw new Error('varsayılan dil İngilizce değil');
+    if (await page.evaluate(() => document.documentElement.lang) !== lang) throw new Error(lang === 'en' ? 'varsayılan dil İngilizce değil' : `dil ${lang} değil`);
     await check(page, label, screen, { tablet });
     screen = 'gate-privacy';
     await page.locator('#legal-open-gizlilik').click();
@@ -322,7 +336,7 @@ async function flowEn(viewport, scale = 1, tablet = false, safeArea = false) {
     await page.locator('#legal-back').click();
     screen = 'gate-terms';
     await page.locator('#legal-open-kosullar').click();
-    await page.getByRole('dialog', { name: 'Terms of Use' }).waitFor();
+    await page.getByRole('dialog', { name: D('kosullar') }).waitFor();
     await check(page, label, screen, { tablet });
     await page.locator('#legal-back').click();
     await page.locator('#legal-terms').check();
@@ -336,7 +350,7 @@ async function flowEn(viewport, scale = 1, tablet = false, safeArea = false) {
     await page.locator('#goal-add').click();
     await check(page, label, screen);
     await page.locator('#goal-search').fill('bench');
-    await page.getByRole('button', { name: 'Incline barbell bench press', exact: true }).click();
+    await page.getByRole('button', { name: X('egimli-bench'), exact: true }).click();
     await page.locator('#goal-base').fill('95');
     await page.locator('#goal-base').blur();
     await page.locator('#goal-target').fill('100');
@@ -348,27 +362,27 @@ async function flowEn(viewport, scale = 1, tablet = false, safeArea = false) {
     await check(page, label, screen);
     screen = 'fatigue';
     await page.locator('#ready-ring').click();
-    await page.getByRole('dialog', { name: 'Fatigue meter' }).waitFor();
+    await page.getByRole('dialog', { name: T('Yorgunluk ölçer') }).waitFor();
     await check(page, label, screen);
-    await closeSheet(page, 'Close');
+    await closeSheet(page, T('Kapat'));
     screen = 'account';
     await page.locator('#account-btn').click();
-    await page.getByRole('dialog', { name: 'Account & settings' }).waitFor();
+    await page.getByRole('dialog', { name: T('Hesap ve ayarlar') }).waitFor();
     await check(page, label, screen);
     // V25 · uygulama içindeki İngilizce yasal metin
     screen = 'account-legal-privacy';
     await page.locator('#legal-gizlilik').click();
-    await page.getByRole('dialog', { name: 'Privacy Policy' }).waitFor();
+    await page.getByRole('dialog', { name: D('gizlilik') }).waitFor();
     await check(page, label, screen);
-    await page.getByRole('dialog').last().getByRole('button', { name: 'Close', exact: true }).last().click();
+    await page.getByRole('dialog').last().getByRole('button', { name: T('Kapat'), exact: true }).last().click();
     await page.waitForFunction(() => document.querySelectorAll('[role="dialog"]').length === 1);
     screen = 'account-tr';
     await page.locator('#lang-tr').click();
     await page.getByRole('dialog', { name: 'Hesap ve ayarlar' }).waitFor();
     await check(page, label, screen);
-    await page.locator('#lang-en').click();
-    await page.getByRole('dialog', { name: 'Account & settings' }).waitFor();
-    await closeSheet(page, 'Close');
+    await page.locator(`#lang-${lang}`).click();
+    await page.getByRole('dialog', { name: T('Hesap ve ayarlar') }).waitFor();
+    await closeSheet(page, T('Kapat'));
 
     // V22 · Workout sekmesi (İngilizce metinler Türkçeden uzun olabilir)
     screen = 'workout-empty';
@@ -387,7 +401,7 @@ async function flowEn(viewport, scale = 1, tablet = false, safeArea = false) {
     screen = 'picker';
     await page.locator('#ex-search').fill('bench');
     await check(page, label, screen);
-    await page.locator('.pk').filter({ hasText: 'Incline barbell bench press' }).first().click();
+    await page.locator('.pk').filter({ hasText: X('egimli-bench') }).first().click();
     await page.locator('#pick-add').click();
     await page.locator('.card-main').first().waitFor();
     screen = 'quick-list';
@@ -401,16 +415,16 @@ async function flowEn(viewport, scale = 1, tablet = false, safeArea = false) {
     screen = 'session-rest';
     await check(page, label, screen, { session: true, rest: true });
     for (let i = 0; i < 6; i++) {
-      await page.getByRole('button', { name: 'SKIP' }).click();
+      await page.getByRole('button', { name: T('GEÇ') }).click();
       await page.locator('#log-set').click();
       await page.locator('#rest-big').waitFor();
     }
-    await page.getByRole('button', { name: 'HIDE' }).click();
+    await page.getByRole('button', { name: T('GİZLE') }).click();
     screen = 'session-long-table';
     await check(page, label, screen, { session: true, rest: true });
     await page.locator('.px .px-restbar').click();
-    await page.getByRole('button', { name: 'SKIP' }).click();
-    await page.getByRole('button', { name: 'Back: workout list' }).click();
+    await page.getByRole('button', { name: T('GEÇ') }).click();
+    await page.getByRole('button', { name: T('Geri: antrenman listesi') }).click();
     await page.locator('#fx-add').click();
     await page.locator('#ex-search').fill('box jump');
     await page.locator('.pk').first().click();
@@ -421,8 +435,8 @@ async function flowEn(viewport, scale = 1, tablet = false, safeArea = false) {
     await check(page, label, screen, { session: true });
     await page.locator('#log-set').click();
     await page.locator('#rest-big').waitFor();
-    await page.getByRole('button', { name: 'SKIP' }).click();
-    await page.getByRole('button', { name: 'Back: workout list' }).click();
+    await page.getByRole('button', { name: T('GEÇ') }).click();
+    await page.getByRole('button', { name: T('Geri: antrenman listesi') }).click();
     await page.locator('#fx-add').click();
     await page.locator('#ex-search').fill('kip-up');
     await page.locator('.pk').first().click();
@@ -435,8 +449,8 @@ async function flowEn(viewport, scale = 1, tablet = false, safeArea = false) {
     await page.locator('#rest-big').waitFor();
     screen = 'session-skill-rest';
     await check(page, label, screen, { session: true, rest: true });
-    await page.getByRole('button', { name: 'SKIP' }).click();
-    await page.getByRole('button', { name: 'Back: workout list' }).click();
+    await page.getByRole('button', { name: T('GEÇ') }).click();
+    await page.getByRole('button', { name: T('Geri: antrenman listesi') }).click();
     const fbEn = await page.locator('#finish-btn').boundingBox();
     await page.mouse.move(fbEn.x + fbEn.width / 2, fbEn.y + fbEn.height / 2);
     await page.mouse.down();
@@ -480,19 +494,19 @@ async function flowEn(viewport, scale = 1, tablet = false, safeArea = false) {
     await check(page, label, screen);
     screen = 'lab-measure';
     await page.locator('#lab-measure').click();
-    await page.getByRole('dialog', { name: 'How is fatigue measured?' }).waitFor();
+    await page.getByRole('dialog', { name: T('Yorgunluk nasıl ölçülür?') }).waitFor();
     await check(page, label, screen);
-    await closeSheet(page, 'Close');
+    await closeSheet(page, T('Kapat'));
     await page.locator('#lab-signal').click();
-    const lessonEn = page.getByRole('dialog', { name: 'Nervous system' });
+    const lessonEn = page.getByRole('dialog', { name: T('Sinir sistemi') });
     await lessonEn.waitFor();
     for (const [i, name] of ['signal', 'recruit', 'rate', 'fatigue'].entries()) {
       screen = `lab-lesson-${name}`;
       await lessonEn.getByRole('tab').nth(i).click();
-      if (name === 'fatigue') for (let r = 0; r < 3; r++) await lessonEn.getByRole('button', { name: 'Do a rep' }).click();
+      if (name === 'fatigue') for (let r = 0; r < 3; r++) await lessonEn.getByRole('button', { name: T('Tekrar Yap') }).click();
       await check(page, label, screen);
     }
-    await closeSheet(page, 'Close');
+    await closeSheet(page, T('Kapat'));
     screen = 'lab-movements';
     await page.locator('#lab-part-hareket').click();
     await check(page, label, screen);
@@ -502,7 +516,7 @@ async function flowEn(viewport, scale = 1, tablet = false, safeArea = false) {
       await page.locator(`#labex-${id}`).click();
       await page.locator('.exsheet').waitFor();
       await check(page, label, screen);
-      await closeSheet(page, 'Close');
+      await closeSheet(page, T('Kapat'));
     }
     console.log(`${label}: akış tamamlandı`);
   } catch (error) {
@@ -527,7 +541,7 @@ async function legalPages(viewport) {
         const out = [];
         if (document.scrollingElement.scrollWidth > innerWidth) out.push('yatay taşma');
         if (!document.querySelector('.lgp-nav [aria-current="page"]')) out.push('seçili sekme yok');
-        if (!document.querySelector('#lgp-lang')) out.push('dil bağlantısı yok');
+        if (!document.querySelector('.lgp-lang')) out.push('dil bağlantısı yok');
         return out;
       });
       failures.push(...errors.map((e) => `${label} · ${id} · ${e}`));
@@ -553,9 +567,17 @@ try {
   })()]);
   browser = await chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});
   const cases = [[320, 568], [360, 640], [360, 800], [384, 832], [393, 873], [412, 915], [430, 932], [360, 720, 1.15], [411, 770, 1.15], [884, 1104], [320, 568, 1.15, true]];
+  // LAYOUT_LANGS=de npm run test:layout → yalnız istenen diller (yeni dil eklerken hızlı deneme). Boşsa hepsi.
+  const only = (process.env.LAYOUT_LANGS || '').split(',').map((x) => x.trim()).filter(Boolean);
+  const want = (lang) => !only.length || only.includes(lang);
   for (const [width, height, scale = 1, safeArea = false] of cases) {
-    await flow({ width, height }, scale, width === 884, safeArea);
-    await flowEn({ width, height }, scale, width === 884, safeArea);
+    if (want('tr')) await flow({ width, height }, scale, width === 884, safeArea);
+    if (want('en')) await flowLang('en', { width, height }, scale, width === 884, safeArea);
+  }
+  // Ek diller (V26): uzun kelimeler en çok dar ekranda ve büyük yazıda taşar; o boyutlarda aynı akış.
+  const extraCases = [[320, 568], [360, 640], [360, 720, 1.15], [412, 915], [884, 1104], [320, 568, 1.15, true]];
+  for (const lang of LANG_IDS.filter((l) => l !== 'en' && want(l))) {
+    for (const [width, height, scale = 1, safeArea = false] of extraCases) await flowLang(lang, { width, height }, scale, width === 884, safeArea);
   }
   for (const [width, height] of [[320, 568], [884, 1104]]) await legalPages({ width, height });
   if (failures.length) {

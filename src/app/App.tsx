@@ -56,12 +56,12 @@ const TABS2 = [
   { id: 'gozlem', label: 'Gözlem', icon: 'calendar' },
   { id: 'lab', label: 'Lab', icon: 'flask' },
 ];
-const MONTHS_LONG = byLang({
+const MONTHS_LONG = byLang('monthslong', {
   tr: ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'],
   en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
 });
 const MAIN_MUSCLES = ['Göğüs', 'Omuz (ön)', 'Omuz (yan)', 'Sırt', 'Trapez', 'Triceps', 'Hamstring', 'Quadriceps'];
-const SPEED_SHORT = byLang({ tr: ['Aynı', 'Hafif', 'Belirgin', 'Çok', 'Grind'], en: ['Same', 'Slight', 'Clear', 'Big', 'Grind'] });
+const SPEED_SHORT = byLang('speedshort', { tr: ['Aynı', 'Hafif', 'Belirgin', 'Çok', 'Grind'], en: ['Same', 'Slight', 'Clear', 'Big', 'Grind'] });
 // Set notu etiketleri Türkçe saklanır (set.tags); gösterimde t() ile çevrilir.
 const NOTE_TAGS = ['Kolay geldi', 'Form bozuldu', 'Takıldı', 'Ağrı', 'Pump', 'Yardım aldım'];
 const DAY_MS = 864e5;
@@ -148,7 +148,7 @@ function Ring({ score, zone, size = 76, label, pixel = false }) {
     </svg>
   );
 }
-const MBAR_ST = byLang({ tr: { none: 'yok', low: 'az', ok: 'iyi', high: 'fazla' }, en: { none: 'none', low: 'low', ok: 'good', high: 'high' } });
+const MBAR_ST = byLang('mbar', { tr: { none: 'yok', low: 'az', ok: 'iyi', high: 'fazla' }, en: { none: 'none', low: 'low', ok: 'good', high: 'high' } });
 function MuscleBars({ muscles, list, max = 24, compact, mark, status }) {
   const names = list || Object.keys(muscles).sort((a, b) => (muscles[b] || 0) - (muscles[a] || 0));
   return (
@@ -2222,6 +2222,15 @@ function LessonBody({ stage: s0 }) {
   );
 }
 
+// Hareket sayfasındaki ikinci ad: Türkçede İngilizce ad, İngilizcede Türkçe ad; diğer dillerde
+// hareketin o dilde kendi adı varsa İngilizce ad (yoksa başlık zaten İngilizce, satır gösterilmez).
+function ExAltName({ m }) {
+  const lang = getLang();
+  if (lang === 'tr') return <p className="ex-en">{t('İngilizce: {x}', { x: m.en })}</p>;
+  if (lang === 'en') return <p className="ex-en">{t('Türkçe: {x}', { x: m.name })}</p>;
+  return exName(m) !== m.en ? <p className="ex-en">{t('İngilizce: {x}', { x: m.en })}</p> : null;
+}
+
 function ExerciseBody({ exId, name, st }) {
   const m = exMeta(exId, name);
   const series = e1Series(st.sessions, m ? m.id : exId, m ? m.name : name);
@@ -2233,7 +2242,7 @@ function ExerciseBody({ exId, name, st }) {
   return (
     <div className="exsheet">
       <FactChips ex={m} />
-      {m && m.en ? <p className="ex-en">{getLang() === 'en' ? t('Türkçe: {x}', { x: m.name }) : t('İngilizce: {x}', { x: m.en })}</p> : null}
+      {m && m.en ? <ExAltName m={m} /> : null}
       {m && !plyo && !skill && m.prof ? <p className="ex-prof">{PROF[m.prof].d}.</p> : null}
       {m && m.not ? <p className="ex-tip"><Icon name="info" size={13} /> {t(m.not)}</p> : null}
       {skill ? (

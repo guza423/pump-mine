@@ -617,7 +617,7 @@ function RdlPanel({ p, set, q, scrub, playing, setPlaying }) {
           id="rdl-chart"
           series={[
             { id: 'b', label: t('Gövde ağırlığı'), color: C2, pts: bodyPts, area: true, noLabel: false },
-            { id: 't', label: 'Bar', color: C1, pts: totPts, area: true, lower: bodyPts, valuePts: curve.map((c) => [c.phi, c.hipBar]) },
+            { id: 't', label: t('Bar'), color: C1, pts: totPts, area: true, lower: bodyPts, valuePts: curve.map((c) => [c.phi, c.hipBar]) },
           ]}
           valueFmt={(v) => Math.round(v)}
           xMin={4} xMax={p.depth} xLabel={t('Gövde eğimi')} xUnit="°" yUnit="N·m"
@@ -679,7 +679,7 @@ function LatPanel({ p, set, q, scrub, playing, setPlaying }) {
               <button key={k.v} type="button" id={'lat-' + k.v} role="radio" aria-checked={p.kind === k.v} className={p.kind === k.v ? 'on' : ''} onClick={() => set('kind')(k.v)}>{t(k.t)}</button>
             ))}
           </div>
-          <span className="fig-meta mono">{p.kind === 'band' ? 'band' : p.mass + ' kg'}</span>
+          <span className="fig-meta mono">{p.kind === 'band' ? t('band') : p.mass + ' kg'}</span>
         </div>
         <div className="fig"><LatFront p={p} pose={pose} peak={peak} /></div>
         <Transport id="lat" playing={playing} setPlaying={setPlaying} q={q} scrub={scrub} label={t('Kol açısı {n}°', { n: Math.round(pose.alpha) })} />

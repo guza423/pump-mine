@@ -1072,3 +1072,6 @@
 
 /* V20: planlı oturumda "SIRADA" etiketi 40 px sütuna her yazı tipi çiziminde sığsın (CI Chromium'da 42 px'e taşıyordu). */
 .pxt .s-t.now-t { font-size: 9px; letter-spacing: 0; }
+
+/* V26 · uzun dillere hazırlık: bölge hapı sığmazsa "…" ile kısalır (pixel ekranındaki karşılıkları pixel.css sonunda). */
+.zone-pill { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }

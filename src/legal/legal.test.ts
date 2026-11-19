@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { LEGAL_DOCS, docIn, legalDoc } from './docs';
+import { LEGAL_BASES, LEGAL_DOCS, LEGAL_TEXT_LANGS, docIn, langsOf, legalDoc, linkTarget } from './docs';
 import { APP_DOC_IDS, appDocId, appDocTitle } from './appDocs';
-import { setLang } from '../i18n';
+import { LANG_META, setLang } from '../i18n';
 import { parseMd } from './LegalDoc';
-import { LEGAL } from './meta';
+import { LEGAL, LEGAL_L10N } from './meta';
 
 describe('yasal metinler', () => {
   it('her metin doldurulmuş, şirket adını ve sürümü taşır', () => {
@@ -39,7 +39,7 @@ describe('yasal metinler', () => {
   });
 });
 
-describe('yasal metinlerin İngilizcesi (V25)', () => {
+describe('yasal metinler her dilde (V25, çok dil V26)', () => {
   afterEach(() => setLang('tr', false));
   const shape = (md: string) => {
     const b = parseMd(md);
@@ -48,33 +48,42 @@ describe('yasal metinlerin İngilizcesi (V25)', () => {
     const rows = b.reduce((a, x) => a + (x.t === 'table' ? x.rows.length : 0), 0);
     return { h2: n('h2'), h3: n('h3'), items, rows };
   };
+  const others = LEGAL_DOCS.filter((d) => d.lang !== 'tr');
 
-  it('her Türkçe metnin İngilizcesi var, eşleşme iki yönlü', () => {
-    for (const d of LEGAL_DOCS) {
-      const p = legalDoc(d.pair);
-      expect(p.id, d.id).toBe(d.pair);
-      expect(p.pair, d.id).toBe(d.id);
-      expect(p.lang, d.id).not.toBe(d.lang);
-    }
-    expect(LEGAL_DOCS.filter((d) => d.lang === 'tr').length).toBe(LEGAL_DOCS.filter((d) => d.lang === 'en').length);
+  it('metin klasörleri dil listesindeki dillerle eşleşir; Türkçe ve İngilizce eksiksiz', () => {
+    const ids = LANG_META.map((l) => l.id) as string[];
+    for (const l of LEGAL_TEXT_LANGS) expect(ids, 'texts/' + l).toContain(l);
+    for (const l of ['tr', 'en']) for (const b of LEGAL_BASES) expect(docIn(b, l).lang, `${l}/${b}`).toBe(l);
+    for (const l of LEGAL_TEXT_LANGS.filter((x) => x !== 'tr')) expect(LEGAL_L10N[l], 'meta.ts › LEGAL_L10N.' + l).toBeTruthy();
   });
 
-  it('çeviri eksiksiz: bölüm, alt bölüm, madde ve tablo satırı sayıları aynı', () => {
-    for (const d of LEGAL_DOCS.filter((x) => x.lang === 'tr')) expect(shape(docIn(d.id, 'en').md), d.id).toEqual(shape(d.md));
+  it('çeviri eksiksiz: bölüm, alt bölüm, madde ve tablo satırı sayıları Türkçeyle aynı', () => {
+    for (const d of others) expect(shape(d.md), d.id).toEqual(shape(docIn(d.base, 'tr').md));
   });
 
-  it('İngilizce metinlerde Türkçe yok (KVKK bent harfleri ç, ğ hariç); bağlantılar aynı dildeki metne gider', () => {
-    for (const d of LEGAL_DOCS.filter((x) => x.lang === 'en')) {
+  it('Türkçe dışındaki metinlerde Türkçeye özgü harf yok (KVKK bent harfleri ç, ğ hariç); İngilizcede hiç Türkçe harf yok', () => {
+    for (const d of others) {
       const rest = d.md.replace(/\((ç|ğ)\)|^- (ç|ğ)\)/gm, '');
-      expect(rest.match(/\S*[çğıöşüÇĞİÖŞÜ]\S*/g), d.id).toBeNull();
-      for (const m of d.md.matchAll(/\(#doc:([a-z-]+)\)/g)) expect(legalDoc(m[1]).lang, d.id + ' → ' + m[1]).toBe('en');
-    }
-    for (const d of LEGAL_DOCS.filter((x) => x.lang === 'tr')) {
-      for (const m of d.md.matchAll(/\(#doc:([a-z-]+)\)/g)) if (m[1] !== 'privacy-en') expect(legalDoc(m[1]).lang, d.id + ' → ' + m[1]).toBe('tr');
+      const re = d.lang === 'en' ? /\S*[çğıöşüÇĞİÖŞÜ]\S*/g : /\S*[ığşİĞŞ]\S*/g;
+      expect(rest.match(re), d.id).toBeNull();
     }
   });
 
-  it('uygulama metni etkin dilde açar; açıkça seçilen İngilizce metin Türkçede de İngilizce kalır', () => {
+  it('bağlantılar okunan metnin dilinde açılır; Türkçe metin İngilizceyi yalnızca açıkça isterse açar', () => {
+    for (const d of LEGAL_DOCS) {
+      for (const m of d.md.matchAll(/\(#doc:([a-z-]+)\)/g)) {
+        const to = legalDoc(linkTarget(d.id, m[1]));
+        if (m[1] === 'privacy-en') expect(to.lang).toBe('en');
+        else expect(to.lang, d.id + ' → ' + m[1]).toBe(docIn(to.base, d.lang).lang);
+      }
+    }
+    expect(linkTarget('terms-en', 'riza')).toBe('consent-en');
+    expect(linkTarget('gizlilik', 'riza')).toBe('riza');
+    expect(linkTarget('gizlilik', 'privacy-en')).toBe('privacy-en');
+    expect(langsOf('silme')).toEqual(['tr', 'en']);
+  });
+
+  it('uygulama metni etkin dilde açar; o dilde metin yoksa İngilizcesini; açıkça seçilen dilli metin olduğu gibi kalır', () => {
     setLang('en', false);
     expect(APP_DOC_IDS.map(appDocId)).toEqual(['terms-en', 'privacy-en', 'kvkk-en', 'consent-en', 'deletion-en']);
     expect(appDocTitle('kosullar')).toBe('Terms of Use');
@@ -82,5 +91,6 @@ describe('yasal metinlerin İngilizcesi (V25)', () => {
     expect(APP_DOC_IDS.map(appDocId)).toEqual(APP_DOC_IDS);
     expect(appDocId('privacy-en')).toBe('privacy-en');
     expect(appDocTitle('gizlilik')).toBe('Gizlilik Politikası');
+    expect(docIn('gizlilik', 'xx').id).toBe('privacy-en');
   });
 });

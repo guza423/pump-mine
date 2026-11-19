@@ -1,6 +1,6 @@
 // EN · Gözlem sekmesi (Insights): takvim, gün paneli, ay özeti, uyarılar, 1RM gelişimi, haftalık yük (V23)
 // Anahtar: Türkçe kaynak metin. Değer: İngilizce; [tekil, çoğul] ise {n}'e göre seçilir.
-import type { Entry } from '../index';
+import type { Entry } from '../types';
 
 export const insights: Record<string, Entry> = {
   "Antrenman plan ve gözlem": "Plan & insights",

@@ -2,7 +2,7 @@
 
 Version date: {{SURUM}}
 
-This notice asks for your explicit consent to the processing of your data that may qualify as health data when you create a {{UYGULAMA}} account. Before giving consent, we recommend that you read the [KVKK Privacy Notice](#doc:kvkk-en) and the [Privacy Policy](#doc:privacy-en). If the English and Turkish versions of this notice differ, the Turkish version prevails for users in Turkey; for all other users this English version prevails.
+This notice asks for your explicit consent to the processing of your data that may qualify as health data when you create a {{UYGULAMA}} account. Before giving consent, we recommend that you read the [KVKK Privacy Notice](#doc:aydinlatma) and the [Privacy Policy](#doc:gizlilik). If the English and Turkish versions of this notice differ, the Turkish version prevails for users in Turkey; for all other users this English version prevails.
 
 ## 1. Data we ask your consent for
 

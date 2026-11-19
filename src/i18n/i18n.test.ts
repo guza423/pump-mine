@@ -4,7 +4,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import ts from 'typescript';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { byLang, getLang, num, numIn, pct, setLang, t, tc } from './index';
+import { byLang, byLangKeys, decimalSep, getLang, num, numIn, pct, registerLang, setLang, t, tc, type LangPack } from './index';
 import { EN, EN_PARTS } from './en';
 import { dayLabel, exName } from './names';
 // @ts-expect-error: .mjs betiği tip bildirimi olmadan içe aktarılır
@@ -12,6 +12,7 @@ import { collectKeys } from '../../scripts/i18n-keys.mjs';
 
 const TR_CHARS = /[çğıöşüÇĞİÖŞÜ]/;
 const vars = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
+const forms = (v: unknown): string[] => (typeof v === 'string' ? [v] : Array.isArray(v) ? v : Object.values(v as object));
 
 afterEach(() => setLang('tr', false));
 
@@ -42,7 +43,7 @@ describe('çeviri işlevleri', () => {
   });
 
   it('byLang okunduğu an etkin dili döndürür', () => {
-    const W = byLang({ tr: ['Pazar', 'Pazartesi'], en: ['Sunday', 'Monday'] });
+    const W = byLang('testwd', { tr: ['Pazar', 'Pazartesi'], en: ['Sunday', 'Monday'] });
     setLang('tr', false);
     expect(W[1]).toBe('Pazartesi');
     setLang('en', false);
@@ -85,7 +86,7 @@ describe('sözlük bütünlüğü', () => {
   it('İngilizce değerlerde Türkçe harf yok ve değişkenler aynı', () => {
     const bad: string[] = [];
     for (const [k, v] of Object.entries(EN)) {
-      for (const s of typeof v === 'string' ? [v] : v) {
+      for (const s of forms(v)) {
         if (TR_CHARS.test(s)) bad.push(`Türkçe harf: ${k} → ${s}`);
         const want = vars(k.replace(/^[a-z]+\|/, ''));
         if (vars(s).join(',') !== want.join(',')) bad.push(`değişken: ${k} → ${s}`);
@@ -160,5 +161,76 @@ describe('t çağrıları gölgelenmez', () => {
       visit(sf);
     }
     expect(bad).toEqual([]);
+  });
+});
+
+// V26 · çok dil: yeni bir dil yalnızca sözlük ve dil satırıyla eklenebilsin diye çekirdek davranışlar sözde bir dille denenir.
+describe('çok dilli çekirdek (V26)', () => {
+  const PSEUDO: LangPack = {
+    dict: {
+      'Kaydet': 'Speichern',
+      'muscle|Göğüs': 'Brust',
+      '{n} antrenman': { one: '{n} Training', other: '{n} Trainings' },
+      '{n} set': ['{n} série', '{n} séries'],
+      'testgun|Pazartesi': 'Montag',
+    },
+    exercises: { 'egimli-bench': 'Schrägbankdrücken' },
+  };
+  it('etkin dilde olan sözlükten, olmayan İngilizceden gelir; çoğulu dilin kuralı seçer', () => {
+    registerLang({ id: 'xx', label: 'Pseudo', locale: 'de-DE' }, PSEUDO);
+    setLang('xx' as never, false);
+    expect(getLang()).toBe('xx');
+    expect(t('Kaydet')).toBe('Speichern');
+    expect(t('Sil')).toBe(EN['Sil']);
+    expect(tc('muscle', 'Göğüs')).toBe('Brust');
+    expect(t('{n} antrenman', { n: 1 })).toBe('1 Training');
+    expect(t('{n} antrenman', { n: 4 })).toBe('4 Trainings');
+    expect(exName({ exId: 'egimli-bench', name: 'Eğimli bench press' })).toBe('Schrägbankdrücken');
+    expect(exName({ exId: 'rdl', name: 'Romanian deadlift' })).toBe('Romanian deadlift');
+    expect(dayLabel('Plansız antrenman')).toBe(t('Plansız antrenman'));
+  });
+
+  it('Fransızca gibi dillerde 0 tekildir (Intl.PluralRules)', () => {
+    registerLang({ id: 'xf', label: 'Pseudo FR', locale: 'fr-FR' }, PSEUDO);
+    setLang('xf' as never, false);
+    expect(t('{n} set', { n: 0 })).toBe('0 série');
+    expect(t('{n} set', { n: 2 })).toBe('2 séries');
+  });
+
+  it('byLang sabitleri diğer dillerde sözlükten türetilir; eksik metin İngilizce kalır', () => {
+    const W = byLang('testgun', { tr: ['Pazar', 'Pazartesi'], en: ['Sunday', 'Monday'] });
+    registerLang({ id: 'xx', label: 'Pseudo', locale: 'de-DE' }, PSEUDO);
+    setLang('xx' as never, false);
+    expect([...W]).toEqual(['Sunday', 'Montag']);
+    expect(byLangKeys().get('testgun|Pazartesi')).toBe('Monday');
+  });
+
+  it('sayı, ondalık ve yüzde dilin yazımıyla', () => {
+    registerLang({ id: 'xx', label: 'Pseudo', locale: 'de-DE' }, PSEUDO);
+    setLang('xx' as never, false);
+    expect(decimalSep()).toBe(',');
+    expect(num(82.5)).toBe('82,5');
+    expect(numIn(1234.5)).toBe('1234,5');
+    expect(pct(40)).toBe('40 %');
+  });
+
+  it('byLang bağlam adları tek ve yalnız küçük harf', () => {
+    const root = resolve(import.meta.dirname, '../..');
+    const walk = (dir: string): string[] => readdirSync(dir).flatMap((f) => {
+      const p = join(dir, f);
+      return statSync(p).isDirectory() ? walk(p) : /\.tsx?$/.test(f) && !/\.test\./.test(f) ? [p] : [];
+    });
+    const seen = new Map<string, string>();
+    const bad: string[] = [];
+    for (const file of walk(join(root, 'src')).filter((f) => !/src[\\/]i18n[\\/]/.test(f))) {
+      for (const m of readFileSync(file, 'utf8').matchAll(/\bbyLang(?:<[^\n]*?>)?\(\s*'([^']*)'/g)) {
+        const where = file.slice(root.length + 1);
+        if (!/^[a-z]+$/.test(m[1])) bad.push(`ad: ${where} ${m[1]}`);
+        if (seen.has(m[1])) bad.push(`iki kez: ${m[1]} (${seen.get(m[1])}, ${where})`);
+        seen.set(m[1], where);
+      }
+    }
+    expect(bad).toEqual([]);
+    expect(seen.size).toBeGreaterThan(15);
   });
 });

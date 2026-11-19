@@ -13,7 +13,7 @@ const reducedMotion = () => {
 };
 const fmt = (n, d = 0) => numIn(n, d);
 
-const STAGES = byLang({
+const STAGES = byLang('stages', {
   tr: [
     { id: 'sinyal', short: 'Sinyal' },
     { id: 'kazanim', short: 'Kazanım' },

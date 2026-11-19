@@ -553,3 +553,11 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 - Hızlandırmak için bir kerelik hazırlık önerildi: dil başına dosya ve eksik metinde İngilizceye düşme; gün/ay adları ve sayılar `Intl`'den; genel çoğul kuralı (`Intl.PluralRules`); testler her dilde eksik çeviriyi ve yerleşimi denetlesin; yeni dil iskeleti çıkaran komut. Sonra Almanca + Fransızca tek oturumda.
 - Arapça ayrı adım: sağdan sola düzen (CSS'te ~190 sol/sağ kuralı, aynalanan oklar/kaydırıcılar/grafikler), Arapça font (pixel fontta Arapça harf yok), 6 çoğul hali.
 **Kayıt:** yalnızca öneri; `docs/PROJE.md` › Önerildi, henüz istenmedi.
+
+### 2026-11-19 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** "Tamam arapça yapmayız sadece latin alfebeler. Ön harılık iyi olur hızlıca sonra bir iki dil daha eklemek isterim"
+**Yapılan / karar:**
+- Karar: yalnızca Latin alfabeli diller; Arapça yok.
+- **V26** (`docs/gorevler/V26-cok-dil-hazirligi.md`): yeni dil artık dil satırı + sözlük (+ isteğe bağlı hareket adları) + yasal metin klasörüyle eklenir; eksik metin İngilizce görünür. Çoğul ve sayılar dilin kurallarıyla (`Intl`). Yasal metinler `texts/<dil>/` altında. İş listesi komutu (Almanca için 1111 metin, 466 hareket adı, 5 yasal metin). Sözde dil testi koda gömülü metni yakalar (Lab'de "Bar", "band" bulundu, düzeldi). Yerleşim akışı her dilde koşar; %40 uzun sözde dil denemesinde taşan dört yer CSS ile düzeldi.
+- Adımlar `AGENTS.md` › Dil › "Yeni dil ekleme". Kullanıcı eklenecek dilleri söyleyince uygulanır.
+**Kayıt:** commit `HASH`. Kontroller: `npm test` (136 test), `tsc -b`, lint, build, `test:layout` (Türkçe + İngilizce + yasal sayfa; sözde dil denemesi) geçti.
