@@ -43,8 +43,9 @@ import { readFxSettings } from '../lib/native/fx';
 import { dbMultiplier } from '../lib/models/session';
 import { PX_SPEED, PX_SPEED_COLORS } from '../features/antrenman/pixelHelpers';
 import { HoldButton } from './HoldButton';
-import { byLang, clock, lower, muscleName, num, pct, t, tc, upper, useLang } from '../i18n';
+import { byLang, clock, getLang, lower, muscleName, num, pct, t, tc, upper, useLang } from '../i18n';
 import { dayLabel, exName } from '../i18n/names';
+import { rich } from '../i18n/rich';
 import { REC_FRESH } from '../lib/models/fatigue';
 
 /* ================= PERFORMANCE · son kullanıcı uygulaması ================= */
@@ -2232,17 +2233,17 @@ function ExerciseBody({ exId, name, st }) {
   return (
     <div className="exsheet">
       <FactChips ex={m} />
-      {m && m.en ? <p className="ex-en">İngilizce: {m.en}</p> : null}
+      {m && m.en ? <p className="ex-en">{getLang() === 'en' ? t('Türkçe: {x}', { x: m.name }) : t('İngilizce: {x}', { x: m.en })}</p> : null}
       {m && !plyo && !skill && m.prof ? <p className="ex-prof">{PROF[m.prof].d}.</p> : null}
-      {m && m.not ? <p className="ex-tip"><Icon name="info" size={13} /> {m.not}</p> : null}
+      {m && m.not ? <p className="ex-tip"><Icon name="info" size={13} /> {t(m.not)}</p> : null}
       {skill ? (
-        <p className="ex-skill-note">Beceri dinçken öğrenilir: antrenmanın başında, kalite düşünce bırak.</p>
+        <p className="ex-skill-note">{t('Beceri dinçken öğrenilir: antrenmanın başında, kalite düşünce bırak.')}</p>
       ) : null}
       {plyo ? (
         <div className="ex-plyo">
-          <span className="st-k">Pliometrik doz</span>
-          <p>Seans başına toplam temas: başlangıç 80–100, orta 100–120, ileri 120–140. Aynı bölgeye pliometrik çalışmalar arasında 48–72 sa bırak. Her tekrar en yüksek niyetle; kalite düşünce dur.</p>
-          <p className="ex-src">Kaynak: NSCA önerileri</p>
+          <span className="st-k">{t('Pliometrik doz')}</span>
+          <p>{t('Seans başına toplam temas: başlangıç 80–100, orta 100–120, ileri 120–140. Aynı bölgeye pliometrik çalışmalar arasında 48–72 sa bırak. Her tekrar en yüksek niyetle; kalite düşünce dur.')}</p>
+          <p className="ex-src">{t('Kaynak: NSCA önerileri')}</p>
         </div>
       ) : null}
       {m && m.bio ? (
@@ -2251,11 +2252,11 @@ function ExerciseBody({ exId, name, st }) {
         </CompactCtx.Provider>
       ) : null}
       <div className="ex-hist">
-        <span className="st-k">Geçmiş</span>
+        <span className="st-k">{t('Geçmiş')}</span>
         {last.length ? last.map(({ s, it }) => (
           <div key={s.id} className="exh-row mono"><span>{dateTxt(s.startedAt)}</span><span>{it.sets.map(setTxt).join(', ')}</span></div>
-        )) : <p className="muted-p">Bu hareketle henüz kayıt yok.</p>}
-        {series.length ? <p className="mono exh-best">En iyi e1RM {nf(Math.round(Math.max(...series.map((p) => p.v)) * 2) / 2)} kg</p> : null}
+        )) : <p className="muted-p">{t('Bu hareketle henüz kayıt yok.')}</p>}
+        {series.length ? <p className="mono exh-best">{t('En iyi e1RM {x} kg', { x: nf(Math.round(Math.max(...series.map((p) => p.v)) * 2) / 2) })}</p> : null}
       </div>
     </div>
   );
@@ -2480,6 +2481,7 @@ function Metric({ k, v, sub }) {
 }
 
 /* ================= LAB ================= */
+// Başlık ve açıklamalar gösterimde t() ile çevrilir.
 const LAB_BASICS = [
   { id: 'measure', t: 'Yorgunluk nasıl ölçülür?', d: 'Bar hızı → kalan tekrar → yorgunluk skoru', sheet: ['measure', {}] },
   { id: 'signal', t: 'Beyinden kasa sinyal', d: 'Hareket komutu kasa nasıl ulaşır', sheet: ['lesson', { stage: 0 }] },
@@ -2493,10 +2495,10 @@ function LabScreen({ openSheet }) {
   const [part, setPart] = useState('temel');
   return (
     <div className="screen pxt lab-screen">
-      <ScreenHead title="Lab" sub="Antrenmanın arkasındaki bilim" />
-      <div className="segmented seg3 labseg" role="tablist" aria-label="Lab bölümleri">
-        <button type="button" role="tab" id="lab-part-temel" aria-selected={part === 'temel'} className={part === 'temel' ? 'on' : ''} onClick={() => setPart('temel')}><b className="mono">01</b> Temeller</button>
-        <button type="button" role="tab" id="lab-part-hareket" aria-selected={part === 'hareket'} className={part === 'hareket' ? 'on' : ''} onClick={() => setPart('hareket')}><b className="mono">02</b> Hareketler <small className="mono">{EX_LIB.length}</small></button>
+      <ScreenHead title={t('Lab')} sub={t('Antrenmanın arkasındaki bilim')} />
+      <div className="segmented seg3 labseg" role="tablist" aria-label={t('Lab bölümleri')}>
+        <button type="button" role="tab" id="lab-part-temel" aria-selected={part === 'temel'} className={part === 'temel' ? 'on' : ''} onClick={() => setPart('temel')}><b className="mono">01</b> {t('Temeller')}</button>
+        <button type="button" role="tab" id="lab-part-hareket" aria-selected={part === 'hareket'} className={part === 'hareket' ? 'on' : ''} onClick={() => setPart('hareket')}><b className="mono">02</b> {t('Hareketler')} <small className="mono">{EX_LIB.length}</small></button>
       </div>
       <div className="scr">
         {part === 'temel' ? <section className="labsec">
@@ -2505,7 +2507,7 @@ function LabScreen({ openSheet }) {
               <li key={x.id}>
                 <button type="button" id={'lab-' + x.id} className="labrow" onClick={() => openSheet(x.sheet[0], x.sheet[1])}>
                   <span className="labrow-i mono">{i + 1}</span>
-                  <span className="labrow-t"><strong>{x.t}</strong><small>{x.d}</small></span>
+                  <span className="labrow-t"><strong>{t(x.t)}</strong><small>{t(x.d)}</small></span>
                   <Icon name="right" size={14} />
                 </button>
               </li>
@@ -2513,20 +2515,20 @@ function LabScreen({ openSheet }) {
           </ol>
         </section> : <section className="labsec">
           <ExFilterBar f={f} idp="lab" />
-          <span className="exf-count mono">{f.list.length} hareket</span>
+          <span className="exf-count mono">{t('{n} hareket', { n: f.list.length })}</span>
           <ul className="lablist ex">
             {f.list.slice(0, f.lim).map((e) => (
               <li key={e.id}>
                 <button type="button" id={'labex-' + e.id} className="labrow" onClick={() => openSheet('exercise', { exId: e.id })}>
                   {exDot(e)}
-                  <span className="labrow-t"><strong>{e.name}</strong><small>{exLine(e)}</small></span>
-                  {e.bio ? <span className="badge bio">tork</span> : e.kind === 'beceri' ? <span className="badge skill">beceri</span> : e.kind === 'olimpik' ? <span className="badge kind">olimpik</span> : null}
+                  <span className="labrow-t"><strong>{exName(e)}</strong><small>{exLine(e)}</small></span>
+                  {e.bio ? <span className="badge bio">{t('tork')}</span> : e.kind === 'beceri' ? <span className="badge skill">{t('beceri')}</span> : e.kind === 'olimpik' ? <span className="badge kind">{t('olimpik')}</span> : null}
                   <Icon name="right" size={14} />
                 </button>
               </li>
             ))}
           </ul>
-          {f.list.length > f.lim ? <button type="button" id="lab-more" className="btn ghost full" onClick={f.more}>Daha fazla göster ({f.list.length - f.lim})</button> : null}
+          {f.list.length > f.lim ? <button type="button" id="lab-more" className="btn ghost full" onClick={f.more}>{t('Daha fazla göster')} ({f.list.length - f.lim})</button> : null}
         </section>}
       </div>
     </div>
@@ -2535,14 +2537,14 @@ function LabScreen({ openSheet }) {
 function MeasureBody({ openSheet }) {
   return (
     <div className="measure">
-      <p className="ms-lede">Yorgunluk iki parçadan oluşur: <b>antrenmanların</b> bıraktığı ve zamanla azalan yük, bir de <b>uyku açığın</b>. İkisi ayrı hesaplanır, sonra toplanır.</p>
+      <p className="ms-lede">{rich(t('Yorgunluk iki parçadan oluşur: **antrenmanların** bıraktığı ve zamanla azalan yük, bir de **uyku açığın**. İkisi ayrı hesaplanır, sonra toplanır.'))}</p>
       <section className="ms-step">
         <span className="ms-n mono">1</span>
         <div className="ms-b">
-          <h4>Son tekrarın hızı → kalan tekrar</h4>
-          <p>Her setten sonra son tekrarın ilkine göre ne kadar yavaşladığını seçersin. Bu seçim doğrudan kaç tekrar daha çıkarabileceğine çevrilir; yükten bağımsızdır.</p>
+          <h4>{t('Son tekrarın hızı → kalan tekrar')}</h4>
+          <p>{t('Her setten sonra son tekrarın ilkine göre ne kadar yavaşladığını seçersin. Bu seçim doğrudan kaç tekrar daha çıkarabileceğine çevrilir; yükten bağımsızdır.')}</p>
           <div className="ms-table">
-            <div className="ms-row sh"><span>Seçim</span><span>Anlamı</span><span>Kalan</span><span>RPE</span></div>
+            <div className="ms-row sh"><span>{t('Seçim')}</span><span>{t('Anlamı')}</span><span>{t('Kalan')}</span><span>RPE</span></div>
             {SPEED.map((sp, i) => (
               <div key={i} className="ms-row">
                 <span className="s-sp" style={{ '--c': vlColor(sp.vl) }}><i />{SPEED_SHORT[i]}</span>
@@ -2552,37 +2554,37 @@ function MeasureBody({ openSheet }) {
               </div>
             ))}
           </div>
-          <p className="ms-note">Aynı yüzde hız kaybı hafif yükte tükenişten uzak, ağır yükte yakın demektir. Bu yüzden yüzde değil, “kaç tekrar daha çıkardı” hissi kullanılır.</p>
+          <p className="ms-note">{t('Aynı yüzde hız kaybı hafif yükte tükenişten uzak, ağır yükte yakın demektir. Bu yüzden yüzde değil, “kaç tekrar daha çıkardı” hissi kullanılır.')}</p>
         </div>
       </section>
       <section className="ms-step">
         <span className="ms-n mono">2</span>
         <div className="ms-b">
-          <h4>Zor setler ağırlıklandırılır</h4>
-          <p>4 veya daha az tekrar kala biten set <b>zor set</b> sayılır. Tükenişe yaklaştıkça ve hareket ağırlaştıkça yükü artar.</p>
+          <h4>{t('Zor setler ağırlıklandırılır')}</h4>
+          <p>{rich(t('4 veya daha az tekrar kala biten set **zor set** sayılır. Tükenişe yaklaştıkça ve hareket ağırlaştıkça yükü artar.'))}</p>
           <div className="ms-grid mono">
-            <span>Tükeniş <b>1,6×</b></span><span>1 kala <b>1,3×</b></span><span>2 kala <b>1,1×</b></span><span>3 kala <b>1×</b></span><span>4 kala <b>0,8×</b></span>
-            <span>Bench, squat, RDL <b>1,5×</b></span><span>Dumbbell press, barfiks <b>1×</b></span><span>İzolasyon <b>0,6×</b></span>
+            <span>{t('Tükeniş')} <b>{nf(1.6)}×</b></span><span>{t('{n} kala', { n: 1 })} <b>{nf(1.3)}×</b></span><span>{t('{n} kala', { n: 2 })} <b>{nf(1.1)}×</b></span><span>{t('{n} kala', { n: 3 })} <b>1×</b></span><span>{t('{n} kala', { n: 4 })} <b>{nf(0.8)}×</b></span>
+            <span>{t('Bench, squat, RDL')} <b>{nf(1.5)}×</b></span><span>{t('Dumbbell press, barfiks')} <b>1×</b></span><span>{t('İzolasyon')} <b>{nf(0.6)}×</b></span>
           </div>
         </div>
       </section>
       <section className="ms-step">
         <span className="ms-n mono">3</span>
         <div className="ms-b">
-          <h4>Zamanla azalır</h4>
-          <p>Her setin etkisi saat saat düşer: 24 sa sonra %51’i, 48 sa sonra %26’sı, 72 sa sonra %14’ü kalır. Tükenişe giden antrenmanlar 24–48 sa daha geç toparlanır.</p>
+          <h4>{t('Zamanla azalır')}</h4>
+          <p>{t('Her setin etkisi saat saat düşer: 24 sa sonra %51’i, 48 sa sonra %26’sı, 72 sa sonra %14’ü kalır. Tükenişe giden antrenmanlar 24–48 sa daha geç toparlanır.')}</p>
         </div>
       </section>
       <section className="ms-step">
         <span className="ms-n mono">4</span>
         <div className="ms-b">
-          <h4>Uyku ayrı eklenir</h4>
-          <p>Dün gece 7,5 saatin altı en çok +20, son 3 gecenin ortalaması 7 saatin altı en çok +10. Tek gece kısa uyku maksimal kuvveti ortalama ~%3, çok tekrarlı setleri ~%10 düşürür; birkaç gece üst üste daha fazla.</p>
-          <div className="ms-zones"><span className="ok">0–39 yönetilebilir</span><span className="warn">40–69 birikiyor</span><span className="bad">70+ yüksek</span></div>
+          <h4>{t('Uyku ayrı eklenir')}</h4>
+          <p>{t('Dün gece 7,5 saatin altı en çok +20, son 3 gecenin ortalaması 7 saatin altı en çok +10. Tek gece kısa uyku maksimal kuvveti ortalama ~%3, çok tekrarlı setleri ~%10 düşürür; birkaç gece üst üste daha fazla.')}</p>
+          <div className="ms-zones"><span className="ok">{t('0–39 yönetilebilir')}</span><span className="warn">{t('40–69 birikiyor')}</span><span className="bad">{t('70+ yüksek')}</span></div>
         </div>
       </section>
-      <p className="ms-cav">Bu bir tahmindir; ağırlıklar aşağıdaki çalışmalardan türetildi, doğrulanmış bir ölçek değil. Hız ölçer kullanmadığın için hız senin hissin; hep aynı ölçütle seçersen eğilim güvenilir olur. Kaynaklar: Zourdos ve ark. 2016 (RIR ile bar hızı), Rodríguez-Rosell ve ark. 2020 (hız kaybı ve kalan tekrar), Morán-Navarro ve ark. 2017 (tükeniş ve toparlanma), Craven ve ark. 2022 (uyku ve performans).</p>
-      <button type="button" id="ms-meter" className="btn primary full" onClick={() => openSheet('fatigue', {})}>Yorgunluk ölçeri aç</button>
+      <p className="ms-cav">{t('Bu bir tahmindir; ağırlıklar aşağıdaki çalışmalardan türetildi, doğrulanmış bir ölçek değil. Hız ölçer kullanmadığın için hız senin hissin; hep aynı ölçütle seçersen eğilim güvenilir olur. Kaynaklar: Zourdos ve ark. 2016 (RIR ile bar hızı), Rodríguez-Rosell ve ark. 2020 (hız kaybı ve kalan tekrar), Morán-Navarro ve ark. 2017 (tükeniş ve toparlanma), Craven ve ark. 2022 (uyku ve performans).')}</p>
+      <button type="button" id="ms-meter" className="btn primary full" onClick={() => openSheet('fatigue', {})}>{t('Yorgunluk ölçeri aç')}</button>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React from 'react';
 import { PxIcon, hasPxIcon } from '../../app/PxIcon';
-import { t } from '../../i18n';
+import { byLang, numIn, pct as pctTxt, t } from '../../i18n';
 
 const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
@@ -11,15 +11,24 @@ const smooth = (x) => x * x * (3 - 2 * x);
 const reducedMotion = () => {
   try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; }
 };
-const fmt = (n, d = 0) => n.toFixed(d).replace('.', ',');
+const fmt = (n, d = 0) => numIn(n, d);
 
-const STAGES = [
-  { id: 'sinyal', short: 'Sinyal' },
-  { id: 'kazanim', short: 'Kazanım' },
-  { id: 'atesleme', short: 'Ateşleme' },
-  { id: 'periferik', short: 'Yorgunluk' },
-  { id: 'toparlanma', short: 'Toparlanma' },
-];
+const STAGES = byLang({
+  tr: [
+    { id: 'sinyal', short: 'Sinyal' },
+    { id: 'kazanim', short: 'Kazanım' },
+    { id: 'atesleme', short: 'Ateşleme' },
+    { id: 'periferik', short: 'Yorgunluk' },
+    { id: 'toparlanma', short: 'Toparlanma' },
+  ],
+  en: [
+    { id: 'sinyal', short: 'Signal' },
+    { id: 'kazanim', short: 'Recruitment' },
+    { id: 'atesleme', short: 'Rate coding' },
+    { id: 'periferik', short: 'Fatigue' },
+    { id: 'toparlanma', short: 'Recovery' },
+  ],
+});
 
 /* ---------------- Icons ---------------- */
 function Icon({ name, size = 16 }) {
@@ -71,10 +80,10 @@ function Notes({ what, tip, caveat }) {
   if (compact) {
     return (
       <details className="info-fold">
-        <summary><Icon name="flask" size={13} /> Nasıl çalışır?</summary>
+        <summary><Icon name="flask" size={13} /> {t('Nasıl çalışır?')}</summary>
         <div className="info-body">
           <p>{what}</p>
-          <p className="info-tip"><b>İpucu:</b> {tip}</p>
+          <p className="info-tip"><b>{t('İpucu:')}</b> {tip}</p>
           {caveat ? <p className="info-cav">{caveat}</p> : null}
         </div>
       </details>
@@ -83,16 +92,16 @@ function Notes({ what, tip, caveat }) {
   return (
     <aside className="notes">
       <div className="note note-what">
-        <div className="note-label"><Icon name="pulse" size={14} /> Ne oluyor?</div>
+        <div className="note-label"><Icon name="pulse" size={14} /> {t('Ne oluyor?')}</div>
         <p>{what}</p>
       </div>
       <div className="note note-tip">
-        <div className="note-label"><Icon name="target" size={14} /> Pratik ipucu</div>
+        <div className="note-label"><Icon name="target" size={14} /> {t('Pratik ipucu')}</div>
         <p>{tip}</p>
       </div>
       {caveat ? (
         <div className="note note-caveat">
-          <div className="note-label"><Icon name="flask" size={14} /> Bilimsel not</div>
+          <div className="note-label"><Icon name="flask" size={14} /> {t('Bilimsel not')}</div>
           <p>{caveat}</p>
         </div>
       ) : null}
@@ -116,7 +125,7 @@ function StageShell({ index, title, lede, notes, children }) {
   return (
     <section className="stage" aria-labelledby={'h-' + index}>
       <div className="stage-head">
-        <div className="eyebrow">Aşama {index + 1} / 5</div>
+        <div className="eyebrow">{t('Aşama {n} / 5', { n: index + 1 })}</div>
         <h2 id={'h-' + index}>{title}</h2>
         <p className="lede">{lede}</p>
       </div>
@@ -170,7 +179,7 @@ function ArcGauge({ value, color, label }) {
   const L = Math.PI * r;
   const v = clamp(value);
   return (
-    <svg viewBox="0 0 180 106" className="arc-gauge" role="img" aria-label={label + ': yüzde ' + Math.round(v * 100)}>
+    <svg viewBox="0 0 180 106" className="arc-gauge" role="img" aria-label={label + ': ' + t('yüzde {n}', { n: Math.round(v * 100) })}>
       <path d="M20 96 A70 70 0 0 1 160 96" className="arc-bg" />
       {[0, 0.25, 0.5, 0.75, 1].map((k) => {
         const a = Math.PI * (1 - k);
@@ -180,7 +189,7 @@ function ArcGauge({ value, color, label }) {
       })}
       <path d="M20 96 A70 70 0 0 1 160 96" className="arc-val" style={{ stroke: color, strokeDasharray: `${v * L} ${L}` }} />
       <text x="90" y="84" textAnchor="middle" className="arc-num">{Math.round(v * 100)}</text>
-      <text x="90" y="101" textAnchor="middle" className="arc-unit">% maks.</text>
+      <text x="90" y="101" textAnchor="middle" className="arc-unit">{t('% maks.')}</text>
     </svg>
   );
 }
@@ -231,6 +240,7 @@ const msAt = (t) => {
   }
   return 90;
 };
+// Ad ve açıklamalar gösterimde t() ile çevrilir.
 const STATIONS = [
   { name: 'Motor korteks', desc: 'Hareket planı elektriksel uyarıya dönüşür (üst motor nöron).' },
   { name: 'Kortikospinal yol', desc: 'Uyarı beyin sapından geçerek omuriliğe iner.' },
@@ -248,7 +258,7 @@ function StageSignal() {
   const bRef = useRef(null);
   const raf = useRef(0);
   const [ready, setReady] = useState(false);
-  const [t, setT] = useState(-1);
+  const [tm, setT] = useState(-1);
 
   useEffect(() => { setReady(true); return () => cancelAnimationFrame(raf.current); }, []);
 
@@ -266,61 +276,61 @@ function StageSignal() {
     raf.current = requestAnimationFrame(tick);
   };
 
-  const running = t >= 0 && t < TL.END;
-  const done = t >= TL.END;
+  const running = tm >= 0 && tm < TL.END;
+  const done = tm >= TL.END;
   const la = ready && aRef.current ? aRef.current.getTotalLength() : 1;
   const lb = ready && bRef.current ? bRef.current.getTotalLength() : 1;
-  const posA = t < 0 ? 0 : clamp(t / TL.A) * la;
-  const posB = t < TL.SYN ? 0 : clamp((t - TL.SYN) / (TL.B - TL.SYN)) * lb;
+  const posA = tm < 0 ? 0 : clamp(tm / TL.A) * la;
+  const posB = tm < TL.SYN ? 0 : clamp((tm - TL.SYN) / (TL.B - TL.SYN)) * lb;
 
   let particle = null;
   if (ready && running && aRef.current && bRef.current) {
     let pt = null;
-    if (t <= TL.A) pt = aRef.current.getPointAtLength(posA);
-    else if (t <= TL.SYN) pt = aRef.current.getPointAtLength(la);
-    else if (t <= TL.B) pt = bRef.current.getPointAtLength(posB);
+    if (tm <= TL.A) pt = aRef.current.getPointAtLength(posA);
+    else if (tm <= TL.SYN) pt = aRef.current.getPointAtLength(la);
+    else if (tm <= TL.B) pt = bRef.current.getPointAtLength(posB);
     if (pt) particle = { x: pt.x, y: pt.y };
   }
 
   const trail = 54;
-  const somaGlow = t >= TL.A - 100 && t <= TL.SYN + 200 ? 1 : 0;
-  const ach = t >= TL.B && t <= TL.NMJ + 300 ? clamp((t - TL.B) / (TL.NMJ + 300 - TL.B)) : -1;
-  const sweep = t < TL.NMJ ? 0 : clamp((t - TL.NMJ) / (TL.AP - TL.NMJ));
-  const c = t < TL.NMJ + 80 ? 0 : t < TL.AP ? clamp((t - TL.NMJ - 80) / (TL.AP - TL.NMJ - 80)) : t < TL.HOLD ? 1 : clamp(1 - (t - TL.HOLD) / (TL.END - TL.HOLD));
+  const somaGlow = tm >= TL.A - 100 && tm <= TL.SYN + 200 ? 1 : 0;
+  const ach = tm >= TL.B && tm <= TL.NMJ + 300 ? clamp((tm - TL.B) / (TL.NMJ + 300 - TL.B)) : -1;
+  const sweep = tm < TL.NMJ ? 0 : clamp((tm - TL.NMJ) / (TL.AP - TL.NMJ));
+  const c = tm < TL.NMJ + 80 ? 0 : tm < TL.AP ? clamp((tm - TL.NMJ - 80) / (TL.AP - TL.NMJ - 80)) : tm < TL.HOLD ? 1 : clamp(1 - (tm - TL.HOLD) / (TL.END - TL.HOLD));
   const ce = smooth(c);
-  const hot = t >= TL.NMJ && t < TL.END ? Math.max(t < TL.AP ? 1 : 0, c) : 0;
-  const station = t < 0 ? -1 : t < 380 ? 0 : t < TL.A ? 1 : t < TL.B ? 2 : t < TL.NMJ ? 3 : t < TL.END ? 4 : 5;
-  const ms = t < 0 ? 0 : msAt(Math.min(t, TL.END));
+  const hot = tm >= TL.NMJ && tm < TL.END ? Math.max(tm < TL.AP ? 1 : 0, c) : 0;
+  const station = tm < 0 ? -1 : tm < 380 ? 0 : tm < TL.A ? 1 : tm < TL.B ? 2 : tm < TL.NMJ ? 3 : tm < TL.END ? 4 : 5;
+  const ms = tm < 0 ? 0 : msAt(Math.min(tm, TL.END));
   const pathLit = done ? 0.32 : 0.6;
   const sx = 1 - 0.13 * ce, sy = 1 + 0.14 * ce;
 
   const status =
-    station === -1 ? 'Hazır. Sinyali başlat.'
-      : station === 5 ? 'Tamamlandı. Kas lifi yaklaşık 20 ms içinde uyarıldı.'
-        : STATIONS[station].name;
+    station === -1 ? t('Hazır. Sinyali başlat.')
+      : station === 5 ? t('Tamamlandı. Kas lifi yaklaşık 20 ms içinde uyarıldı.')
+        : t(STATIONS[station].name);
 
   return (
     <StageShell
       index={0}
-      title="Beyinden kasa sinyal"
-      lede="Her tekrar, motor kortekste doğan bir elektrik sinyaliyle başlar."
+      title={t("Beyinden kasa sinyal")}
+      lede={t("Her tekrar, motor kortekste doğan bir elektrik sinyaliyle başlar.")}
       notes={
         <Notes
-          what="Kaldırma kararı motor kortekste elektriksel bir uyarıya dönüşür. Uyarı kortikospinal yolla omuriliğe iner, alfa motor nörona aktarılır ve sinir boyunca kasa ulaşır. Nöromüsküler kavşakta asetilkolin salınır, kas lifinde Ca²⁺ açığa çıkar ve aktin–miyozin köprüleri kurulur."
-          tip="Isınma setlerini de maksimum hız niyetiyle kaldır. Barı hızlı itmeye niyet etmek, bar yavaş hareket etse bile sinir sisteminin daha güçlü ve hızlı sinyal göndermesini sağlar."
+          what={t("Kaldırma kararı motor kortekste elektriksel bir uyarıya dönüşür. Uyarı kortikospinal yolla omuriliğe iner, alfa motor nörona aktarılır ve sinir boyunca kasa ulaşır. Nöromüsküler kavşakta asetilkolin salınır, kas lifinde Ca²⁺ açığa çıkar ve aktin–miyozin köprüleri kurulur.")}
+          tip={t("Isınma setlerini de maksimum hız niyetiyle kaldır. Barı hızlı itmeye niyet etmek, bar yavaş hareket etse bile sinir sisteminin daha güçlü ve hızlı sinyal göndermesini sağlar.")}
         />
       }
     >
       <div className="lab-bar">
         <button type="button" id="fire-btn" className="btn primary" onClick={fire} disabled={running}>
-          <Icon name="send" /> {done ? 'Tekrar gönder' : 'Sinyal Gönder'}
+          <Icon name="send" /> {done ? t('Tekrar gönder') : t('Sinyal Gönder')}
         </button>
-        <div className="readout-chip"><span className="rc-k">Gerçek zaman</span><span className="rc-v mono">≈ {Math.round(ms)} ms</span></div>
+        <div className="readout-chip"><span className="rc-k">{t('Gerçek zaman')}</span><span className="rc-v mono">≈ {Math.round(ms)} ms</span></div>
         <div className={'status-line' + (running ? ' live' : '')} aria-live="polite">{status}</div>
       </div>
 
       <div className="diagram">
-        <svg viewBox="0 0 640 380" role="img" aria-label="Motor korteksten omuriliğe, alfa motor nörondan kas lifine sinyal yolu">
+        <svg viewBox="0 0 640 380" role="img" aria-label={t('Motor korteksten omuriliğe, alfa motor nörondan kas lifine sinyal yolu')}>
           <defs>
             <filter id="g-neuro" x="-50%" y="-50%" width="200%" height="200%">
               <feGaussianBlur stdDeviation="3.2" result="b" />
@@ -362,14 +372,14 @@ function StageSignal() {
           <path ref={bRef} className="path-base" d="M171 302 C246 306 320 262 404 222 C450 200 494 192 520 204" />
 
           {/* Traversed glow */}
-          <path className="path-lit" d="M168 52 C164 86 162 120 161 160 L161 290" style={{ strokeDasharray: `${posA} ${la + 10}`, opacity: t < 0 ? 0 : pathLit }} />
-          <path className="path-lit" d="M171 302 C246 306 320 262 404 222 C450 200 494 192 520 204" style={{ strokeDasharray: `${posB} ${lb + 10}`, opacity: t < TL.SYN ? 0 : pathLit }} />
+          <path className="path-lit" d="M168 52 C164 86 162 120 161 160 L161 290" style={{ strokeDasharray: `${posA} ${la + 10}`, opacity: tm < 0 ? 0 : pathLit }} />
+          <path className="path-lit" d="M171 302 C246 306 320 262 404 222 C450 200 494 192 520 204" style={{ strokeDasharray: `${posB} ${lb + 10}`, opacity: tm < TL.SYN ? 0 : pathLit }} />
 
           {/* Comet trail */}
-          {running && t <= TL.A ? (
+          {running && tm <= TL.A ? (
             <path className="path-trail" filter="url(#g-neuro)" d="M168 52 C164 86 162 120 161 160 L161 290" style={{ strokeDasharray: `${trail} ${la + trail}`, strokeDashoffset: trail - posA }} />
           ) : null}
-          {running && t > TL.SYN && t <= TL.B ? (
+          {running && tm > TL.SYN && tm <= TL.B ? (
             <path className="path-trail" filter="url(#g-neuro)" d="M171 302 C246 306 320 262 404 222 C450 200 494 192 520 204" style={{ strokeDasharray: `${trail} ${lb + trail}`, strokeDashoffset: trail - posB }} />
           ) : null}
 
@@ -401,7 +411,7 @@ function StageSignal() {
 
           {/* NMJ */}
           <g className="nmj">
-            <circle cx="520" cy="206" r="5" className={'nmj-core' + (t >= TL.B && t < TL.AP ? ' on' : '')} />
+            <circle cx="520" cy="206" r="5" className={'nmj-core' + (tm >= TL.B && tm < TL.AP ? ' on' : '')} />
             {ach >= 0 ? ACH.map((a, i) => (
               <circle key={i} className="ach" cx={520 + Math.cos(a) * (4 + ach * 16)} cy={206 + Math.sin(a) * (4 + ach * 12)} r={2.2} style={{ opacity: 1 - ach }} />
             )) : null}
@@ -430,13 +440,13 @@ function StageSignal() {
           <li key={s.name} className={station === i ? 'active' : station > i ? 'passed' : ''}>
             <span className="st-num mono">{i + 1}</span>
             <div className="st-body">
-              <strong>{s.name}</strong>
-              <span>{s.desc}</span>
+              <strong>{t(s.name)}</strong>
+              <span>{t(s.desc)}</span>
             </div>
           </li>
         ))}
       </ol>
-      <p className="caption">Gerçekte bu yol kas lifine yaklaşık 20 ms'de ulaşır, kuvvet birkaç on milisaniye sonra zirve yapar. Animasyon yaklaşık 70 kat yavaşlatıldı.</p>
+      <p className="caption">{t("Gerçekte bu yol kas lifine yaklaşık 20 ms'de ulaşır, kuvvet birkaç on milisaniye sonra zirve yapar. Animasyon yaklaşık 70 kat yavaşlatıldı.")}</p>
     </StageShell>
   );
 }
@@ -452,6 +462,7 @@ const UNITS = (() => {
   add('IIx', 8, 64, 88);
   return u;
 })();
+// label ve note gösterimde t() ile çevrilir.
 const TYPE_META = {
   I: { label: 'Küçük · Tip I', note: 'Yavaş kasılır, yorgunluğa dirençli', force: 1, cls: 't1' },
   IIa: { label: 'Orta · Tip IIa', note: 'Hızlı kasılır, orta dayanıklı', force: 4, cls: 't2' },
@@ -476,50 +487,50 @@ function StageRecruit() {
   };
 
   const explain =
-    load < 40 ? 'Hafif yük: çoğunlukla küçük, yorgunluğa dirençli Tip I üniteler çalışıyor. Kuvvet ihtiyacı düşük olduğu için büyük üniteler beklemede.'
-      : load < 64 ? 'Orta yük: Tip IIa üniteler devreye giriyor. Her yeni orta ünite, küçüklere göre birkaç kat daha fazla kuvvet ekliyor.'
-        : load < 88 ? 'Ağır yük: en büyük ve en güçlü Tip IIx üniteler de kazanılıyor. Kuvvet kapasitesinin büyük kısmı bu son eklenen ünitelerden geliyor.'
-          : 'Kazanım tamamlandı. Büyük kaslarda bu sınır yaklaşık %80–90 civarıdır. Bunun üstünde kuvvet artışı çoğunlukla ateşleme hızıyla gelir (Aşama 3).';
+    load < 40 ? t('Hafif yük: çoğunlukla küçük, yorgunluğa dirençli Tip I üniteler çalışıyor. Kuvvet ihtiyacı düşük olduğu için büyük üniteler beklemede.')
+      : load < 64 ? t('Orta yük: Tip IIa üniteler devreye giriyor. Her yeni orta ünite, küçüklere göre birkaç kat daha fazla kuvvet ekliyor.')
+        : load < 88 ? t('Ağır yük: en büyük ve en güçlü Tip IIx üniteler de kazanılıyor. Kuvvet kapasitesinin büyük kısmı bu son eklenen ünitelerden geliyor.')
+          : t('Kazanım tamamlandı. Büyük kaslarda bu sınır yaklaşık %80–90 civarıdır. Bunun üstünde kuvvet artışı çoğunlukla ateşleme hızıyla gelir (Aşama 3).');
 
   const zones = [
-    { k: 'Tip I', w: 21 },
-    { k: 'Tip IIa', w: 39 },
-    { k: 'Tip IIx', w: 23 },
-    { k: 'Frekans', w: 17 },
+    { k: t('Tip I'), w: 21 },
+    { k: t('Tip IIa'), w: 39 },
+    { k: t('Tip IIx'), w: 23 },
+    { k: t('Frekans'), w: 17 },
   ];
 
   return (
     <StageShell
       index={1}
-      title="Motor ünite kazanımı"
-      lede="Henneman boyut prensibi: sinir sistemi motor üniteleri küçükten büyüğe sırayla devreye alır."
+      title={t("Motor ünite kazanımı")}
+      lede={t("Henneman boyut prensibi: sinir sistemi motor üniteleri küçükten büyüğe sırayla devreye alır.")}
       notes={
         <Notes
-          what="Motor ünite, tek bir motor nöron ve onun uyardığı kas liflerinden oluşur. Küçük motor nöronların uyarılma eşiği düşüktür, bu yüzden önce onlar devreye girer; gereken kuvvet arttıkça orta ve büyük üniteler eklenir. Büyük üniteler çok sayıda hızlı kasılan Tip II life komuta eder ve kuvvetin büyük kısmını üretir."
-          tip="Büyük üniteleri çalıştırmanın iki yolu var: ağır yük ya da tükenişe yakın (0–3 RIR) setler. Kas büyümesi için %30–80 1RM aralığı tükenişe yakın yapıldığında benzer sonuç verir; maksimal kuvvet için ağır yük yine üstündür."
-          caveat="Hafif yükle tükenişe giderken yorgunlukla birlikte büyük ünitelerin de devreye girdiği kabul edilir; bunun ağır yük kadar eksiksiz olup olmadığı EMG çalışmalarında tartışmalıdır. Kaydırıcı %1RM'yi kabaca gereken kuvvete eşler, gerçek eşikler kasa ve harekete göre değişir."
+          what={t("Motor ünite, tek bir motor nöron ve onun uyardığı kas liflerinden oluşur. Küçük motor nöronların uyarılma eşiği düşüktür, bu yüzden önce onlar devreye girer; gereken kuvvet arttıkça orta ve büyük üniteler eklenir. Büyük üniteler çok sayıda hızlı kasılan Tip II life komuta eder ve kuvvetin büyük kısmını üretir.")}
+          tip={t("Büyük üniteleri çalıştırmanın iki yolu var: ağır yük ya da tükenişe yakın (0–3 RIR) setler. Kas büyümesi için %30–80 1RM aralığı tükenişe yakın yapıldığında benzer sonuç verir; maksimal kuvvet için ağır yük yine üstündür.")}
+          caveat={t("Hafif yükle tükenişe giderken yorgunlukla birlikte büyük ünitelerin de devreye girdiği kabul edilir; bunun ağır yük kadar eksiksiz olup olmadığı EMG çalışmalarında tartışmalıdır. Kaydırıcı %1RM'yi kabaca gereken kuvvete eşler, gerçek eşikler kasa ve harekete göre değişir.")}
         />
       }
     >
       <div className="recruit-top">
         <div className="big-readout">
           <span className="big-num mono">{pct}<small>%</small></span>
-          <span className="big-k">aktif motor ünite</span>
+          <span className="big-k">{t('aktif motor ünite')}</span>
         </div>
         <div className="big-readout">
           <span className="big-num mono fire">{forcePct}<small>%</small></span>
-          <span className="big-k">devredeki kuvvet kapasitesi</span>
+          <span className="big-k">{t('devredeki kuvvet kapasitesi')}</span>
         </div>
       </div>
 
       <div className="load-ctl">
-        <Range id="load-slider" label="Yük" value={load} min={30} max={100} onChange={setLoad} display={'%' + load + ' 1RM'} tone="fire" />
+        <Range id="load-slider" label={t('Yük')} value={load} min={30} max={100} onChange={setLoad} display={pctTxt(load) + ' 1RM'} tone="fire" />
         <div className="zones" aria-hidden="true">
           {zones.map((z) => <span key={z.k} style={{ width: z.w + '%' }}>{z.k}</span>)}
         </div>
-        <div className="chips" role="group" aria-label="Hazır yükler">
+        <div className="chips" role="group" aria-label={t('Hazır yükler')}>
           {[30, 60, 85, 100].map((v) => (
-            <button key={v} type="button" id={'preset-' + v} className={'chip' + (load === v ? ' on' : '')} onClick={() => setLoad(v)}>%{v}</button>
+            <button key={v} type="button" id={'preset-' + v} className={'chip' + (load === v ? ' on' : '')} onClick={() => setLoad(v)}>{pctTxt(v)}</button>
           ))}
         </div>
       </div>
@@ -533,8 +544,8 @@ function StageRecruit() {
             <div key={type} className={'mu-group ' + meta.cls}>
               <div className="mu-head">
                 <div>
-                  <strong>{meta.label}</strong>
-                  <span>{meta.note}</span>
+                  <strong>{t(meta.label)}</strong>
+                  <span>{t(meta.note)}</span>
                 </div>
                 <span className="mono mu-count">{on}/{units.length}</span>
               </div>
@@ -544,7 +555,7 @@ function StageRecruit() {
                     key={u.id}
                     className={'mu-dot' + (u.thr <= load ? ' on' : '')}
                     style={{ transitionDelay: delayFor(u) + 'ms', '--ph': u.ph * 1.4 + 's' }}
-                    title={'Eşik ≈ %' + Math.round(u.thr)}
+                    title={t('Eşik ≈ {p}', { p: pctTxt(Math.round(u.thr)) })}
                   />
                 ))}
               </div>
@@ -659,7 +670,7 @@ function Oscilloscope({ freq, sync, onForce }) {
         ctx.fillStyle = PX ? '#100e1b' : 'rgba(3,6,13,0.85)';
         ctx.fillRect(2, muTop + rowH * i + 2, 30, 13);
         ctx.fillStyle = MUTED; ctx.font = FONT;
-        ctx.fillText('MÜ' + (i + 1), 6, muTop + rowH * i + 12);
+        ctx.fillText(t('MÜ') + (i + 1), 6, muTop + rowH * i + 12);
       }
 
       // force trace (twitch summation)
@@ -704,10 +715,10 @@ function Oscilloscope({ freq, sync, onForce }) {
       trace(false);
       ctx.strokeStyle = FIRE; ctx.lineWidth = PX ? 3 : 2; ctx.shadowColor = FIRE; ctx.shadowBlur = 10 * GLOW; ctx.stroke(); ctx.shadowBlur = 0;
       ctx.fillStyle = MUTED; ctx.font = FONT;
-      ctx.fillText('KUVVET', 6, fTop + 13);
+      ctx.fillText(t('KUVVET'), 6, fTop + 13);
       ctx.textAlign = 'right';
-      ctx.fillText('maks.', w - 6, yOf(1) - 4);
-      ctx.fillText('100 ms / bölme', w - 6, h - 5);
+      ctx.fillText(t('maks.'), w - 6, yOf(1) - 4);
+      ctx.fillText(t('100 ms / bölme'), w - 6, h - 5);
       ctx.textAlign = 'left';
 
       if (now - lastReport > 140 && accN) { lastReport = now; cb.current(acc / accN); }
@@ -719,7 +730,7 @@ function Oscilloscope({ freq, sync, onForce }) {
 
   return (
     <div className="scope" ref={wrapRef}>
-      <canvas ref={cvRef} aria-label="Beş motor ünitenin ateşleme izleri ve toplam kuvvet eğrisi" role="img" />
+      <canvas ref={cvRef} aria-label={t('Beş motor ünitenin ateşleme izleri ve toplam kuvvet eğrisi')} role="img" />
     </div>
   );
 }
@@ -731,43 +742,43 @@ function StageRate() {
   const freq = 8 + intensity * 0.52;
   const shownForce = clamp(force * (sync ? 1.04 : 1));
   const rfd = clamp((0.22 + 0.78 * ((freq - 8) / 52)) * (sync ? 1.15 : 1));
-  const fusion = freq < 16 ? 'Ayrı seğirmeler: kuvvet dalgalı' : freq < 34 ? 'Kısmi kaynaşma: seğirmeler üst üste biniyor' : 'Tetanusa yakın: kuvvet düzgün ve yüksek';
+  const fusion = freq < 16 ? t('Ayrı seğirmeler: kuvvet dalgalı') : freq < 34 ? t('Kısmi kaynaşma: seğirmeler üst üste biniyor') : t('Tetanusa yakın: kuvvet düzgün ve yüksek');
 
   return (
     <StageShell
       index={2}
-      title="Ateşleme hızı ve senkronizasyon"
-      lede="Üniteler devreye girdikten sonra kuvveti sinyalin sıklığı belirler."
+      title={t("Ateşleme hızı ve senkronizasyon")}
+      lede={t("Üniteler devreye girdikten sonra kuvveti sinyalin sıklığı belirler.")}
       notes={
         <Notes
-          what="Motor nöron saniyede ne kadar sık ateşlerse kas lifi o kadar güçlü kasılır. Düşük frekansta seğirmeler tek tek görülür; frekans yükseldikçe üst üste binip kaynaşır ve kuvvet artar (tetanus). Senkronizasyon, farklı ünitelerin aynı anda ateşlemesidir."
-          tip="Ateşleme hızını en iyi ağır ve patlayıcı çalışma geliştirir: %80 1RM üzeri düşük tekrar ve maksimum hız niyeti. Yeni başlayanların ilk haftalardaki hızlı kuvvet artışının önemli kısmı bu tür nöral uyumlardan gelir."
-          caveat="Senkronizasyonun maksimal kuvvete katkısı küçük ve tartışmalıdır; daha çok kuvvet gelişim hızıyla (RFD) ilişkilendirilir. Simülasyonda bu yüzden kuvveti az, patlayıcılığı daha çok artırır. Patlayıcı başlangıçlarda anlık frekans kısa süreliğine 100 Hz'in üzerine çıkabilir."
+          what={t("Motor nöron saniyede ne kadar sık ateşlerse kas lifi o kadar güçlü kasılır. Düşük frekansta seğirmeler tek tek görülür; frekans yükseldikçe üst üste binip kaynaşır ve kuvvet artar (tetanus). Senkronizasyon, farklı ünitelerin aynı anda ateşlemesidir.")}
+          tip={t("Ateşleme hızını en iyi ağır ve patlayıcı çalışma geliştirir: %80 1RM üzeri düşük tekrar ve maksimum hız niyeti. Yeni başlayanların ilk haftalardaki hızlı kuvvet artışının önemli kısmı bu tür nöral uyumlardan gelir.")}
+          caveat={t("Senkronizasyonun maksimal kuvvete katkısı küçük ve tartışmalıdır; daha çok kuvvet gelişim hızıyla (RFD) ilişkilendirilir. Simülasyonda bu yüzden kuvveti az, patlayıcılığı daha çok artırır. Patlayıcı başlangıçlarda anlık frekans kısa süreliğine 100 Hz'in üzerine çıkabilir.")}
         />
       }
     >
       <div className="rate-head">
         <div className="hz-readout">
           <span className="big-num mono neuro">{Math.round(freq)}<small> Hz</small></span>
-          <span className="big-k">ateşleme frekansı</span>
+          <span className="big-k">{t('ateşleme frekansı')}</span>
         </div>
         <div className="fusion-tag" aria-live="polite">{fusion}</div>
       </div>
       <Oscilloscope freq={freq} sync={sync} onForce={setForce} />
       <div className="rate-ctl">
         <div className="rate-inputs">
-          <Range id="intensity-slider" label="Yoğunluk" value={intensity} min={0} max={100} onChange={setIntensity} display={'%' + intensity} />
-          <Switch id="sync-switch" label="Senkronizasyon" on={sync} onChange={setSync} />
+          <Range id="intensity-slider" label={t('Yoğunluk')} value={intensity} min={0} max={100} onChange={setIntensity} display={pctTxt(intensity)} />
+          <Switch id="sync-switch" label={t('Senkronizasyon')} on={sync} onChange={setSync} />
         </div>
         <div className="rate-out">
           <div className="gauge-box">
-            <ArcGauge value={shownForce} color="var(--fire)" label="Kuvvet çıktısı" />
-            <span className="gauge-k">Kuvvet çıktısı</span>
+            <ArcGauge value={shownForce} color="var(--fire)" label={t('Kuvvet çıktısı')} />
+            <span className="gauge-k">{t('Kuvvet çıktısı')}</span>
           </div>
           <div className="rfd-box">
-            <div className="rfd-top"><span>Patlayıcılık (RFD)</span><span className="mono">{Math.round(rfd * 100)}</span></div>
+            <div className="rfd-top"><span>{t('Patlayıcılık (RFD)')}</span><span className="mono">{Math.round(rfd * 100)}</span></div>
             <div className="meter"><span style={{ width: rfd * 100 + '%' }} /></div>
-            <p className="rfd-note">{sync ? 'Senkron ateşleme kuvvetin daha hızlı yükselmesine yardım eder.' : 'Senkronizasyonu aç ve izlerin hizalanmasını izle.'}</p>
+            <p className="rfd-note">{sync ? t('Senkron ateşleme kuvvetin daha hızlı yükselmesine yardım eder.') : t('Senkronizasyonu aç ve izlerin hizalanmasını izle.')}</p>
           </div>
         </div>
       </div>
@@ -833,34 +844,34 @@ function StageFatigue() {
   return (
     <StageShell
       index={3}
-      title="Yorgunluk: merkezi ve periferik"
-      lede="Set ilerledikçe hem sinyalin kaynağı hem de kasın kendisi yorulur. %85 1RM ile bir set yap."
+      title={t("Yorgunluk: merkezi ve periferik")}
+      lede={t("Set ilerledikçe hem sinyalin kaynağı hem de kasın kendisi yorulur. %85 1RM ile bir set yap.")}
       notes={
         <Notes
-          what="Merkezi yorgunluk, beyin ve omuriliğin kasa ulaştırdığı etkin sinyalin azalmasıdır. Periferik yorgunluk kasın içinde olur: inorganik fosfat (Pᵢ) ve H⁺ birikir, sarkoplazmik retikulumdan Ca²⁺ salınımı azalır ve aynı sinyal daha az kuvvet üretir. Bar hızındaki düşüş ikisinin toplam etkisini gösterir."
-          tip="Bar hızı kalan tekrar için iyi bir göstergedir. Kuvvet odaklı setlerde ilk tekrara göre %20–30 hız kaybında durmak güçlü bir uyaran sağlar ve sonraki setlere daha az yorgunluk taşır. Hız ölçerin yoksa tekrarlar belirgin yavaşladığında 1–2 RIR'de bırak."
-          caveat="Tek bir ağır sette yorgunluğun büyük kısmı periferiktir. Set içinde beyin sinyali artırarak telafi etmeye çalışır; merkezi yorgunluk bu telafinin yetmediği noktadır ve uzun, çok setli seanslarda belirginleşir. Laktatın kendisi yorgunluğun nedeni sayılmaz, Pᵢ ve H⁺ birikimi daha belirleyicidir."
+          what={t("Merkezi yorgunluk, beyin ve omuriliğin kasa ulaştırdığı etkin sinyalin azalmasıdır. Periferik yorgunluk kasın içinde olur: inorganik fosfat (Pᵢ) ve H⁺ birikir, sarkoplazmik retikulumdan Ca²⁺ salınımı azalır ve aynı sinyal daha az kuvvet üretir. Bar hızındaki düşüş ikisinin toplam etkisini gösterir.")}
+          tip={t("Bar hızı kalan tekrar için iyi bir göstergedir. Kuvvet odaklı setlerde ilk tekrara göre %20–30 hız kaybında durmak güçlü bir uyaran sağlar ve sonraki setlere daha az yorgunluk taşır. Hız ölçerin yoksa tekrarlar belirgin yavaşladığında 1–2 RIR'de bırak.")}
+          caveat={t("Tek bir ağır sette yorgunluğun büyük kısmı periferiktir. Set içinde beyin sinyali artırarak telafi etmeye çalışır; merkezi yorgunluk bu telafinin yetmediği noktadır ve uzun, çok setli seanslarda belirginleşir. Laktatın kendisi yorgunluğun nedeni sayılmaz, Pᵢ ve H⁺ birikimi daha belirleyicidir.")}
         />
       }
     >
       <div className="lab-bar">
         <button type="button" id="rep-btn" className="btn fire" onClick={doRep} disabled={busy || atFailure}>
-          <Icon name="up" /> {atFailure ? 'Tükeniş' : 'Tekrar Yap'}
+          <Icon name="up" /> {atFailure ? t('Tükeniş') : t('Tekrar Yap')}
         </button>
         <button type="button" id="rest-btn" className="btn ghost" onClick={rest} disabled={busy || s.reps === 0}>
-          <Icon name="moon" /> 3 dk dinlen
+          <Icon name="moon" /> {t('3 dk dinlen')}
         </button>
         <button type="button" id="reset-btn" className="btn ghost" onClick={reset} disabled={busy}>
-          <Icon name="reset" /> Sıfırla
+          <Icon name="reset" /> {t('Sıfırla')}
         </button>
-        <div className="set-info mono">Set {s.set} · tekrar {s.reps}/{s.M}</div>
+        <div className="set-info mono">{t('Set {n} · tekrar {r}/{m}', { n: s.set, r: s.reps, m: s.M })}</div>
       </div>
 
       <div className="fatigue-panels">
         <div className="fpanel central">
           <div className="fpanel-head">
-            <strong>Merkezi yorgunluk</strong>
-            <span>Beyin ve omurilik çıkışı</span>
+            <strong>{t('Merkezi yorgunluk')}</strong>
+            <span>{t('Beyin ve omurilik çıkışı')}</span>
           </div>
           <svg viewBox="0 0 260 130" className="fp-svg" aria-hidden="true">
             <g transform="translate(8 6) scale(0.42)">
@@ -873,19 +884,19 @@ function StageFatigue() {
               d="M78 30 L78 104 C78 116 120 116 160 112 L252 112"
               style={{ opacity: 0.2 + 0.8 * signal, '--dur': (0.55 / Math.max(0.25, signal)).toFixed(2) + 's', strokeWidth: 2 + 2 * signal }}
             />
-            <text x="250" y="102" textAnchor="end" className="svg-k">kasa</text>
+            <text x="250" y="102" textAnchor="end" className="svg-k">{t('kasa')}</text>
           </svg>
           <div className="fbar-row">
             <div className="fbar"><span style={{ width: C * 100 + '%' }} /></div>
             <span className="mono fbar-v">{Math.round(C * 100)}</span>
           </div>
-          <div className="fp-stat"><span>Etkin sinyal</span><span className="mono neuro">%{Math.round(signal * 100)}</span></div>
+          <div className="fp-stat"><span>{t('Etkin sinyal')}</span><span className="mono neuro">{pctTxt(Math.round(signal * 100))}</span></div>
         </div>
 
         <div className="fpanel peripheral">
           <div className="fpanel-head">
-            <strong>Periferik yorgunluk</strong>
-            <span>Kas lifinin içi</span>
+            <strong>{t('Periferik yorgunluk')}</strong>
+            <span>{t('Kas lifinin içi')}</span>
           </div>
           <svg viewBox="0 0 260 130" className="fp-svg" aria-hidden="true">
             <rect x="8" y="14" width="244" height="102" rx="20" className="fiber-body" />
@@ -901,7 +912,7 @@ function StageFatigue() {
             <div className="fbar"><span style={{ width: P * 100 + '%' }} /></div>
             <span className="mono fbar-v">{Math.round(P * 100)}</span>
           </div>
-          <div className="fp-stat"><span>Ca²⁺ salınımı</span><span className="mono neuro">%{Math.round(ca * 100)}</span></div>
+          <div className="fp-stat"><span>{t('Ca²⁺ salınımı')}</span><span className="mono neuro">{pctTxt(Math.round(ca * 100))}</span></div>
           <div className="legend">
             <span><i className="lg ca" /> Ca²⁺</span>
             <span><i className="lg h" /> H⁺</span>
@@ -920,8 +931,8 @@ function StageFatigue() {
         </div>
         <div className="vel-box">
           <div className="vel-top">
-            <div><span className="vk">Bar hızı</span><span className="mono vv">{curV ? fmt(curV, 2) : '–'} <small>m/s</small></span></div>
-            <div><span className="vk">Hız kaybı</span><span className="mono vv">%{Math.round(vl * 100)}</span></div>
+            <div><span className="vk">{t('Bar hızı')}</span><span className="mono vv">{curV ? fmt(curV, 2) : '–'} <small>m/s</small></span></div>
+            <div><span className="vk">{t('Hız kaybı')}</span><span className="mono vv">{pctTxt(Math.round(vl * 100))}</span></div>
           </div>
           <div className="vel-bars">
             {Array.from({ length: Math.max(s.M, 6) }, (_, i) => {
@@ -940,7 +951,7 @@ function StageFatigue() {
             <div><span className="vk">RPE</span><span className="mono vv">{rpe != null ? rpe : '–'}</span></div>
             <div><span className="vk">RIR</span><span className="mono vv">{s.reps ? rir : '–'}</span></div>
           </div>
-          <div className="rpe-scale" role="img" aria-label={rpe != null ? 'RPE ' + rpe : 'Henüz tekrar yok'}>
+          <div className="rpe-scale" role="img" aria-label={rpe != null ? 'RPE ' + rpe : t('Henüz tekrar yok')}>
             {[5, 6, 7, 8, 9, 10].map((n) => (
               <div key={n} className={'rpe-seg r' + n + (rpe != null && n <= rpe ? ' on' : '') + (rpe === n ? ' cur' : '')}>
                 <span className="mono">{n}</span>
@@ -953,17 +964,17 @@ function StageFatigue() {
 
       <p className="live-explain" aria-live="polite">
         {atFailure
-          ? 'Tükeniş: bu sette başka tekrar çıkmaz. Dinlen ve bir sonraki sette tahmini maksimum tekrarın nasıl düştüğüne bak.'
+          ? t('Tükeniş: bu sette başka tekrar çıkmaz. Dinlen ve bir sonraki sette tahmini maksimum tekrarın nasıl düştüğüne bak.')
           : s.reps === 0
-            ? (s.set === 1 ? 'Taze başlangıç. Tekrar Yap ile ilk tekrarı kaldır.' : `Dinlendin ama yorgunluğun bir kısmı taşındı. Bu sette tahmini maksimum ${s.M} tekrar.`)
+            ? (s.set === 1 ? t('Taze başlangıç. Tekrar Yap ile ilk tekrarı kaldır.') : t('Dinlendin ama yorgunluğun bir kısmı taşındı. Bu sette tahmini maksimum {n} tekrar.', { n: s.M }))
             : vl >= 0.3
-              ? 'Hız kaybı %30\'u geçti. Kuvvet odaklı bir sette burada durmak mantıklı.'
-              : 'Periferik yorgunluk merkezi yorgunluktan hızlı birikiyor. Bar hızını izle.'}
+              ? t("Hız kaybı %30'u geçti. Kuvvet odaklı bir sette burada durmak mantıklı.")
+              : t('Periferik yorgunluk merkezi yorgunluktan hızlı birikiyor. Bar hızını izle.')}
       </p>
       {s.history.length ? (
         <div className="history">
           {s.history.map((h) => (
-            <span key={h.set} className="hist-chip mono">Set {h.set}: {h.reps} tekrar · %{Math.round(h.vl * 100)} hız kaybı{h.fail ? ' · tükeniş' : ''}</span>
+            <span key={h.set} className="hist-chip mono">{t('Set {n}: {r} tekrar · {p} hız kaybı', { n: h.set, r: h.reps, p: pctTxt(Math.round(h.vl * 100)) })}{h.fail ? ' · ' + t('tükeniş') : ''}</span>
           ))}
         </div>
       ) : null}
@@ -1012,7 +1023,7 @@ function NeedleGauge({ score, zone }) {
   const seg = (a, b) => `0 ${a * L} ${(b - a) * L} ${L}`;
   const ang = -90 + (score / 100) * 180;
   return (
-    <svg viewBox="0 0 200 118" className="needle-gauge" role="img" aria-label={'SSS yorgunluk ölçer: ' + Math.round(score) + ', ' + zone.k}>
+    <svg viewBox="0 0 200 118" className="needle-gauge" role="img" aria-label={t('SSS yorgunluk ölçer: {n}, {z}', { n: Math.round(score), z: zone.k })}>
       <path d={d} className="ng-track" />
       <path d={d} className="ng-zone" style={{ stroke: 'var(--ok)', strokeDasharray: seg(0, 0.395) }} />
       <path d={d} className="ng-zone" style={{ stroke: 'var(--warn)', strokeDasharray: seg(0.405, 0.695) }} />

@@ -171,9 +171,10 @@ export const BIO = (function () {
     stern += 0.05 * g; tri -= 0.1 * g;
     tri += clamp(avgElbowArm / 12, 0, 1) * 0.3;
     var all = [
-      { k: 'Üst göğüs', sub: 'klaviküler baş', v: clav },
-      { k: 'Orta-alt göğüs', sub: 'sternokostal baş', v: stern },
-      { k: 'Ön omuz', sub: 'anterior deltoid', v: delt },
+      // k ve sub gösterim etiketidir (ekranda t() ile çevrilir); karşılaştırma için id kullan.
+      { id: 'clav', k: 'Üst göğüs', sub: 'klaviküler baş', v: clav },
+      { id: 'stern', k: 'Orta-alt göğüs', sub: 'sternokostal baş', v: stern },
+      { id: 'delt', k: 'Ön omuz', sub: 'anterior deltoid', v: delt },
       { k: 'Triceps', sub: 'dirsek ekstansiyonu', v: tri },
     ];
     return all.map(function (m) { return { k: m.k, sub: m.sub, v: clamp(m.v, 0.15, 1) }; });

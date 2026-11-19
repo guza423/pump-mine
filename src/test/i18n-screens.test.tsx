@@ -143,8 +143,8 @@ describe('İngilizce arayüz (V21)', () => {
     fireEvent.click(container.querySelector('#ready-ring'));
     const dialog = await screen.findByRole('dialog', { name: 'Fatigue meter' });
     expect(within(dialog).getByRole('tab', { name: 'Now' })).toBeTruthy();
-    // Ders kısayolları Lab ile birlikte çevrilecek (V24).
-    expect(turkishIn(dialog, ['.fat2-learn'])).toEqual([]);
+    expect(turkishIn(dialog)).toEqual([]);
+    expect(attrsTurkish(dialog)).toEqual([]);
   });
 
   it('Hesap ve ayarlar İngilizce; dil Türkçeye geçince pencere açık kalır ve tercih saklanır', async () => {
@@ -344,5 +344,56 @@ describe('İngilizce arayüz (V21)', () => {
     expect(within(pick).getByText(/^Repeat every /)).toBeTruthy();
     expect(turkishIn(pick, userData)).toEqual([]);
   });
-});
+  // V24 · Lab
+  it('Lab sekmesi İngilizce: temeller, hareket listesi, ölçüm, sinir sistemi dersleri, biyomekanik ve hareket sayfaları', async () => {
+    const { container } = render(<App />);
+    const click = (selector) => fireEvent.click(container.querySelector(selector));
+    const device = () => container.querySelector('.device');
+    const closeTop = async () => {
+      fireEvent.click(screen.getAllByRole('button', { name: 'Close' }).at(-1));
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    };
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    click('#tab-lab');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Lab' })).toBeTruthy();
+    expect(screen.getByText('How is fatigue measured?')).toBeTruthy();
+    expect(turkishIn(device())).toEqual([]);
+    expect(attrsTurkish(device())).toEqual([]);
 
+    click('#lab-measure');
+    const measure = await screen.findByRole('dialog', { name: 'How is fatigue measured?' });
+    expect(within(measure).getByText('hard set')).toBeTruthy();
+    expect(turkishIn(measure)).toEqual([]);
+    expect(attrsTurkish(measure)).toEqual([]);
+    await closeTop();
+
+    click('#lab-signal');
+    const lesson = await screen.findByRole('dialog', { name: 'Nervous system' });
+    const tabs = within(lesson).getAllByRole('tab');
+    expect(tabs.map((b) => b.textContent)).toEqual(['1Signal', '2Recruitment', '3Rate coding', '4Fatigue']);
+    for (const tab of tabs) {
+      fireEvent.click(tab);
+      expect(turkishIn(lesson)).toEqual([]);
+      expect(attrsTurkish(lesson)).toEqual([]);
+    }
+    for (let i = 0; i < 4; i++) fireEvent.click(within(lesson).getByRole('button', { name: 'Do a rep' }));
+    expect(turkishIn(lesson)).toEqual([]);
+    await closeTop();
+
+    click('#lab-part-hareket');
+    expect(await screen.findByText('Incline barbell bench press')).toBeTruthy();
+    expect(turkishIn(device())).toEqual([]);
+    expect(attrsTurkish(device())).toEqual([]);
+    // Hareket sayfasında yalnız Türkçe ad satırı (.ex-en) Türkçe kalır.
+    for (const [q, id] of [['incline barbell', 'egimli-bench'], ['romanian', 'rdl'], ['band lateral', 'band-yana-acis'], ['depth jump', 'derinlik-sicrama'], ['kip-up', 'kip-up']]) {
+      fireEvent.change(container.querySelector('#lab-search'), { target: { value: q } });
+      const row = await waitFor(() => { const el = container.querySelector('#labex-' + id); expect(el).toBeTruthy(); return el; });
+      fireEvent.click(row);
+      const sheet = (await screen.findAllByRole('dialog')).at(-1);
+      expect(turkishIn(sheet, ['.ex-en'])).toEqual([]);
+      expect(attrsTurkish(sheet)).toEqual([]);
+      if (id === 'egimli-bench') expect(within(sheet).getByText(/^Turkish: /)).toBeTruthy();
+      await closeTop();
+    }
+  });
+});

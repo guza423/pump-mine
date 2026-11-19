@@ -2,8 +2,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BIO } from '../../lib/models/biomech';
 import { clamp, fmt, Icon, Notes, Range, reducedMotion } from './Cns';
+import { pct, t, tc } from '../../i18n';
+import { rich } from '../../i18n/rich';
 
 /* ================= BIYOMEKANIK ================= */
+// name ve tag gösterimde t() ile çevrilir.
 const MOVES = [
   { id: 'bench', name: 'Eğimli bench', tag: 'İtiş · çok eklemli' },
   { id: 'rdl', name: 'Romanian deadlift', tag: 'Menteşe · kalça' },
@@ -83,20 +86,20 @@ function Heat({ at, r, k }) {
 const BENCH_VB = '-78 -94 130 140';
 function BenchSide({ p, pose, curve }) {
   const st = pose.st;
-  const t = st.t, n = st.n;
+  const tv = st.t, n = st.n;
   const T = BIO.A.trunk;
   const add = (a, b) => [a[0] + b[0], a[1] + b[1]];
   const mul = (v, s) => [v[0] * s, v[1] * s];
   const S = [0, 0];
-  const hip = mul(t, -T);
+  const hip = mul(tv, -T);
   const floorY = hip[1] - 55;
   const knee = [hip[0] - BIO.A.thigh * Math.cos(rad8), hip[1] - BIO.A.thigh * Math.sin(rad8)];
   const ankY = floorY + BIO.A.ankleH;
   const dy = knee[1] - ankY;
   const ank = dy >= BIO.A.shank ? [knee[0], knee[1] - BIO.A.shank] : [knee[0] + Math.sqrt(BIO.A.shank * BIO.A.shank - dy * dy), ankY];
-  const padA = add(mul(t, -(T + 12)), mul(n, -13.5));
-  const padB = add(mul(t, 33), mul(n, -13.5));
-  const head = add(mul(t, 25), mul(n, 3));
+  const padA = add(mul(tv, -(T + 12)), mul(n, -13.5));
+  const padB = add(mul(tv, 33), mul(n, -13.5));
+  const head = add(mul(tv, 25), mul(n, 3));
   const H = [pose.H[0], pose.H[1]];
   const E = [pose.E[0], pose.E[1]];
   const peakS = curve.reduce((m, c) => Math.max(m, c.mS), 1);
@@ -105,21 +108,21 @@ function BenchSide({ p, pose, curve }) {
   const stick = curve.filter((c) => c.q >= 0.1 && c.q <= 0.4).map((c) => SV([c.H[0], c.H[1]]).join(',')).join(' ');
   const lineTop = H[1] + 30, lineBot = Math.min(E[1], 0) - 6;
   return (
-    <svg viewBox={BENCH_VB} className="bio-svg" role="img" aria-label="Eğimli bench press yandan görünüm: omuz ve dirsek moment kolları">
+    <svg viewBox={BENCH_VB} className="bio-svg" role="img" aria-label={t('Eğimli bench press yandan görünüm: omuz ve dirsek moment kolları')}>
       <Defs />
       <line x1="-140" x2="90" y1={-floorY} y2={-floorY} className="floor" />
       {/* bench */}
       <Seg a={padA} b={padB} w={7} cls="bench-pad" />
       {p.angle >= 8 ? <Seg a={[hip[0] - 34, hip[1] - 13.5]} b={[hip[0] + 4, hip[1] - 13.5]} w={7} cls="bench-pad" /> : null}
       <Seg a={[hip[0] - 14, hip[1] - 17]} b={[hip[0] - 14, floorY]} w={3} cls="bench-leg" />
-      <Seg a={add(mul(t, 12), mul(n, -17))} b={[add(mul(t, 12), mul(n, -17))[0], floorY]} w={3} cls="bench-leg" />
+      <Seg a={add(mul(tv, 12), mul(n, -17))} b={[add(mul(tv, 12), mul(n, -17))[0], floorY]} w={3} cls="bench-leg" />
       {/* legs */}
       <Seg a={hip} b={knee} w={15} cls="limb far" />
       <Seg a={knee} b={ank} w={10} cls="limb far" />
       <Seg a={[ank[0] + 5, floorY + 2]} b={[ank[0] - 22, floorY + 2]} w={4} cls="limb far" />
       {/* torso + head */}
-      <Seg a={add(mul(t, -(T + 3)), mul(n, 3))} b={add(mul(t, 5), mul(n, 3))} w={26} cls="torso" />
-      <Seg a={add(mul(t, 6), mul(n, 2))} b={head} w={9} cls="limb" />
+      <Seg a={add(mul(tv, -(T + 3)), mul(n, 3))} b={add(mul(tv, 5), mul(n, 3))} w={26} cls="torso" />
+      <Seg a={add(mul(tv, 6), mul(n, 2))} b={head} w={9} cls="limb" />
       <Dot at={head} r={10.5} cls="head" />
       {/* bar path */}
       <polyline points={path} className="bar-path" />
@@ -138,9 +141,9 @@ function BenchSide({ p, pose, curve }) {
       {/* line of action */}
       <Seg a={[H[0], lineTop]} b={[H[0], lineBot]} w={1} cls="force-line" />
       <Arrow from={[H[0] + 5, H[1] + 8]} dir={[0, -1]} len={16} cls="g" />
-      <MomentArm from={S} to={H} label="omuz" cls="s" sz={0.66} labelDy={E[1] > 0 ? -6 : 6} />
-      <MomentArm from={E} to={H} label="dirsek" cls="e" sz={0.66} labelDy={E[1] > 0 ? 6 : -6} />
-      <text x={-74} y={-86} className="svg-cap">YANDAN · yakın plan</text>
+      <MomentArm from={S} to={H} label={t('omuz')} cls="s" sz={0.66} labelDy={E[1] > 0 ? -6 : 6} />
+      <MomentArm from={E} to={H} label={t('dirsek')} cls="e" sz={0.66} labelDy={E[1] > 0 ? 6 : -6} />
+      <text x={-74} y={-86} className="svg-cap">{t('YANDAN · yakın plan')}</text>
     </svg>
   );
 }
@@ -160,11 +163,11 @@ function RdlSide({ p, pose, refLen, curve }) {
   const peakHip = curve.reduce((m, c) => Math.max(m, c.mHip), 1);
   const bx = pose.bar[0];
   return (
-    <svg viewBox="-82 -196 200 200" className="bio-svg" role="img" aria-label="Romanian deadlift yandan görünüm: kalça moment kolu ve hamstring uzunluğu">
+    <svg viewBox="-82 -196 200 200" className="bio-svg" role="img" aria-label={t('Romanian deadlift yandan görünüm: kalça moment kolu ve hamstring uzunluğu')}>
       <Defs />
       <line x1="-90" x2="130" y1="0" y2="0" className="floor" />
       <path d={`M${BIO.MIDFOOT} 1.5 l-3 5 h6 z`} className="midfoot" />
-      <text x={BIO.MIDFOOT + 5} y="9" className="svg-cap">orta ayak</text>
+      <text x={BIO.MIDFOOT + 5} y="9" className="svg-cap">{t('orta ayak')}</text>
       <Seg a={[-6, 2]} b={[23, 2]} w={4} cls="limb" />
       <Seg a={pose.Ank} b={pose.K} w={10} cls="limb" />
       <Seg a={pose.K} b={pose.P} w={15} cls="limb" />
@@ -184,8 +187,8 @@ function RdlSide({ p, pose, refLen, curve }) {
       <Seg a={[pose.hat[0], pose.hat[1]]} b={[pose.hat[0], pose.P[1] - 3]} w={0.8} cls="force-line body" />
       <Seg a={[bx, pose.bar[1] + 28]} b={[bx, 0]} w={1} cls="force-line" />
       <Arrow from={[bx + 6, pose.bar[1] + 6]} dir={[0, -1]} len={15} cls="g" />
-      <MomentArm from={pose.P} to={pose.bar} label="kalça" cls="s" labelDy={7.5} />
-      <text x={-76} y={-184} className="svg-cap">YANDAN · kalça moment kolu, hamstring</text>
+      <MomentArm from={pose.P} to={pose.bar} label={t('kalça')} cls="s" labelDy={7.5} />
+      <text x={-76} y={-184} className="svg-cap">{t('YANDAN · kalça moment kolu, hamstring')}</text>
     </svg>
   );
 }
@@ -220,7 +223,7 @@ function LatFront({ p, pose, peak }) {
   const anchorL = kind === 'band' && pose.anchor ? mirror(pose.anchor) : null;
   const armLen = Math.hypot(F0[0] - S[0], F0[1] - S[1]);
   return (
-    <svg viewBox="-104 -42 200 200" className="bio-svg" role="img" aria-label="Yana açış önden görünüm: omuz moment kolu ve direnç çizgisi">
+    <svg viewBox="-104 -42 200 200" className="bio-svg" role="img" aria-label={t('Yana açış önden görünüm: omuz moment kolu ve direnç çizgisi')}>
       <Defs />
       <line x1="-120" x2="110" y1={-floorY} y2={-floorY} className="floor" />
       {/* body */}
@@ -258,7 +261,7 @@ function LatFront({ p, pose, peak }) {
       <Arrow from={pose.H} dir={d} len={8 + 12 * clamp(pose.F / (1.7 * p.mass))} cls="g" />
       <Seg a={S} b={F0} w={1.2} cls="marm-line s" />
       <ArmLabel at={[(S[0] + F0[0]) / 2, (S[1] + F0[1]) / 2 + 7]} text={armLen < 1.5 ? '≈0' : f1(armLen) + ' cm'} cls="s" />
-      <text x={-98} y={-34} className="svg-cap">ÖNDEN</text>
+      <text x={-98} y={-34} className="svg-cap">{t('ÖNDEN')}</text>
     </svg>
   );
 }
@@ -338,7 +341,7 @@ function TorqueChart({ id, series, xMin, xMax, xLabel, xUnit, yUnit, cur, band, 
         viewBox={`0 0 ${W} ${Hh}`}
         className="chart-svg"
         role="img"
-        aria-label={'Grafik: ' + series.map((s) => s.label).join(', ') + ' — ' + xLabel}
+        aria-label={t('Grafik: {x}', { x: series.map((s) => s.label).join(', ') }) + ' — ' + xLabel}
         onPointerDown={(e) => { drag.current = true; try { e.currentTarget.setPointerCapture(e.pointerId); } catch (er) {} scrubAt(e); }}
         onPointerMove={(e) => { if (drag.current) scrubAt(e); }}
         onPointerUp={() => { drag.current = false; }}
@@ -374,7 +377,7 @@ function TorqueChart({ id, series, xMin, xMax, xLabel, xUnit, yUnit, cur, band, 
         <rect x={m.l} y={m.t} width={iw} height={ih} className="hit" />
       </svg>
       <details className="data-table">
-        <summary>Değer tablosu</summary>
+        <summary>{t('Değer tablosu')}</summary>
         <div className="tbl-wrap">
           <table>
             <thead><tr><th>{xLabel}</th>{series.map((s) => <th key={s.id}>{s.label}</th>)}</tr></thead>
@@ -471,17 +474,17 @@ function BiomechTab({ move, setMove, latKind }) {
   return (
     <div className="bio">
       <div className="bio-intro">
-        <p><strong>Moment kolu</strong>, eklem ile yükün etki çizgisi arasındaki dik mesafedir. Eklemdeki zorlanma (tork) = kuvvet × moment kolu.</p>
+        <p>{rich(t('**Moment kolu**, eklem ile yükün etki çizgisi arasındaki dik mesafedir. Eklemdeki zorlanma (tork) = kuvvet × moment kolu.'))}</p>
       </div>
-      <div className="move-pick" role="tablist" aria-label="Hareket seç">
+      <div className="move-pick" role="tablist" aria-label={t('Hareket seç')}>
         {MOVES.map((m) => (
           <button key={m.id} id={'move-' + m.id} type="button" role="tab" aria-selected={move === m.id} className={'move' + (move === m.id ? ' on' : '')} onClick={() => setMove(m.id)}>
-            <span className="move-n">{m.name}</span>
-            <span className="move-t">{m.tag}</span>
+            <span className="move-n">{t(m.name)}</span>
+            <span className="move-t">{t(m.tag)}</span>
           </button>
         ))}
       </div>
-      <p className="move-more">Programındaki diğer hareketler sırada: oturarak dumbbell omuz press, shrug, leg curl, ön omuz kaldırış.</p>
+      <p className="move-more">{t('Programındaki diğer hareketler sırada: oturarak dumbbell omuz press, shrug, leg curl, ön omuz kaldırış.')}</p>
       {body}
     </div>
   );
@@ -490,11 +493,11 @@ function BiomechTab({ move, setMove, latKind }) {
 function Transport({ playing, setPlaying, q, scrub, label, id }) {
   return (
     <div className="transport">
-      <button type="button" id={id + '-play'} className="icon-btn" onClick={() => setPlaying(!playing)} aria-label={playing ? 'Duraklat' : 'Oynat'}>
+      <button type="button" id={id + '-play'} className="icon-btn" onClick={() => setPlaying(!playing)} aria-label={playing ? t('Duraklat') : t('Oynat')}>
         <Icon name={playing ? 'pause' : 'play'} size={18} />
       </button>
       <div className="tr-slider">
-        <input id={id + '-phase'} type="range" min="0" max="1000" value={Math.round(q * 1000)} onChange={(e) => scrub(parseInt(e.target.value, 10) / 1000)} className="rng rng-neuro" aria-label="Hareket fazı" style={{ '--track': `linear-gradient(90deg, var(--neuro) 0%, var(--neuro) ${q * 100}%, var(--line-strong) ${q * 100}%)` }} />
+        <input id={id + '-phase'} type="range" min="0" max="1000" value={Math.round(q * 1000)} onChange={(e) => scrub(parseInt(e.target.value, 10) / 1000)} className="rng rng-neuro" aria-label={t('Hareket fazı')} style={{ '--track': `linear-gradient(90deg, var(--neuro) 0%, var(--neuro) ${q * 100}%, var(--line-strong) ${q * 100}%)` }} />
         <span className="tr-label mono">{label}</span>
       </div>
     </div>
@@ -517,62 +520,62 @@ function BenchPanel({ p, set, q, scrub, playing, setPlaying }) {
     <div className="bio-panel">
       <div className="fig-card">
         <div className="fig-top">
-          <span className="fig-title">Yandan görünüm</span>
+          <span className="fig-title">{t('Yandan görünüm')}</span>
           <span className="fig-meta mono">{p.load} kg · {p.angle}°</span>
         </div>
         <div className="fig"><BenchSide p={p} pose={pose} curve={curve} /></div>
-        <Transport id="bench" playing={playing} setPlaying={setPlaying} q={q} scrub={scrub} label={`Bar göğüsten ${Math.round(pose.height)} cm`} />
+        <Transport id="bench" playing={playing} setPlaying={setPlaying} q={q} scrub={scrub} label={t('Bar göğüsten {n} cm', { n: Math.round(pose.height) })} />
       </div>
 
       <div className="tiles">
-        <Tile k="Omuz" v={Math.round(pose.mS)} unit=" N·m" sub={`kol ${f1(pose.dS)} cm`} tone={pose.mS / peakS > 0.75 ? 'hot' : ''} />
-        <Tile k="Dirsek" v={Math.round(pose.mE)} unit=" N·m" sub={`kol ${f1(pose.dE)} cm`} tone={pose.mE / peakE > 0.75 ? 'hot' : ''} />
-        <Tile k="Hareket açıklığı" v={Math.round(st.rom)} unit=" cm" sub="göğüs → kilit" />
-        <Tile k="Altta kol–gövde" v={Math.round(bottom.abd)} unit="°" sub={`ön kol ${Math.round(bottom.foreSide)}° eğik`} />
+        <Tile k={t('Omuz')} v={Math.round(pose.mS)} unit=" N·m" sub={t('kol {x} cm', { x: f1(pose.dS) })} tone={pose.mS / peakS > 0.75 ? 'hot' : ''} />
+        <Tile k={t('Dirsek')} v={Math.round(pose.mE)} unit=" N·m" sub={t('kol {x} cm', { x: f1(pose.dE) })} tone={pose.mE / peakE > 0.75 ? 'hot' : ''} />
+        <Tile k={t('Hareket açıklığı')} v={Math.round(st.rom)} unit=" cm" sub={t('göğüs → kilit')} />
+        <Tile k={t('Altta kol–gövde')} v={Math.round(bottom.abd)} unit="°" sub={t('ön kol {n}° eğik', { n: Math.round(bottom.foreSide) })} />
       </div>
 
       <div className="card">
-        <div className="card-h"><h3>Tork eğrisi</h3><span className="card-hint">Grafiğe dokunup sürükle</span></div>
+        <div className="card-h"><h3>{t('Tork eğrisi')}</h3><span className="card-hint">{t('Grafiğe dokunup sürükle')}</span></div>
         <TorqueChart
           id="bench-chart"
           series={[
-            { id: 's', label: 'Omuz', color: C1, pts: sPts, area: true },
-            { id: 'e', label: 'Dirsek', color: C2, pts: ePts },
+            { id: 's', label: t('Omuz'), color: C1, pts: sPts, area: true },
+            { id: 'e', label: t('Dirsek'), color: C2, pts: ePts },
           ]}
-          xMin={0} xMax={st.rom} xLabel="Bar göğüsten" xUnit="cm" yUnit="N·m"
+          xMin={0} xMax={st.rom} xLabel={t('Bar göğüsten')} xUnit="cm" yUnit="N·m"
           cur={pose.height}
-          band={[0.1 * st.rom, 0.4 * st.rom, 'tipik takılma bölgesi']}
+          band={[0.1 * st.rom, 0.4 * st.rom, t('tipik takılma bölgesi')]}
           onScrub={(fx) => scrub(fx)}
         />
       </div>
 
       <div className="card">
-        <div className="card-h"><h3>Değişkenler</h3></div>
+        <div className="card-h"><h3>{t('Değişkenler')}</h3></div>
         <div className="controls">
-          <Range id="bench-angle" label="Bench açısı" value={p.angle} min={0} max={60} step={5} onChange={set('angle')} display={p.angle + '°'} hint={p.angle === 0 ? 'düz bench' : p.angle >= 50 ? 'omuz prese yaklaşıyor' : ''} />
-          <Segmented id="bench-grip" label="Tutuş genişliği" value={p.grip} onChange={set('grip')} options={[{ v: 'dar', t: 'Dar 45' }, { v: 'orta', t: 'Orta 65' }, { v: 'genis', t: 'Geniş 81' }]} />
-          <Segmented id="bench-flare" label="Altta dirsek açısı" value={p.flare} onChange={set('flare')} options={[{ v: 'kapali', t: 'Kapalı ~45°' }, { v: 'orta', t: 'Orta ~60°' }, { v: 'acik', t: 'Açık ~80°' }]} />
-          <Range id="bench-load" label="Bar yükü" value={p.load} min={40} max={120} step={2.5} onChange={set('load')} display={fmt(p.load, p.load % 1 ? 1 : 0) + ' kg'} tone="fire" />
+          <Range id="bench-angle" label={t('Bench açısı')} value={p.angle} min={0} max={60} step={5} onChange={set('angle')} display={p.angle + '°'} hint={p.angle === 0 ? t('düz bench') : p.angle >= 50 ? t('omuz prese yaklaşıyor') : ''} />
+          <Segmented id="bench-grip" label={t('Tutuş genişliği')} value={p.grip} onChange={set('grip')} options={[{ v: 'dar', t: t('Dar 45') }, { v: 'orta', t: t('Orta 65') }, { v: 'genis', t: t('Geniş 81') }]} />
+          <Segmented id="bench-flare" label={t('Altta dirsek açısı')} value={p.flare} onChange={set('flare')} options={[{ v: 'kapali', t: t('Kapalı ~45°') }, { v: 'orta', t: t('Orta ~60°') }, { v: 'acik', t: t('Açık ~80°') }]} />
+          <Range id="bench-load" label={t('Bar yükü')} value={p.load} min={40} max={120} step={2.5} onChange={set('load')} display={fmt(p.load, p.load % 1 ? 1 : 0) + ' kg'} tone="fire" />
         </div>
       </div>
 
       <div className="card">
-        <div className="card-h"><h3>Tahmini kas vurgusu</h3><span className="card-hint">EMG tabanlı kaba model</span></div>
+        <div className="card-h"><h3>{t('Tahmini kas vurgusu')}</h3><span className="card-hint">{t('EMG tabanlı kaba model')}</span></div>
         <div className="emph">
           {emph.map((m) => (
-            <div key={m.k} className="emph-row">
-              <div className="emph-k"><span>{m.k}</span><small>{m.sub}</small></div>
+            <div key={m.id} className="emph-row">
+              <div className="emph-k"><span>{t(m.k)}</span><small>{t(m.sub)}</small></div>
               <div className="emph-bar"><span style={{ width: m.v * 100 + '%' }} /></div>
-              {m.k === 'Üst göğüs' || m.k === 'Ön omuz' ? <span className="goal-tag">hedef</span> : <span className="goal-tag ghost" />}
+              {m.id === 'clav' || m.id === 'delt' ? <span className="goal-tag">{t('hedef')}</span> : <span className="goal-tag ghost" />}
             </div>
           ))}
         </div>
       </div>
 
       <Notes
-        what="Omuzdaki tork, bar ile omuz eklemi arasındaki yatay mesafeyle büyür. Bu mesafe bar göğüsteyken en uzundur (yaklaşık 14 cm), bar omzun üstüne geldikçe sıfıra iner. Dirsekteki tork ise ön kolun yandan ne kadar dik durduğuna bağlıdır. Dirsek açısı omuzdaki toplam torku değiştirmez, yükü hangi kasın taşıyacağını değiştirir."
-        tip="Takılma çoğu kişide bar göğüsten kalktıktan kısa süre sonra, alt-orta bölgede olur. Bar yolunu erken yüze doğru getirmek omuz moment kolunu hızla kısaltır. O bölgeyi duraklamalı tekrar ve o yükseklikte pin press ile hedefleyebilirsin. Üst göğüs için 30° civarı iyi bir başlangıç; 45° üstünde yük belirgin şekilde ön omuza kayar."
-        caveat="Model statik, yandan bakışlı bir analizdir; ivme ve kol ağırlığı yok sayılır. Önden bakışta eller barı içe ya da dışa iterek yatay kuvvet üretebildiği için (geniş tutuşta %13–16'ya varan yanal kuvvet ölçüldü, Larsen 2021) önden tork hesabı yapılmaz. Kas vurgusu kaba bir tahmindir: üst göğüs EMG'si 30°'de en yüksek, 45° üstünde ön omuz belirgin artıyor (Rodríguez-Ridao 2020). Eğimli bench üst göğüs kalınlığını düz bench'ten fazla artırdı, ancak bu bulgu antrenmansız katılımcılarda elde edildi (Chaves 2020)."
+        what={t("Omuzdaki tork, bar ile omuz eklemi arasındaki yatay mesafeyle büyür. Bu mesafe bar göğüsteyken en uzundur (yaklaşık 14 cm), bar omzun üstüne geldikçe sıfıra iner. Dirsekteki tork ise ön kolun yandan ne kadar dik durduğuna bağlıdır. Dirsek açısı omuzdaki toplam torku değiştirmez, yükü hangi kasın taşıyacağını değiştirir.")}
+        tip={t("Takılma çoğu kişide bar göğüsten kalktıktan kısa süre sonra, alt-orta bölgede olur. Bar yolunu erken yüze doğru getirmek omuz moment kolunu hızla kısaltır. O bölgeyi duraklamalı tekrar ve o yükseklikte pin press ile hedefleyebilirsin. Üst göğüs için 30° civarı iyi bir başlangıç; 45° üstünde yük belirgin şekilde ön omuza kayar.")}
+        caveat={t("Model statik, yandan bakışlı bir analizdir; ivme ve kol ağırlığı yok sayılır. Önden bakışta eller barı içe ya da dışa iterek yatay kuvvet üretebildiği için (geniş tutuşta %13–16'ya varan yanal kuvvet ölçüldü, Larsen 2021) önden tork hesabı yapılmaz. Kas vurgusu kaba bir tahmindir: üst göğüs EMG'si 30°'de en yüksek, 45° üstünde ön omuz belirgin artıyor (Rodríguez-Ridao 2020). Eğimli bench üst göğüs kalınlığını düz bench'ten fazla artırdı, ancak bu bulgu antrenmansız katılımcılarda elde edildi (Chaves 2020).")}
       />
     </div>
   );
@@ -594,56 +597,57 @@ function RdlPanel({ p, set, q, scrub, playing, setPlaying }) {
     <div className="bio-panel">
       <div className="fig-card">
         <div className="fig-top">
-          <span className="fig-title">Yandan görünüm</span>
-          <span className="fig-meta mono">{p.load} kg · vücut 110 kg</span>
+          <span className="fig-title">{t('Yandan görünüm')}</span>
+          <span className="fig-meta mono">{p.load} kg · {t('vücut {n} kg', { n: 110 })}</span>
         </div>
         <div className="fig"><RdlSide p={p} pose={pose} refLen={ref} curve={curve} /></div>
-        <Transport id="rdl" playing={playing} setPlaying={setPlaying} q={q} scrub={scrub} label={`Gövde eğimi ${Math.round(pose.phi)}°`} />
+        <Transport id="rdl" playing={playing} setPlaying={setPlaying} q={q} scrub={scrub} label={t('Gövde eğimi {n}°', { n: Math.round(pose.phi) })} />
       </div>
 
       <div className="tiles">
-        <Tile k="Kalça" v={Math.round(pose.mHip)} unit=" N·m" sub={`kol ${f1(pose.dHip)} cm`} tone={pose.mHip / peak > 0.75 ? 'hot' : ''} />
-        <Tile k="Yükün kaynağı" v={'%' + Math.round(barShare * 100)} unit=" bar" sub={`%${Math.round((1 - barShare) * 100)} gövde ağırlığı`} />
-        <Tile k="Hamstring" v={Math.abs(stretch) < 0.5 ? '0' : (stretch > 0 ? '+' : '') + f1(stretch)} unit=" cm" sub="dik duruşa göre uzama" tone={stretch > 8 ? 'hot' : ''} />
-        <Tile k="Bar yüksekliği" v={Math.round(pose.barH)} unit=" cm" sub={barRel >= 0 ? `diz eklemi ${Math.round(barRel)} cm üstü` : `diz eklemi ${Math.round(-barRel)} cm altı`} />
+        <Tile k={tc('bio', 'Kalça')} v={Math.round(pose.mHip)} unit=" N·m" sub={t('kol {x} cm', { x: f1(pose.dHip) })} tone={pose.mHip / peak > 0.75 ? 'hot' : ''} />
+        <Tile k={t('Yükün kaynağı')} v={pct(Math.round(barShare * 100))} unit={' ' + t('bar')} sub={t('{p} gövde ağırlığı', { p: pct(Math.round((1 - barShare) * 100)) })} />
+        <Tile k={t('Hamstring')} v={Math.abs(stretch) < 0.5 ? '0' : (stretch > 0 ? '+' : '') + f1(stretch)} unit=" cm" sub={t('dik duruşa göre uzama')} tone={stretch > 8 ? 'hot' : ''} />
+        <Tile k={t('Bar yüksekliği')} v={Math.round(pose.barH)} unit=" cm" sub={barRel >= 0 ? t('diz eklemi {n} cm üstü', { n: Math.round(barRel) }) : t('diz eklemi {n} cm altı', { n: Math.round(-barRel) })} />
       </div>
 
       <div className="card">
-        <div className="card-h"><h3>Kalça momenti</h3><span className="card-hint">Grafiğe dokunup sürükle</span></div>
+        <div className="card-h"><h3>{t('Kalça momenti')}</h3><span className="card-hint">{t('Grafiğe dokunup sürükle')}</span></div>
         <TorqueChart
           id="rdl-chart"
           series={[
-            { id: 'b', label: 'Gövde ağırlığı', color: C2, pts: bodyPts, area: true, noLabel: false },
+            { id: 'b', label: t('Gövde ağırlığı'), color: C2, pts: bodyPts, area: true, noLabel: false },
             { id: 't', label: 'Bar', color: C1, pts: totPts, area: true, lower: bodyPts, valuePts: curve.map((c) => [c.phi, c.hipBar]) },
           ]}
           valueFmt={(v) => Math.round(v)}
-          xMin={4} xMax={p.depth} xLabel="Gövde eğimi" xUnit="°" yUnit="N·m"
+          xMin={4} xMax={p.depth} xLabel={t('Gövde eğimi')} xUnit="°" yUnit="N·m"
           cur={pose.phi}
           onScrub={(fx) => scrub(fx)}
         />
-        <p className="chart-note">Üst çizgi toplam kalça momenti. Alttaki mavi alan gövdenin kendi ağırlığından, turuncu alan bardan gelen pay.</p>
+        <p className="chart-note">{t('Üst çizgi toplam kalça momenti. Alttaki mavi alan gövdenin kendi ağırlığından, turuncu alan bardan gelen pay.')}</p>
       </div>
 
       <div className="card">
-        <div className="card-h"><h3>Değişkenler</h3></div>
+        <div className="card-h"><h3>{t('Değişkenler')}</h3></div>
         <div className="controls">
-          <Range id="rdl-offset" label="Bar–orta ayak mesafesi" value={p.offset} min={0} max={12} step={1} onChange={set('offset')} display={p.offset === 0 ? 'bacağa yakın' : p.offset + ' cm önde'} />
-          <Range id="rdl-knee" label="Diz bükümü" value={p.knee} min={5} max={35} step={1} onChange={set('knee')} display={p.knee + '°'} />
-          <Range id="rdl-depth" label="Alt nokta (gövde eğimi)" value={p.depth} min={45} max={85} step={1} onChange={set('depth')} display={p.depth + '°'} hint="hamstring esnekliğine bağlı" />
-          <Range id="rdl-load" label="Bar yükü" value={p.load} min={40} max={160} step={5} onChange={set('load')} display={p.load + ' kg'} tone="fire" />
+          <Range id="rdl-offset" label={t('Bar–orta ayak mesafesi')} value={p.offset} min={0} max={12} step={1} onChange={set('offset')} display={p.offset === 0 ? t('bacağa yakın') : t('{n} cm önde', { n: p.offset })} />
+          <Range id="rdl-knee" label={t('Diz bükümü')} value={p.knee} min={5} max={35} step={1} onChange={set('knee')} display={p.knee + '°'} />
+          <Range id="rdl-depth" label={t('Alt nokta (gövde eğimi)')} value={p.depth} min={45} max={85} step={1} onChange={set('depth')} display={p.depth + '°'} hint={t('hamstring esnekliğine bağlı')} />
+          <Range id="rdl-load" label={t('Bar yükü')} value={p.load} min={40} max={160} step={5} onChange={set('load')} display={p.load + ' kg'} tone="fire" />
         </div>
       </div>
 
       <Notes
-        what="Kalça momenti, kalça eklemi ile bar arasındaki yatay mesafeyle büyür ve gövde öne eğildikçe artar. Gövdenin kendi ağırlığı da kalçaya ciddi bir yük bindirir; çoğu açıda bu pay bardan gelenden büyüktür. Bar orta ayaktan uzaklaştıkça denge için kalça daha geriye gider ve moment hızla artar."
-        tip="Barı bacaklarına sürterek indir; 5 cm'lik kayma bile kalça momentini belirgin artırır. Hamstring esnekliğin arttıkça alt nokta derinleşir ve hamstring daha uzun pozisyonda yüklenir. Günlük esneme çalışman bu yüzden RDL'ye doğrudan yansır."
-        caveat="Diz bükümü hamstringi diz tarafından kısaltır; dize yakın düz bacakla yapılan RDL hamstringi daha çok uzatır. Model sistemi orta ayak üstünde dengede tutar ve beli nötr kabul eder. Segment uzunlukları ve kütleleri Winter'ın antropometri oranlarıyla 190 cm / 110 kg için hesaplandı."
+        what={t("Kalça momenti, kalça eklemi ile bar arasındaki yatay mesafeyle büyür ve gövde öne eğildikçe artar. Gövdenin kendi ağırlığı da kalçaya ciddi bir yük bindirir; çoğu açıda bu pay bardan gelenden büyüktür. Bar orta ayaktan uzaklaştıkça denge için kalça daha geriye gider ve moment hızla artar.")}
+        tip={t("Barı bacaklarına sürterek indir; 5 cm'lik kayma bile kalça momentini belirgin artırır. Hamstring esnekliğin arttıkça alt nokta derinleşir ve hamstring daha uzun pozisyonda yüklenir. Günlük esneme çalışman bu yüzden RDL'ye doğrudan yansır.")}
+        caveat={t("Diz bükümü hamstringi diz tarafından kısaltır; dize yakın düz bacakla yapılan RDL hamstringi daha çok uzatır. Model sistemi orta ayak üstünde dengede tutar ve beli nötr kabul eder. Segment uzunlukları ve kütleleri Winter'ın antropometri oranlarıyla 190 cm / 110 kg için hesaplandı.")}
       />
     </div>
   );
 }
 
 /* ----- Lateral raise panel ----- */
+// t: gösterim etiketi; render sırasında çevrilir.
 const LAT_KINDS = [
   { v: 'db', t: 'Dumbbell' },
   { v: 'band', t: 'Band' },
@@ -663,60 +667,60 @@ function LatPanel({ p, set, q, scrub, playing, setPlaying }) {
     const c = curves[k.v];
     const pk = Math.max(...c.map((r) => r.m)) || 1;
     const sel = k.v === p.kind;
-    return { id: k.v, label: k.t, color: sel ? C1 : 'var(--faint)', pts: c.map((r) => [r.alpha, (r.m / pk) * 100]), area: sel, dash: !sel, muted: !sel };
+    return { id: k.v, label: t(k.t), color: sel ? C1 : 'var(--faint)', pts: c.map((r) => [r.alpha, (r.m / pk) * 100]), area: sel, dash: !sel, muted: !sel };
   });
   const bottomShare = Math.round((cur[Math.round(cur.length * 0.17)].m / peak) * 100);
   return (
     <div className="bio-panel">
       <div className="fig-card">
         <div className="fig-top">
-          <div className="segmented sm" role="radiogroup" aria-label="Direnç tipi">
+          <div className="segmented sm" role="radiogroup" aria-label={t('Direnç tipi')}>
             {LAT_KINDS.map((k) => (
-              <button key={k.v} type="button" id={'lat-' + k.v} role="radio" aria-checked={p.kind === k.v} className={p.kind === k.v ? 'on' : ''} onClick={() => set('kind')(k.v)}>{k.t}</button>
+              <button key={k.v} type="button" id={'lat-' + k.v} role="radio" aria-checked={p.kind === k.v} className={p.kind === k.v ? 'on' : ''} onClick={() => set('kind')(k.v)}>{t(k.t)}</button>
             ))}
           </div>
           <span className="fig-meta mono">{p.kind === 'band' ? 'band' : p.mass + ' kg'}</span>
         </div>
         <div className="fig"><LatFront p={p} pose={pose} peak={peak} /></div>
-        <Transport id="lat" playing={playing} setPlaying={setPlaying} q={q} scrub={scrub} label={`Kol açısı ${Math.round(pose.alpha)}°`} />
+        <Transport id="lat" playing={playing} setPlaying={setPlaying} q={q} scrub={scrub} label={t('Kol açısı {n}°', { n: Math.round(pose.alpha) })} />
       </div>
 
       <div className="tiles">
-        <Tile k="Omuz torku" v={Math.round(pose.m)} unit=" N·m" sub={`kol ${f1(pose.d)} cm`} tone={pose.m / peak > 0.75 ? 'hot' : ''} />
-        <Tile k="Kuvvet" v={f1(pose.F)} unit=" kg" sub={p.kind === 'band' ? 'band gerginliği' : 'sabit'} />
-        <Tile k="En zor nokta" v={Math.round(peakAt.alpha)} unit="°" sub="kol açısı" />
-        <Tile k="Alt aralık yükü" v={'%' + bottomShare} unit="" sub="20° civarı, zirveye göre" />
+        <Tile k={t('Omuz torku')} v={Math.round(pose.m)} unit=" N·m" sub={t('kol {x} cm', { x: f1(pose.d) })} tone={pose.m / peak > 0.75 ? 'hot' : ''} />
+        <Tile k={tc('bio', 'Kuvvet')} v={f1(pose.F)} unit=" kg" sub={p.kind === 'band' ? t('band gerginliği') : t('sabit')} />
+        <Tile k={t('En zor nokta')} v={Math.round(peakAt.alpha)} unit="°" sub={t('kol açısı')} />
+        <Tile k={t('Alt aralık yükü')} v={pct(bottomShare)} unit="" sub={t('20° civarı, zirveye göre')} />
       </div>
 
       <div className="card">
-        <div className="card-h"><h3>Direnç profili</h3><span className="card-hint">Her biri kendi zirvesine göre</span></div>
+        <div className="card-h"><h3>{t('Direnç profili')}</h3><span className="card-hint">{t('Her biri kendi zirvesine göre')}</span></div>
         <TorqueChart
           id="lat-chart"
           series={series}
           yFixed={100}
-          xMin={BIO.LAT_MIN} xMax={BIO.LAT_MAX} xLabel="Kol açısı" xUnit="°" yUnit="% zirve"
+          xMin={BIO.LAT_MIN} xMax={BIO.LAT_MAX} xLabel={t('Kol açısı')} xUnit="°" yUnit={t('% zirve')}
           cur={pose.alpha}
           valueFmt={(v) => Math.round(v)}
-          valText={(v) => '%' + Math.round(v)}
+          valText={(v) => pct(Math.round(v))}
           onScrub={(fx) => scrub(fx)}
         />
       </div>
 
       <div className="card">
-        <div className="card-h"><h3>Değişkenler</h3></div>
+        <div className="card-h"><h3>{t('Değişkenler')}</h3></div>
         <div className="controls">
-          <Range id="lat-mass" label={p.kind === 'band' ? 'Band direnci (üstte)' : p.kind === 'cable' ? 'Kablo ağırlığı' : 'Dumbbell'} value={p.mass} min={4} max={20} step={1} onChange={set('mass')} display={p.kind === 'band' ? '≈ ' + f1(1.6 * p.mass) + ' kg' : p.mass + ' kg'} tone="fire" />
-          <Range id="lat-bend" label="Dirsek bükümü" value={p.bend} min={0} max={40} step={5} onChange={set('bend')} display={p.bend + '°'} />
+          <Range id="lat-mass" label={p.kind === 'band' ? t('Band direnci (üstte)') : p.kind === 'cable' ? t('Kablo ağırlığı') : t('Dumbbell')} value={p.mass} min={4} max={20} step={1} onChange={set('mass')} display={p.kind === 'band' ? '≈ ' + f1(1.6 * p.mass) + ' kg' : p.mass + ' kg'} tone="fire" />
+          <Range id="lat-bend" label={t('Dirsek bükümü')} value={p.bend} min={0} max={40} step={5} onChange={set('bend')} display={p.bend + '°'} />
           {p.kind === 'band' ? (
-            <Segmented id="lat-side" label="Bandın bağlandığı yer" value={p.bandSide} onChange={set('bandSide')} options={[{ v: 'ayni', t: 'Aynı ayak altı' }, { v: 'karsi', t: 'Karşı ayak altı' }]} />
+            <Segmented id="lat-side" label={t('Bandın bağlandığı yer')} value={p.bandSide} onChange={set('bandSide')} options={[{ v: 'ayni', t: t('Aynı ayak altı') }, { v: 'karsi', t: t('Karşı ayak altı') }]} />
           ) : null}
         </div>
       </div>
 
       <Notes
-        what="Dumbbell'da kuvvet hep aşağı doğrudur, moment kolu da elin omuzdan yatay uzaklığıdır. Bu yüzden kol aşağıdayken tork sıfıra yakın, kol yere paralelken en yüksektir. Band ve kablo kuvveti başka yönden çektiği için zor nokta hareketin farklı bir yerine kayar."
-        tip="Cumartesi band çalışmanda bandı aynı ayağın altına bağlarsan hareketin altı neredeyse boş, üstü çok ağır olur. Karşı ayağın altından geçirmek alt bölgeye biraz yük ekler. Salonda kablo, alt aralığı en iyi yükleyen seçenek."
-        caveat="Uzun kas boyunda, yani hareketin alt aralığında yüklenmenin hipertrofiye katkısı birçok kasta gösterildi; yan omuz için doğrudan kanıt hâlâ sınırlı. Band kuvveti gerilmeyle doğrusal artan basit bir yay modeliyle hesaplandı; gerçek bantların kuvvet eğrisi markaya göre değişir."
+        what={t("Dumbbell'da kuvvet hep aşağı doğrudur, moment kolu da elin omuzdan yatay uzaklığıdır. Bu yüzden kol aşağıdayken tork sıfıra yakın, kol yere paralelken en yüksektir. Band ve kablo kuvveti başka yönden çektiği için zor nokta hareketin farklı bir yerine kayar.")}
+        tip={t("Cumartesi band çalışmanda bandı aynı ayağın altına bağlarsan hareketin altı neredeyse boş, üstü çok ağır olur. Karşı ayağın altından geçirmek alt bölgeye biraz yük ekler. Salonda kablo, alt aralığı en iyi yükleyen seçenek.")}
+        caveat={t("Uzun kas boyunda, yani hareketin alt aralığında yüklenmenin hipertrofiye katkısı birçok kasta gösterildi; yan omuz için doğrudan kanıt hâlâ sınırlı. Band kuvveti gerilmeyle doğrusal artan basit bir yay modeliyle hesaplandı; gerçek bantların kuvvet eğrisi markaya göre değişir.")}
       />
     </div>
   );

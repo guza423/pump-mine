@@ -460,6 +460,38 @@ async function flowEn(viewport, scale = 1, tablet = false, safeArea = false) {
     await page.locator('#tab-gozlem').click();
     await page.locator('#day-panel').waitFor();
     await check(page, label, screen);
+
+    // V24 · Lab sekmesi (dersler, ölçüm ve biyomekanik İngilizcede daha uzun)
+    screen = 'lab-basics';
+    await page.locator('#tab-lab').click();
+    await page.locator('#lab-measure').waitFor();
+    await check(page, label, screen);
+    screen = 'lab-measure';
+    await page.locator('#lab-measure').click();
+    await page.getByRole('dialog', { name: 'How is fatigue measured?' }).waitFor();
+    await check(page, label, screen);
+    await closeSheet(page, 'Close');
+    await page.locator('#lab-signal').click();
+    const lessonEn = page.getByRole('dialog', { name: 'Nervous system' });
+    await lessonEn.waitFor();
+    for (const [i, name] of ['signal', 'recruit', 'rate', 'fatigue'].entries()) {
+      screen = `lab-lesson-${name}`;
+      await lessonEn.getByRole('tab').nth(i).click();
+      if (name === 'fatigue') for (let r = 0; r < 3; r++) await lessonEn.getByRole('button', { name: 'Do a rep' }).click();
+      await check(page, label, screen);
+    }
+    await closeSheet(page, 'Close');
+    screen = 'lab-movements';
+    await page.locator('#lab-part-hareket').click();
+    await check(page, label, screen);
+    for (const [q, id] of [['incline barbell', 'egimli-bench'], ['romanian', 'rdl'], ['band lateral', 'band-yana-acis']]) {
+      screen = `lab-exercise-${id}`;
+      await page.locator('#lab-search').fill(q);
+      await page.locator(`#labex-${id}`).click();
+      await page.locator('.exsheet').waitFor();
+      await check(page, label, screen);
+      await closeSheet(page, 'Close');
+    }
     console.log(`${label}: akış tamamlandı`);
   } catch (error) {
     failures.push(`${label} · ${screen} · ${error.message}`);

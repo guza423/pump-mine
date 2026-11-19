@@ -185,6 +185,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | V11 | 2026-11-14 | Sade plansız antrenman, bildirimli dinlenme sayacı, Android geri tuşu | `c5c588d` |
 | V12 | 2026-11-15 | Dashboard, antrenman planları (program katmanı kalktı), Gözlem takvimi, satır içi geçmiş, öğrenme hedefleri, 28 beceri hareketi | `c2f274b` (Antigravity) |
 | V14–V20 | 2026-11-17 → 18 | Pixel tema bütün sekmelere (V14–V17), plan ayarları ve özet (V18), basılı tutma ve göreli sürükleme (V19), yasal metinler, kabul kapısı, hesap/veri silme (V20) | `docs/gorevler/V14…V20` |
+| V24 | 2026-11-19 | Lab sekmesi İngilizce: temeller, yorgunluk ölçümü, sinir sistemi dersleri, biyomekanik, hareket sayfası | `docs/gorevler/V24-ingilizce-lab.md` |
 | V23 | 2026-11-19 | Gözlem sekmesi İngilizce (Plan & insights): takvim, gün paneli, ay özeti, uyarılar, 1RM, haftalık yük | `docs/gorevler/V23-ingilizce-gozlem.md` |
 | V22 | 2026-11-19 | Antrenman sekmesi İngilizce (plansız/planlı oturum, plan düzenleyici, özet, dinlenme bildirimi ve Android kanal adları) | `docs/gorevler/V22-ingilizce-antrenman.md` |
 | V21 | 2026-11-19 | Dil altyapısı; **İngilizce varsayılan**, Türkçe seçenek (Hesap ve ayarlar); ortak katman, Dashboard, Hesap, yasal kapı arayüzü İngilizce | `docs/gorevler/V21-dil-altyapisi-ingilizce.md` |
@@ -208,7 +209,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 - **Ad kontrolü:** OUTMOVE için alan adı ve TÜRKPATENT marka kontrolü.
 
 **Dil (V21'den itibaren, sekme sekme):**
-- V21 altyapı + Dashboard + Hesap ✓, V22 Antrenman ✓, V23 Gözlem ✓; kalan: V24 Lab, V25 yasal metinlerin İngilizcesi + son tarama. Görev dosyaları `docs/gorevler/V24…V25`.
+- V21 altyapı + Dashboard + Hesap ✓, V22 Antrenman ✓, V23 Gözlem ✓, V24 Lab ✓; kalan: V25 yasal metinlerin İngilizcesi + son tarama (`docs/gorevler/V25-ingilizce-yasal-son-tarama.md`).
 - Geçiş bitene kadar İngilizcede çevrilmemiş sekmeler kısmen Türkçe görünür; Türkçe seçiliyse her şey eskisi gibi.
 
 **Tasarım (pixel):**
