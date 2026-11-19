@@ -454,6 +454,12 @@ async function flowEn(viewport, scale = 1, tablet = false, safeArea = false) {
     await page.locator('.restchip').waitFor();
     screen = 'planned-rest';
     await check(page, label, screen, { session: true, rest: true });
+
+    // V23 · Insights sekmesi (kayıtlar, uyarılar ve 1RM eğrisi dolu)
+    screen = 'insights';
+    await page.locator('#tab-gozlem').click();
+    await page.locator('#day-panel').waitFor();
+    await check(page, label, screen);
     console.log(`${label}: akış tamamlandı`);
   } catch (error) {
     failures.push(`${label} · ${screen} · ${error.message}`);

@@ -5,6 +5,7 @@ import { dashboard } from './dashboard';
 import { account } from './account';
 import { legal } from './legal';
 import { workout } from './workout';
+import { insights } from './insights';
 
-export const EN_PARTS: Record<string, Record<string, Entry>> = { common, dashboard, account, legal, workout };
+export const EN_PARTS: Record<string, Record<string, Entry>> = { common, dashboard, account, legal, workout, insights };
 export const EN: Record<string, Entry> = Object.assign({}, ...Object.values(EN_PARTS));

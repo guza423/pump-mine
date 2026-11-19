@@ -77,7 +77,7 @@ const mmss = (ms) => {
   return (h ? h + ':' + String(m).padStart(2, '0') : String(m)) + ':' + String(s).padStart(2, '0');
 };
 const durTxt = (ms) => { const m = Math.max(1, Math.round(ms / 60000)); return m < 60 ? t('{n} dk', { n: m }) : t('{h} sa {m} dk', { h: Math.floor(m / 60), m: m % 60 }); };
-const dateTxt = (ts) => { const d = new Date(ts); return d.getDate() + ' ' + MONTHS[d.getMonth()] + ' · ' + WD_SHORT[d.getDay()]; };
+const dateTxt = (ts) => { const d = new Date(ts); return t('{d} {m} · {wd}', { d: d.getDate(), m: MONTHS[d.getMonth()], wd: WD_SHORT[d.getDay()] }); };
 const sameDay = (a, b) => { const x = new Date(a), y = new Date(b); return x.getFullYear() === y.getFullYear() && x.getMonth() === y.getMonth() && x.getDate() === y.getDate(); };
 const normTr = (s) => (s || '').toLocaleLowerCase('tr').replace(/ı/g, 'i').normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
 

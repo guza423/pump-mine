@@ -523,3 +523,10 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 - Testler: İngilizce plansız ve planlı oturum, özet, plan düzenleyici; `flowEn` Antrenman ekranlarını da kapsar.
 **Kayıt:** commit `40fcfb8`. Kontroller: `npm test` (120 test), `tsc -b`, lint, build, `test:layout` (Türkçe + İngilizce) geçti.
 
+### 2026-11-19 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** "Olur devam et"
+**Yapılan / karar:**
+- **V23** (`docs/gorevler/V23-ingilizce-gozlem.md`): Gözlem sekmesi İngilizce (başlık Plan & insights); tarih İngilizcede ay önce; ay özeti etiketleri çoğul (Workouts, Sets); dar ekranda uzun ay adı için takvim başlığı küçülebilir.
+- Testler: İngilizce Insights ekran testi; `flowEn` Insights'ı da kapsar.
+**Kayıt:** commit `V23_COMMIT`. Kontroller: `npm test` (121 test), `tsc -b`, lint, build, `test:layout` (Türkçe + İngilizce) geçti.
+

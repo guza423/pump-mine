@@ -561,11 +561,14 @@
 /* ---------- Gözlem (V16): takvim, seçili gün, ay özeti, yorgunluk, uyarılar, 1RM grafiği ---------- */
 .pxt.gozlem-screen .shead h1 { font-size: clamp(17px, 5.6vw, 24px); letter-spacing: 0.01em; white-space: normal; line-height: 1.15; }
 .pxt .cal-sec { gap: 8px; }
-.pxt .cal-nav-l { gap: 8px; }
+.pxt .cal-nav-l { gap: 8px; min-width: 0; }
+/* V23: İngilizce ay adları uzun (NOVEMBER, SEPTEMBER); dar ekranda başlık küçülür, taşmaz */
 .pxt .cal-title {
   min-width: 136px;
   font-family: var(--px-f-head);
-  font-size: 19px;
+  font-size: clamp(16px, 5.2vw, 19px);
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;

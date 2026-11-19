@@ -304,5 +304,45 @@ describe('İngilizce arayüz (V21)', () => {
     expect(turkishIn(itemSheet)).toEqual([]);
     expect(attrsTurkish(itemSheet)).toEqual([]);
   });
+  // V23 · Gözlem (Insights)
+  it('Insights sekmesi İngilizce: takvim, gün paneli, ay özeti, uyarılar, 1RM gelişimi, haftalık yük, plan seçimi', async () => {
+    const now = new Date();
+    await db.sessions.put({
+      id: 's-month', dayId: null, dayName: 'Plansız antrenman', status: 'done',
+      startedAt: now.getTime() - 1200_000, endedAt: now.getTime() - 600_000,
+      items: [{ id: 'i1', exId: 'egimli-bench', name: 'Eğimli bench press', muscle: 'Göğüs', target: { rest: 180 },
+        sets: [{ kg: 75, reps: 8, rir: 2, rpe: 8, lvl: 2, vl: 0.2, at: now.getTime() - 900_000 }] }],
+    });
+    const p = hipertrofiProgram();
+    p.days[0].weekdays = [now.getDay()];
+    p.days[0].weekday = now.getDay();
+    await db.programs.put(p);
+    await db.checkins.put({ id: 'c_x', sleep: 6, at: Date.now() });
+    const { container } = render(<App />);
+    const click = (selector) => fireEvent.click(container.querySelector(selector));
+    const device = () => container.querySelector('.device');
+    const userData = ['.day-plan-t strong', '.day-plan-more', '.pd2-n', '.plan-pick-opt strong'];
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    click('#tab-gozlem');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Plan & insights' })).toBeTruthy();
+    expect(container.querySelector('.cal-wds').textContent).toBe('MonTueWedThuFriSatSun');
+    expect(container.querySelector('.day-h').textContent).toMatch(/^[A-Z][a-z]+day, [A-Z][a-z]+ \d+ · Today$/);
+    expect(screen.getByText('Exercise progress')).toBeTruthy();
+    expect(within(container.querySelector('.chips-scroll')).getByText('Incline barbell bench press')).toBeTruthy();
+    expect(turkishIn(device(), userData)).toEqual([]);
+    expect(attrsTurkish(device(), userData)).toEqual([]);
+    click('#obs-week');
+    const week = await screen.findByRole('dialog', { name: 'Weekly load' });
+    expect(turkishIn(week, userData)).toEqual([]);
+    fireEvent.click(within(week).getAllByRole('button', { name: 'Close' }).at(-1));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    click('#cal-next');
+    const future = [...container.querySelectorAll('.cal-d:not(.out)')].at(-1);
+    fireEvent.click(future);
+    click('#day-add-plan');
+    const pick = await screen.findByRole('dialog', { name: 'Add a plan to this day' });
+    expect(within(pick).getByText(/^Repeat every /)).toBeTruthy();
+    expect(turkishIn(pick, userData)).toEqual([]);
+  });
 });
 

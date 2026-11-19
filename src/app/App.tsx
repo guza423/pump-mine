@@ -1748,10 +1748,10 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
           markers.push({ type: isPast ? 'missed' : 'plan' });
         }
       });
-      const labelDate = d.getDate() + ' ' + MONTHS_LONG[d.getMonth()] + ' ' + WD_LONG[d.getDay()];
+      const labelDate = t('{d} {m} {wd}', { d: d.getDate(), m: MONTHS_LONG[d.getMonth()], wd: WD_LONG[d.getDay()] });
       const parts = [];
-      if (daySessions.length) parts.push(daySessions.length + ' antrenman');
-      if (dayPlans.length) parts.push(dayPlans.length + ' plan');
+      if (daySessions.length) parts.push(t('{n} antrenman', { n: daySessions.length }));
+      if (dayPlans.length) parts.push(t('{n} plan', { n: dayPlans.length }));
       const aria = parts.length ? labelDate + ': ' + parts.join(', ') : labelDate;
       return { d, key, inMonth, isToday, isPast, daySessions, dayPlans, markers, aria };
     });
@@ -1825,23 +1825,23 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
 
   return (
     <div className="screen pxt gozlem-screen">
-      <ScreenHead title="Antrenman plan ve gözlem" />
+      <ScreenHead title={t('Antrenman plan ve gözlem')} />
       <div className="scr">
         <section className="cal-sec">
           <div className="cal-nav">
             <div className="cal-nav-l">
-              <button type="button" id="cal-prev" className="nav-arrow" aria-label="Önceki ay" onClick={() => changeMonth(-1)}><PxIcon name="left" size={16} /></button>
+              <button type="button" id="cal-prev" className="nav-arrow" aria-label={t('Önceki ay')} onClick={() => changeMonth(-1)}><PxIcon name="left" size={16} /></button>
               <span className="cal-title">{MONTHS_LONG[viewYm.m]} {viewYm.y}</span>
-              <button type="button" id="cal-next" className="nav-arrow" aria-label="Sonraki ay" onClick={() => changeMonth(1)}><PxIcon name="right" size={16} /></button>
+              <button type="button" id="cal-next" className="nav-arrow" aria-label={t('Sonraki ay')} onClick={() => changeMonth(1)}><PxIcon name="right" size={16} /></button>
             </div>
             {!isCurrentMonth ? (
-              <button type="button" id="cal-today" className="btn ghost sm" onClick={goToday}>Bugün</button>
+              <button type="button" id="cal-today" className="btn ghost sm" onClick={goToday}>{t('Bugün')}</button>
             ) : null}
           </div>
           <div className="cal-wds" aria-hidden="true">
             {WEEK_ORDER.map((w) => <span key={w}>{WD_SHORT[w]}</span>)}
           </div>
-          <div className="cal" role="grid" aria-label="Aylık antrenman takvimi">
+          <div className="cal" role="grid" aria-label={t('Aylık antrenman takvimi')}>
             {cells.map((c) => {
               const showMarkers = c.markers.length <= 3 ? c.markers : c.markers.slice(0, 2);
               const extra = c.markers.length > 3;
@@ -1868,9 +1868,9 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
           </div>
         </section>
 
-        <section id="day-panel" aria-label="Seçili gün ayrıntısı">
+        <section id="day-panel" aria-label={t('Seçili gün ayrıntısı')}>
           <div className="day-h">
-            {selDate.getDate()} {MONTHS_LONG[selDate.getMonth()]} {WD_LONG[selDate.getDay()]}{selIsToday ? ' · Bugün' : ''}
+            {t('{d} {m} {wd}', { d: selDate.getDate(), m: MONTHS_LONG[selDate.getMonth()], wd: WD_LONG[selDate.getDay()] })}{selIsToday ? ' · ' + t('Bugün') : ''}
           </div>
           {selSessions.map((s) => {
             const ss = sessionStats(s);
@@ -1880,7 +1880,7 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
                 <i className={'hrow-dot' + (isSkillHeavySession(s) ? ' skill' : '')} />
                 <span className="hrow-t">
                   <strong>{sessionName(s)}</strong>
-                  <small className="mono">{durTxt(ss.dur)} · {ss.sets.length} set</small>
+                  <small className="mono">{durTxt(ss.dur)} · {t('{n} set', { n: ss.sets.length })}</small>
                 </span>
                 {f != null ? <span className="hrow-f mono" style={{ color: zoneOf(f).c, borderColor: zoneOf(f).c }}>{Math.round(f)}</span> : <span />}
               </button>
@@ -1889,23 +1889,23 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
           {selPlans.map(({ programId, day: pDay, src }) => {
             const prog = st.programs.find((p) => p.id === programId);
             const isDone = selSessions.some((s) => s.dayId === pDay.id);
-            const srcTxt = src === 'hafta' ? 'Her ' + WD_SHORT[selDate.getDay()] : 'Tek gün';
+            const srcTxt = src === 'hafta' ? t('Her {wd}', { wd: WD_SHORT[selDate.getDay()] }) : t('Tek gün');
             const openMenu = menuDid === pDay.id;
             return (
               <div key={pDay.id} className="day-plan-wrap">
                 <div className={'day-plan-row' + (isDone ? ' done' : '')}>
                   <span className="day-plan-ic">{isDone ? '✓' : '○'}</span>
                   <span className="day-plan-t">
-                    <strong>{pDay.name}</strong>
+                    <strong>{dayLabel(pDay.name)}</strong>
                     <small>· {srcTxt}</small>
                   </span>
                   {selIsToday && !isDone ? (
-                    <button type="button" className="btn primary sm" onClick={() => startSession(prog, pDay)}>Başlat</button>
+                    <button type="button" className="btn primary sm" onClick={() => startSession(prog, pDay)}>{t('Başlat')}</button>
                   ) : null}
                   <button
                     type="button"
                     className="day-plan-more"
-                    aria-label={pDay.name + ' menüsü'}
+                    aria-label={t('{x} menüsü', { x: dayLabel(pDay.name) })}
                     onClick={() => setMenuDid(openMenu ? null : pDay.id)}
                   >
                     <PxIcon name="more" size={18} />
@@ -1913,8 +1913,8 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
                 </div>
                 {openMenu ? (
                   <div className="day-plan-menu">
-                    <button type="button" className="btn ghost sm danger-t" onClick={() => handleRemoveFromDay(programId, pDay)}>Bu günden kaldır</button>
-                    <button type="button" className="btn ghost sm" onClick={() => { setMenuDid(null); if (prog) editPlan(prog, pDay, 'gozlem'); }}>Planı düzenle</button>
+                    <button type="button" className="btn ghost sm danger-t" onClick={() => handleRemoveFromDay(programId, pDay)}>{t('Bu günden kaldır')}</button>
+                    <button type="button" className="btn ghost sm" onClick={() => { setMenuDid(null); if (prog) editPlan(prog, pDay, 'gozlem'); }}>{t('Planı düzenle')}</button>
                   </div>
                 ) : null}
               </div>
@@ -1922,57 +1922,57 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
           })}
           {!selIsFuture ? (
             <p className="day-meta mono">
-              {selCheckin ? 'Uyku ' + nf(Number(selCheckin.sleep)) + ' sa' : 'Uyku –'} · Yorgunluk {selFatScore}
+              {selCheckin ? t('Uyku') + ' ' + t('{n} sa', { n: nf(Number(selCheckin.sleep)) }) : t('Uyku') + ' –'} · {t('Yorgunluk')} {selFatScore}
             </p>
           ) : null}
           {!selIsPast ? (
             <button type="button" id="day-add-plan" className="add-item" onClick={() => openSheet('planPick', { dayKey: selKey })}>
-              + Bu güne plan ekle
+              + {t('Bu güne plan ekle')}
             </button>
           ) : null}
         </section>
 
         <section className="hsec">
-          <div className="sec2-h"><span className="eyebrow">{MONTHS_LONG[viewYm.m].toLocaleUpperCase('tr')} ÖZETİ</span></div>
+          <div className="sec2-h"><span className="eyebrow">{t('{m} ÖZETİ', { m: upper(MONTHS_LONG[viewYm.m]) })}</span></div>
           <div className="mgrid">
-            <Metric k="Antrenman" v={m.n} sub={nf(Math.round(m.perWeek * 10) / 10) + ' / hafta'} />
-            <Metric k="Toplam süre" v={m.n ? durTxt(m.dur) : '–'} sub={m.n ? 'ort. ' + durTxt(m.avgDur) : null} />
-            <Metric k="Set" v={m.sets} sub={m.hard + ' zor set'} />
-            <Metric k="Tonaj" v={m.sets ? tonTxt(m.ton) : '–'} sub={m.sets ? 'ort. RPE ' + nf(Math.round(m.avgRpe * 10) / 10) : null} />
+            <Metric k={tc('metric', 'Antrenman')} v={m.n} sub={t('{n} / hafta', { n: nf(Math.round(m.perWeek * 10) / 10) })} />
+            <Metric k={t('Toplam süre')} v={m.n ? durTxt(m.dur) : '–'} sub={m.n ? t('ort. {x}', { x: durTxt(m.avgDur) }) : null} />
+            <Metric k={tc('metric', 'Set')} v={m.sets} sub={t('{n} zor set', { n: m.hard })} />
+            <Metric k={t('Tonaj')} v={m.sets ? tonTxt(m.ton) : '–'} sub={m.sets ? t('ort. RPE {n}', { n: nf(Math.round(m.avgRpe * 10) / 10) }) : null} />
           </div>
         </section>
 
         <button type="button" id="obs-fatigue" className="fcard" onClick={() => openSheet('fatigue', {})}>
-          <Ring pixel score={head} zone={zoneOf(head)} size={72} label="Seans başında ortalama yorgunluk" />
+          <Ring pixel score={head} zone={zoneOf(head)} size={72} label={t('Seans başında ortalama yorgunluk')} />
           <span className="fcard-t">
-            <span className="st-k">{avgF != null ? 'Seans başında ort.' : 'Şu an'}</span>
+            <span className="st-k">{avgF != null ? t('Seans başında ort.') : t('Şu an')}</span>
             <span className="zone-pill sm" style={{ color: zoneOf(head).c, borderColor: zoneOf(head).c }}>{zoneOf(head).k}</span>
-            <span className="fcard-s mono">{avgPost != null ? 'sonda ort. ' + Math.round(avgPost) + ' · ' : ''}şu an {Math.round(fz.score)}</span>
+            <span className="fcard-s mono">{avgPost != null ? t('sonda ort. {n}', { n: Math.round(avgPost) }) + ' · ' : ''}{t('şu an {n}', { n: Math.round(fz.score) })}</span>
           </span>
           <FatigueBars pts={scored.slice().reverse().slice(-12)} />
         </button>
 
-        <section className="warns" aria-label="Uyarılar">
-          <div className="sec2-h"><span className="eyebrow">Uyarılar</span><span className={'mono warn-n' + (alerts ? ' on' : '')}>{alerts ? alerts + ' uyarı' : 'temiz'}</span></div>
+        <section className="warns" aria-label={t('Uyarılar')}>
+          <div className="sec2-h"><span className="eyebrow">{t('Uyarılar')}</span><span className={'mono warn-n' + (alerts ? ' on' : '')}>{alerts ? t('{n} uyarı', { n: alerts }) : t('temiz')}</span></div>
           {warns.length ? warns.map((w, i) => (
             <div key={i} className={'warn-row ' + w.lv}>
               <i />
               <span><strong>{w.t}</strong><small>{w.d}</small></span>
             </div>
           )) : (
-            <div className="warn-row ok"><i /><span><strong>Uyarı yok</strong><small>Hacim, yorgunluk ve uyku dengede görünüyor.</small></span></div>
+            <div className="warn-row ok"><i /><span><strong>{t('Uyarı yok')}</strong><small>{t('Hacim, yorgunluk ve uyku dengede görünüyor.')}</small></span></div>
           )}
         </section>
 
         <section className="hsec">
-          <div className="sec2-h"><span className="eyebrow">Hareket gelişimi</span>{pts.length ? <span className="mono big-e1">{nf(Math.round(pts[pts.length - 1].v * 2) / 2)} kg</span> : null}</div>
+          <div className="sec2-h"><span className="eyebrow">{t('Hareket gelişimi')}</span>{pts.length ? <span className="mono big-e1">{nf(Math.round(pts[pts.length - 1].v * 2) / 2)} kg</span> : null}</div>
           {exs.length ? (
             <React.Fragment>
-              <div className="chips-scroll">{exs.map((e) => <button key={e.key} type="button" className={'fchip' + (curEx && curEx.key === e.key ? ' on' : '')} onClick={() => setSelEx(e.key)}>{e.name}</button>)}</div>
+              <div className="chips-scroll">{exs.map((e) => <button key={e.key} type="button" className={'fchip' + (curEx && curEx.key === e.key ? ' on' : '')} onClick={() => setSelEx(e.key)}>{exName(e)}</button>)}</div>
               {pts.length ? <E1Chart pts={pts} goal={gLine} /> : null}
-              <p className="chart-note">Tahmini 1RM · yalnızca tükenişe yakın (RIR ≤ 4) setlerden.</p>
+              <p className="chart-note">{t('Tahmini 1RM · yalnızca tükenişe yakın (RIR ≤ 4) setlerden.')}</p>
             </React.Fragment>
-          ) : <p className="muted-p">Tükenişe yakın setler kaydettikçe her hareketin 1RM eğrisi burada oluşur.</p>}
+          ) : <p className="muted-p">{t('Tükenişe yakın setler kaydettikçe her hareketin 1RM eğrisi burada oluşur.')}</p>}
         </section>
 
         <button
@@ -1983,8 +1983,8 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
           onClick={() => openSheet('plan', { getProgram: () => weekProgram(st.programs) })}
         >
           <span className="obs-week-l">
-            <strong>Haftalık yük</strong>
-            <small>{hasWeekly ? wp.days.length + ' planlı gün · kas başına haftalık set' : 'Haftalık tekrarlayan planın yok'}</small>
+            <strong>{t('Haftalık yük')}</strong>
+            <small>{hasWeekly ? t('{n} planlı gün · kas başına haftalık set', { n: wp.days.length }) : t('Haftalık tekrarlayan planın yok')}</small>
           </span>
           <PxIcon name="right" size={16} />
         </button>
@@ -2003,8 +2003,8 @@ function PlanPickBody({ dayKey: targetKey, st, put, newPlan, onClose }) {
   if (!plans.length) {
     return (
       <div className="note-sheet">
-        <p className="muted-p">Önce bir plan oluştur</p>
-        <button type="button" className="btn primary full" onClick={() => { onClose(); newPlan('gozlem'); }}>Yeni plan</button>
+        <p className="muted-p">{t('Önce bir plan oluştur')}</p>
+        <button type="button" className="btn primary full" onClick={() => { onClose(); newPlan('gozlem'); }}>{t('Yeni plan')}</button>
       </div>
     );
   }
@@ -2020,7 +2020,7 @@ function PlanPickBody({ dayKey: targetKey, st, put, newPlan, onClose }) {
 
   return (
     <div className="note-sheet">
-      <div className="plan-pick-list" role="radiogroup" aria-label="Plan seç">
+      <div className="plan-pick-list" role="radiogroup" aria-label={t('Plan seç')}>
         {plans.map((x) => {
           const on = chosen && chosen.day.id === x.day.id;
           return (
@@ -2032,14 +2032,14 @@ function PlanPickBody({ dayKey: targetKey, st, put, newPlan, onClose }) {
               className={'plan-pick-opt' + (on ? ' on' : '')}
               onClick={() => setSelId(x.day.id)}
             >
-              <strong>{x.day.name}</strong>
-              <span className="mono" style={{ fontSize: '12px', color: 'var(--muted)' }}>{x.day.items.length} hareket</span>
+              <strong>{dayLabel(x.day.name)}</strong>
+              <span className="mono" style={{ fontSize: '12px', color: 'var(--muted)' }}>{t('{n} hareket', { n: x.day.items.length })}</span>
             </button>
           );
         })}
       </div>
-      <Switch id="plan-pick-repeat" label={'Her hafta ' + wdName + ' tekrarla'} on={repeat} onChange={setRepeat} />
-      <button type="button" id="plan-pick-save" className="btn primary full" onClick={save}>Ekle</button>
+      <Switch id="plan-pick-repeat" label={t('Her hafta {wd} tekrarla', { wd: wdName })} on={repeat} onChange={setRepeat} />
+      <button type="button" id="plan-pick-save" className="btn primary full" onClick={save}>{t('Ekle')}</button>
     </div>
   );
 }
@@ -2110,39 +2110,39 @@ function PlanBody({ getProgram, st, openSheet }) {
   const names = Array.from(new Set([...MAIN_MUSCLES, ...Object.keys(ps.muscles)]));
   const over = Object.entries(ps.muscles).filter(([, n]) => n > 20).map(([m]) => m);
   const recs = [];
-  if (sim && sim.post >= 85) recs.push('En ağır günün sonunda yorgunluk çok yüksek. O günün setlerini iki güne böl ya da birkaç seti 2–3 tekrar kala bitir.');
-  if (sim && sim.pre >= 40) recs.push('Seanslara yorgun başlıyorsun. Planlar arasında en az 48 sa bırak ya da toplam seti %20 azalt.');
-  if (over.length) recs.push(over.join(', ') + ': haftada 20 zor setin üstü. Fazlası toparlanmayı uzatır, ek kazanımı belirsiz.');
-  if (sim && sim.unplaced) recs.push(sim.unplaced + ' planın haftanın günü yok, hesaba katılmadı.');
-  if (sim && !recs.length) recs.push('Dağılım dengeli: seanslara toparlanmış başlıyorsun.');
+  if (sim && sim.post >= 85) recs.push(t('En ağır günün sonunda yorgunluk çok yüksek. O günün setlerini iki güne böl ya da birkaç seti 2–3 tekrar kala bitir.'));
+  if (sim && sim.pre >= 40) recs.push(t('Seanslara yorgun başlıyorsun. Planlar arasında en az 48 sa bırak ya da toplam seti %20 azalt.'));
+  if (over.length) recs.push(t('{list}: haftada 20 zor setin üstü. Fazlası toparlanmayı uzatır, ek kazanımı belirsiz.', { list: over.map(muscleName).join(', ') }));
+  if (sim && sim.unplaced) recs.push(t('{n} planın haftanın günü yok, hesaba katılmadı.', { n: sim.unplaced }));
+  if (sim && !recs.length) recs.push(t('Dağılım dengeli: seanslara toparlanmış başlıyorsun.'));
   return (
     <div className="plan2">
       {sim ? (
         <button type="button" className="plan2-meter" onClick={() => openSheet('fatigue', { sim: simFromPlan(p), source: t('Planına göre') })}>
-          <Ring pixel score={sim.pre} zone={zoneOf(sim.pre)} size={72} label="Seans başında yorgunluk" />
+          <Ring pixel score={sim.pre} zone={zoneOf(sim.pre)} size={72} label={t('Seans başında yorgunluk')} />
           <div className="pm-t">
             <span className="zone-pill" style={{ color: zoneOf(sim.pre).c, borderColor: zoneOf(sim.pre).c }}>{zoneOf(sim.pre).k}</span>
-            <span className="pm-sub mono">Seans başı ort. {Math.round(sim.pre)} · en yüksek tepe {Math.round(sim.post)}</span>
-            <span className="pm-link">Simüle et ›</span>
+            <span className="pm-sub mono">{t('Seans başı ort. {a} · en yüksek tepe {b}', { a: Math.round(sim.pre), b: Math.round(sim.post) })}</span>
+            <span className="pm-link">{t('Simüle et')} ›</span>
           </div>
         </button>
-      ) : <p className="muted-p">Hesap için planlara haftanın günü ve hareket ekle.</p>}
+      ) : <p className="muted-p">{t('Hesap için planlara haftanın günü ve hareket ekle.')}</p>}
       {sim ? (
         <div className="pdays2">
-          <div className="pd2 sh"><span>Gün</span><span>Plan</span><span>Başta</span><span>Sonda</span></div>
+          <div className="pd2 sh"><span>{t('Gün')}</span><span>{t('Plan')}</span><span>{t('Başta')}</span><span>{t('Sonda')}</span></div>
           {sim.per.map((x, i) => (
             <div key={i} className="pd2">
               <span className="mono">{x.d.weekday == null ? '—' : WD_SHORT[x.d.weekday]}</span>
-              <span className="pd2-n">{x.d.name || 'Adsız'}</span>
+              <span className="pd2-n">{dayLabel(x.d.name)}</span>
               <b className="mono" style={{ color: zoneOf(x.pre).c }}>{Math.round(x.pre)}</b>
               <b className="mono" style={{ color: zoneOf(x.post).c }}>{Math.round(x.post)}</b>
             </div>
           ))}
         </div>
       ) : null}
-      <span className="st-k">Kas başına haftalık zor set</span>
+      <span className="st-k">{t('Kas başına haftalık zor set')}</span>
       <MuscleBars muscles={ps.muscles} list={names} />
-      <p className="chart-note">Taralı alan haftada 10–20 set: hipertrofi için sık önerilen aralık. RPE hedefi 6’nın altındaki setler sayılmaz.</p>
+      <p className="chart-note">{t('Taralı alan haftada 10–20 set: hipertrofi için sık önerilen aralık. RPE hedefi 6’nın altındaki setler sayılmaz.')}</p>
       <div className="recs2">{recs.slice(0, 3).map((x, i) => <p key={i}>{x}</p>)}</div>
     </div>
   );
@@ -2438,9 +2438,9 @@ function E1Chart({ pts, goal }) {
   const X = (t) => m.l + ((t - t0) / (t1 - t0 || 1)) * iw, Y = (v) => m.t + ih - ((v - lo) / (hi - lo || 1)) * ih;
   const ticks = []; for (let v = lo; v <= hi; v += (hi - lo) > 20 ? 10 : 5) ticks.push(v);
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg" role="img" aria-label="Tahmini 1RM eğrisi">
+    <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg" role="img" aria-label={t('Tahmini 1RM eğrisi')}>
       {ticks.map((v) => <g key={v}><line x1={m.l} x2={W - m.r} y1={Y(v)} y2={Y(v)} className="grid" /><text x={m.l - 6} y={Y(v) + 3.5} textAnchor="end" className="tick">{v}</text></g>)}
-      {goal ? <g><line x1={m.l} x2={W - m.r} y1={Y(goal)} y2={Y(goal)} className="goal-line" /><text x={W - m.r} y={Y(goal) - 5} textAnchor="end" className="goal-t">hedef {goal}</text></g> : null}
+      {goal ? <g><line x1={m.l} x2={W - m.r} y1={Y(goal)} y2={Y(goal)} className="goal-line" /><text x={W - m.r} y={Y(goal) - 5} textAnchor="end" className="goal-t">{t('hedef {n}', { n: goal })}</text></g> : null}
       <path d={'M' + pts.map((p) => X(p.t) + ',' + Y(p.v)).join(' L') + ` L${X(pts[pts.length - 1].t)},${m.t + ih} L${X(pts[0].t)},${m.t + ih} Z`} className="area" style={{ fill: 'var(--fire)' }} />
       <polyline points={pts.map((p) => X(p.t) + ',' + Y(p.v)).join(' ')} className="line" style={{ stroke: 'var(--fire)' }} />
       {pts.map((p, i) => { const h = i === pts.length - 1 ? 5 : 3.5; return <rect key={i} x={X(p.t) - h} y={Y(p.v) - h} width={h * 2} height={h * 2} className="cursor-dot" style={{ stroke: 'var(--fire)' }} />; })}
