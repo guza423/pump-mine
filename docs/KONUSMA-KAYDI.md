@@ -616,3 +616,7 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Kullanıcı:** (ekran görüntüsü: Dahili test; "Geçici uygulama adınız: \"app.performance.training (unreviewed)\""; sürüm test1 "Dahili test kullanıcıları tarafından kullanılabilir · 1 sürüm kodu · 19 Kas 21:39 tarihinde kullanıma sunuldu · İncelenmedi")
 **Yapılan:** Play Console'da uygulama oluşturuldu, ilk AAB (1.0.0, versionCode 1) dahili teste çıktı. Sırada: Play App Signing SHA-1/SHA-256'sı Firebase'e (Google girişi için), debug APK'yı kaldırıp test bağlantısından Play'den kurmak.
 **Kayıt:** bu commit (`[skip ci]`).
+
+**Kullanıcı:** (iki ekran görüntüsü: "Uygulama bütünlüğü ayarları taşındı · artık Google Play ile korunanlar sayfasında"; "Google Play ile korunanlar" sayfası: Otomatik koruma 1/1, Play Integrity API 0/7, Google Play Store koruması 6/7, Faturalandırma koruması 0/4)
+**Cevap:** SHA'lar artık Google Play ile korunanlar › Google Play Store koruması (aç) › Uygulama imzalama anahtarını koruyun › Play Uygulama İmzalama'yı yönet › "Uygulama imzalama anahtarı sertifikası".
+**Kayıt:** bu commit (`[skip ci]`).
