@@ -6,7 +6,7 @@ Hangi AI olursa olsun: önce `git pull --rebase origin main`, sonra `AGENTS.md`'
 Şu an bekleyen kod görevi yok. Play Store hazırlığı (V27) bitti; kalan adımlar kullanıcıda (`docs/PROJE.md` › Açık işler › Play Store). Dil geçişi (V21–V25) ve çok dil hazırlığı (V26) bitti; yeni dil eklemek için `AGENTS.md` › Dil › "Yeni dil ekleme".
 
 ## Tamamlanan
-- [V27 · Play Store hazırlığı: imzalı AAB ve alarm izni](docs/gorevler/V27-play-store-hazirligi.md): 2026-11-19 · (bu commit)
+- [V27 · Play Store hazırlığı: imzalı AAB ve alarm izni](docs/gorevler/V27-play-store-hazirligi.md): 2026-11-19 · `6216612`
 - [V26 · Çok dil hazırlığı (yeni Latin alfabeli diller)](docs/gorevler/V26-cok-dil-hazirligi.md): 2026-11-19 · `ffa4c47`
 - [V25 · İngilizce yasal metinler + son tarama](docs/gorevler/V25-ingilizce-yasal-son-tarama.md): 2026-11-19 · `bd32d3d`
 - [V24 · İngilizce: Lab sekmesi](docs/gorevler/V24-ingilizce-lab.md): 2026-11-19 · `d0b1de3`
