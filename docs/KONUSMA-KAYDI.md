@@ -666,3 +666,8 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Teşhis:** Debug (6 Kas), klasik Play (19 Kas) ve kuantum Play (20 Kas) Android istemcileri web istemcisiyle aynı projede; yapılandırma doğru görünüyor. Uygulama imzalama ekranında "Önceki uygulama imzalama anahtarları" satırı var (ilk kullanım 19 Kas 2026 18:35): Play ilk yüklemede bir anahtarla imzalayıp sonra kuantum uyumlu anahtara geçmiş olabilir; telefona gelen paket o **önceki** anahtarla imzalı olabilir ve onun SHA-1'i hiçbir yerde kayıtlı değil.
 **Cevap:** Uygulama imzalama sayfasında "Tüm sertifika parmak izlerini kopyala" ile bütün parmak izleri istendi; eksik olan SHA-1 için Android istemcisi eklenecek.
 **Kayıt:** bu commit (`[skip ci]`).
+
+**Kullanıcı:** (Tüm sertifika parmak izleri) SHA-1: `0E:E3:…:2F:1C`, `9C:4D:…:B1:29`, `66:9F:AC:0D:60:51:C7:34:E4:8C:23:CB:79:4F:EA:AB:95:95:24:97`; SHA-256: `78:7A:…:27:29`, `0C:DF:…:8E:2C`, `E3:FD:03:AD:CC:52:9A:B7:4C:60:B3:4D:4C:E6:B4:05:55:47:3A:BE:91:3E:69:21:77:83:BA:89:88:E7:77:2D`
+**Teşhis:** Üçüncü anahtar (`66:9F:…`) önceki uygulama imzalama anahtarı ve hiçbir yerde kayıtlı değil.
+**Cevap:** Google Cloud'da bu SHA-1 için Android OAuth istemcisi oluştur (`OUTMOVE Play eski`), Firebase'e de iki parmak izini ekle; 5–10 dk sonra dene. Parmak izleri V27 dosyasına yazıldı.
+**Kayıt:** bu commit (`[skip ci]`).

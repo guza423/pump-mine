@@ -34,3 +34,9 @@ Google'ın uygulama imzalama anahtarı; Play'den inen sürüm bununla imzalı. F
 Kuantum sonrası kriptografi anahtarı (Beta, bilgi için; bugünkü cihazlar ve Google girişi klasik imzaya bakar):
 - SHA-1: `9C:4D:DB:FE:AB:0A:72:37:A7:AE:9B:94:F9:BC:7F:27:D2:30:B1:29`
 - SHA-256: `0C:DF:FD:A4:8C:DD:5B:A3:1E:47:9C:C0:80:ED:79:6F:C8:29:23:AD:DF:E7:96:59:81:84:69:E5:2C:2C:8E:2C`
+
+Önceki uygulama imzalama anahtarı (ilk kullanım 19 Kas 2026 18:35; Play sonra kuantum uyumlu anahtara geçti, telefona gelen paket bununla da imzalı olabilir):
+- SHA-1: `66:9F:AC:0D:60:51:C7:34:E4:8C:23:CB:79:4F:EA:AB:95:95:24:97`
+- SHA-256: `E3:FD:03:AD:CC:52:9A:B7:4C:60:B3:4D:4C:E6:B4:05:55:47:3A:BE:91:3E:69:21:77:83:BA:89:88:E7:77:2D`
+
+Google girişi için Google Cloud'da (proje 234169093667) her SHA-1'e bir Android OAuth istemcisi gerekir: debug `C5:34:…:1F:64` (6 Kas), klasik `0E:E3:…` (19 Kas, Firebase), kuantum `9C:4D:…` ("OUTMOVE Play", 20 Kas), önceki `66:9F:…` (20 Kas eklenecek).
