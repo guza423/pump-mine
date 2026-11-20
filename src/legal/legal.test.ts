@@ -21,8 +21,9 @@ describe('yasal metinler', () => {
   });
 
   it('herkese açık depoya kişisel bilgi yazılmaz', () => {
-    const all = LEGAL_DOCS.map((d) => d.md).join('\n');
-    expect(all).not.toMatch(/[\w.+-]+@[\w-]+\.[\w.]+/); // e-posta adresi meta.ts'den gelir, şimdilik boş
+    // Tek izinli e-posta şirketin iletişim adresi (meta.ts, 20 Kasım); metinlere başka adres yazılmaz.
+    const all = LEGAL_DOCS.map((d) => d.md).join('\n').split(LEGAL.EMAIL).join('');
+    expect(all).not.toMatch(/[\w.+-]+@[\w-]+\.[\w.]+/);
     expect(all).not.toMatch(/\b\d{2}-\d{7}\b/); // EIN biçimi
   });
 

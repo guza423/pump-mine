@@ -700,3 +700,4 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Kullanıcı:** (ekran görüntüsü: herkese açık Privacy Policy sayfası, "15. Contact" altında "[Company address to be added before launch]" ve "[Contact email to be added before launch]", altta "PRWAGON LLC · 2026-11-18") "ee burda böyle yazio · mail adreside wworksof@gmail.com işte ya üf"
 **Yapılan:** Sayfa önceki yayındaydı (adres commit'inin Pages yayını henüz bitmemişti). `src/legal/meta.ts` `EMAIL` = `wworksof@gmail.com`; `docs/PLAY-MAGAZA.md` güncellendi.
 **Kayıt:** bu commit.
+**Düzeltme:** `legal.test.ts` "herkese açık depoya kişisel bilgi yazılmaz" e-posta görünce kırıldı (önceki commit testleri geçmeden push edildi, Pages yayını durdu). Test artık yalnızca şirketin iletişim adresine (`LEGAL.EMAIL`) izin veriyor; başka e-posta ve EIN yasağı sürüyor.
