@@ -701,3 +701,7 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Yapılan:** Sayfa önceki yayındaydı (adres commit'inin Pages yayını henüz bitmemişti). `src/legal/meta.ts` `EMAIL` = `wworksof@gmail.com`; `docs/PLAY-MAGAZA.md` güncellendi.
 **Kayıt:** bu commit.
 **Düzeltme:** `legal.test.ts` "herkese açık depoya kişisel bilgi yazılmaz" e-posta görünce kırıldı (önceki commit testleri geçmeden push edildi, Pages yayını durdu). Test artık yalnızca şirketin iletişim adresine (`LEGAL.EMAIL`) izin veriyor; başka e-posta ve EIN yasağı sürüyor.
+
+**Kullanıcı:** "la noldu bayıldın yine" · "tamam mı herşey yani okey miyiz" · "yok gelmemiş hadi yaz bitir ya üff"
+**Yapılan:** Pages yayını (`af87a62`) başarıyla bitti; derlenen yasal metinde adres, `wworksof@gmail.com` ve sürüm `2026-11-20` var. Kalan iş kullanıcıda: Play Console formları, mağaza sayfası, üretime gönderme; önerilen: Firebase Blaze + yedek.
+**Kayıt:** bu commit (`[skip ci]`).
