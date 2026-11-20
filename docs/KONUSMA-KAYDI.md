@@ -675,3 +675,7 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Kullanıcı:** (ekran görüntüsü: Firebase › app.performance.training parmak izleri: SHA-1 `c5:34…`, `0e:e3…`; SHA-256 `ee:71…`, `78:7a…`, `e3:fd…`) "bunada ekledim tamam credentiantial da ekledim bitti"
 **Yapılan:** Önceki Play anahtarı (`66:9F:…`) için Google Cloud'da Android OAuth istemcisi oluşturuldu; Firebase'e SHA-256'sı eklendi (SHA-1'i Firebase'de yok, gerekli değil; giriş için Cloud'daki istemci yeterli). Sonuç bekleniyor.
 **Kayıt:** bu commit (`[skip ci]`).
+
+**Kullanıcı:** "tamamdır oldu login olabildim"
+**Sonuç:** Play'den kurulan dahili test sürümünde Google girişi çalışıyor. Çözüm: Play'in **önceki** uygulama imzalama anahtarının SHA-1'i (`66:9F:…`) için Google Cloud'da Android OAuth istemcisi. Ders `docs/PROJE.md`'ye yazıldı.
+**Kayıt:** bu commit (`[skip ci]`).
