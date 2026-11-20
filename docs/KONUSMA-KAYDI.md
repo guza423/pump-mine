@@ -648,3 +648,7 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Teşhis:** Klasik Play SHA-1 için Android istemcisi zaten var (Firebase oluşturmuş), sorun o değil. Play'in uygulama imzalama anahtarı "Kuantum uyumlu (Beta)": klasik + kuantum sonrası iki imza. Yeni Android sürümleri kuantum sonrası imzayı okuyup uygulamanın sertifikası olarak onu bildiriyor olabilir; o SHA-1 (`9C:4D:…:B1:29`) için istemci yok.
 **Cevap:** Önce girişi tekrar dene (14 saat geçti). Olmazsa aynı ekranda SHA-1'e kuantum sonrası anahtarınkini yazıp istemci oluştur, Firebase'e de iki kuantum parmak izini ekle.
 **Kayıt:** bu commit (`[skip ci]`).
+
+**Kullanıcı:** (ekran görüntüsü: "OAuth client created", SHA-1 `9C:4D:…:B1:29`, Client ID `234169093667-e2kjrcjbjvmm86soi7tag8b5k8o96gbm…`) "tamam kuantumu girdim şimdi buraya . bakalım yine olmadı çünkü hata aynı verdi beklicem 5dk"
+**Yapılan:** Kuantum sonrası Play imzası (SHA-1 `9C:4D:DB:FE:AB:0A:72:37:A7:AE:9B:94:F9:BC:7F:27:D2:30:B1:29`) için Android OAuth istemcisi oluşturuldu (önceki deneme bunsuz yine "[16] Account reauth failed" verdi). Yeniden derleme gerekmez. Sonuç bekleniyor.
+**Kayıt:** bu commit (`[skip ci]`).
