@@ -4,14 +4,14 @@
 
 export const LEGAL = {
   /** Metin sürümü (yürürlük tarihi). Değişince onay ekranı yeniden çıkar. */
-  VERSION: '2026-11-18',
+  VERSION: '2026-11-20',
   /** Açık rıza metninin sürümü. Değişince hesaplı kullanıcılardan rıza yeniden istenir. */
   CONSENT_VERSION: 2,
   APP: 'OUTMOVE',
   COMPANY: 'PRWAGON LLC',
   COMPANY_DESC: 'ABD Wyoming eyaletinde kurulu limited şirket',
   /** Şirketin resmî (kayıtlı) adresi. */
-  ADDRESS: '',
+  ADDRESS: '30 N Gould St Ste N, Sheridan, WY 82801, USA',
   /** Gizlilik ve KVKK başvuruları için e-posta. */
   EMAIL: '',
   /** KVKK m.11 uyarınca Türkiye'deki veri sorumlusu temsilcisi (VERBİS kaydından sonra doldurulur). */

@@ -692,3 +692,7 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Kullanıcı:** "tamam devam et ozmn bitsin neyse yaptığın artık hadi"
 **Yapılan (V28):** `scripts/store-art.mjs` (başlıklı 1080×1920 vitrin görselleri EN+TR, 1024×500 öne çıkan görsel EN+TR), `docs/play-store/icon-512.png` (RGBA), `docs/PLAY-MAGAZA.md`: mağaza metinleri EN+TR (ad 24/25, kısa 73/75, uzun ~1800 karakter; iddialar koda karşı kontrol edildi), mağaza ayarları, Uygulama içeriği formlarının cevapları (gizlilik politikasıyla tutarlı veri güvenliği tablosu), üretime gönderme adımları. Eksik: iletişim e-postası ve `meta.ts` adres/e-posta, Blaze + yedek.
 **Kayıt:** bu commit (`[skip ci]`).
+
+**Kullanıcı:** (ekran görüntüsü: Play Console › Gizlilik Politikası, URL alanı boş) "tamam iyide şimid bunları falan nası yapalım yani mesela · 30 N Gould St Ste N Sheridan, WY 82801 · PRWAGON LLC · +44 7564 908148 · şirket bilgileride bunlar"
+**Yapılan:** `src/legal/meta.ts`: `ADDRESS` = "30 N Gould St Ste N, Sheridan, WY 82801, USA", metin sürümü `2026-11-20` (onay ekranı bir kez yeniden çıkar). Telefon metinlere eklenmedi (zorunlu değil). E-posta hâlâ bekleniyor. Kullanıcıya Gizlilik Politikası alanına `…/legal.html#privacy-en` yazıp kaydetmesi söylendi.
+**Kayıt:** bu commit (Pages ve APK yeniden üretilir).
