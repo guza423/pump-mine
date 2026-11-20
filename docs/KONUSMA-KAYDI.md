@@ -657,3 +657,7 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Not:** Google girişi `@capacitor-firebase/authentication` 8.6 → Credential Manager `GetSignInWithGoogleOption(default_web_client_id)`; web istemcisi ve yeni Android istemcisi aynı projede (numara 234169093667). [16] = CANCELED; Play sürümlerinde en sık sebep Play imza SHA-1'inin web istemcisiyle aynı projede kayıtlı olmaması. Klasik SHA-1 için "already in use" dendi: Firebase'in oluşturduğu istemci bu projede mi, başka projede mi, Clients listesinden bakılacak.
 **Cevap:** Clients listesinin ekran görüntüsü ve hesap seçme penceresinin açılıp açılmadığı soruldu.
 **Kayıt:** bu commit (`[skip ci]`).
+
+**Kullanıcı:** (ekran görüntüsü: Play Console › Dahili test › Test kullanıcıları; liste "ben", 2 kullanıcı, işaretli)
+**Cevap:** Play testçi listesi doğru, giriş hatasıyla ilgisi yok. İstenen: Google Cloud › Google Auth Platform › **Clients** ve **Audience** (yayın durumu Testing/Production, test kullanıcıları) ekran görüntüleri; hesap seçme penceresi açılıyor mu.
+**Kayıt:** bu commit (`[skip ci]`).
