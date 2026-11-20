@@ -661,3 +661,8 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Kullanıcı:** (ekran görüntüsü: Play Console › Dahili test › Test kullanıcıları; liste "ben", 2 kullanıcı, işaretli)
 **Cevap:** Play testçi listesi doğru, giriş hatasıyla ilgisi yok. İstenen: Google Cloud › Google Auth Platform › **Clients** ve **Audience** (yayın durumu Testing/Production, test kullanıcıları) ekran görüntüleri; hesap seçme penceresi açılıyor mu.
 **Kayıt:** bu commit (`[skip ci]`).
+
+**Kullanıcı:** (ekran görüntüsü: Google Cloud › APIs & Services › Credentials; OAuth 2.0 Client IDs: "OUTMOVE Play" Android 20 Kas `234169093667-e2kj…`, "Android client for app.performance.training (auto created by Google Service)" 19 Kas `…-6nf6…` ve 6 Kas `…-6gc1…`, "Web client (auto created by Google Service)" 6 Kas `…-aede…`)
+**Teşhis:** Debug (6 Kas), klasik Play (19 Kas) ve kuantum Play (20 Kas) Android istemcileri web istemcisiyle aynı projede; yapılandırma doğru görünüyor. Uygulama imzalama ekranında "Önceki uygulama imzalama anahtarları" satırı var (ilk kullanım 19 Kas 2026 18:35): Play ilk yüklemede bir anahtarla imzalayıp sonra kuantum uyumlu anahtara geçmiş olabilir; telefona gelen paket o **önceki** anahtarla imzalı olabilir ve onun SHA-1'i hiçbir yerde kayıtlı değil.
+**Cevap:** Uygulama imzalama sayfasında "Tüm sertifika parmak izlerini kopyala" ile bütün parmak izleri istendi; eksik olan SHA-1 için Android istemcisi eklenecek.
+**Kayıt:** bu commit (`[skip ci]`).
