@@ -716,3 +716,4 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 - **V29** (`docs/gorevler/V29-planli-oturum-pixel.md`): planlı oturum da plansızın pixel ekranında (liste → set ekranı, sürüklemeli kilo/tekrar, hız, set kutucukları, dinlenme, HAREKETİ BİTİR, İDMANI BİTİR, pixel özet).
 - Plan bilgileri korundu: plan günü adı, kartta hedef + not + `n/m set`, set ekranında `SET n/m · not`, set kutusunda HEDEF, ilk sette "Son sefer"; ilk set hedef kilodan başlar.
 - Eski planlı görünüm silindi; ayrı RPE çipleri yerine RPE hızdan gelir.
+- Commit: `3e7f2dd`. Kontroller: `npm test` (136), lint, `tsc -b`, build, `test:layout` geçti.
