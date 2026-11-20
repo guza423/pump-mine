@@ -652,3 +652,8 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Kullanıcı:** (ekran görüntüsü: "OAuth client created", SHA-1 `9C:4D:…:B1:29`, Client ID `234169093667-e2kjrcjbjvmm86soi7tag8b5k8o96gbm…`) "tamam kuantumu girdim şimdi buraya . bakalım yine olmadı çünkü hata aynı verdi beklicem 5dk"
 **Yapılan:** Kuantum sonrası Play imzası (SHA-1 `9C:4D:DB:FE:AB:0A:72:37:A7:AE:9B:94:F9:BC:7F:27:D2:30:B1:29`) için Android OAuth istemcisi oluşturuldu (önceki deneme bunsuz yine "[16] Account reauth failed" verdi). Yeniden derleme gerekmez. Sonuç bekleniyor.
 **Kayıt:** bu commit (`[skip ci]`).
+
+**Kullanıcı:** (telefon ekran görüntüsü: yine "[16] Account reauth failed.") "Böyle hala depoyuda sildim"
+**Not:** Google girişi `@capacitor-firebase/authentication` 8.6 → Credential Manager `GetSignInWithGoogleOption(default_web_client_id)`; web istemcisi ve yeni Android istemcisi aynı projede (numara 234169093667). [16] = CANCELED; Play sürümlerinde en sık sebep Play imza SHA-1'inin web istemcisiyle aynı projede kayıtlı olmaması. Klasik SHA-1 için "already in use" dendi: Firebase'in oluşturduğu istemci bu projede mi, başka projede mi, Clients listesinden bakılacak.
+**Cevap:** Clients listesinin ekran görüntüsü ve hesap seçme penceresinin açılıp açılmadığı soruldu.
+**Kayıt:** bu commit (`[skip ci]`).
