@@ -679,3 +679,8 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Kullanıcı:** "tamamdır oldu login olabildim"
 **Sonuç:** Play'den kurulan dahili test sürümünde Google girişi çalışıyor. Çözüm: Play'in **önceki** uygulama imzalama anahtarının SHA-1'i (`66:9F:…`) için Google Cloud'da Android OAuth istemcisi. Ders `docs/PROJE.md`'ye yazıldı.
 **Kayıt:** bu commit (`[skip ci]`).
+
+**Kullanıcı:** "e tamam peki yapalım. peki nezman app herkese görünücek ve ayrıca biz böyle apk değilde bşak bir dosya yükledik obb miydi neydi o nie ve oda mı apk gibi bişi uygulamayı derlenmiş formatlardan biri mi"
+**Kullanıcı:** "noluyo ya soru sorudm sen bisürü şey yapion anlamadım seni"
+**Cevap:** Sorular önce cevaplandı (herkese açık yayın: mağaza sayfası + formlar → üretim sürümü → Google incelemesi, ilk sürümde genelde birkaç gün, en fazla ~7 gün; yüklenen dosya AAB, OBB değil). Claude soruyu cevaplamadan mağaza görsellerine başlamıştı; ham ekran görüntüleri hazır (`docs/play-store/raw/`, henüz push edilmedi), devam için onay soruldu.
+**Kayıt:** bu commit (`[skip ci]`), yalnız konuşma kaydı.
