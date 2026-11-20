@@ -131,3 +131,4 @@ Her fazın sonunda README'yi güncelle: yerelde nasıl çalıştırılır, canl�
 5. Bitince `git log -1 --oneline`, push çıktısını ve `git status` çıktısını göster.
 6. Derleme çıktılarını asla commit etme: `dist/`, `android/app/build/`, `android/app/src/main/assets/public/`, `android/app/src/main/assets/capacitor.config.json`, `android/app/src/main/assets/capacitor.plugins.json`, `android/app/src/main/res/xml/config.xml`, `android/capacitor-cordova-android-plugins/`.
 7. Testler veya build geçmezse hatayı düzelt ve tekrar dene; geçmeyen kodu push etme.
+8. `[skip ci]` yalnızca sadece belge içeren push'larda kullanılır. Bir push'un **en son** commit'i `[skip ci]` taşırsa GitHub o push'taki kod commit'leri için de APK ve Pages çalıştırmaz; kayıt commit'ini kodla aynı push'ta gönderiyorsan `[skip ci]` yazma (kaçarsa: `gh workflow run android.yml --ref main` ve `pages.yml`).
