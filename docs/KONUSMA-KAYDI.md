@@ -705,3 +705,7 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Kullanıcı:** "la noldu bayıldın yine" · "tamam mı herşey yani okey miyiz" · "yok gelmemiş hadi yaz bitir ya üff"
 **Yapılan:** Pages yayını (`af87a62`) başarıyla bitti; derlenen yasal metinde adres, `wworksof@gmail.com` ve sürüm `2026-11-20` var. Kalan iş kullanıcıda: Play Console formları, mağaza sayfası, üretime gönderme; önerilen: Firebase Blaze + yedek.
 **Kayıt:** bu commit (`[skip ci]`).
+
+**Kullanıcı:** (ekran görüntüsü: Play Console › Oturum açma bilgileri (eski "Uygulama erişimi"), "Hayır" seçili; sayfa: inceleme ekibi yeni hesap oluşturamaz)
+**Cevap:** "Evet" seçilmeli: hesap silme ve bulut eşitleme girişle görülüyor, inceleme ekibi hesap açamıyor. Test hesabı `wworksof+playreview@gmail.com` (şifreyi kullanıcı belirler; uygulamada e-posta doğrulaması yok), İngilizce talimat. `docs/PLAY-MAGAZA.md` güncellendi.
+**Kayıt:** bu commit (`[skip ci]`).

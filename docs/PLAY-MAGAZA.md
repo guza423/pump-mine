@@ -137,8 +137,11 @@ OUTMOVE bir antrenman aracıdır, tıbbi tavsiye değildir. Bir sağlık sorunun
 - URL: `https://guza423.github.io/pump-mine/legal.html#privacy-en`
 - Şirket adresi ve iletişim e-postası politikada (20 Kasım, `src/legal/meta.ts`).
 
-**Uygulama erişimi**
-- **Tüm işlevler özel erişim gerekmeden kullanılabilir.** (Hesapsız misafir modu her özelliği açıyor; giriş yalnızca bulut eşitlemesi için.)
+**Oturum açma bilgileri** (eski adı "Uygulama erişimi")
+- **Evet** (kısıtlanmış bölüm var). İnceleme ekibi yeni hesap açamıyor; bulut eşitleme ve hesap silme yalnızca girişle görülüyor.
+- Uygulamada bir test hesabı aç: Dashboard › sağ üst hesap simgesi › Continue with email. E-posta: `wworksof+playreview@gmail.com` (Gmail'in + takma adı; postalar wworksof'a gelir), şifreyi sen belirle. E-posta doğrulaması istenmiyor.
+- Formda: e-posta + şifre, talimat (İngilizce):
+  `Every feature also works without an account (guest mode). The account is only needed for cloud sync and account deletion: Dashboard > account icon (top right) > Continue with email.`
 
 **Reklamlar**
 - **Hayır, uygulamamda reklam yok.**
