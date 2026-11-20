@@ -671,3 +671,7 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Teşhis:** Üçüncü anahtar (`66:9F:…`) önceki uygulama imzalama anahtarı ve hiçbir yerde kayıtlı değil.
 **Cevap:** Google Cloud'da bu SHA-1 için Android OAuth istemcisi oluştur (`OUTMOVE Play eski`), Firebase'e de iki parmak izini ekle; 5–10 dk sonra dene. Parmak izleri V27 dosyasına yazıldı.
 **Kayıt:** bu commit (`[skip ci]`).
+
+**Kullanıcı:** (ekran görüntüsü: Firebase › app.performance.training parmak izleri: SHA-1 `c5:34…`, `0e:e3…`; SHA-256 `ee:71…`, `78:7a…`, `e3:fd…`) "bunada ekledim tamam credentiantial da ekledim bitti"
+**Yapılan:** Önceki Play anahtarı (`66:9F:…`) için Google Cloud'da Android OAuth istemcisi oluşturuldu; Firebase'e SHA-256'sı eklendi (SHA-1'i Firebase'de yok, gerekli değil; giriş için Cloud'daki istemci yeterli). Sonuç bekleniyor.
+**Kayıt:** bu commit (`[skip ci]`).
