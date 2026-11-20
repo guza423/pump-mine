@@ -2,9 +2,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   EQ, EX_LIB, MUSCLES, PLYO_INT, PLYO_W, SKILL_W,
-  bestE1, clone, e1Ok, e1rm, itemFromEx, libById, newId, nf, normTr, rpeLabel, sessionStats, skillSetTxt,
+  bestE1, clone, e1Ok, e1rm, firstOpen, hasNum, itemFromEx, libById, newId, nf, normTr, noteLabel, rpeLabel, sessionStats, skillSetTxt, targetTxt,
 } from './core';
-import { dbMultiplier, freeEntry } from '../../lib/models/session';
+import { dbMultiplier, freeEntry, isFree, sessionName } from '../../lib/models/session';
 import { changeRest, restDuration } from '../../lib/models/rest';
 import { startRest, stopRest } from '../../lib/native/restTimer';
 import { fatigueAt } from '../../lib/models/fatigue';
@@ -50,8 +50,10 @@ export const FreePixelSession: React.FC<Props> = ({
 }) => {
   const sRef = useRef(clone(session));
   const [s, setS] = useState(sRef.current);
+  // Planlı oturum da aynı pixel ekranı kullanır (V29): plan adı, hareket hedefleri ve notları eklenir.
+  const planned = !isFree(s);
   const [scr, setScr] = useState<'list' | 'pick' | 'log'>('list');
-  const [cur, setCur] = useState(0);
+  const [cur, setCur] = useState(() => (isFree(session) ? 0 : firstOpen(session)));
   const [now, setNow] = useState(() => Date.now());
   const lastSec = useRef(0);
   const lastBurst = useRef(0);
@@ -176,7 +178,14 @@ export const FreePixelSession: React.FC<Props> = ({
     romD.current = null;
     if (edgeT.current) { clearTimeout(edgeT.current); edgeT.current = null; }
 
-    const init = freeEntry(target, st.sessions);
+    // Planlıda ilk set hedeften başlar (kilo, en çok tekrar); sonra son kaydedilen set; yoksa geçmiş.
+    const fe = freeEntry(target, st.sessions);
+    const tg = target.target || {};
+    const init = isFree(sRef.current) || target.sets.length ? fe : {
+      ...fe,
+      kg: lib?.kind !== 'beceri' && hasNum(tg.kg) && Number(tg.kg) > 0 ? Number(tg.kg) : fe.kg,
+      reps: hasNum(tg.repMax) ? Number(tg.repMax) : hasNum(tg.repMin) ? Number(tg.repMin) : fe.reps,
+    };
     const snappedKg = Math.min(cfg.max, Math.max(cfg.min, Math.round(init.kg / cfg.step) * cfg.step));
     const initReps = clamp(Math.round(init.reps || 10), 1, lib?.kind === 'plyo' || lib?.kind === 'beceri' ? 60 : 30);
     const initLvl = (clamp(init.lvl ?? 1, 0, 4)) as 0 | 1 | 2 | 3 | 4;
@@ -829,11 +838,21 @@ export const FreePixelSession: React.FC<Props> = ({
     if (!item) return;
     openSheet('note', {
       title: exLabel(item),
-      init: { note: entryNote, tags: entryTags, memo: item.memo || '', canProgram: false },
+      init: { note: entryNote, tags: entryTags, memo: item.memo || '', canProgram: !!(sRef.current.programId && item.srcId) },
       onSave: (r: any) => {
         setEntryNote(r.note || '');
         setEntryTags(r.tags || []);
         mutate((ns) => { ns.items[cur].memo = r.memo || ''; });
+        // Planlı oturumda not istenirse plana da yazılır
+        if (r.toProgram) {
+          const pr = st.programs.find((x: any) => x.id === sRef.current.programId);
+          if (pr) {
+            const np = clone(pr);
+            np.days.forEach((d: any) => d.items.forEach((it: any) => { if (it.id === item.srcId) it.note = r.memo; }));
+            np.updatedAt = Date.now();
+            put('programs', np);
+          }
+        }
       },
     });
   };
@@ -990,7 +1009,7 @@ export const FreePixelSession: React.FC<Props> = ({
         <div className="px-scr">
           <div className="px-head">
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <span style={{ fontSize: 21, fontWeight: 700, letterSpacing: '0.04em', lineHeight: 1.1 }}>{upper(t('Plansız antrenman'))}</span>
+              <span className="px-ses-title" style={{ fontSize: 21, fontWeight: 700, letterSpacing: '0.04em', lineHeight: 1.1 }}>{planned ? upTr(sessionName(s)) : upper(t('Plansız antrenman'))}</span>
               <span className="px-ses-meta">
                 <span className="px-ses-date">{sesDate}</span>
                 {s.ready ? (
@@ -1041,7 +1060,10 @@ export const FreePixelSession: React.FC<Props> = ({
               const skill = !!(lib && lib.kind === 'beceri');
               const n = it.sets.length;
               const ton = it.sets.reduce((a: number, x: any) => a + (x.plyo || x.skill ? 0 : (Number(x.kg) || 0) * x.reps * mult), 0);
-              const sum = !n
+              const tgSets = planned && it.target ? Number(it.target.sets) || 0 : 0;
+              const sum = tgSets
+                ? t('{d}/{n} set', { d: n, n: tgSets }) + (n && !plyo && !skill ? ' · ' + num(Math.round(ton)) + ' kg' : '')
+                : !n
                 ? t('set yok')
                 : plyo
                   ? t('{n} set', { n }) + ' · ' + t('{n} temas', { n: it.sets.reduce((a: number, x: any) => a + x.reps, 0) })
@@ -1071,6 +1093,12 @@ export const FreePixelSession: React.FC<Props> = ({
                       <span>{eqTxt} · {muscleName(it.muscle)}</span>
                       <span style={{ color: n ? 'var(--tx)' : 'var(--mt)' }}>{sum}</span>
                     </span>
+                    {tgSets ? (
+                      <span className="px-card-tg">
+                        <b>{upper(t('Hedef'))}</b> {targetTxt(it.target, it.exId)}
+                        {it.memo || it.note ? <i>{it.memo || noteLabel(it.note)}</i> : null}
+                      </span>
+                    ) : null}
                     {n > 0 ? (
                       <span style={{ display: 'flex', gap: 6, flexWrap: 'nowrap', overflow: 'hidden' }}>
                         {recent.map((x: any, rIdx: number) => {
@@ -1302,6 +1330,20 @@ export const FreePixelSession: React.FC<Props> = ({
 
   const sets = item.sets;
   const nS = sets.length;
+  const tgt = planned && item.target && Number(item.target.sets) ? item.target : null;
+  const setCount = tgt ? t('{d}/{n} set', { d: nS, n: tgt.sets }) : t('{n} set', { n: nS });
+  const planNote = planned ? (item.memo || noteLabel(item.note) || '') : '';
+  // Son sefer: bu hareketin önceki biten antrenmandaki setleri (planlıda boş set alanında görünür)
+  const prevTxt = (() => {
+    if (!planned) return null;
+    const same = (e: any) => (item.exId && e.exId === item.exId) || e.name === item.name;
+    const prevSes = st.sessions
+      .filter((x: any) => x.status === 'done' && x.startedAt < s.startedAt && x.items.some(same))
+      .sort((a: any, b: any) => b.startedAt - a.startedAt)[0];
+    const prevItem = prevSes ? prevSes.items.find(same) : null;
+    if (!prevItem || !prevItem.sets.length) return null;
+    return prevItem.sets.map((z: any) => (z.skill ? t('{n}d', { n: z.reps }) : z.plyo ? t('{n}t', { n: z.reps }) : fk(Number(z.kg)) + '×' + z.reps)).join(', ');
+  })();
   const mult = dbMultiplier(item.exId, item.name);
   const vol = sets.reduce((a: number, x: any) => a + (x.plyo || x.skill ? 0 : (Number(x.kg) || 0) * x.reps * mult), 0);
   const eqNameUpper = upper(itemLib ? eqLabel(itemLib.eq) : t('Özel'));
@@ -1382,7 +1424,7 @@ export const FreePixelSession: React.FC<Props> = ({
             >
               <span className="px-head-title">{upTr(exLabel(item))}</span>
               <span className="px-head-sub">
-                {t('PLANSIZ')} · {t('SET')} {sets.length + 1} · <span style={{ color: 'var(--gold)' }}>{eqNameUpper}</span>
+                {planned && tgt ? <React.Fragment>{t('SET')} {sets.length + 1}/{tgt.sets}</React.Fragment> : <React.Fragment>{t('PLANSIZ')} · {t('SET')} {sets.length + 1}</React.Fragment>} · {planNote ? <span className="px-plan-note">{planNote}</span> : <span style={{ color: 'var(--gold)' }}>{eqNameUpper}</span>}
               </span>
             </button>
             <button type="button" id="note-btn" className={'ib' + (hasNote ? ' has' : '')} onClick={openNote} aria-label={t('Not ekle')}>
@@ -1395,13 +1437,20 @@ export const FreePixelSession: React.FC<Props> = ({
           {/* Setler kutusu */}
           <div className={'pxb px-sets-box ' + par(fxLog, 'px-pnlA', 'px-pnlB')}>
             <div className="px-sets-head">
-              <span className="lbl">{t('SETLER')}</span>
+              {tgt ? (
+                <span className="px-plan">
+                  <span className="px-plan-k">{upper(t('Hedef'))}</span>
+                  <span className="px-plan-v">{targetTxt(tgt, item.exId)}</span>
+                </span>
+              ) : <span className="lbl">{t('SETLER')}</span>}
               <span className="px-sets-sum">
-                {isPlyoEx
-                  ? t('{n} set', { n: sets.length }) + ' · ' + t('{n} temas', { n: sets.reduce((a: number, x: any) => a + x.reps, 0) })
+                {tgt
+                  ? setCount
+                  : isPlyoEx
+                  ? setCount + ' · ' + t('{n} temas', { n: sets.reduce((a: number, x: any) => a + x.reps, 0) })
                   : isSkillEx
-                    ? t('{n} set', { n: sets.length }) + ' · ' + t('{n} deneme', { n: sets.reduce((a: number, x: any) => a + x.reps, 0) })
-                    : t('{n} set', { n: sets.length }) + ' · ' + t('tonaj {x} kg', { x: num(Math.round(vol)) })}
+                    ? setCount + ' · ' + t('{n} deneme', { n: sets.reduce((a: number, x: any) => a + x.reps, 0) })
+                    : setCount + ' · ' + t('tonaj {x} kg', { x: num(Math.round(vol)) })}
               </span>
             </div>
             <div className="px-sets-wrap">
@@ -1446,7 +1495,7 @@ export const FreePixelSession: React.FC<Props> = ({
                     </button>
                   );
                 })}
-                {sets.length === 0 ? <div className="px-sets-empty">{t('İlk setini kaydet')}</div> : null}
+                {sets.length === 0 ? <div className="px-sets-empty">{prevTxt ? t('Son sefer {x}', { x: prevTxt }) : t('İlk setini kaydet')}</div> : null}
               </div>
               {hasMore && !listEnd ? (
                 <span className="more">

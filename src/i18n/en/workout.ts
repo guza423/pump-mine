@@ -79,6 +79,7 @@ export const workout: Record<string, Entry> = {
   "kalite": "quality",
   "dk ara": "min rest",
   "Son sefer {x}": "Last time {x}",
+  "{d}/{n} set": ["{d}/{n} set", "{d}/{n} sets"],
   "En iyi süre (sn)": "Best hold (s)",
   "Beceri kalitesi": "Skill quality",
   "Not ekle": "Add note",

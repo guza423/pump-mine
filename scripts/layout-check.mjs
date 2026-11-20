@@ -273,14 +273,21 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
     screen = 'plan-hareket-ayar';
     await page.locator('.sheet-wrap .px-dr-bar').first().waitFor();
     await check(page, label, screen);
+    // V29: notlu hareket (en uzun hedef şeridi) planlı pixel ekranında denenir
+    await page.locator('.sheet-wrap .fchip.sm[aria-pressed]').nth(0).click();
+    await page.locator('.sheet-wrap .fchip.sm[aria-pressed]').nth(4).click();
     await page.locator('.sheet-wrap .x-btn').last().click();
     await page.locator('.sheet-wrap').waitFor({ state: 'detached' });
     await page.locator('#ed-start').click();
-    await page.locator('.tgt2').waitFor();
+    await page.locator('.px-card.cur').waitFor();
+    screen = 'planli-liste';
+    await check(page, label, screen);
+    await page.locator('.px-card.cur .card-main').click();
+    await page.locator('.px-plan').waitFor();
     screen = 'planli-seans';
     await check(page, label, screen, { session: true });
     await page.locator('#log-set').click();
-    await page.locator('.restchip').waitFor();
+    await page.locator('#rest-big').waitFor();
     screen = 'planli-dinlenme';
     await check(page, label, screen, { session: true, rest: true });
 
@@ -470,14 +477,20 @@ async function flowLang(lang, viewport, scale = 1, tablet = false, safeArea = fa
     await page.locator('.exr-main').first().click();
     await page.locator('.sheet-wrap .px-dr-bar').first().waitFor();
     await check(page, label, screen);
+    await page.locator('.sheet-wrap .fchip.sm[aria-pressed]').nth(0).click();
+    await page.locator('.sheet-wrap .fchip.sm[aria-pressed]').nth(4).click();
     await page.locator('.sheet-wrap .x-btn').last().click();
     await page.locator('.sheet-wrap').waitFor({ state: 'detached' });
     await page.locator('#ed-start').click();
-    await page.locator('.tgt2').waitFor();
+    await page.locator('.px-card.cur').waitFor();
+    screen = 'planned-list';
+    await check(page, label, screen);
+    await page.locator('.px-card.cur .card-main').click();
+    await page.locator('.px-plan').waitFor();
     screen = 'planned-session';
     await check(page, label, screen, { session: true });
     await page.locator('#log-set').click();
-    await page.locator('.restchip').waitFor();
+    await page.locator('#rest-big').waitFor();
     screen = 'planned-rest';
     await check(page, label, screen, { session: true, rest: true });
 

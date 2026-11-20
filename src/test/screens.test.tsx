@@ -679,21 +679,47 @@ describe('ana ekran akışları', () => {
     fireEvent.click(heavy.closest('button')!);
     expect(await screen.findByRole('dialog', { name: 'Ağır gün' })).toBeTruthy();
     click('#wtype-start');
+    // V29: planlı oturum da plansızla aynı pixel ekranında; liste plan adını, hedefleri ve notları gösterir
+    await waitFor(() => expect(container.querySelector('.px-card.cur')).toBeTruthy());
+    expect(container.querySelector('.px-ses-title').textContent).toBe('AĞIR GÜN');
+    const card = container.querySelector('.px-card.cur');
+    expect(card.querySelector('.px-card-tg').textContent).toContain('2 × 5–8');
+    expect(card.querySelector('.px-card-tg').textContent).toContain('Ağır setler');
+    expect(card.textContent).toContain('0/2 set');
+    fireEvent.click(card.querySelector('.card-main'));
     await waitFor(() => expect(container.querySelector('#log-set')).toBeTruthy());
-    expect(container.querySelector('.tgt2')).toBeTruthy();
-    expect(container.querySelector('.srow.plan')).toBeTruthy();
-    expect(container.querySelector('#log-set').textContent).toBe('Set 1/2 kaydet');
+    expect(container.querySelector('.px-plan').textContent).toContain('RPE 9–10');
+    expect(container.querySelector('.px-plan-note').textContent).toBe('Ağır setler');
+    expect(container.querySelector('.px-head-sub').textContent).toContain('SET 1/2');
+    // ilk set hedef kilodan başlar
+    expect(container.querySelector('.px-kg-bar').getAttribute('aria-valuenow')).toBe('75');
     click('#log-set');
+    fireEvent.click(await screen.findByRole('button', { name: 'GEÇ' }));
     click('#log-set');
-    const firstSet = await screen.findByRole('button', { name: /Set 1:.*Ayrıntı/ });
-    fireEvent.click(firstSet);
-    expect(screen.getAllByRole('dialog').at(-1)).toBeTruthy();
-    expect(screen.getByText('Kalan tekrar')).toBeTruthy();
-    closeTopSheet();
+    fireEvent.click(await screen.findByRole('button', { name: 'GEÇ' }));
+    expect(container.querySelector('.px-sets-sum').textContent).toContain('2/2 set');
+    await waitFor(async () => {
+      const act = (await db.sessions.toArray()).find(x => x.status === 'active');
+      expect(act.items[0].sets).toHaveLength(2);
+      expect(act.items[0].sets[0]).toMatchObject({ kg: 75, reps: 8 });
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Set 1:.*Ayrıntı/ }));
+    expect(screen.getByRole('dialog', { name: 'Set ayrıntısı' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'KAPAT' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Geri: antrenman listesi' }));
+    expect(container.querySelector('.px-card').textContent).toContain('2/2 set');
     click('#finish-btn');
+    const pxSummary = await waitFor(() => {
+      const el = container.querySelector('#pixel-summary');
+      expect(el).toBeTruthy();
+      return el!;
+    });
+    expect(pxSummary.textContent).toContain('AĞIR GÜN · ÖZET');
+    click('#summary-done');
+    // Geçmişten açılan özet: geçmiş setin kutucuğu salt okunur ayrıntı açar (hız, ROM, tonaj; silme yok)
+    fireEvent.click(await waitFor(() => { const r = container.querySelector('.hist-inline .hrow'); expect(r).toBeTruthy(); return r!; }));
     const summary = await screen.findByRole('dialog', { name: 'Antrenman özeti' });
     expect(screen.getByText('Tonaj')).toBeTruthy();
-    // Geçmiş setin kutucuğuna dokununca salt okunur ayrıntı açılır (hız, ROM, tonaj; silme yok)
     fireEvent.click(within(summary).getByRole('button', { name: 'Set 1 ayrıntısı' }));
     await waitFor(() => expect(screen.getAllByRole('dialog').length).toBeGreaterThan(1));
     const detail = screen.getAllByRole('dialog').at(-1);

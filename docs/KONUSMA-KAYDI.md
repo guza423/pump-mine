@@ -709,3 +709,10 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Kullanıcı:** (ekran görüntüsü: Play Console › Oturum açma bilgileri (eski "Uygulama erişimi"), "Hayır" seçili; sayfa: inceleme ekibi yeni hesap oluşturamaz)
 **Cevap:** "Evet" seçilmeli: hesap silme ve bulut eşitleme girişle görülüyor, inceleme ekibi hesap açamıyor. Test hesabı `wworksof+playreview@gmail.com` (şifreyi kullanıcı belirler; uygulamada e-posta doğrulaması yok), İngilizce talimat. `docs/PLAY-MAGAZA.md` güncellendi.
 **Kayıt:** bu commit (`[skip ci]`).
+
+### 2026-11-21 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** (ekran görüntüsü: planlı oturumun eski set ekranı, "BUFF", "Eğimli bench press", HEDEF 5×4–10 · – kg · 9–10 RPE · 2,5 dk ara, not "Hissederek yap · Ortada beklet", "Son sefer 60×6, 60×13, 60×9, 60×9, 60×6", set tablosu, − / + kilo-tekrar, RPE çipleri, "SET 1/5 KAYDET") "Planlamış idmanı seçince ekran bu hala mlsf"
+**Yapılan:**
+- **V29** (`docs/gorevler/V29-planli-oturum-pixel.md`): planlı oturum da plansızın pixel ekranında (liste → set ekranı, sürüklemeli kilo/tekrar, hız, set kutucukları, dinlenme, HAREKETİ BİTİR, İDMANI BİTİR, pixel özet).
+- Plan bilgileri korundu: plan günü adı, kartta hedef + not + `n/m set`, set ekranında `SET n/m · not`, set kutusunda HEDEF, ilk sette "Son sefer"; ilk set hedef kilodan başlar.
+- Eski planlı görünüm silindi; ayrı RPE çipleri yerine RPE hızdan gelir.

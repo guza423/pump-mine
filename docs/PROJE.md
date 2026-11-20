@@ -49,7 +49,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
   - **Büyük dinlenme ekranı (`#rest-big`):** set kaydında açılır; sürükleyerek ve `-15 SN`/`+15 SN` düğmeleriyle ayarlanır, `GİZLE` ile kaydet düğmesinin solunda küçük çipe küçülür, `GEÇ` ile biter.
   - **Ses ve titreşim:** her adımda WebAudio kare/testere dalga sesleri, parçacık/pop/sarsıntı efektleri ve titreşim; **Hesap ve yedek** penceresinden (`Sesler`, `Titreşim`) kapatılabilir.
   - **Pixel özet:** süre, tonaj (dambılda iki el; `Tek ` ile başlayanlar tek el), set · zor set, 25 parçalı yorgunluk çubuğu, `recoveryHours()`, hareket başına e1RM (`ROM ≥ %90`), `Plan olarak kaydet`.
-- **Planlı oturum:** hedef kartı ("Hedef 4×6–8 · 80 kg · RPE 8"), planlı set satırları, "Set 1/4 kaydet", hız animasyonu. Hareketin notu hedef kartında küçük yazıyla görünür.
+- **Planlı oturum (V29):** plansızla aynı pixel ekranı (`FreePixelSession`). Listede plan günü adı, kartta `n/m set`, HEDEF satırı ve hareket notu; set ekranında `SET n/m · not`, set kutusu başlığında HEDEF, set yokken "Son sefer". İlk set hedef kilo ve en çok tekrardan başlar; RPE son tekrarın hızından gelir.
 - **Plan düzenleyici (V18):**
   - hareket seçilince eklenir ve ayar penceresi kendiliğinden açılır;
   - set (1–12), tekrar aralığı (1–30), RPE aralığı (5–10) sürüklemeli merdiven; aralıkta dokunulan yere en yakın uç oynar;
@@ -289,6 +289,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | 2026-11-19 | İngilizce adlar: sekmeler Dashboard · Workout · Insights · Lab; Plansız antrenman → **Quick workout**; hesap silme onayı **DELETE** | Kısa ve doğal İngilizce; "Free workout" ücretsiz gibi okunuyordu |
 | 2026-11-19 | Play Store: PRWAGON LLC adına kuruluş hesabı "wworks"; kuruluş web sitesi olarak alan adı yerine GitHub Pages adresi (`guza423.github.io/pump-mine/`) doğrulanacak | Kullanıcı: "github syafasıın verelim ya üff uraşmiyim github linki iyidir" |
 | 2026-11-19 | Play Store: `USE_EXACT_ALARM` kaldırıldı, `SCHEDULE_EXACT_ALARM` kullanılır (izin yoksa gecikmeli alarm). Play AAB'si ayrı iş akışında (`release.yml`), yükleme anahtarı GitHub Secrets'ta; paket adı değişmedi | Play politikası `USE_EXACT_ALARM`'ı yalnızca çekirdek işlevi alarm/takvim olan uygulamalara veriyor; anahtar herkese açık repoya giremez |
+| 2026-11-21 | Planlı oturum da plansızın pixel set ekranını kullanır; eski planlı görünüm (`SessionView2`) silindi. Ayrı RPE çipleri yok: RPE son tekrarın hızından gelir. Hedef ve not ek yükseklik almadan set kutusu başlığında ve üst satırda | Kullanıcı: "Planlamış idmanı seçince ekran bu hala"; her telefonda kaydet düğmesi kaydırmadan görünmeli |
 | 2026-11-17 | Pixel'e geçiş bir **tema katmanıyla** yapılır (`px-theme.css`, kök sınıf `.pxt`): var olan DOM ve kimlikler aynen kalır, yalnızca görünüm değişir. Yeni pixel bileşenleri `pixel.css`'te `px-` önekiyle yazılır | "sadece stil değişicek"; testler ve akışlar bozulmasın |
 
 ---

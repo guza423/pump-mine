@@ -1,11 +1,11 @@
 // @ts-nocheck
 import React from 'react';
 import { bestE1, isPlyo, isSkill, sessionStats } from './core';
-import { dbMultiplier } from '../../lib/models/session';
+import { dbMultiplier, isFree, sessionName } from '../../lib/models/session';
 import { fatigueAt, recoveryHours, sessionFatigue } from '../../lib/models/fatigue';
 import { advanceSkillStage, matchesSkillGoal, readGoals } from '../bugun/goals';
 import { useBack } from '../../app/back';
-import { fk, hms, PX_SPEED_COLORS } from './pixelHelpers';
+import { fk, hms, PX_SPEED_COLORS, upTr } from './pixelHelpers';
 import { readFxSettings } from '../../lib/native/fx';
 import { HoldButton } from '../../app/HoldButton';
 import { num, t, upper } from '../../i18n';
@@ -71,7 +71,7 @@ export const PixelSummaryScreen: React.FC<Props> = ({ session, st, put, del, ope
       <div className="px-scr">
         <div style={{ height: 52, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 2, padding: '0 3px', flex: '0 0 auto' }}>
           <span style={{ fontSize: 21, fontWeight: 700, letterSpacing: '.04em', lineHeight: 1.1, color: 'var(--gold)' }}>{t('İDMAN BİTTİ')}</span>
-          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--mt)', letterSpacing: '.08em' }}>{upper(t('Plansız antrenman'))} · {t('ÖZET')}</span>
+          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--mt)', letterSpacing: '.08em' }}><span className="px-sum-name">{isFree(session) ? upper(t('Plansız antrenman')) : upTr(sessionName(session))}</span> · {t('ÖZET')}</span>
         </div>
 
         <div className="px-scroll" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', marginTop: 8, padding: '4px 3px 8px', display: 'flex', flexDirection: 'column', gap: 12 }}>

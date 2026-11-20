@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BackupContext } from '../lib/store/BackupContext';
 import { AccountChip, AccountBody, ConsentBody, PrivacyBody } from '../features/hesap/Account';
 import { LegalGate } from '../legal/LegalGate';
@@ -10,11 +10,11 @@ import { BiomechTab, Tile } from '../features/lab/Biomekanik';
 import { CompactCtx, Icon, NeedleGauge, Range, STAGES, StageFatigue, StageRate, StageRecruit, StageSignal, Switch, clamp } from '../features/lab/Cns';
 import {
   BENCH_IDS, EX_LIB, FAT, EQ, PLYO_INT, isPlyo, isSkill, PLYO_W, PLYO_Q, SKILL_W, SKILL_Q, skillSetTxt, libById, MONTHS, MUSCLES, PROF, SPEED,
-  WD_LONG, WD_SHORT, WEEK_ORDER, ItemEditor, Lane, SetReplay, Stepper, animVl, noteLabel,
-  bestE1, clone, dateTxt, durTxt, e1Ok, e1rm, entryFor,
-  firstOpen, hasNum, itemFromEx, mmss, newId, nextPlanned, nf, normTr,
-  repTxt, repVelocities, restTxt, rirFromSpeed, rirTxt, rpeLabel,
-  rpeTxt, sameDay, sessionFromDay, sessionStats, targetTxt, vlColor,
+  WD_LONG, WD_SHORT, WEEK_ORDER, ItemEditor, SetReplay, Stepper, noteLabel,
+  bestE1, clone, dateTxt, durTxt, e1Ok, e1rm,
+  hasNum, itemFromEx, newId, nextPlanned, nf, normTr,
+  repTxt, restTxt, rirTxt, rpeLabel,
+  sameDay, sessionFromDay, sessionStats, targetTxt, vlColor,
 } from '../features/antrenman/core';
 import {
   allPlans, dateKey, parseDateKey, plansOn, newPlanDoc, upsertPlan, removePlan,
@@ -24,9 +24,7 @@ import {
   SKILL_STAGES, readGoals, upsertGoal, removeGoal, advanceSkillStage, matchesSkillGoal, skillStats,
 } from '../features/bugun/goals';
 import { useLogStore } from '../lib/store/useLogStore';
-import { freeEntry, isFree, sessionName } from '../lib/models/session';
-import { changeRest, restDuration } from '../lib/models/rest';
-import { startRest, stopRest } from '../lib/native/restTimer';
+import { isFree, sessionName } from '../lib/models/session';
 import { useAndroidBack, useBack } from './back';
 import { FreePixelSession } from '../features/antrenman/FreePixelSession';
 import { PixelSummaryScreen } from '../features/antrenman/PixelSummaryScreen';
@@ -66,11 +64,6 @@ const SPEED_SHORT = byLang('speedshort', { tr: ['Aynı', 'Hafif', 'Belirgin', '�
 const NOTE_TAGS = ['Kolay geldi', 'Form bozuldu', 'Takıldı', 'Ağrı', 'Pump', 'Yardım aldım'];
 const DAY_MS = 864e5;
 
-function useNow(ms) {
-  const [now, setNow] = useState(Date.now());
-  useEffect(() => { const t = setInterval(() => setNow(Date.now()), ms); return () => clearInterval(t); }, [ms]);
-  return now;
-}
 const dayKey = (ts) => { const d = new Date(ts); return 'c_' + d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
 const fullDate = (ts) => { const d = new Date(ts); return t('{wd}, {d} {m}', { wd: WD_LONG[d.getDay()], d: d.getDate(), m: MONTHS_LONG[d.getMonth()] }); };
 const exMeta = (exId, name) => EX_LIB.find((e) => e.id === exId) || EX_LIB.find((e) => e.name === name) || null;
@@ -654,575 +647,6 @@ function WtypeMenuBody({ st, pid, did, put, del, onStart, onEdit, onClose }) {
   );
 }
 
-function SpeedStage({ reps, lvl, exId }) {
-  const rir = SPEED[lvl].rir;
-  const vels = repVelocities(reps, rir, animVl(reps, rir));
-  const v0 = vels[0], vN = vels[vels.length - 1];
-  const c = vlColor(SPEED[lvl].vl);
-  const bench = BENCH_IDS.includes(exId);
-  const rel = Math.round((vN / v0) * 100);
-  const left = rir >= 5 ? t('5+ tekrar kaldı') : rir === 0 ? t('tükeniş') : t('{n} tekrar kaldı', { n: rir });
-  return (
-    <div className="spwrap">
-      <div className="spstage">
-        <Lane v={v0} label={t('1. tekrar')} color="var(--neuro)" playing txt={bench ? null : pct(100)} />
-        <div className="spstage-mid">
-          <span className="mono spstage-band" style={{ color: c }}>{left}</span>
-          <span className="spstage-k">RPE {rpeLabel(clamp(10 - rir, 6, 10), rir)}{bench ? '' : ' · ' + t('temsili hız')}</span>
-        </div>
-        <Lane v={vN} label={t('Son tekrar')} color={c} playing txt={bench ? null : pct(rel)} />
-      </div>
-      <div className="spmini" aria-hidden="true">
-        <div className="spm-bars">
-          <span className="spm-r"><small>{t('1. tekrar')}</small><i><b style={{ width: '100%', background: 'var(--neuro)' }} /></i><em className="mono">{bench ? nf(v0, 2) : pct(100)}</em></span>
-          <span className="spm-r"><small>{t('Son tekrar')}</small><i><b style={{ width: rel + '%', background: c }} /></i><em className="mono" style={{ color: c }}>{bench ? nf(vN, 2) : pct(rel)}</em></span>
-        </div>
-        <div className="spm-out"><b className="mono" style={{ color: c }}>{left}</b><small className="mono">RPE {rpeLabel(clamp(10 - rir, 6, 10), rir)}{bench ? ' · m/s' : ''}</small></div>
-      </div>
-    </div>
-  );
-}
-
-function SetTable({ item, entry, rpe, onOpen, bodyRef, free }) {
-  if (isSkill(item.exId)) return <SkillTable item={item} entry={entry} onOpen={onOpen} bodyRef={bodyRef} free={free} />;
-  if (isPlyo(item.exId)) return <PlyoTable item={item} entry={entry} onOpen={onOpen} bodyRef={bodyRef} free={free} />;
-  const tg = item.target;
-  const done = item.sets;
-  const extra = done.length >= tg.sets;
-  const inRange = (r) => free || ((!hasNum(tg.repMin) || r >= Number(tg.repMin)) && (!hasNum(tg.repMax) || r <= Number(tg.repMax)));
-  const plan = [];
-  for (let j = done.length + 1; j < tg.sets; j++) plan.push(j);
-  const tRpe = hasNum(tg.rpeMin) ? rpeTxt(tg.rpeMin, tg.rpeMax).replace('RPE ', '') : '–';
-  return (
-    <div className="stable">
-      <div className="srow sh" aria-hidden="true"><span>{t('Set')}</span><span>{t('Kilo')}</span><span>{t('Tekrar')}</span><span>RPE</span><span>{t('Son tekrar')}</span><span>{t('Saat')}</span></div>
-      <div className="sbody" ref={bodyRef}>
-        {done.map((x, j) => (
-          <button key={x.at + '-' + j} type="button" className="srow done" onClick={() => onOpen(j)} aria-label={t('Set {n}: {kg} kilo, {r} tekrar. Ayrıntı', { n: j + 1, kg: nf(Number(x.kg)), r: x.reps })}>
-            <span className="s-i mono"><Icon name="check" size={12} />{j + 1}</span>
-            <span className="s-v mono">{nf(Number(x.kg))}</span>
-            <span className={'s-v mono' + (inRange(x.reps) ? '' : ' off')}>{x.reps}</span>
-            <span className="s-v mono">{rpeLabel(x.rpe, x.rir)}</span>
-            <span className="s-sp" style={{ '--c': vlColor(x.vl) }}><i />{SPEED_SHORT[x.lvl]}</span>
-            <span className="s-t mono">{hm(x.at)}{x.note || (x.tags && x.tags.length) ? <em>✎</em> : null}</span>
-          </button>
-        ))}
-        {free && !done.length ? <div className="srow first-set">{t('İlk setini kaydet')}</div> : null}
-        {!free && !extra ? (
-          <div className="srow now" aria-label={t('Set {n} sırada', { n: done.length + 1 })}>
-            <span className="s-i mono">{done.length + 1}</span>
-            <span className="s-v mono">{nf(Number(entry.kg))}</span>
-            <span className={'s-v mono' + (inRange(entry.reps) ? '' : ' off')}>{entry.reps}</span>
-            <span className="s-v mono">{rpe <= 6 ? '≤6' : rpe}</span>
-            <span className="s-sp" style={{ '--c': vlColor(SPEED[entry.lvl].vl) }}><i />{SPEED_SHORT[entry.lvl]}</span>
-            <span className="s-t now-t">{t('sırada')}</span>
-          </div>
-        ) : null}
-        {!free && plan.map((j) => (
-          <div key={'p' + j} className="srow plan">
-            <span className="s-i mono">{j + 1}</span>
-            <span className="s-v mono">{hasNum(tg.kg) ? nf(Number(tg.kg)) : '–'}</span>
-            <span className="s-v mono">{repTxt(tg.repMin, tg.repMax)}</span>
-            <span className="s-v mono">{tRpe}</span>
-            <span className="s-sp none">–</span>
-            <span className="s-t" />
-          </div>
-        ))}
-        {!free && extra ? <div className="srow fin"><Icon name="check" size={13} /> {t('Hedef tamam · istersen ek set kaydet')}</div> : null}
-      </div>
-    </div>
-  );
-}
-
-function PlyoTable({ item, entry, onOpen, bodyRef, free }) {
-  const tg = item.target;
-  const done = item.sets;
-  const extra = done.length >= tg.sets;
-  const plan = [];
-  for (let j = done.length + 1; j < tg.sets; j++) plan.push(j);
-  const q = (i) => PLYO_Q[i || 0];
-  return (
-    <div className="stable plyo">
-      <div className="srow sh" aria-hidden="true"><span>{t('Set')}</span><span>{t('Ek yük')}</span><span>{t('Temas')}</span><span /><span>{t('Kalite')}</span><span>{t('Saat')}</span></div>
-      <div className="sbody" ref={bodyRef}>
-        {done.map((x, j) => (
-          <button key={x.at + '-' + j} type="button" className="srow done" onClick={() => onOpen(j)} aria-label={t('Set {n}: {r} temas. Ayrıntı', { n: j + 1, r: x.reps })}>
-            <span className="s-i mono"><Icon name="check" size={12} />{j + 1}</span>
-            <span className="s-v mono">{Number(x.kg) ? nf(Number(x.kg)) : '–'}</span>
-            <span className="s-v mono">{x.reps}</span>
-            <span />
-            <span className="s-sp" style={{ '--c': q(x.q).c }}><i />{q(x.q).k}</span>
-            <span className="s-t mono">{hm(x.at)}{x.note || (x.tags && x.tags.length) ? <em>✎</em> : null}</span>
-          </button>
-        ))}
-        {free && !done.length ? <div className="srow first-set">{t('İlk setini kaydet')}</div> : null}
-        {!free && !extra ? (
-          <div className="srow now">
-            <span className="s-i mono">{done.length + 1}</span>
-            <span className="s-v mono">{Number(entry.kg) ? nf(Number(entry.kg)) : '–'}</span>
-            <span className="s-v mono">{entry.reps}</span>
-            <span />
-            <span className="s-sp" style={{ '--c': q(entry.q).c }}><i />{q(entry.q).k}</span>
-            <span className="s-t now-t">{t('sırada')}</span>
-          </div>
-        ) : null}
-        {!free && plan.map((j) => (
-          <div key={'p' + j} className="srow plan">
-            <span className="s-i mono">{j + 1}</span>
-            <span className="s-v mono">{hasNum(tg.kg) && Number(tg.kg) ? nf(Number(tg.kg)) : '–'}</span>
-            <span className="s-v mono">{repTxt(tg.repMin, tg.repMax)}</span>
-            <span />
-            <span className="s-sp none">–</span>
-            <span className="s-t" />
-          </div>
-        ))}
-        {!free && extra ? <div className="srow fin"><Icon name="check" size={13} /> {t('Hedef tamam · kalite düşmeden bitir')}</div> : null}
-      </div>
-    </div>
-  );
-}
-
-function SkillTable({ item, entry, onOpen, bodyRef, free }) {
-  const tg = item.target;
-  const done = item.sets;
-  const extra = done.length >= tg.sets;
-  const lib = libById(item.exId);
-  const hasHold = !!(lib && lib.h);
-  const plan = [];
-  for (let j = done.length + 1; j < tg.sets; j++) plan.push(j);
-  const q = (i) => SKILL_Q[i || 0] || SKILL_Q[0];
-  return (
-    <div className={'stable skill' + (hasHold ? ' has-hold' : '')}>
-      <div className="srow sh" aria-hidden="true">
-        <span>{t('Set')}</span>
-        <span>{t('Deneme')}</span>
-        {hasHold ? <span>{t('Süre')}</span> : null}
-        <span>{t('Kalite')}</span>
-        <span>{t('Saat')}</span>
-      </div>
-      <div className="sbody" ref={bodyRef}>
-        {done.map((x, j) => (
-          <button key={x.at + '-' + j} type="button" className="srow done" onClick={() => onOpen(j)} aria-label={t('Set {n}: {x}. Ayrıntı', { n: j + 1, x: skillSetTxt(x) })}>
-            <span className="s-i mono"><Icon name="check" size={12} />{j + 1}</span>
-            <span className="s-v mono">{x.reps}</span>
-            {hasHold ? <span className="s-v mono">{Number(x.hold) > 0 ? t('{n} sn', { n: nf(Number(x.hold)) }) : '–'}</span> : null}
-            <span className="s-sp" style={{ '--c': q(x.q).c }}><i />{q(x.q).k}</span>
-            <span className="s-t mono">{hm(x.at)}{x.note || (x.tags && x.tags.length) ? <em>✎</em> : null}</span>
-          </button>
-        ))}
-        {free && !done.length ? <div className="srow first-set">{t('İlk setini kaydet')}</div> : null}
-        {!free && !extra ? (
-          <div className="srow now">
-            <span className="s-i mono">{done.length + 1}</span>
-            <span className="s-v mono">{entry.reps}</span>
-            {hasHold ? <span className="s-v mono">{Number(entry.hold) > 0 ? t('{n} sn', { n: nf(Number(entry.hold)) }) : '–'}</span> : null}
-            <span className="s-sp" style={{ '--c': q(entry.q).c }}><i />{q(entry.q).k}</span>
-            <span className="s-t now-t">{t('sırada')}</span>
-          </div>
-        ) : null}
-        {!free && plan.map((j) => (
-          <div key={'p' + j} className="srow plan">
-            <span className="s-i mono">{j + 1}</span>
-            <span className="s-v mono">{repTxt(tg.repMin, tg.repMax)}</span>
-            {hasHold ? <span className="s-v mono">–</span> : null}
-            <span className="s-sp none">–</span>
-            <span className="s-t" />
-          </div>
-        ))}
-        {!free && extra ? <div className="srow fin"><Icon name="check" size={13} /> {t('Hedef tamam · kalite düşmeden bitir')}</div> : null}
-      </div>
-    </div>
-  );
-}
-
-function PlyoStage({ lib, item, session, compact }) {
-  const total = sessionStats(session).contacts;
-  const lastQ = item.sets.length ? item.sets[item.sets.length - 1].q || 0 : 0;
-  return (
-    <div className={'plyostage' + (lastQ === 2 ? ' warn' : '') + (compact ? ' compact' : '')}>
-      <div className="ps-l">
-        <span className="ps-k">{t('Yoğunluk')}</span>
-        <b>{PLYO_INT[(lib && lib.int) || 2]}</b>
-      </div>
-      <div className="ps-m">
-        {lastQ === 2 ? <span>{t('Kalite düştü: bu hareketi bitir ya da dinlenmeyi uzat.')}</span> : <span>{t('Her tekrarda en yükseğe, en hızlıya. Kalite düşünce dur; tükenişe gitme.')}</span>}
-      </div>
-      <div className="ps-r">
-        <span className="ps-k">{t('Seans teması')}</span>
-        <b className={'mono' + (total > 140 ? ' over' : '')}>{total}</b>
-      </div>
-    </div>
-  );
-}
-
-function SkillStage({ item, st, compact }) {
-  const goals = readGoals(st.settings);
-  const g = goals.find((x) => x.type === 'skill' && matchesSkillGoal(x, item));
-  const stats = g ? skillStats(g, st.sessions) : null;
-  return (
-    <div className={'skillstage' + (compact ? ' compact' : '')}>
-      {g
-        ? <span>{t('Hedef:')} <b>{SKILL_STAGES[g.stage]}</b> · <span className="mono">{t('{n}. pratik', { n: stats.n + 1 })}</span></span>
-        : <span>{t('Kalite iki set üst üste düşerse bu hareketi bitir.')}</span>}
-    </div>
-  );
-}
-
-function SessionView2({ session, st, put, del, openSheet, onFinished, onDiscarded }) {
-  const sRef = useRef(clone(session));
-  const [s, setS] = useState(sRef.current);
-  const [cur, setCur] = useState(() => firstOpen(session));
-  const free = isFree(s);
-  const getEntry = (item) => ({ ...(free ? freeEntry(item, st.sessions) : entryFor(item)), note: '', tags: [] });
-  const [entry, setEntry] = useState(() => getEntry(session.items[firstOpen(session)]));
-  const rest = s.rest;
-  const prefsRef = useRef({});
-  const prefsSource = st.settings.find(x => x.key === 'restPrefs')?.value;
-  useEffect(() => { prefsRef.current = prefsSource || {}; }, [prefsSource]);
-  const [compactRest, setCompactRest] = useState(false);
-  const [confirm, setConfirm] = useState(null);
-  useBack(!!confirm, () => setConfirm(null));
-  const bodyRef = useRef(null);
-  const sessionBodyRef = useRef(null);
-  const stripRef = useRef(null);
-  const now = useNow(500);
-  const mutate = (fn) => { const ns = clone(sRef.current); fn(ns); sRef.current = ns; setS(ns); put('sessions', ns); return ns; };
-
-  useEffect(() => {
-    // Dışarıdan aktif oturuma hareket eklendiyse (ör. Pratik et) senkronla
-    if (session.items.length > sRef.current.items.length) {
-      sRef.current = clone(session);
-      setS(sRef.current);
-      const nextIdx = sRef.current.items.length - 1;
-      setCur(nextIdx);
-      setEntry(getEntry(sRef.current.items[nextIdx]));
-    }
-  }, [session.items.length]);
-
-  const item = s.items[cur];
-  const n = s.items.length;
-  const go = (i) => { const j = clamp(i, 0, Math.max(0, sRef.current.items.length - 1)); setCur(j); setEntry(getEntry(sRef.current.items[j])); };
-  const totalSets = s.items.reduce((a, it) => a + it.sets.length, 0);
-  const rirEst = item ? rirFromSpeed(entry.reps, entry.lvl) : 0;
-  const rirInt = Math.round(rirEst);
-  const rpeEst = clamp(10 - rirInt, 6, 10);
-  const rpe = entry.rpe != null ? entry.rpe : rpeEst;
-  const rirFinal = entry.rpe != null ? (entry.rpe === 6 ? Math.max(4, rirInt) : 10 - entry.rpe) : rirInt;
-  const prev = item ? prevPerf(st.sessions, item, s.startedAt) : null;
-  const tg = item ? item.target : null;
-  const lib = item ? exMeta(item.exId, item.name) : null;
-  const plyo = !!(lib && lib.kind === 'plyo');
-  const skill = !!(lib && lib.kind === 'beceri');
-  const needsKg = free && !plyo && !skill && lib?.eq !== 'bw' && !(Number(entry.kg) > 0);
-  useEffect(() => {
-    const r = sRef.current.rest;
-    if (r && r.start + r.total * 1000 > Date.now()) {
-      void startRest(r, exName(sRef.current.items.find(it => it.exId === r.exId)) || t('Antrenman'));
-    }
-  }, []);
-  useLayoutEffect(() => {
-    const strip = stripRef.current, chip = strip?.querySelector('.fx-chip.on');
-    if (chip) strip.scrollLeft = Math.max(0, chip.offsetLeft - strip.offsetLeft - (strip.clientWidth - chip.offsetWidth) / 2);
-  }, [cur, n]);
-
-  useLayoutEffect(() => {
-    const body = sessionBodyRef.current;
-    if (!body) return;
-    const fixed = [...body.children].filter(el => !el.matches('.stable, .ses2-mid'));
-    const table = body.querySelector('.stable');
-    const tableHead = table.querySelector('.sh');
-    const tableBody = table.querySelector('.sbody');
-    const fit = () => {
-      const css = getComputedStyle(body);
-      const available = body.clientHeight - parseFloat(css.paddingTop) - parseFloat(css.paddingBottom);
-      const minimum = fixed.reduce((sum, el) => sum + el.getBoundingClientRect().height, 0)
-        + tableHead.getBoundingClientRect().height + parseFloat(getComputedStyle(tableBody).minHeight) + 2
-        + parseFloat(css.rowGap) * (body.children.length - 1);
-      body.classList.toggle('compact-overflow', minimum > available);
-      setCompactRest(minimum > available || body.querySelector('.ses2-mid').getBoundingClientRect().height < 72);
-    };
-    const observer = new ResizeObserver(fit);
-    [body, ...fixed, tableHead, body.querySelector('.ses2-mid')].forEach(el => observer.observe(el));
-    fit();
-    return () => observer.disconnect();
-  }, [item?.id, !!rest, compactRest, needsKg]);
-
-  useEffect(() => {
-    const b = bodyRef.current;
-    if (!b) return;
-    const row = free ? b.querySelector('.srow.done:last-child') : b.querySelector('.srow.now, .srow.fin');
-    if (row && (row.offsetTop + row.offsetHeight > b.scrollTop + b.clientHeight || row.offsetTop < b.scrollTop)) b.scrollTop = row.offsetTop - b.clientHeight + row.offsetHeight;
-  }, [cur, item ? item.sets.length : 0]);
-
-  const logSet = () => {
-    if (!item || needsKg) return;
-    const set = skill
-      ? {
-          kg: 0,
-          reps: Math.max(1, Math.round(entry.reps)),
-          ...(lib?.h || Number(entry.hold) > 0 ? { hold: Math.max(0, Math.round(entry.hold || 0)) } : {}),
-          skill: true,
-          q: entry.q || 0,
-          lvl: null,
-          vl: 0,
-          rpe: null,
-          rir: 9,
-          at: Date.now(),
-        }
-      : plyo
-        ? { kg: Number(entry.kg) || 0, reps: Math.max(1, Math.round(entry.reps)), plyo: true, q: entry.q || 0, lvl: null, vl: 0, rpe: null, rir: 9, at: Date.now() }
-        : { kg: Number(entry.kg) || 0, reps: Math.max(1, Math.round(entry.reps)), lvl: entry.lvl, vl: SPEED[entry.lvl].vl, rpe, rir: rirFinal, rirEst: Math.round(rirEst * 10) / 10, at: Date.now() };
-    if (entry.note) set.note = entry.note;
-    if (entry.tags.length) set.tags = entry.tags;
-    const nextRest = { start: set.at, total: restDuration(sRef.current, item, prefsRef.current), exId: item.exId, setNo: item.sets.length + 1 };
-    mutate((ns) => { delete ns.rest; ns.items[cur].sets.push(set); ns.rest = nextRest; });
-    void stopRest(); void startRest(nextRest, exName(item));
-    setEntry({ ...entry, rpe: null, q: 0, note: '', tags: [] });
-  };
-  const addItem = (ex) => {
-    const d = itemFromEx(ex);
-    const ns = mutate((x) => { x.items.push({ id: newId('e'), srcId: null, exId: d.exId, name: d.name, muscle: d.muscle, note: '', memo: '', target: { sets: d.sets, repMin: d.repMin, repMax: d.repMax, kg: d.kg, rpeMin: d.rpeMin, rpeMax: d.rpeMax, rest: d.rest }, sets: [] }); });
-    go(ns.items.length - 1);
-  };
-  const openNote = () => openSheet('note', {
-    title: exName(item),
-    init: { note: entry.note, tags: entry.tags, memo: item.memo || '', canProgram: !!(sRef.current.programId && item.srcId) },
-    onSave: (r) => {
-      setEntry((e) => ({ ...e, note: r.note, tags: r.tags }));
-      mutate((ns) => { ns.items[cur].memo = r.memo; });
-      if (r.toProgram) {
-        const p = st.programs.find((x) => x.id === sRef.current.programId);
-        if (p) {
-          const np = clone(p);
-          np.days.forEach((d) => d.items.forEach((it) => { if (it.id === item.srcId) it.note = r.memo; }));
-          np.updatedAt = Date.now();
-          put('programs', np);
-        }
-      }
-    },
-  });
-  const openSet = (j) => {
-    const ci = cur;
-    openSheet('setdetail', { title: exName(item), exId: item.exId, set: item.sets[j], idx: j, onDelete: () => mutate((ns) => { ns.items[ci].sets.splice(j, 1); }) });
-  };
-  const openList = () => openSheet('exlist', { getSession: () => sRef.current, onGo: (i) => go(i), onAdd: addItem });
-  const skipRest = () => { mutate(ns => { delete ns.rest; }); void stopRest(); };
-  const adjustRest = (delta) => {
-    if (!sRef.current.rest) return;
-    const next = changeRest(sRef.current, sRef.current.rest, delta, prefsRef.current);
-    mutate(ns => { ns.rest = next.rest; });
-    if (next.prefs) { prefsRef.current = next.prefs; put('settings', { key: 'restPrefs', value: next.prefs }); }
-    void startRest(next.rest, exName(sRef.current.items.find(it => it.exId === next.rest.exId) || item));
-  };
-  const discard = () => { void stopRest(); del('sessions', s.id); onDiscarded(); };
-  const removeItem = (i) => {
-    const removed = sRef.current.items[i];
-    if (removed.sets.length) return;
-    mutate(ns => { ns.items.splice(i, 1); });
-    go(i < cur ? cur - 1 : Math.min(cur, sRef.current.items.length - 1));
-  };
-  const finish = () => {
-    void stopRest();
-    const end = Date.now();
-    const draft = { ...clone(sRef.current), status: 'done', endedAt: end };
-    const all = [draft, ...st.sessions.filter((x) => x.id !== draft.id)];
-    const pre = Math.round(fatigueAt(st, draft.startedAt - 1, all).score);
-    const post = Math.round(fatigueAt(st, end, all).score);
-    const ns = mutate((x) => { delete x.rest; x.status = 'done'; x.endedAt = end; x.fatigue = { v: 2, pre, post }; });
-    onFinished(ns);
-  };
-
-  return (
-    <div className={'screen pxt ses2' + (free ? ' free-session' : '')}>
-      <header className="shead ses2-head">
-        <div className="shead-row">
-          <span className="live-dot" />
-          <div className="shead-t"><h1 className="ses2-name">{sessionName(s)}</h1><span className="shead-sub mono">{t('{x} başladı', { x: hm(s.startedAt) })} · {mmss(now - s.startedAt)} · {t('{n} set', { n: totalSets })}</span></div>
-          <HoldButton id="finish-btn" className="btn fire sm" ms={500} tone="go" onHold={() => { if (totalSets) finish(); else setConfirm('finish'); }}>{t('Bitir')}</HoldButton>
-        </div>
-      </header>
-
-      {confirm ? (
-        <div className="pop">
-          {confirm === 'finish' ? (
-            <React.Fragment>
-              <p>{totalSets ? t('Antrenmanı bitir? {n} set kaydedildi.', { n: totalSets }) : t('Hiç set yok. Kaydetmeden çıkabilirsin.')}</p>
-              <div className="confirm-inline">
-                {totalSets ? <button type="button" id="finish-yes" className="btn fire sm" onClick={finish}>{t('Bitir ve özetle')}</button> : <HoldButton id="discard-yes" className="btn danger sm" onHold={discard}>{t('Kaydetmeden çık')}</HoldButton>}
-                <button type="button" className="btn ghost sm" onClick={() => setConfirm(null)}>{t('Devam')}</button>
-                {totalSets ? <HoldButton className="btn ghost sm danger-t" onHold={discard}>{t('Sil')}</HoldButton> : null}
-              </div>
-            </React.Fragment>
-          ) : (
-            <React.Fragment>
-              <p>{t('Bu antrenman ve {n} set silinsin mi?', { n: totalSets })}</p>
-              <div className="confirm-inline">
-                <HoldButton className="btn danger sm" onHold={discard}>{t('Sil')}</HoldButton>
-                <button type="button" className="btn ghost sm" onClick={() => setConfirm(null)}>{t('Vazgeç')}</button>
-              </div>
-            </React.Fragment>
-          )}
-        </div>
-      ) : null}
-
-      {!item ? (
-        <div className="scr">
-          <div className="empty"><strong>{t('Plansız antrenman')}</strong><p>{t('Yaptığın hareketi ekle, setlerini kaydet.')}</p>
-            <button type="button" id="ses-add-first" className="btn primary" onClick={() => openSheet('picker', { onPick: addItem })}><Icon name="plus" size={14} /> {t('Hareket ekle')}</button>
-          </div>
-        </div>
-      ) : (
-        <div className="ses2-body" ref={sessionBodyRef}>
-          {free ? <React.Fragment>
-            <div className="fx-strip" ref={stripRef} aria-label={t('Antrenmandaki hareketler')}>
-              {s.items.map((it, i) => <div key={it.id} className={'fx-chip' + (i === cur ? ' on' : '')}>
-                <button type="button" onClick={() => go(i)} aria-pressed={i === cur}><span className="fx-label">{exName(it)}</span><span className="mono">{it.sets.length || ''}</span></button>
-                {!it.sets.length ? <button type="button" className="fx-remove" aria-label={t('{x} hareketini çıkar', { x: exName(it) })} onClick={() => removeItem(i)}>×</button> : null}
-              </div>)}
-              <button type="button" id="fx-add" className="fx-add" onClick={() => openSheet('picker', { onPick: addItem })}>+ {t('Hareket')}</button>
-            </div>
-            <div className="fx-title"><span className="exnav-n">{exName(item)}</span><button type="button" id="ex-info" className="nav-arrow info" aria-label={t('Hareket bilgisi')} onClick={() => openSheet('exercise', { exId: item.exId, name: item.name })}><Icon name="info" size={17} /></button></div>
-          </React.Fragment> : <React.Fragment>
-          <div className="exprog" aria-label={t('Hareket ilerlemesi')}>
-            {s.items.map((it, i) => (
-              <button key={it.id} type="button" className={'exp' + (i === cur ? ' on' : '') + (it.sets.length >= it.target.sets ? ' done' : '')} onClick={() => go(i)} aria-label={t('{i}. hareket: {x}, {d}/{n} set', { i: i + 1, x: exName(it), d: it.sets.length, n: it.target.sets })}>
-                <i style={{ width: Math.min(100, (it.sets.length / Math.max(1, it.target.sets)) * 100) + '%' }} />
-              </button>
-            ))}
-          </div>
-          <div className="exnav">
-            <button type="button" className="nav-arrow" aria-label={t('Önceki hareket')} disabled={cur === 0} onClick={() => go(cur - 1)}><Icon name="left" size={18} /></button>
-            <button type="button" id="exnav-list" className="exnav-mid" onClick={openList}>
-              <span className="exnav-k mono">{t('Hareket')} {cur + 1}/{n} · {muscleName(item.muscle)}</span>
-              <span className="exnav-n">{exName(item)}</span>
-            </button>
-            <button type="button" id="ex-info" className="nav-arrow info" aria-label={t('Hareket bilgisi')} onClick={() => openSheet('exercise', { exId: item.exId, name: item.name })}><Icon name="info" size={17} /></button>
-            <button type="button" className="nav-arrow" aria-label={t('Sonraki hareket')} disabled={cur >= n - 1} onClick={() => go(cur + 1)}><Icon name="right" size={18} /></button>
-          </div>
-
-          <div className="tgt2">
-            <div className="tg-main">
-              <span className="tg-k">{t('Hedef')}</span>
-              <span className="tg-big mono">{tg.sets}<i>×</i>{repTxt(tg.repMin, tg.repMax)}</span>
-              <span className="tg-u">{plyo ? t('set × temas') : skill ? t('set × deneme') : t('set × tekrar')}</span>
-            </div>
-            <div className="tg-cell"><b className="mono">{!skill && hasNum(tg.kg) && (Number(tg.kg) || !plyo) ? nf(Number(tg.kg)) : '–'}</b><small>{plyo ? t('ek kg') : 'kg'}</small></div>
-            {plyo
-              ? <div className="tg-cell"><b className="tg-int">{PLYO_INT[lib.int || 2].split(' ')[0]}</b><small>{t('yoğunluk')}</small></div>
-              : skill
-                ? <div className="tg-cell"><b style={{ color: 'var(--skill)', fontSize: '14px' }}>{t('Beceri')}</b><small>{t('kalite')}</small></div>
-                : <div className="tg-cell"><b className="mono">{hasNum(tg.rpeMin) ? rpeTxt(tg.rpeMin, tg.rpeMax).replace('RPE ', '') : '–'}</b><small>RPE</small></div>}
-            <div className="tg-cell"><b className="mono">{(tg.rest || 120) % 60 ? nf((tg.rest || 120) / 60, 1) : String((tg.rest || 120) / 60)}</b><small>{t('dk ara')}</small></div>
-            {prev || item.memo || item.note ? (
-              <div className="tg-foot">
-                {item.memo || item.note ? <span className="tg-memo"><Icon name="edit" size={11} /> {item.memo || noteLabel(item.note)}</span> : null}
-                {prev ? <span className="tg-prev mono">{t('Son sefer {x}', { x: prev })}</span> : null}
-              </div>
-            ) : null}
-          </div>
-          </React.Fragment>}
-
-          <SetTable item={item} entry={entry} rpe={rpe} onOpen={openSet} bodyRef={bodyRef} free={free} />
-
-          <div className="ses2-mid">
-            {free && rest
-              ? (!compactRest ? <RestBig rest={rest} now={now} onAdjust={adjustRest} onClose={skipRest} /> : null)
-              : skill
-                ? <SkillStage item={item} st={st} />
-                : plyo
-                  ? <PlyoStage lib={lib} item={item} session={s} />
-                  : !free
-                    ? <SpeedStage reps={entry.reps} lvl={entry.lvl} exId={item.exId} />
-                    : null}
-          </div>
-
-          <div className="dock">
-            {free && plyo && compactRest ? <PlyoStage lib={lib} item={item} session={s} compact /> : null}
-            {free && skill && compactRest ? <SkillStage item={item} st={st} compact /> : null}
-            {skill ? (
-              <React.Fragment>
-                <div className="dock-steps" style={lib?.h ? undefined : { gridTemplateColumns: 'minmax(0, 1fr)' }}>
-                  <Stepper id={'reps-' + item.id} label={t('Deneme')} value={entry.reps} step={1} min={1} max={30} decimals={0} onChange={(v) => setEntry({ ...entry, reps: Math.round(v) })} />
-                  {lib?.h ? (
-                    <Stepper id={'hold-' + item.id} label={t('En iyi süre (sn)')} value={entry.hold || 0} step={1} min={0} max={300} decimals={0} onChange={(v) => setEntry({ ...entry, hold: Math.round(v) })} />
-                  ) : null}
-                </div>
-                <div className="spd">
-                  <div className="spd-h"><span className="st-k">{t('Kalite')}</span><span className="spd-v" style={{ color: SKILL_Q[entry.q || 0].c }}>{SKILL_Q[entry.q || 0].d}</span></div>
-                  <div className="pq-row" role="radiogroup" aria-label={t('Beceri kalitesi')}>
-                    {SKILL_Q.map((sq, i) => (
-                      <button key={i} type="button" id={'sq-' + i} role="radio" aria-checked={(entry.q || 0) === i} className={'pq' + ((entry.q || 0) === i ? ' on' : '')} style={{ '--c': sq.c }} onClick={() => setEntry({ ...entry, q: i })}>{sq.k}</button>
-                    ))}
-                    <button type="button" id="note-btn" className={'note-btn' + (entry.note || entry.tags.length || item.memo ? ' has' : '')} onClick={openNote} aria-label={t('Not ekle')}><Icon name="edit" size={17} /></button>
-                  </div>
-                </div>
-              </React.Fragment>
-            ) : (
-              <React.Fragment>
-                <div className="dock-steps">
-                  <Stepper id={'kg-' + item.id} label={plyo ? t('Ek yük (kg)') : t('Kilo')} value={entry.kg} step={2.5} min={0} max={500} onChange={(v) => setEntry({ ...entry, kg: v, rpe: null })} />
-                  <Stepper id={'reps-' + item.id} label={plyo ? t('Temas') : t('Tekrar')} value={entry.reps} step={1} min={1} max={60} decimals={0} onChange={(v) => setEntry({ ...entry, reps: Math.round(v), rpe: null })} />
-                </div>
-                {plyo ? (
-                  <div className="spd">
-                    <div className="spd-h"><span className="st-k">{t('Son tekrarların kalitesi')}</span><span className="spd-v" style={{ color: PLYO_Q[entry.q || 0].c }}>{PLYO_Q[entry.q || 0].d}</span></div>
-                    <div className="pq-row" role="radiogroup" aria-label={t('Sıçrama kalitesi')}>
-                      {PLYO_Q.map((pq, i) => (
-                        <button key={i} type="button" id={'pq-' + i} role="radio" aria-checked={(entry.q || 0) === i} className={'pq' + ((entry.q || 0) === i ? ' on' : '')} style={{ '--c': pq.c }} onClick={() => setEntry({ ...entry, q: i })}>{pq.k}</button>
-                      ))}
-                      <button type="button" id="note-btn" className={'note-btn' + (entry.note || entry.tags.length || item.memo ? ' has' : '')} onClick={openNote} aria-label={t('Not ekle')}><Icon name="edit" size={17} /></button>
-                    </div>
-                  </div>
-                ) : <React.Fragment>
-                <div className="spd">
-                  <div className="spd-h"><span className="st-k">{t('Son tekrarın hızı')}</span><span className="spd-v" style={{ color: vlColor(SPEED[entry.lvl].vl) }}>{SPEED[entry.lvl].d}</span></div>
-                  <div className="seg5s" role="radiogroup" aria-label={t('Son tekrarın hızı')}>
-                    {SPEED.map((sp, i) => (
-                      <button key={i} type="button" id={'speed-' + i} role="radio" aria-checked={entry.lvl === i} className={'seg5' + (entry.lvl === i ? ' on' : '')} style={{ '--c': vlColor(sp.vl) }} onClick={() => setEntry({ ...entry, lvl: i, rpe: null })}>
-                        <i><b style={{ height: Math.round((1 - sp.vl) * 100) + '%' }} /></i>
-                        <span>{SPEED_SHORT[i]}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="dock-rpe">
-                  <div className="rpe-chips" role="radiogroup" aria-label="RPE">
-                    {[6, 7, 8, 9, 10].map((v) => (
-                      <button key={v} type="button" role="radio" aria-checked={rpe === v} className={'rchip' + (rpe === v ? ' on' : '') + (rpeEst === v ? ' est' : '')} onClick={() => setEntry({ ...entry, rpe: v })}>
-                        <span className="mono">{v === 6 ? '≤6' : v}</span>
-                      </button>
-                    ))}
-                  </div>
-                  <button type="button" id="note-btn" className={'note-btn' + (entry.note || entry.tags.length || item.memo ? ' has' : '')} onClick={openNote} aria-label={t('Not ekle')}><Icon name="edit" size={17} /></button>
-                </div>
-                </React.Fragment>}
-              </React.Fragment>
-            )}
-            {(() => {
-              const two = !free && item.sets.length >= item.target.sets && cur < n - 1;
-              const chip = rest && (!free || compactRest);
-              return (
-                <div className={'dock-go' + (two ? ' two' : '') + (chip ? ' r' : '')}>
-                  {chip ? <RestChip rest={rest} now={now} onAdjust={adjustRest} onClose={skipRest} /> : null}
-                  {needsKg ? <small className="kg-hint">{t('Kiloyu gir')}</small> : null}
-                  {two ? (
-                    <React.Fragment>
-                      <button type="button" id="log-set" className="btn ghost big" onClick={logSet}>{t('Ek set')}</button>
-                      <button type="button" id="next-ex" className="btn primary big" onClick={() => go(cur + 1)}>{rest ? t('Sonraki') : t('Sonraki hareket')} <Icon name="right" /></button>
-                    </React.Fragment>
-                  ) : (
-                    <button type="button" id="log-set" className="btn fire big" disabled={needsKg} onClick={logSet}>{free ? t('Seti kaydet') : t(item.sets.length >= item.target.sets ? 'Set {x} kaydet · ek' : 'Set {x} kaydet', { x: (item.sets.length + 1) + (item.sets.length < item.target.sets ? '/' + item.target.sets : '') })}</button>
-                  )}
-                </div>
-              );
-            })()}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 function SetDetailBody({ set, idx, exId, name, onDelete, onClose }) {
   if (set.skill) {
     const lib = libById(exId);
@@ -1296,53 +720,6 @@ function SetDetailBody({ set, idx, exId, name, onDelete, onClose }) {
   );
 }
 
-function RestChip({ rest, now, onAdjust, onClose }) {
-  const el = (now - rest.start) / 1000;
-  const left = rest.total - el;
-  const over = left <= 0;
-  const k = clamp(el / rest.total);
-  const R = 14, L = 2 * Math.PI * R;
-  return (
-    <div className={'restchip' + (over ? ' over' : '')} role="timer" aria-label={over ? t('Dinlenme bitti') : t('Dinlenme') + ' ' + mmss(left * 1000)}>
-      <div className="rc-main">
-        <svg viewBox="0 0 34 34" className="rc-ring" aria-hidden="true">
-          <circle cx="17" cy="17" r={R} className="rr-bg" />
-          <circle cx="17" cy="17" r={R} className="rr-fg" style={{ strokeDasharray: `${(1 - k) * L} ${L}` }} transform="rotate(-90 17 17)" />
-        </svg>
-        <span className="rc-t"><small>{over ? t('Hazırsın') : t('Dinlen')}</small><b className="mono">{over ? '+' + mmss(-left * 1000) : mmss(left * 1000)}</b></span>
-      </div>
-      <button type="button" className="rc-add mono" onClick={() => onAdjust(-15)} aria-label={t('15 saniye azalt')}>−15</button>
-      <button type="button" className="rc-add mono" onClick={() => onAdjust(15)} aria-label={t('15 saniye ekle')}>+15</button>
-      <button type="button" className="rc-add" onClick={onClose}>{t('Atla')}</button>
-    </div>
-  );
-}
-
-function RestBig({ rest, now, onAdjust, onClose }) {
-  const el = (now - rest.start) / 1000;
-  const left = rest.total - el;
-  const over = left <= 0;
-  const k = clamp(el / rest.total);
-  const R = 44, L = 2 * Math.PI * R;
-  return (
-    <div id="rest-big" className={'restbig' + (over ? ' over' : '')} role="timer">
-      <svg viewBox="0 0 100 100" className="rb-ring" aria-hidden="true">
-        <circle cx="50" cy="50" r={R} className="rr-bg" />
-        <circle cx="50" cy="50" r={R} className="rr-fg" style={{ strokeDasharray: `${(1 - k) * L} ${L}` }} transform="rotate(-90 50 50)" />
-      </svg>
-      <div className="rb-t">
-        <span className="rest-k">{over ? t('Hazırsın') : t('Dinlenme')}</span>
-        <span className="mono rb-v">{over ? '+' + mmss(-left * 1000) : mmss(left * 1000)}</span>
-        <div className="rb-a">
-          <button type="button" className="btn ghost sm" onClick={() => onAdjust(-15)} aria-label={t('15 saniye azalt')}>−15</button>
-          <button type="button" className="btn ghost sm" onClick={() => onAdjust(15)} aria-label={t('15 saniye ekle')}>+15</button>
-          <button type="button" className="btn ghost sm" onClick={onClose}>{t('Atla')}</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function NoteSheetBody({ init, onSave, onClose }) {
   const [note, setNote] = useState(init.note || '');
   const [tags, setTags] = useState(init.tags || []);
@@ -1362,26 +739,6 @@ function NoteSheetBody({ init, onSave, onClose }) {
         <label className="check-row"><input id="memo-to-program" type="checkbox" checked={toProgram} onChange={(e) => setToProgram(e.target.checked)} /> {t('Plandaki nota da kaydet, sonraki antrenmanda görünsün')}</label>
       ) : null}
       <button type="button" id="note-save" className="btn primary full" onClick={() => { onSave({ note, tags, memo, toProgram }); onClose(); }}>{t('Kaydet')}</button>
-    </div>
-  );
-}
-
-function ExListBody({ getSession, onGo, onAdd, onClose, openSheet }) {
-  const s = getSession();
-  return (
-    <div className="exlist">
-      <ol className="items">
-        {s.items.map((it, i) => (
-          <li key={it.id} className="item">
-            <button type="button" className="item-row" onClick={() => { onGo(i); onClose(); }}>
-              <span className="item-i mono">{i + 1}</span>
-              <span className="item-t"><strong>{exName(it)}</strong><small className="mono">{it.sets.length}/{t('{n} set', { n: it.target.sets })} · {targetTxt(it.target, it.exId)}</small></span>
-              {it.sets.length >= it.target.sets ? <Icon name="check" size={15} /> : <Icon name="right" size={14} />}
-            </button>
-          </li>
-        ))}
-      </ol>
-      <button type="button" id="exlist-add" className="add-item" onClick={() => openSheet('picker', { onPick: (ex) => { onAdd(ex); onClose(); } })}>+ {t('Hareket ekle')}</button>
     </div>
   );
 }
@@ -2609,7 +1966,6 @@ const SHEET_TITLES = {
   picker: 'Hareket ekle',
   item: 'Hareketi düzenle',
   note: 'Not',
-  exlist: 'Hareketler',
   summary: 'Antrenman özeti',
   saveTemplate: 'Plan olarak kaydet',
   plan: 'Haftalık yük',
@@ -2749,7 +2105,6 @@ function App() {
       case 'picker': return <PickerBody custom={st.custom} addCustom={addCustom} onPick={p.onPick} onClose={close} low={p.low} openSheet={openSheet} />;
       case 'item': return <ItemSheetBody {...p} fx={readFxSettings(st.settings)} onClose={close} openSheet={openSheet} />;
       case 'note': return <NoteSheetBody init={p.init} onSave={p.onSave} onClose={close} />;
-      case 'exlist': return <ExListBody {...p} onClose={close} openSheet={openSheet} />;
       case 'setdetail': return <SetDetailBody set={p.set} idx={p.idx} exId={p.exId} name={p.title} onDelete={p.onDelete} onClose={close} />;
       case 'wtype': return <WtypeMenuBody st={st} pid={p.pid} did={p.did} put={put} del={del} onStart={startSession} onEdit={(pr, d) => editPlan(pr, d, tab)} onClose={close} />;
       case 'summary': { const s = p.draft || st.sessions.find((x) => x.id === p.id); return s ? <SummaryBody session={s} st={st} put={put} del={del} openSheet={openSheet} onDelete={(id) => del('sessions', id)} onClose={close} /> : <p className="muted-p">{t('Kayıt bulunamadı.')}</p>; }
@@ -2786,7 +2141,8 @@ function App() {
   if (!screen) {
     if (tab === 'bugun') screen = <TodayScreen st={st} put={put} openSheet={openSheet} startSession={startSession} newPlan={newPlan} practiceSkill={practiceSkill} goTab={setTab} acct={acct} />;
     if (tab === 'antrenman') {
-      if (active && isFree(active)) {
+      // Plansız ve planlı oturum aynı pixel ekranı kullanır (V29).
+      if (active) {
         screen = (
           <FreePixelSession
             key={active.id}
@@ -2802,8 +2158,6 @@ function App() {
             onDiscarded={() => { setJumpExId(null); setPixelSummary(null); }}
           />
         );
-      } else if (active) {
-        screen = <SessionView2 key={active.id} session={active} st={st} put={put} del={del} openSheet={openSheet} onFinished={(ns) => openSheet('summary', { id: ns.id, draft: ns })} onDiscarded={() => {}} />;
       } else if (pixelSummary) {
         const latestSummary = st.sessions.find((x) => x.id === pixelSummary.id) || pixelSummary;
         screen = (
