@@ -1,0 +1,3178 @@
+{
+  "format": "performance-backup",
+  "version": 2,
+  "exportedAt": "2026-11-20T15:18:01.273Z",
+  "data": {
+    "programs": [
+      {
+        "id": "p_demo",
+        "name": "Güç Bloğu",
+        "createdAt": 1791277200000,
+        "updatedAt": 1794992400000,
+        "days": [
+          {
+            "id": "d_heavy",
+            "name": "Ağır Gün",
+            "weekdays": [
+              4
+            ],
+            "items": [
+              {
+                "id": "i_h1",
+                "exId": "egimli-bench",
+                "name": "Eğimli bench press",
+                "muscle": "Göğüs",
+                "sets": 2,
+                "repMin": 5,
+                "repMax": 8,
+                "kg": 75,
+                "rpeMin": 9,
+                "rpeMax": 10,
+                "rest": 180,
+                "note": ""
+              },
+              {
+                "id": "i_h2",
+                "exId": "db-omuz-press",
+                "name": "Oturarak dumbbell omuz press",
+                "muscle": "Omuz (ön)",
+                "sets": 3,
+                "repMin": 8,
+                "repMax": 12,
+                "kg": 22.5,
+                "rpeMin": 7,
+                "rpeMax": 8,
+                "rest": 120,
+                "note": ""
+              },
+              {
+                "id": "i_h3",
+                "exId": "bb-shrug",
+                "name": "Barbell shrug",
+                "muscle": "Trapez",
+                "sets": 2,
+                "repMin": 10,
+                "repMax": 15,
+                "kg": 100,
+                "rpeMin": 9,
+                "rpeMax": 10,
+                "rest": 90,
+                "note": ""
+              },
+              {
+                "id": "i_h4",
+                "exId": "rdl",
+                "name": "Romanian deadlift",
+                "muscle": "Hamstring",
+                "sets": 1,
+                "repMin": 8,
+                "repMax": 10,
+                "kg": 100,
+                "rpeMin": 6,
+                "rpeMax": 7,
+                "rest": 150,
+                "note": ""
+              },
+              {
+                "id": "i_h5",
+                "exId": "leg-curl",
+                "name": "Yatarak leg curl",
+                "muscle": "Hamstring",
+                "sets": 3,
+                "repMin": 8,
+                "repMax": 12,
+                "kg": 45,
+                "rpeMin": 9,
+                "rpeMax": 10,
+                "rest": 90,
+                "note": ""
+              }
+            ]
+          },
+          {
+            "id": "d_volume",
+            "name": "Hacim Günü",
+            "weekdays": [
+              2
+            ],
+            "items": [
+              {
+                "id": "i_v1",
+                "exId": "egimli-bench",
+                "name": "Eğimli bench press",
+                "muscle": "Göğüs",
+                "sets": 5,
+                "repMin": 8,
+                "repMax": 12,
+                "kg": 60,
+                "rpeMin": 6,
+                "rpeMax": 7,
+                "rest": 120,
+                "note": ""
+              },
+              {
+                "id": "i_v2",
+                "exId": "rdl",
+                "name": "Romanian deadlift",
+                "muscle": "Hamstring",
+                "sets": 3,
+                "repMin": 8,
+                "repMax": 10,
+                "kg": 100,
+                "rpeMin": 7,
+                "rpeMax": 8,
+                "rest": 150,
+                "note": ""
+              },
+              {
+                "id": "i_v3",
+                "exId": "db-omuz-press",
+                "name": "Oturarak dumbbell omuz press",
+                "muscle": "Omuz (ön)",
+                "sets": 3,
+                "repMin": 10,
+                "repMax": 12,
+                "kg": 20,
+                "rpeMin": 6,
+                "rpeMax": 7,
+                "rest": 120,
+                "note": ""
+              },
+              {
+                "id": "i_v4",
+                "exId": "yana-acis",
+                "name": "Yana açış",
+                "muscle": "Omuz (yan)",
+                "sets": 3,
+                "repMin": 12,
+                "repMax": 15,
+                "kg": 10,
+                "rpeMin": 8,
+                "rpeMax": 9,
+                "rest": 75,
+                "note": ""
+              },
+              {
+                "id": "i_v5",
+                "exId": "leg-curl",
+                "name": "Yatarak leg curl",
+                "muscle": "Hamstring",
+                "sets": 2,
+                "repMin": 10,
+                "repMax": 12,
+                "kg": 40,
+                "rpeMin": 7,
+                "rpeMax": 8,
+                "rest": 90,
+                "note": ""
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "sessions": [
+      {
+        "id": "s_demo_38",
+        "programId": "p_demo",
+        "programName": "Güç Bloğu",
+        "dayId": "d_volume",
+        "dayName": "Hacim Günü",
+        "startedAt": 1791915000000,
+        "endedAt": 1791918315000,
+        "status": "done",
+        "items": [
+          {
+            "id": "si_38_i_v1",
+            "exId": "egimli-bench",
+            "name": "Eğimli bench press",
+            "muscle": "Göğüs",
+            "note": "",
+            "srcId": "i_v1",
+            "target": {
+              "sets": 5,
+              "repMin": 8,
+              "repMax": 12,
+              "kg": 60,
+              "rpeMin": 6,
+              "rpeMax": 7,
+              "rest": 120
+            },
+            "sets": [
+              {
+                "kg": 57.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1791915525000
+              },
+              {
+                "kg": 57.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1791915690000
+              },
+              {
+                "kg": 57.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1791915855000
+              },
+              {
+                "kg": 57.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1791916020000
+              },
+              {
+                "kg": 57.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1791916185000
+              }
+            ]
+          },
+          {
+            "id": "si_38_i_v2",
+            "exId": "rdl",
+            "name": "Romanian deadlift",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_v2",
+            "target": {
+              "sets": 3,
+              "repMin": 8,
+              "repMax": 10,
+              "kg": 100,
+              "rpeMin": 7,
+              "rpeMax": 8,
+              "rest": 150
+            },
+            "sets": [
+              {
+                "kg": 100,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1791916350000
+              },
+              {
+                "kg": 100,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1791916545000
+              },
+              {
+                "kg": 100,
+                "reps": 9,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1791916740000
+              }
+            ]
+          },
+          {
+            "id": "si_38_i_v3",
+            "exId": "db-omuz-press",
+            "name": "Oturarak dumbbell omuz press",
+            "muscle": "Omuz (ön)",
+            "note": "",
+            "srcId": "i_v3",
+            "target": {
+              "sets": 3,
+              "repMin": 10,
+              "repMax": 12,
+              "kg": 20,
+              "rpeMin": 6,
+              "rpeMax": 7,
+              "rest": 120
+            },
+            "sets": [
+              {
+                "kg": 20,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1791916935000
+              },
+              {
+                "kg": 20,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1791917100000
+              },
+              {
+                "kg": 20,
+                "reps": 11,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1791917265000
+              }
+            ]
+          },
+          {
+            "id": "si_38_i_v4",
+            "exId": "yana-acis",
+            "name": "Yana açış",
+            "muscle": "Omuz (yan)",
+            "note": "",
+            "srcId": "i_v4",
+            "target": {
+              "sets": 3,
+              "repMin": 12,
+              "repMax": 15,
+              "kg": 10,
+              "rpeMin": 8,
+              "rpeMax": 9,
+              "rest": 75
+            },
+            "sets": [
+              {
+                "kg": 10,
+                "reps": 14,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1791917430000
+              },
+              {
+                "kg": 10,
+                "reps": 14,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1791917550000
+              },
+              {
+                "kg": 10,
+                "reps": 13,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1791917670000
+              }
+            ]
+          },
+          {
+            "id": "si_38_i_v5",
+            "exId": "leg-curl",
+            "name": "Yatarak leg curl",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_v5",
+            "target": {
+              "sets": 2,
+              "repMin": 10,
+              "repMax": 12,
+              "kg": 40,
+              "rpeMin": 7,
+              "rpeMax": 8,
+              "rest": 90
+            },
+            "sets": [
+              {
+                "kg": 40,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1791917790000
+              },
+              {
+                "kg": 40,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1791917925000
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "s_demo_36",
+        "programId": "p_demo",
+        "programName": "Güç Bloğu",
+        "dayId": "d_heavy",
+        "dayName": "Ağır Gün",
+        "startedAt": 1792087800000,
+        "endedAt": 1792090395000,
+        "status": "done",
+        "items": [
+          {
+            "id": "si_36_i_h1",
+            "exId": "egimli-bench",
+            "name": "Eğimli bench press",
+            "muscle": "Göğüs",
+            "note": "",
+            "srcId": "i_h1",
+            "target": {
+              "sets": 2,
+              "repMin": 5,
+              "repMax": 8,
+              "kg": 75,
+              "rpeMin": 9,
+              "rpeMax": 10,
+              "rest": 180
+            },
+            "sets": [
+              {
+                "kg": 77.5,
+                "reps": 5,
+                "lvl": 3,
+                "vl": 0.47,
+                "rpe": null,
+                "rir": 1,
+                "rirEst": 1,
+                "at": 1792088325000
+              },
+              {
+                "kg": 77.5,
+                "reps": 4,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1792088550000
+              }
+            ]
+          },
+          {
+            "id": "si_36_i_h2",
+            "exId": "db-omuz-press",
+            "name": "Oturarak dumbbell omuz press",
+            "muscle": "Omuz (ön)",
+            "note": "",
+            "srcId": "i_h2",
+            "target": {
+              "sets": 3,
+              "repMin": 8,
+              "repMax": 12,
+              "kg": 22.5,
+              "rpeMin": 7,
+              "rpeMax": 8,
+              "rest": 120
+            },
+            "sets": [
+              {
+                "kg": 22.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1792088775000
+              },
+              {
+                "kg": 22.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1792088940000
+              },
+              {
+                "kg": 22.5,
+                "reps": 9,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1792089105000
+              }
+            ]
+          },
+          {
+            "id": "si_36_i_h3",
+            "exId": "bb-shrug",
+            "name": "Barbell shrug",
+            "muscle": "Trapez",
+            "note": "",
+            "srcId": "i_h3",
+            "target": {
+              "sets": 2,
+              "repMin": 10,
+              "repMax": 15,
+              "kg": 100,
+              "rpeMin": 9,
+              "rpeMax": 10,
+              "rest": 90
+            },
+            "sets": [
+              {
+                "kg": 100,
+                "reps": 12,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1792089270000
+              },
+              {
+                "kg": 100,
+                "reps": 12,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1792089405000
+              }
+            ]
+          },
+          {
+            "id": "si_36_i_h4",
+            "exId": "rdl",
+            "name": "Romanian deadlift",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_h4",
+            "target": {
+              "sets": 1,
+              "repMin": 8,
+              "repMax": 10,
+              "kg": 100,
+              "rpeMin": 6,
+              "rpeMax": 7,
+              "rest": 150
+            },
+            "sets": [
+              {
+                "kg": 100,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1792089540000
+              }
+            ]
+          },
+          {
+            "id": "si_36_i_h5",
+            "exId": "leg-curl",
+            "name": "Yatarak leg curl",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_h5",
+            "target": {
+              "sets": 3,
+              "repMin": 8,
+              "repMax": 12,
+              "kg": 45,
+              "rpeMin": 9,
+              "rpeMax": 10,
+              "rest": 90
+            },
+            "sets": [
+              {
+                "kg": 45,
+                "reps": 10,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1792089735000
+              },
+              {
+                "kg": 45,
+                "reps": 10,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1792089870000
+              },
+              {
+                "kg": 45,
+                "reps": 9,
+                "lvl": 3,
+                "vl": 0.47,
+                "rpe": null,
+                "rir": 1,
+                "rirEst": 1,
+                "at": 1792090005000
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "s_demo_31",
+        "programId": "p_demo",
+        "programName": "Güç Bloğu",
+        "dayId": "d_volume",
+        "dayName": "Hacim Günü",
+        "startedAt": 1792519800000,
+        "endedAt": 1792523115000,
+        "status": "done",
+        "items": [
+          {
+            "id": "si_31_i_v1",
+            "exId": "egimli-bench",
+            "name": "Eğimli bench press",
+            "muscle": "Göğüs",
+            "note": "",
+            "srcId": "i_v1",
+            "target": {
+              "sets": 5,
+              "repMin": 8,
+              "repMax": 12,
+              "kg": 60,
+              "rpeMin": 6,
+              "rpeMax": 7,
+              "rest": 120
+            },
+            "sets": [
+              {
+                "kg": 58.75,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1792520325000
+              },
+              {
+                "kg": 58.75,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1792520490000
+              },
+              {
+                "kg": 58.75,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1792520655000
+              },
+              {
+                "kg": 58.75,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1792520820000
+              },
+              {
+                "kg": 58.75,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1792520985000
+              }
+            ]
+          },
+          {
+            "id": "si_31_i_v2",
+            "exId": "rdl",
+            "name": "Romanian deadlift",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_v2",
+            "target": {
+              "sets": 3,
+              "repMin": 8,
+              "repMax": 10,
+              "kg": 100,
+              "rpeMin": 7,
+              "rpeMax": 8,
+              "rest": 150
+            },
+            "sets": [
+              {
+                "kg": 102.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1792521150000
+              },
+              {
+                "kg": 102.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1792521345000
+              },
+              {
+                "kg": 102.5,
+                "reps": 9,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1792521540000
+              }
+            ]
+          },
+          {
+            "id": "si_31_i_v3",
+            "exId": "db-omuz-press",
+            "name": "Oturarak dumbbell omuz press",
+            "muscle": "Omuz (ön)",
+            "note": "",
+            "srcId": "i_v3",
+            "target": {
+              "sets": 3,
+              "repMin": 10,
+              "repMax": 12,
+              "kg": 20,
+              "rpeMin": 6,
+              "rpeMax": 7,
+              "rest": 120
+            },
+            "sets": [
+              {
+                "kg": 21,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1792521735000
+              },
+              {
+                "kg": 21,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1792521900000
+              },
+              {
+                "kg": 21,
+                "reps": 11,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1792522065000
+              }
+            ]
+          },
+          {
+            "id": "si_31_i_v4",
+            "exId": "yana-acis",
+            "name": "Yana açış",
+            "muscle": "Omuz (yan)",
+            "note": "",
+            "srcId": "i_v4",
+            "target": {
+              "sets": 3,
+              "repMin": 12,
+              "repMax": 15,
+              "kg": 10,
+              "rpeMin": 8,
+              "rpeMax": 9,
+              "rest": 75
+            },
+            "sets": [
+              {
+                "kg": 11,
+                "reps": 14,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1792522230000
+              },
+              {
+                "kg": 11,
+                "reps": 14,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1792522350000
+              },
+              {
+                "kg": 11,
+                "reps": 13,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1792522470000
+              }
+            ]
+          },
+          {
+            "id": "si_31_i_v5",
+            "exId": "leg-curl",
+            "name": "Yatarak leg curl",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_v5",
+            "target": {
+              "sets": 2,
+              "repMin": 10,
+              "repMax": 12,
+              "kg": 40,
+              "rpeMin": 7,
+              "rpeMax": 8,
+              "rest": 90
+            },
+            "sets": [
+              {
+                "kg": 42.5,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1792522590000
+              },
+              {
+                "kg": 42.5,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1792522725000
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "s_demo_29",
+        "programId": "p_demo",
+        "programName": "Güç Bloğu",
+        "dayId": "d_heavy",
+        "dayName": "Ağır Gün",
+        "startedAt": 1792692600000,
+        "endedAt": 1792695195000,
+        "status": "done",
+        "items": [
+          {
+            "id": "si_29_i_h1",
+            "exId": "egimli-bench",
+            "name": "Eğimli bench press",
+            "muscle": "Göğüs",
+            "note": "",
+            "srcId": "i_h1",
+            "target": {
+              "sets": 2,
+              "repMin": 5,
+              "repMax": 8,
+              "kg": 75,
+              "rpeMin": 9,
+              "rpeMax": 10,
+              "rest": 180
+            },
+            "sets": [
+              {
+                "kg": 77.5,
+                "reps": 5,
+                "lvl": 3,
+                "vl": 0.47,
+                "rpe": null,
+                "rir": 1,
+                "rirEst": 1,
+                "at": 1792693125000
+              },
+              {
+                "kg": 77.5,
+                "reps": 4,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1792693350000
+              }
+            ]
+          },
+          {
+            "id": "si_29_i_h2",
+            "exId": "db-omuz-press",
+            "name": "Oturarak dumbbell omuz press",
+            "muscle": "Omuz (ön)",
+            "note": "",
+            "srcId": "i_h2",
+            "target": {
+              "sets": 3,
+              "repMin": 8,
+              "repMax": 12,
+              "kg": 22.5,
+              "rpeMin": 7,
+              "rpeMax": 8,
+              "rest": 120
+            },
+            "sets": [
+              {
+                "kg": 23.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1792693575000
+              },
+              {
+                "kg": 23.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1792693740000
+              },
+              {
+                "kg": 23.5,
+                "reps": 9,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1792693905000
+              }
+            ]
+          },
+          {
+            "id": "si_29_i_h3",
+            "exId": "bb-shrug",
+            "name": "Barbell shrug",
+            "muscle": "Trapez",
+            "note": "",
+            "srcId": "i_h3",
+            "target": {
+              "sets": 2,
+              "repMin": 10,
+              "repMax": 15,
+              "kg": 100,
+              "rpeMin": 9,
+              "rpeMax": 10,
+              "rest": 90
+            },
+            "sets": [
+              {
+                "kg": 102.5,
+                "reps": 12,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1792694070000
+              },
+              {
+                "kg": 102.5,
+                "reps": 12,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1792694205000
+              }
+            ]
+          },
+          {
+            "id": "si_29_i_h4",
+            "exId": "rdl",
+            "name": "Romanian deadlift",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_h4",
+            "target": {
+              "sets": 1,
+              "repMin": 8,
+              "repMax": 10,
+              "kg": 100,
+              "rpeMin": 6,
+              "rpeMax": 7,
+              "rest": 150
+            },
+            "sets": [
+              {
+                "kg": 102.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1792694340000
+              }
+            ]
+          },
+          {
+            "id": "si_29_i_h5",
+            "exId": "leg-curl",
+            "name": "Yatarak leg curl",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_h5",
+            "target": {
+              "sets": 3,
+              "repMin": 8,
+              "repMax": 12,
+              "kg": 45,
+              "rpeMin": 9,
+              "rpeMax": 10,
+              "rest": 90
+            },
+            "sets": [
+              {
+                "kg": 47.5,
+                "reps": 10,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1792694535000
+              },
+              {
+                "kg": 47.5,
+                "reps": 10,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1792694670000
+              },
+              {
+                "kg": 47.5,
+                "reps": 9,
+                "lvl": 3,
+                "vl": 0.47,
+                "rpe": null,
+                "rir": 1,
+                "rirEst": 1,
+                "at": 1792694805000
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "s_demo_24",
+        "programId": "p_demo",
+        "programName": "Güç Bloğu",
+        "dayId": "d_volume",
+        "dayName": "Hacim Günü",
+        "startedAt": 1793124600000,
+        "endedAt": 1793127915000,
+        "status": "done",
+        "items": [
+          {
+            "id": "si_24_i_v1",
+            "exId": "egimli-bench",
+            "name": "Eğimli bench press",
+            "muscle": "Göğüs",
+            "note": "",
+            "srcId": "i_v1",
+            "target": {
+              "sets": 5,
+              "repMin": 8,
+              "repMax": 12,
+              "kg": 60,
+              "rpeMin": 6,
+              "rpeMax": 7,
+              "rest": 120
+            },
+            "sets": [
+              {
+                "kg": 60,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793125125000
+              },
+              {
+                "kg": 60,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793125290000
+              },
+              {
+                "kg": 60,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793125455000
+              },
+              {
+                "kg": 60,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793125620000
+              },
+              {
+                "kg": 60,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793125785000
+              }
+            ]
+          },
+          {
+            "id": "si_24_i_v2",
+            "exId": "rdl",
+            "name": "Romanian deadlift",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_v2",
+            "target": {
+              "sets": 3,
+              "repMin": 8,
+              "repMax": 10,
+              "kg": 100,
+              "rpeMin": 7,
+              "rpeMax": 8,
+              "rest": 150
+            },
+            "sets": [
+              {
+                "kg": 105,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793125950000
+              },
+              {
+                "kg": 105,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793126145000
+              },
+              {
+                "kg": 105,
+                "reps": 9,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1793126340000
+              }
+            ]
+          },
+          {
+            "id": "si_24_i_v3",
+            "exId": "db-omuz-press",
+            "name": "Oturarak dumbbell omuz press",
+            "muscle": "Omuz (ön)",
+            "note": "",
+            "srcId": "i_v3",
+            "target": {
+              "sets": 3,
+              "repMin": 10,
+              "repMax": 12,
+              "kg": 20,
+              "rpeMin": 6,
+              "rpeMax": 7,
+              "rest": 120
+            },
+            "sets": [
+              {
+                "kg": 22,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793126535000
+              },
+              {
+                "kg": 22,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793126700000
+              },
+              {
+                "kg": 22,
+                "reps": 11,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1793126865000
+              }
+            ]
+          },
+          {
+            "id": "si_24_i_v4",
+            "exId": "yana-acis",
+            "name": "Yana açış",
+            "muscle": "Omuz (yan)",
+            "note": "",
+            "srcId": "i_v4",
+            "target": {
+              "sets": 3,
+              "repMin": 12,
+              "repMax": 15,
+              "kg": 10,
+              "rpeMin": 8,
+              "rpeMax": 9,
+              "rest": 75
+            },
+            "sets": [
+              {
+                "kg": 12,
+                "reps": 14,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793127030000
+              },
+              {
+                "kg": 12,
+                "reps": 14,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793127150000
+              },
+              {
+                "kg": 12,
+                "reps": 13,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1793127270000
+              }
+            ]
+          },
+          {
+            "id": "si_24_i_v5",
+            "exId": "leg-curl",
+            "name": "Yatarak leg curl",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_v5",
+            "target": {
+              "sets": 2,
+              "repMin": 10,
+              "repMax": 12,
+              "kg": 40,
+              "rpeMin": 7,
+              "rpeMax": 8,
+              "rest": 90
+            },
+            "sets": [
+              {
+                "kg": 45,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793127390000
+              },
+              {
+                "kg": 45,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793127525000
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "s_demo_22",
+        "programId": "p_demo",
+        "programName": "Güç Bloğu",
+        "dayId": "d_heavy",
+        "dayName": "Ağır Gün",
+        "startedAt": 1793297400000,
+        "endedAt": 1793299995000,
+        "status": "done",
+        "items": [
+          {
+            "id": "si_22_i_h1",
+            "exId": "egimli-bench",
+            "name": "Eğimli bench press",
+            "muscle": "Göğüs",
+            "note": "",
+            "srcId": "i_h1",
+            "target": {
+              "sets": 2,
+              "repMin": 5,
+              "repMax": 8,
+              "kg": 75,
+              "rpeMin": 9,
+              "rpeMax": 10,
+              "rest": 180
+            },
+            "sets": [
+              {
+                "kg": 80,
+                "reps": 5,
+                "lvl": 3,
+                "vl": 0.47,
+                "rpe": null,
+                "rir": 1,
+                "rirEst": 1,
+                "at": 1793297925000
+              },
+              {
+                "kg": 80,
+                "reps": 4,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1793298150000
+              }
+            ]
+          },
+          {
+            "id": "si_22_i_h2",
+            "exId": "db-omuz-press",
+            "name": "Oturarak dumbbell omuz press",
+            "muscle": "Omuz (ön)",
+            "note": "",
+            "srcId": "i_h2",
+            "target": {
+              "sets": 3,
+              "repMin": 8,
+              "repMax": 12,
+              "kg": 22.5,
+              "rpeMin": 7,
+              "rpeMax": 8,
+              "rest": 120
+            },
+            "sets": [
+              {
+                "kg": 24.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793298375000
+              },
+              {
+                "kg": 24.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793298540000
+              },
+              {
+                "kg": 24.5,
+                "reps": 9,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1793298705000
+              }
+            ]
+          },
+          {
+            "id": "si_22_i_h3",
+            "exId": "bb-shrug",
+            "name": "Barbell shrug",
+            "muscle": "Trapez",
+            "note": "",
+            "srcId": "i_h3",
+            "target": {
+              "sets": 2,
+              "repMin": 10,
+              "repMax": 15,
+              "kg": 100,
+              "rpeMin": 9,
+              "rpeMax": 10,
+              "rest": 90
+            },
+            "sets": [
+              {
+                "kg": 105,
+                "reps": 12,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1793298870000
+              },
+              {
+                "kg": 105,
+                "reps": 12,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1793299005000
+              }
+            ]
+          },
+          {
+            "id": "si_22_i_h4",
+            "exId": "rdl",
+            "name": "Romanian deadlift",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_h4",
+            "target": {
+              "sets": 1,
+              "repMin": 8,
+              "repMax": 10,
+              "kg": 100,
+              "rpeMin": 6,
+              "rpeMax": 7,
+              "rest": 150
+            },
+            "sets": [
+              {
+                "kg": 105,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793299140000
+              }
+            ]
+          },
+          {
+            "id": "si_22_i_h5",
+            "exId": "leg-curl",
+            "name": "Yatarak leg curl",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_h5",
+            "target": {
+              "sets": 3,
+              "repMin": 8,
+              "repMax": 12,
+              "kg": 45,
+              "rpeMin": 9,
+              "rpeMax": 10,
+              "rest": 90
+            },
+            "sets": [
+              {
+                "kg": 50,
+                "reps": 10,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1793299335000
+              },
+              {
+                "kg": 50,
+                "reps": 10,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1793299470000
+              },
+              {
+                "kg": 50,
+                "reps": 9,
+                "lvl": 3,
+                "vl": 0.47,
+                "rpe": null,
+                "rir": 1,
+                "rirEst": 1,
+                "at": 1793299605000
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "s_demo_17",
+        "programId": "p_demo",
+        "programName": "Güç Bloğu",
+        "dayId": "d_volume",
+        "dayName": "Hacim Günü",
+        "startedAt": 1793729400000,
+        "endedAt": 1793732715000,
+        "status": "done",
+        "items": [
+          {
+            "id": "si_17_i_v1",
+            "exId": "egimli-bench",
+            "name": "Eğimli bench press",
+            "muscle": "Göğüs",
+            "note": "",
+            "srcId": "i_v1",
+            "target": {
+              "sets": 5,
+              "repMin": 8,
+              "repMax": 12,
+              "kg": 60,
+              "rpeMin": 6,
+              "rpeMax": 7,
+              "rest": 120
+            },
+            "sets": [
+              {
+                "kg": 61.25,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793729925000
+              },
+              {
+                "kg": 61.25,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793730090000
+              },
+              {
+                "kg": 61.25,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793730255000
+              },
+              {
+                "kg": 61.25,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793730420000
+              },
+              {
+                "kg": 61.25,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793730585000
+              }
+            ]
+          },
+          {
+            "id": "si_17_i_v2",
+            "exId": "rdl",
+            "name": "Romanian deadlift",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_v2",
+            "target": {
+              "sets": 3,
+              "repMin": 8,
+              "repMax": 10,
+              "kg": 100,
+              "rpeMin": 7,
+              "rpeMax": 8,
+              "rest": 150
+            },
+            "sets": [
+              {
+                "kg": 107.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793730750000
+              },
+              {
+                "kg": 107.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793730945000
+              },
+              {
+                "kg": 107.5,
+                "reps": 9,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1793731140000
+              }
+            ]
+          },
+          {
+            "id": "si_17_i_v3",
+            "exId": "db-omuz-press",
+            "name": "Oturarak dumbbell omuz press",
+            "muscle": "Omuz (ön)",
+            "note": "",
+            "srcId": "i_v3",
+            "target": {
+              "sets": 3,
+              "repMin": 10,
+              "repMax": 12,
+              "kg": 20,
+              "rpeMin": 6,
+              "rpeMax": 7,
+              "rest": 120
+            },
+            "sets": [
+              {
+                "kg": 23,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793731335000
+              },
+              {
+                "kg": 23,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793731500000
+              },
+              {
+                "kg": 23,
+                "reps": 11,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1793731665000
+              }
+            ]
+          },
+          {
+            "id": "si_17_i_v4",
+            "exId": "yana-acis",
+            "name": "Yana açış",
+            "muscle": "Omuz (yan)",
+            "note": "",
+            "srcId": "i_v4",
+            "target": {
+              "sets": 3,
+              "repMin": 12,
+              "repMax": 15,
+              "kg": 10,
+              "rpeMin": 8,
+              "rpeMax": 9,
+              "rest": 75
+            },
+            "sets": [
+              {
+                "kg": 13,
+                "reps": 14,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793731830000
+              },
+              {
+                "kg": 13,
+                "reps": 14,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793731950000
+              },
+              {
+                "kg": 13,
+                "reps": 13,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1793732070000
+              }
+            ]
+          },
+          {
+            "id": "si_17_i_v5",
+            "exId": "leg-curl",
+            "name": "Yatarak leg curl",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_v5",
+            "target": {
+              "sets": 2,
+              "repMin": 10,
+              "repMax": 12,
+              "kg": 40,
+              "rpeMin": 7,
+              "rpeMax": 8,
+              "rest": 90
+            },
+            "sets": [
+              {
+                "kg": 47.5,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793732190000
+              },
+              {
+                "kg": 47.5,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793732325000
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "s_demo_15",
+        "programId": "p_demo",
+        "programName": "Güç Bloğu",
+        "dayId": "d_heavy",
+        "dayName": "Ağır Gün",
+        "startedAt": 1793902200000,
+        "endedAt": 1793904795000,
+        "status": "done",
+        "items": [
+          {
+            "id": "si_15_i_h1",
+            "exId": "egimli-bench",
+            "name": "Eğimli bench press",
+            "muscle": "Göğüs",
+            "note": "",
+            "srcId": "i_h1",
+            "target": {
+              "sets": 2,
+              "repMin": 5,
+              "repMax": 8,
+              "kg": 75,
+              "rpeMin": 9,
+              "rpeMax": 10,
+              "rest": 180
+            },
+            "sets": [
+              {
+                "kg": 80,
+                "reps": 5,
+                "lvl": 3,
+                "vl": 0.47,
+                "rpe": null,
+                "rir": 1,
+                "rirEst": 1,
+                "at": 1793902725000
+              },
+              {
+                "kg": 80,
+                "reps": 4,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1793902950000
+              }
+            ]
+          },
+          {
+            "id": "si_15_i_h2",
+            "exId": "db-omuz-press",
+            "name": "Oturarak dumbbell omuz press",
+            "muscle": "Omuz (ön)",
+            "note": "",
+            "srcId": "i_h2",
+            "target": {
+              "sets": 3,
+              "repMin": 8,
+              "repMax": 12,
+              "kg": 22.5,
+              "rpeMin": 7,
+              "rpeMax": 8,
+              "rest": 120
+            },
+            "sets": [
+              {
+                "kg": 25.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793903175000
+              },
+              {
+                "kg": 25.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793903340000
+              },
+              {
+                "kg": 25.5,
+                "reps": 9,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1793903505000
+              }
+            ]
+          },
+          {
+            "id": "si_15_i_h3",
+            "exId": "bb-shrug",
+            "name": "Barbell shrug",
+            "muscle": "Trapez",
+            "note": "",
+            "srcId": "i_h3",
+            "target": {
+              "sets": 2,
+              "repMin": 10,
+              "repMax": 15,
+              "kg": 100,
+              "rpeMin": 9,
+              "rpeMax": 10,
+              "rest": 90
+            },
+            "sets": [
+              {
+                "kg": 107.5,
+                "reps": 12,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1793903670000
+              },
+              {
+                "kg": 107.5,
+                "reps": 12,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1793903805000
+              }
+            ]
+          },
+          {
+            "id": "si_15_i_h4",
+            "exId": "rdl",
+            "name": "Romanian deadlift",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_h4",
+            "target": {
+              "sets": 1,
+              "repMin": 8,
+              "repMax": 10,
+              "kg": 100,
+              "rpeMin": 6,
+              "rpeMax": 7,
+              "rest": 150
+            },
+            "sets": [
+              {
+                "kg": 107.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1793903940000
+              }
+            ]
+          },
+          {
+            "id": "si_15_i_h5",
+            "exId": "leg-curl",
+            "name": "Yatarak leg curl",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_h5",
+            "target": {
+              "sets": 3,
+              "repMin": 8,
+              "repMax": 12,
+              "kg": 45,
+              "rpeMin": 9,
+              "rpeMax": 10,
+              "rest": 90
+            },
+            "sets": [
+              {
+                "kg": 52.5,
+                "reps": 10,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1793904135000
+              },
+              {
+                "kg": 52.5,
+                "reps": 10,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1793904270000
+              },
+              {
+                "kg": 52.5,
+                "reps": 9,
+                "lvl": 3,
+                "vl": 0.47,
+                "rpe": null,
+                "rir": 1,
+                "rirEst": 1,
+                "at": 1793904405000
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "s_demo_10",
+        "programId": "p_demo",
+        "programName": "Güç Bloğu",
+        "dayId": "d_volume",
+        "dayName": "Hacim Günü",
+        "startedAt": 1794334200000,
+        "endedAt": 1794337515000,
+        "status": "done",
+        "items": [
+          {
+            "id": "si_10_i_v1",
+            "exId": "egimli-bench",
+            "name": "Eğimli bench press",
+            "muscle": "Göğüs",
+            "note": "",
+            "srcId": "i_v1",
+            "target": {
+              "sets": 5,
+              "repMin": 8,
+              "repMax": 12,
+              "kg": 60,
+              "rpeMin": 6,
+              "rpeMax": 7,
+              "rest": 120
+            },
+            "sets": [
+              {
+                "kg": 62.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794334725000
+              },
+              {
+                "kg": 62.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794334890000
+              },
+              {
+                "kg": 62.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794335055000
+              },
+              {
+                "kg": 62.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794335220000
+              },
+              {
+                "kg": 62.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794335385000
+              }
+            ]
+          },
+          {
+            "id": "si_10_i_v2",
+            "exId": "rdl",
+            "name": "Romanian deadlift",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_v2",
+            "target": {
+              "sets": 3,
+              "repMin": 8,
+              "repMax": 10,
+              "kg": 100,
+              "rpeMin": 7,
+              "rpeMax": 8,
+              "rest": 150
+            },
+            "sets": [
+              {
+                "kg": 110,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794335550000
+              },
+              {
+                "kg": 110,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794335745000
+              },
+              {
+                "kg": 110,
+                "reps": 9,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1794335940000
+              }
+            ]
+          },
+          {
+            "id": "si_10_i_v3",
+            "exId": "db-omuz-press",
+            "name": "Oturarak dumbbell omuz press",
+            "muscle": "Omuz (ön)",
+            "note": "",
+            "srcId": "i_v3",
+            "target": {
+              "sets": 3,
+              "repMin": 10,
+              "repMax": 12,
+              "kg": 20,
+              "rpeMin": 6,
+              "rpeMax": 7,
+              "rest": 120
+            },
+            "sets": [
+              {
+                "kg": 24,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794336135000
+              },
+              {
+                "kg": 24,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794336300000
+              },
+              {
+                "kg": 24,
+                "reps": 11,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1794336465000
+              }
+            ]
+          },
+          {
+            "id": "si_10_i_v4",
+            "exId": "yana-acis",
+            "name": "Yana açış",
+            "muscle": "Omuz (yan)",
+            "note": "",
+            "srcId": "i_v4",
+            "target": {
+              "sets": 3,
+              "repMin": 12,
+              "repMax": 15,
+              "kg": 10,
+              "rpeMin": 8,
+              "rpeMax": 9,
+              "rest": 75
+            },
+            "sets": [
+              {
+                "kg": 14,
+                "reps": 14,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794336630000
+              },
+              {
+                "kg": 14,
+                "reps": 14,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794336750000
+              },
+              {
+                "kg": 14,
+                "reps": 13,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1794336870000
+              }
+            ]
+          },
+          {
+            "id": "si_10_i_v5",
+            "exId": "leg-curl",
+            "name": "Yatarak leg curl",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_v5",
+            "target": {
+              "sets": 2,
+              "repMin": 10,
+              "repMax": 12,
+              "kg": 40,
+              "rpeMin": 7,
+              "rpeMax": 8,
+              "rest": 90
+            },
+            "sets": [
+              {
+                "kg": 50,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794336990000
+              },
+              {
+                "kg": 50,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794337125000
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "s_demo_8",
+        "programId": "p_demo",
+        "programName": "Güç Bloğu",
+        "dayId": "d_heavy",
+        "dayName": "Ağır Gün",
+        "startedAt": 1794507000000,
+        "endedAt": 1794509595000,
+        "status": "done",
+        "items": [
+          {
+            "id": "si_8_i_h1",
+            "exId": "egimli-bench",
+            "name": "Eğimli bench press",
+            "muscle": "Göğüs",
+            "note": "",
+            "srcId": "i_h1",
+            "target": {
+              "sets": 2,
+              "repMin": 5,
+              "repMax": 8,
+              "kg": 75,
+              "rpeMin": 9,
+              "rpeMax": 10,
+              "rest": 180
+            },
+            "sets": [
+              {
+                "kg": 82.5,
+                "reps": 5,
+                "lvl": 3,
+                "vl": 0.47,
+                "rpe": null,
+                "rir": 1,
+                "rirEst": 1,
+                "at": 1794507525000
+              },
+              {
+                "kg": 82.5,
+                "reps": 4,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1794507750000
+              }
+            ]
+          },
+          {
+            "id": "si_8_i_h2",
+            "exId": "db-omuz-press",
+            "name": "Oturarak dumbbell omuz press",
+            "muscle": "Omuz (ön)",
+            "note": "",
+            "srcId": "i_h2",
+            "target": {
+              "sets": 3,
+              "repMin": 8,
+              "repMax": 12,
+              "kg": 22.5,
+              "rpeMin": 7,
+              "rpeMax": 8,
+              "rest": 120
+            },
+            "sets": [
+              {
+                "kg": 26.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794507975000
+              },
+              {
+                "kg": 26.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794508140000
+              },
+              {
+                "kg": 26.5,
+                "reps": 9,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1794508305000
+              }
+            ]
+          },
+          {
+            "id": "si_8_i_h3",
+            "exId": "bb-shrug",
+            "name": "Barbell shrug",
+            "muscle": "Trapez",
+            "note": "",
+            "srcId": "i_h3",
+            "target": {
+              "sets": 2,
+              "repMin": 10,
+              "repMax": 15,
+              "kg": 100,
+              "rpeMin": 9,
+              "rpeMax": 10,
+              "rest": 90
+            },
+            "sets": [
+              {
+                "kg": 110,
+                "reps": 12,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1794508470000
+              },
+              {
+                "kg": 110,
+                "reps": 12,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1794508605000
+              }
+            ]
+          },
+          {
+            "id": "si_8_i_h4",
+            "exId": "rdl",
+            "name": "Romanian deadlift",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_h4",
+            "target": {
+              "sets": 1,
+              "repMin": 8,
+              "repMax": 10,
+              "kg": 100,
+              "rpeMin": 6,
+              "rpeMax": 7,
+              "rest": 150
+            },
+            "sets": [
+              {
+                "kg": 110,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794508740000
+              }
+            ]
+          },
+          {
+            "id": "si_8_i_h5",
+            "exId": "leg-curl",
+            "name": "Yatarak leg curl",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_h5",
+            "target": {
+              "sets": 3,
+              "repMin": 8,
+              "repMax": 12,
+              "kg": 45,
+              "rpeMin": 9,
+              "rpeMax": 10,
+              "rest": 90
+            },
+            "sets": [
+              {
+                "kg": 55,
+                "reps": 10,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1794508935000
+              },
+              {
+                "kg": 55,
+                "reps": 10,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1794509070000
+              },
+              {
+                "kg": 55,
+                "reps": 9,
+                "lvl": 3,
+                "vl": 0.47,
+                "rpe": null,
+                "rir": 1,
+                "rirEst": 1,
+                "at": 1794509205000
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "s_demo_3",
+        "programId": "p_demo",
+        "programName": "Güç Bloğu",
+        "dayId": "d_volume",
+        "dayName": "Hacim Günü",
+        "startedAt": 1794939000000,
+        "endedAt": 1794942315000,
+        "status": "done",
+        "items": [
+          {
+            "id": "si_3_i_v1",
+            "exId": "egimli-bench",
+            "name": "Eğimli bench press",
+            "muscle": "Göğüs",
+            "note": "",
+            "srcId": "i_v1",
+            "target": {
+              "sets": 5,
+              "repMin": 8,
+              "repMax": 12,
+              "kg": 60,
+              "rpeMin": 6,
+              "rpeMax": 7,
+              "rest": 120
+            },
+            "sets": [
+              {
+                "kg": 62.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794939525000
+              },
+              {
+                "kg": 62.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794939690000
+              },
+              {
+                "kg": 62.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794939855000
+              },
+              {
+                "kg": 62.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794940020000
+              },
+              {
+                "kg": 62.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794940185000
+              }
+            ]
+          },
+          {
+            "id": "si_3_i_v2",
+            "exId": "rdl",
+            "name": "Romanian deadlift",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_v2",
+            "target": {
+              "sets": 3,
+              "repMin": 8,
+              "repMax": 10,
+              "kg": 100,
+              "rpeMin": 7,
+              "rpeMax": 8,
+              "rest": 150
+            },
+            "sets": [
+              {
+                "kg": 112.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794940350000
+              },
+              {
+                "kg": 112.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794940545000
+              },
+              {
+                "kg": 112.5,
+                "reps": 9,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1794940740000
+              }
+            ]
+          },
+          {
+            "id": "si_3_i_v3",
+            "exId": "db-omuz-press",
+            "name": "Oturarak dumbbell omuz press",
+            "muscle": "Omuz (ön)",
+            "note": "",
+            "srcId": "i_v3",
+            "target": {
+              "sets": 3,
+              "repMin": 10,
+              "repMax": 12,
+              "kg": 20,
+              "rpeMin": 6,
+              "rpeMax": 7,
+              "rest": 120
+            },
+            "sets": [
+              {
+                "kg": 25,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794940935000
+              },
+              {
+                "kg": 25,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794941100000
+              },
+              {
+                "kg": 25,
+                "reps": 11,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1794941265000
+              }
+            ]
+          },
+          {
+            "id": "si_3_i_v4",
+            "exId": "yana-acis",
+            "name": "Yana açış",
+            "muscle": "Omuz (yan)",
+            "note": "",
+            "srcId": "i_v4",
+            "target": {
+              "sets": 3,
+              "repMin": 12,
+              "repMax": 15,
+              "kg": 10,
+              "rpeMin": 8,
+              "rpeMax": 9,
+              "rest": 75
+            },
+            "sets": [
+              {
+                "kg": 15,
+                "reps": 14,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794941430000
+              },
+              {
+                "kg": 15,
+                "reps": 14,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794941550000
+              },
+              {
+                "kg": 15,
+                "reps": 13,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1794941670000
+              }
+            ]
+          },
+          {
+            "id": "si_3_i_v5",
+            "exId": "leg-curl",
+            "name": "Yatarak leg curl",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_v5",
+            "target": {
+              "sets": 2,
+              "repMin": 10,
+              "repMax": 12,
+              "kg": 40,
+              "rpeMin": 7,
+              "rpeMax": 8,
+              "rest": 90
+            },
+            "sets": [
+              {
+                "kg": 52.5,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794941790000
+              },
+              {
+                "kg": 52.5,
+                "reps": 12,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1794941925000
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "s_demo_1",
+        "programId": "p_demo",
+        "programName": "Güç Bloğu",
+        "dayId": "d_heavy",
+        "dayName": "Ağır Gün",
+        "startedAt": 1795111800000,
+        "endedAt": 1795114395000,
+        "status": "done",
+        "items": [
+          {
+            "id": "si_1_i_h1",
+            "exId": "egimli-bench",
+            "name": "Eğimli bench press",
+            "muscle": "Göğüs",
+            "note": "",
+            "srcId": "i_h1",
+            "target": {
+              "sets": 2,
+              "repMin": 5,
+              "repMax": 8,
+              "kg": 75,
+              "rpeMin": 9,
+              "rpeMax": 10,
+              "rest": 180
+            },
+            "sets": [
+              {
+                "kg": 82.5,
+                "reps": 5,
+                "lvl": 3,
+                "vl": 0.47,
+                "rpe": null,
+                "rir": 1,
+                "rirEst": 1,
+                "at": 1795112325000
+              },
+              {
+                "kg": 82.5,
+                "reps": 4,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1795112550000
+              }
+            ]
+          },
+          {
+            "id": "si_1_i_h2",
+            "exId": "db-omuz-press",
+            "name": "Oturarak dumbbell omuz press",
+            "muscle": "Omuz (ön)",
+            "note": "",
+            "srcId": "i_h2",
+            "target": {
+              "sets": 3,
+              "repMin": 8,
+              "repMax": 12,
+              "kg": 22.5,
+              "rpeMin": 7,
+              "rpeMax": 8,
+              "rest": 120
+            },
+            "sets": [
+              {
+                "kg": 27.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1795112775000
+              },
+              {
+                "kg": 27.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1795112940000
+              },
+              {
+                "kg": 27.5,
+                "reps": 9,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1795113105000
+              }
+            ]
+          },
+          {
+            "id": "si_1_i_h3",
+            "exId": "bb-shrug",
+            "name": "Barbell shrug",
+            "muscle": "Trapez",
+            "note": "",
+            "srcId": "i_h3",
+            "target": {
+              "sets": 2,
+              "repMin": 10,
+              "repMax": 15,
+              "kg": 100,
+              "rpeMin": 9,
+              "rpeMax": 10,
+              "rest": 90
+            },
+            "sets": [
+              {
+                "kg": 112.5,
+                "reps": 12,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1795113270000
+              },
+              {
+                "kg": 112.5,
+                "reps": 12,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1795113405000
+              }
+            ]
+          },
+          {
+            "id": "si_1_i_h4",
+            "exId": "rdl",
+            "name": "Romanian deadlift",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_h4",
+            "target": {
+              "sets": 1,
+              "repMin": 8,
+              "repMax": 10,
+              "kg": 100,
+              "rpeMin": 6,
+              "rpeMax": 7,
+              "rest": 150
+            },
+            "sets": [
+              {
+                "kg": 112.5,
+                "reps": 10,
+                "lvl": 1,
+                "vl": 0.18,
+                "rpe": null,
+                "rir": 3,
+                "rirEst": 3,
+                "at": 1795113540000
+              }
+            ]
+          },
+          {
+            "id": "si_1_i_h5",
+            "exId": "leg-curl",
+            "name": "Yatarak leg curl",
+            "muscle": "Hamstring",
+            "note": "",
+            "srcId": "i_h5",
+            "target": {
+              "sets": 3,
+              "repMin": 8,
+              "repMax": 12,
+              "kg": 45,
+              "rpeMin": 9,
+              "rpeMax": 10,
+              "rest": 90
+            },
+            "sets": [
+              {
+                "kg": 57.5,
+                "reps": 10,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1795113735000
+              },
+              {
+                "kg": 57.5,
+                "reps": 10,
+                "lvl": 2,
+                "vl": 0.32,
+                "rpe": null,
+                "rir": 2,
+                "rirEst": 2,
+                "at": 1795113870000
+              },
+              {
+                "kg": 57.5,
+                "reps": 9,
+                "lvl": 3,
+                "vl": 0.47,
+                "rpe": null,
+                "rir": 1,
+                "rirEst": 1,
+                "at": 1795114005000
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "exercises": [],
+    "checkins": [
+      {
+        "id": "c_2026-11-20",
+        "sleep": 7.5,
+        "at": 1795159800000
+      },
+      {
+        "id": "c_2026-11-19",
+        "sleep": 6.8,
+        "at": 1795073400000
+      },
+      {
+        "id": "c_2026-11-18",
+        "sleep": 7.9,
+        "at": 1794987000000
+      },
+      {
+        "id": "c_2026-11-17",
+        "sleep": 7.2,
+        "at": 1794900600000
+      },
+      {
+        "id": "c_2026-11-16",
+        "sleep": 8.1,
+        "at": 1794814200000
+      },
+      {
+        "id": "c_2026-11-15",
+        "sleep": 6.5,
+        "at": 1794727800000
+      },
+      {
+        "id": "c_2026-11-14",
+        "sleep": 7.4,
+        "at": 1794641400000
+      },
+      {
+        "id": "c_2026-11-13",
+        "sleep": 7.7,
+        "at": 1794555000000
+      },
+      {
+        "id": "c_2026-11-12",
+        "sleep": 7,
+        "at": 1794468600000
+      },
+      {
+        "id": "c_2026-11-11",
+        "sleep": 8,
+        "at": 1794382200000
+      },
+      {
+        "id": "c_2026-11-10",
+        "sleep": 7.3,
+        "at": 1794295800000
+      },
+      {
+        "id": "c_2026-11-09",
+        "sleep": 6.9,
+        "at": 1794209400000
+      },
+      {
+        "id": "c_2026-11-08",
+        "sleep": 7.6,
+        "at": 1794123000000
+      },
+      {
+        "id": "c_2026-11-07",
+        "sleep": 7.8,
+        "at": 1794036600000
+      }
+    ],
+    "settings": [
+      {
+        "key": "goals",
+        "value": [
+          {
+            "id": "g_demo_1",
+            "type": "perf",
+            "exId": "egimli-bench",
+            "name": "Eğimli bench press",
+            "base": 95,
+            "target": 100,
+            "createdAt": 1791709200000
+          },
+          {
+            "id": "g_demo_2",
+            "type": "skill",
+            "exId": "serbest-amut",
+            "name": "Serbest amut",
+            "stage": 1,
+            "createdAt": 1792573200000
+          }
+        ]
+      }
+    ]
+  }
+}
