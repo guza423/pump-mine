@@ -696,3 +696,7 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Kullanıcı:** (ekran görüntüsü: Play Console › Gizlilik Politikası, URL alanı boş) "tamam iyide şimid bunları falan nası yapalım yani mesela · 30 N Gould St Ste N Sheridan, WY 82801 · PRWAGON LLC · +44 7564 908148 · şirket bilgileride bunlar"
 **Yapılan:** `src/legal/meta.ts`: `ADDRESS` = "30 N Gould St Ste N, Sheridan, WY 82801, USA", metin sürümü `2026-11-20` (onay ekranı bir kez yeniden çıkar). Telefon metinlere eklenmedi (zorunlu değil). E-posta hâlâ bekleniyor. Kullanıcıya Gizlilik Politikası alanına `…/legal.html#privacy-en` yazıp kaydetmesi söylendi.
 **Kayıt:** bu commit (Pages ve APK yeniden üretilir).
+
+**Kullanıcı:** (ekran görüntüsü: herkese açık Privacy Policy sayfası, "15. Contact" altında "[Company address to be added before launch]" ve "[Contact email to be added before launch]", altta "PRWAGON LLC · 2026-11-18") "ee burda böyle yazio · mail adreside wworksof@gmail.com işte ya üf"
+**Yapılan:** Sayfa önceki yayındaydı (adres commit'inin Pages yayını henüz bitmemişti). `src/legal/meta.ts` `EMAIL` = `wworksof@gmail.com`; `docs/PLAY-MAGAZA.md` güncellendi.
+**Kayıt:** bu commit.

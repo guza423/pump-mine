@@ -13,7 +13,7 @@ export const LEGAL = {
   /** Şirketin resmî (kayıtlı) adresi. */
   ADDRESS: '30 N Gould St Ste N, Sheridan, WY 82801, USA',
   /** Gizlilik ve KVKK başvuruları için e-posta. */
-  EMAIL: '',
+  EMAIL: 'wworksof@gmail.com',
   /** KVKK m.11 uyarınca Türkiye'deki veri sorumlusu temsilcisi (VERBİS kaydından sonra doldurulur). */
   TR_REP: '',
   /** GDPR m.27 uyarınca AB temsilcisi (atanırsa). */

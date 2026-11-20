@@ -127,7 +127,7 @@ OUTMOVE bir antrenman aracıdır, tıbbi tavsiye değildir. Bir sağlık sorunun
 - Uygulama mı oyun mu: **Uygulama**
 - Kategori: **Sağlık ve Fitness**
 - Etiketler: listeden antrenman/fitness takibine en yakın olanları seç (en fazla 5).
-- İletişim e-postası: **zorunlu, herkese görünür.** Kişisel adresin yerine bunun için açacağın bir adres öner (örn. ayrı bir Gmail). Aynı adres `src/legal/meta.ts`'deki gizlilik e-postası olabilir.
+- İletişim e-postası: `wworksof@gmail.com` (herkese görünür; gizlilik politikasındaki adresle aynı).
 - Web sitesi: `https://guza423.github.io/pump-mine/`
 - Telefon: boş bırak.
 
@@ -135,7 +135,7 @@ OUTMOVE bir antrenman aracıdır, tıbbi tavsiye değildir. Bir sağlık sorunun
 
 **Gizlilik politikası**
 - URL: `https://guza423.github.io/pump-mine/legal.html#privacy-en`
-- Not: Politikada şirket adresi ve iletişim e-postası hâlâ "yayın öncesi eklenecek" yazıyor. Üretime göndermeden önce `src/legal/meta.ts` doldurulmalı; Play iletişim bilgisi olmayan politikayı reddedebilir.
+- Şirket adresi ve iletişim e-postası politikada (20 Kasım, `src/legal/meta.ts`).
 
 **Uygulama erişimi**
 - **Tüm işlevler özel erişim gerekmeden kullanılabilir.** (Hesapsız misafir modu her özelliği açıyor; giriş yalnızca bulut eşitlemesi için.)
@@ -144,7 +144,7 @@ OUTMOVE bir antrenman aracıdır, tıbbi tavsiye değildir. Bir sağlık sorunun
 - **Hayır, uygulamamda reklam yok.**
 
 **İçerik derecelendirmesi** (IARC anketi)
-- E-posta: iletişim e-postan. Kategori: **Diğer tüm uygulama türleri** (All Other App Types).
+- E-posta: `wworksof@gmail.com`. Kategori: **Diğer tüm uygulama türleri** (All Other App Types).
 - Şiddet, korku, cinsellik, kumar, küfür, uyuşturucu/alkol/tütün, kaba mizah: hepsi **Hayır**.
 - Kullanıcılar birbiriyle etkileşebilir ya da içerik paylaşabilir mi: **Hayır** (sosyal özellik yok).
 - Kullanıcının konumunu paylaşıyor mu: **Hayır**. Dijital ürün satın alma: **Hayır**. Sınırsız internet erişimi (tarayıcı/arama motoru): **Hayır**.
@@ -190,5 +190,4 @@ OUTMOVE bir antrenman aracıdır, tıbbi tavsiye değildir. Bir sağlık sorunun
 4. **İncelemeye gönder.** İlk sürümde Google incelemesi genelde birkaç gün sürüyor.
 
 Göndermeden önce yapılması gerekenler (`docs/PROJE.md` › Play Store):
-- `src/legal/meta.ts`: şirket adresi ve gizlilik e-postası.
 - Firebase Blaze + bütçe uyarısı + günlük yedek (başkaları veri girmeye başlamadan önce).
