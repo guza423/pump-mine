@@ -643,3 +643,8 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Teşhis:** Bir saatten fazla geçti, hâlâ aynı: Play imza anahtarı (SHA-1 `0E:E3:…:2F:1C`) için Google Cloud'da Android OAuth istemcisi büyük ihtimalle oluşmamış. Firebase'e SHA eklemek bunu her zaman kendiliğinden yapmıyor.
 **Cevap:** Google Cloud › APIs & Services › Credentials › Create credentials › OAuth client ID › Android, paket `app.performance.training`, SHA-1 Play'inki. Beş dakika sonra yeniden dene. E-postayla giriş bu arada çalışır.
 **Kayıt:** bu commit (`[skip ci]`).
+
+**Kullanıcı:** (ekran görüntüsü: Google Cloud › Google Auth Platform › Clients › Create OAuth client ID; paket `app.performance.training`, SHA-1 `0E:E3:…:2F:1C`; "Create failed · The request failed because the Android package name and fingerprint are already in use.")
+**Teşhis:** Klasik Play SHA-1 için Android istemcisi zaten var (Firebase oluşturmuş), sorun o değil. Play'in uygulama imzalama anahtarı "Kuantum uyumlu (Beta)": klasik + kuantum sonrası iki imza. Yeni Android sürümleri kuantum sonrası imzayı okuyup uygulamanın sertifikası olarak onu bildiriyor olabilir; o SHA-1 (`9C:4D:…:B1:29`) için istemci yok.
+**Cevap:** Önce girişi tekrar dene (14 saat geçti). Olmazsa aynı ekranda SHA-1'e kuantum sonrası anahtarınkini yazıp istemci oluştur, Firebase'e de iki kuantum parmak izini ekle.
+**Kayıt:** bu commit (`[skip ci]`).
