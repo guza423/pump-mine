@@ -717,3 +717,8 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 - Plan bilgileri korundu: plan günü adı, kartta hedef + not + `n/m set`, set ekranında `SET n/m · not`, set kutusunda HEDEF, ilk sette "Son sefer"; ilk set hedef kilodan başlar.
 - Eski planlı görünüm silindi; ayrı RPE çipleri yerine RPE hızdan gelir.
 - Commit: `3e7f2dd`. Kontroller: `npm test` (136), lint, `tsc -b`, build, `test:layout` geçti.
+
+### 2026-11-21 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** "amaan çoktan işaretledim gitti değişemiomda bişi olmaz ama zaten admin ekranı falan yok bizde. veri güvenliği kısmına geldim şuan"
+**Cevap:** Oturum açma bilgileri "Hayır" olarak kaldı; ret gelirse Uygulama içeriği'nden değiştirilir. Veri güvenliği formu adım adım verildi (`docs/PLAY-MAGAZA.md` › Veri güvenliği ile aynı).
+**Kayıt:** bu commit (`[skip ci]`).

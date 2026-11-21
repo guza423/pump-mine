@@ -138,7 +138,8 @@ OUTMOVE bir antrenman aracıdır, tıbbi tavsiye değildir. Bir sağlık sorunun
 - Şirket adresi ve iletişim e-postası politikada (20 Kasım, `src/legal/meta.ts`).
 
 **Oturum açma bilgileri** (eski adı "Uygulama erişimi")
-- **Evet** (kısıtlanmış bölüm var). İnceleme ekibi yeni hesap açamıyor; bulut eşitleme ve hesap silme yalnızca girişle görülüyor.
+- 21 Kasım: kullanıcı **Hayır** işaretleyip kaydetti. İnceleme hesap ister ya da reddederse Uygulama içeriği › Oturum açma bilgileri › Yönet'ten aşağıdakiyle değiştirilir.
+- Önerilen: **Evet** (kısıtlanmış bölüm var). İnceleme ekibi yeni hesap açamıyor; bulut eşitleme ve hesap silme yalnızca girişle görülüyor.
 - Uygulamada bir test hesabı aç: Dashboard › sağ üst hesap simgesi › Continue with email. E-posta: `wworksof+playreview@gmail.com` (Gmail'in + takma adı; postalar wworksof'a gelir), şifreyi sen belirle. E-posta doğrulaması istenmiyor.
 - Formda: e-posta + şifre, talimat (İngilizce):
   `Every feature also works without an account (guest mode). The account is only needed for cloud sync and account deletion: Dashboard > account icon (top right) > Continue with email.`
