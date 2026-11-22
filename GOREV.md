@@ -6,7 +6,7 @@ Hangi AI olursa olsun: önce `git pull --rebase origin main`, sonra `AGENTS.md`'
 Şu an bekleyen kod görevi yok. Play Store hazırlığı (V27) bitti; kalan adımlar kullanıcıda (`docs/PROJE.md` › Açık işler › Play Store). Dil geçişi (V21–V25) ve çok dil hazırlığı (V26) bitti; yeni dil eklemek için `AGENTS.md` › Dil › "Yeni dil ekleme".
 
 ## Tamamlanan
-- [V33 · Isınma setleri ve ısınma seansı, bar 20 kg, set özellikleri, hedef aralık, sürgü hızı, planlı set kutucukları, basılı tutmalı plan penceresi, vücut ağırlığı, kalıcı antrenman bildirimi, plan hatırlatması, kaydırmalı takvim](docs/gorevler/V33-isinma-set-ozelligi-hatirlatma-takvim.md): 2026-11-22 · `HASH` · Claude doğrudan
+- [V33 · Isınma setleri ve ısınma seansı, bar 20 kg, set özellikleri, hedef aralık, sürgü hızı, planlı set kutucukları, basılı tutmalı plan penceresi, vücut ağırlığı, kalıcı antrenman bildirimi, plan hatırlatması, kaydırmalı takvim](docs/gorevler/V33-isinma-set-ozelligi-hatirlatma-takvim.md): 2026-11-22 · `290a6c1` · Claude doğrudan
 - [V32 · Dönem yorgunluğu (7/10/30 gün) ve gece ortalaması uyku, yapılan/planlanan haftalık yük, hareket gelişimi, unutulan antrenman](docs/gorevler/V32-donem-yorgunlugu-yuk-gelisim-unutulan-idman.md): 2026-11-22 · `f2509d8` · Claude doğrudan
 - V31 · Piksel logo ve bütün ikonlar (`scripts/brand-icons.py`), Play 1.0.1: 2026-11-22 · `fe64dd6` · Claude doğrudan
 - [V29 · Planlı oturum da plansızın pixel ekranında](docs/gorevler/V29-planli-oturum-pixel.md): 2026-11-21 · `3e7f2dd`
