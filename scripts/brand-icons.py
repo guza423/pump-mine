@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# OUTMOVE logosu (V29, 22 Kasım 2026): piksel halter + "seviye atla" oku. Bütün ikonlar bu ızgaradan üretilir.
+# OUTMOVE logosu (V31, 22 Kasım 2026): piksel halter + "seviye atla" oku. Bütün ikonlar bu ızgaradan üretilir.
 # Kullanım: python3 scripts/brand-icons.py   (Pillow gerekir: pip install pillow)
 # Çıktılar: public/icon.svg, icon-192.png, icon-512.png, icon-maskable-512.png, apple-touch-icon.png,
 #           android mipmap-*/ic_launcher*.png, docs/play-store/icon-512.png
