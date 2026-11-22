@@ -760,3 +760,4 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 - Gözlem: grafik yerine **Hareket gelişimi** düğmesi → yapılmış bütün hareketler (son 20 gün belirgin, eskiler soluk + son tarih) → hareket penceresi: ağırlıklıda en iyi 1RM + tek seans tonajı; ek yüksüzde tekrar kapasitesi; pliometrikte puan (temas × kalite × yük, 75 kg referans); becerede tutuş ve temiz oran.
 - Unutulan antrenman: 10 dk giriş yoksa bildirim + titreşim + "Hâlâ orada mısın?"; 5 dk daha cevap yoksa son giriş saatinde kendiliğinden biter, kayıtta `autoEnd` ve "Kendiliğinden bitirildi". Set yoksa oturum hazıra döner.
 - Okuma kararları: dönem halkası "o anki" değil dönemin ortalaması (istenen "son 7 gün baz"); pliometrikte süre kaydı olmadığı için puan temas, kalite ve ek yükten; vücut ağırlığı tutulmadığından 75 kg referans.
+**Kayıt:** `f2509d8` (kod + belgeler) ve bu commit (`GOREV.md`). Kontroller: `npm test` (155), `tsc -b`, lint, build, `test:layout` geçti.
