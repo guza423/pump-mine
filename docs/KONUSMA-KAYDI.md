@@ -743,3 +743,7 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Kullanıcı:** "anlamadım nası  yapıcam 4b de bulamadım zaten hadi yapalı" · (ekran görüntüsü: hizmet hesabı e-postası dahili test e-posta listesine eklenmiş) "bunu buraya koydum dediğin yer yoktu dahili test içine diğer maillerini arasına koydum" · (ekran görüntüsü: Play Console ana sayfa) "kullanıcı ve izinler yok" · "tamamdır bitti şimdi?" · "haa ben o dosyayı githuba koymadım dur" · "tamam bitti"
 **Yapılan:** Adım adım kurulum: API etkin, hizmet hesabı + JSON anahtar, Play Console › Hesabı yönetme › Kullanıcılar ve izinler'de yalnızca "Uygulamaları test kanallarına yayınla" izni, GitHub secret `PLAY_SERVICE_ACCOUNT_JSON`. Test e-posta listesine eklenen hizmet hesabı zararsız. Deneme: `release.yml` çalışma 5, "Upload to Play internal testing" başarılı (V29 dahil). Not: yeni Play Console'da Kullanıcılar ve izinler, sol menüde **Hesabı yönetme** altında.
 **Kayıt:** bu commit (`[skip ci]`).
+
+**Kullanıcı:** (ekran görüntüsü: Play Console › "Kapalı test sürümü oluşturma", 2 hata: "Bu sürüm, mevcut kullanıcıların yeni eklenen uygulama paketlerine geçmelerine izin vermediği için kullanıma sunulamaz." ve "Bu sürüm hiçbir uygulama paketi eklemiyor veya kaldırmıyor."; sol menüde yeni logo görünüyor)
+**Cevap:** Sürüme AAB eklenmemiş. Kuruluş hesabında kapalı test gerekmiyor: taslağı sil, Üretim › Yeni sürüm › `outmove-play-1.0.1-3` AAB'sini yükle (ya da Kitaplıktan ekle), ülkeleri seç, Yayınlama özeti'nden incelemeye gönder.
+**Kayıt:** bu commit (`[skip ci]`).
