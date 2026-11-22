@@ -35,6 +35,7 @@
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
         <receiver android:name=".RestTimerReceiver" android:exported="false" />
+        <receiver android:name=".IdleReceiver" android:exported="false" />
     </application>
 
     <!-- Permissions -->

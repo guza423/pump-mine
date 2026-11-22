@@ -110,6 +110,8 @@ export interface Session {
   ready?: boolean;
   fatigue?: { v: 2; pre: number; post: number | null };
   rest?: SessionRest;
+  /** V32 · 15 dk giriş olmadığı için kendiliğinden bitti: `at` bitirildiği an, `last` son giriş (= endedAt). */
+  autoEnd?: { at: number; last: number };
   items: SessionItem[];
 }
 
@@ -129,6 +131,8 @@ export interface Checkin {
   id: `c_${string}`;
   sleep: number;
   at: number;
+  /** V32 · varsa `sleep`, bu tarihle biten `span` gecenin günlük ortalaması (Dashboard dönemi 7/10/30). */
+  span?: number;
 }
 
 export interface Setting {

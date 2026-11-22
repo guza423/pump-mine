@@ -75,6 +75,11 @@ export const PixelSummaryScreen: React.FC<Props> = ({ session, st, put, del, ope
         </div>
 
         <div className="px-scroll" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', marginTop: 8, padding: '4px 3px 8px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {session.autoEnd ? (
+            <p id="sum-auto-end" style={{ margin: 0, padding: '8px 10px', fontSize: 13, lineHeight: 1.4, color: 'var(--tx)', background: '#2a2316', boxShadow: 'inset 4px 0 0 0 var(--gold)' }}>
+              {t('Kendiliğinden bitirildi: 15 dakika giriş olmadı. Bitiş saati son girişin saati.')}
+            </p>
+          ) : null}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
             <div className="cell"><span className="k">{t('SÜRE')}</span><span className="v" style={{ color: 'var(--tx)' }}>{hms(Math.round(ss.dur / 1000))}</span></div>
             <div className="cell"><span className="k">{t('TONAJ')}</span><span className="v" style={{ color: 'var(--gold)' }}>{num(Math.round(ss.tonnage))} kg</span></div>

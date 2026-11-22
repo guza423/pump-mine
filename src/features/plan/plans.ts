@@ -190,6 +190,22 @@ export function removeOn(day: ProgramDay, key: string): ProgramDay {
   return nd;
 }
 
+// V32 · bu takvim haftasının (Pazartesi–Pazar) planı: haftalık tekrarlar ve tek günlük planlar, atlanan günler hariç.
+// Her plan günü o tarihin haftanın günüyle bir kez yer alır; planStats ve simulatePlan doğrudan kullanır.
+export function thisWeekProgram(programs: Program[] = [], now: number | Date = Date.now()): Program {
+  const base = now instanceof Date ? now : new Date(now);
+  const monday = new Date(base.getFullYear(), base.getMonth(), base.getDate() - ((base.getDay() + 6) % 7));
+  const days: ProgramDay[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+    const key = dateKey(d);
+    for (const { day } of plansOn(key, programs)) {
+      days.push({ ...day, id: `${day.id}_${key}`, weekday: d.getDay() as ProgramDay['weekday'], weekdays: [d.getDay()], dates: [], skip: [] });
+    }
+  }
+  return { id: 'this-week', name: 'Bu hafta', createdAt: 0, updatedAt: 0, days };
+}
+
 export function weekProgram(programs: Program[] | Program = []): Program {
   const list = Array.isArray(programs) ? programs : [programs];
   const days: ProgramDay[] = [];

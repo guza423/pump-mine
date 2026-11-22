@@ -95,7 +95,6 @@ export function isoLocalDate(timestamp: number): string {
   return `${year}-${month}-${day}`;
 }
 
-const dayKey = (ts) => { const d = new Date(ts); return 'c_' + d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
 const exMeta = (exId, name) => EX_LIB.find((e) => e.id === exId) || EX_LIB.find((e) => e.name === name) || null;
 const rpeMid = (a, b) => (hasNum(a) ? (hasNum(b) ? (Number(a) + Number(b)) / 2 : Number(a)) : 8);
 const repMid = (a, b) => (hasNum(a) ? (hasNum(b) ? (Number(a) + Number(b)) / 2 : Number(a)) : 8);
@@ -110,6 +109,26 @@ export function planStats(program) {
     });
   });
   return { muscles };
+}
+// V32 · bu hafta (Pazartesi 00:00'dan şu ana) yapılan yük: kas başına zor set (RIR ≤ 4), temas ve deneme.
+// Süren antrenmanın setleri de sayılır ("o ana dek").
+export function weekStartTs(now = Date.now()) {
+  const d = new Date(now);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7)).getTime();
+}
+export function weekDoneStats(sessions, now = Date.now()) {
+  const from = weekStartTs(now);
+  const muscles = {};
+  let n = 0, hard = 0, contacts = 0, attempts = 0;
+  (sessions || []).filter((s) => (s.status === 'done' || s.status === 'active') && !s.ready && s.startedAt >= from && s.startedAt <= now).forEach((s) => {
+    if (s.status === 'done') n += 1;
+    s.items.forEach((it) => it.sets.forEach((x) => {
+      if (x.plyo) contacts += Number(x.reps) || 0;
+      else if (x.skill) attempts += Number(x.reps) || 0;
+      else if (x.rir <= 4) { muscles[it.muscle] = (muscles[it.muscle] || 0) + 1; hard += 1; }
+    }));
+  });
+  return { muscles, n, hard, contacts, attempts, from };
 }
 export function logStats(sessions, endTs) {
   const from = endTs - 7 * DAY_MS;
@@ -150,13 +169,45 @@ export function setLoads(sessions, t) {
   });
   return out;
 }
+/* ---------- uyku girişleri (V32) ----------
+   Giriş: { id: 'c_<YYYY-MM-DD>', sleep, at, span? }. `span` varsa `sleep` o tarihle biten `span` gecenin günlük
+   ortalamasıdır (Dashboard'da "son 7/10/30 gün" seçiliyken girilir); yoksa yalnızca o tarihin gecesi (eski giriş).
+   Tarih = sabahı: c_2026-11-22 → 21'i 22'ye bağlayan gece. Bir geceyi birden çok giriş kapsıyorsa en son yapılan
+   (`at` büyük olan) geçerlidir. Bilinmeyen gece varsayılmaz. */
+const shiftKey = (key, days) => { const [y, m, d] = key.split('-').map(Number); return isoLocalDate(new Date(y, m - 1, d + days).getTime()); };
+const KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
+export function sleepNights(checkins, endTs, n) {
+  return sleepNightEntries(checkins, endTs, n).map((e) => (e ? e.v : null));
+}
+// Gece başına değer ve hangi girişten geldiği (`span` > 1: dönem ortalamasından, o gecenin kendi ölçümü değil).
+export function sleepNightEntries(checkins, endTs, n) {
+  const d0 = new Date(endTs);
+  const keys = Array.from({ length: Math.max(0, n) }, (_, i) => isoLocalDate(new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() - i).getTime()));
+  if (!keys.length) return [];
+  const oldest = keys[keys.length - 1];
+  const entries = (checkins || []).map((c) => {
+    const k = String(c && c.id || '').slice(2);
+    const span = Math.min(366, Math.max(1, Math.round(Number(c && c.span) || 1)));
+    return { k, span, start: KEY_RE.test(k) ? shiftKey(k, -(span - 1)) : k, sleep: Number(c && c.sleep), at: Number(c && c.at) || 0 };
+  }).filter((e) => KEY_RE.test(e.k) && Number.isFinite(e.sleep) && e.k >= oldest);
+  return keys.map((k) => {
+    let best = null;
+    for (const e of entries) if (k <= e.k && k >= e.start && (!best || e.at > best.at)) best = e;
+    return best ? { v: best.sleep, span: best.span } : null;
+  });
+}
 export function sleepInfo(st, t) {
-  const d0 = new Date(t);
-  const keys = [0, 1, 2].map((i) => dayKey(new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() - i).getTime()));
-  const got = keys.map((k) => st.checkins.find((c) => c.id === k)).filter(Boolean);
-  const last = st.checkins.find((c) => c.id === keys[0]);
-  const avg3 = got.length ? got.reduce((a, c) => a + Number(c.sleep), 0) / got.length : null;
-  return { known: !!last, last: last ? Number(last.sleep) : null, avg3, n: got.length };
+  const ent = sleepNightEntries(st.checkins, t, 3);
+  const got = ent.filter(Boolean).map((e) => e.v);
+  const avg3 = got.length ? got.reduce((a, v) => a + v, 0) / got.length : null;
+  // lastAvg: dün gecenin değeri bir dönem ortalamasından geliyor (metinde "dün gece" denmez).
+  return { known: ent[0] != null, last: ent[0] ? ent[0].v : null, lastAvg: !!(ent[0] && ent[0].span > 1), avg3, n: got.length };
+}
+// Seçili dönemin uyku ortalaması: yalnızca bilinen gecelerden; `n` bilinen gece, `days` dönem.
+export function periodSleep(st, t, days) {
+  const nights = sleepNights(st.checkins, t, days);
+  const got = nights.filter((v) => v != null);
+  return { avg: got.length ? got.reduce((a, v) => a + v, 0) / got.length : null, n: got.length, days };
 }
 // Dün gece: 7,5 sa altı en çok +20 (5 sa ve altı). Son 3 gece ortalaması 7 sa altı en çok +10; bilinmeyen geceler varsayılmaz.
 export const sleepPts = (last, avg3, n) => (last == null ? 0 : 20 * clamp((7.5 - last) / 2.5) + 10 * clamp((7 - avg3) / 2) * ((n || 3) / 3));
@@ -171,6 +222,48 @@ export function fatigueAt(st, t, sessions = st.sessions) {
     sum, train, sleep: sl, sleepPts: sp, score, zone: zoneOf(score), hrs: hoursToFresh(sum),
     hard: loads.filter((x) => !x.plyo && !x.skill).length, fail: loads.filter((x) => !x.plyo && !x.skill && x.rir <= 0.5).length, contacts: loads.reduce((a, x) => a + (x.contacts || 0), 0), attempts: loads.reduce((a, x) => a + (x.attempts || 0), 0),
   };
+}
+/* ---------- dönem yorgunluğu (V32, Dashboard) ----------
+   Kullanıcı isteği: "son 7 gün baz alınsın" (seçilirse 10 / 30 gün). Antrenman payı, dönem boyunca saatlik
+   örneklenen antrenman skorunun ortalamasıdır: her günün yükü eşit sayılır, dünkü seans dönemin tamamını
+   belirlemez. Kayıtlar dönemden sonra başlıyorsa ortalama ilk kayıt gününden alınır (kayıt öncesi "dinlenmiş"
+   varsayılmaz). Uyku payı dönemin gece ortalamasından, eski modelle aynı ölçekte: her gece h saat uyunmuşsa
+   sleepPts(h, h, 3); bilinmeyen geceler varsayılmaz, pay bilinen gece oranıyla küçülür.
+   Toparlanma süresi (hrs) şimdiki yüke göredir. */
+export const FATIGUE_SPANS = [7, 10, 30];
+export function periodFatigue(st, days, now = Date.now()) {
+  const sessions = (st.sessions || []).filter((s) => (s.status === 'done' || s.status === 'active') && !s.ready);
+  const from = now - days * DAY_MS;
+  const first = sessions.reduce((a, s) => Math.min(a, Number(s.startedAt) || Infinity), Infinity);
+  const firstDay = Number.isFinite(first) ? (() => { const d = new Date(first); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); })() : now;
+  const start = Math.min(now, Math.max(from, firstDay));
+  // Dönem başında kalan yük için başlangıçtan 7 gün öncesinin setleri de katılır (e^(−168/36) ≈ %1).
+  const loads = [];
+  sessions.forEach((s) => s.items.forEach((it) => {
+    const c = costW(it.exId, it.name);
+    const lib = exMeta(it.exId, it.name);
+    it.sets.forEach((x) => {
+      if (!x.at || x.at > now || x.at < start - 7 * DAY_MS) return;
+      if (x.plyo) loads.push({ at: x.at, w: x.reps * PLYO_W[(lib && lib.int) || 2] });
+      else if (x.skill) loads.push({ at: x.at, w: x.reps * SKILL_W[(lib && lib.fat) || 1] });
+      else if (x.rir <= 4) loads.push({ at: x.at, w: proxW(x.rir) * c });
+    });
+  }));
+  loads.sort((a, b) => a.at - b.at);
+  const H = 3.6e6;
+  let sum = 0, prev = start - 7 * DAY_MS, i = 0, acc = 0, n = 0;
+  const step = (ts) => {
+    sum *= decayK((ts - prev) / H);
+    while (i < loads.length && loads[i].at <= ts) { sum += loads[i].w * decayK((ts - loads[i].at) / H); i += 1; }
+    prev = ts;
+  };
+  for (let ts = start; ts < now; ts += H) { step(ts); acc += loadScore(sum); n += 1; }
+  step(now); acc += loadScore(sum); n += 1;
+  const train = acc / n;
+  const sl = periodSleep(st, now, days);
+  const sp = sl.avg == null ? 0 : sleepPts(sl.avg, sl.avg, 3) * (sl.n / days);
+  const score = clamp(train + sp, 0, 100);
+  return { days, train, sleep: sl, sleepPts: sp, score, zone: zoneOf(score), hrs: hoursToFresh(sum), covered: sessions.length ? Math.max(1, Math.ceil((now - start) / DAY_MS)) : null, sum };
 }
 // Simülatör: haftalık düzen sabit kalırsa seans başında ve sonunda ulaşılan denge değerleri
 export function steadyWeek(v) {
@@ -296,7 +389,7 @@ export function historyWarnings(st, list) {
   const sc = Math.round(fz.score);
   if (sc >= 70) w.push({ lv: 'bad', t: t('Yorgunluk yüksek · {n}', { n: sc }), d: t('Bugün hafif çalış ya da dinlen. Günlerce böyleyse 1 hafta hacmi %40–50 azalt.') });
   else if (sc >= 40) w.push({ lv: 'warn', t: t('Yorgunluk birikiyor · {n}', { n: sc }), d: t('Setleri 2–3 tekrar kala bitir; aynı kası ağır çalışmadan önce 48 sa ver.') });
-  if (fz.sleep.known && fz.sleep.last < 6.5) w.push({ lv: 'warn', t: t('Dün gece {h} sa uyku', { h: nf(fz.sleep.last) }), d: t('Maksimal kuvvet ~%3, çok tekrarlı setler ~%10 düşebilir. Ağır setlerde 1 tekrar erken bitir.') });
+  if (fz.sleep.known && !fz.sleep.lastAvg && fz.sleep.last < 6.5) w.push({ lv: 'warn', t: t('Dün gece {h} sa uyku', { h: nf(fz.sleep.last) }), d: t('Maksimal kuvvet ~%3, çok tekrarlı setler ~%10 düşebilir. Ağır setlerde 1 tekrar erken bitir.') });
   const ls = logStats(st.sessions, now);
   Object.entries(ls.muscles).filter(([, n]) => n > 20).sort((a, b) => b[1] - a[1]).forEach(([m, n]) => w.push({ lv: 'bad', t: t('{m} · 7 günde {n} zor set', { m: muscleName(m), n }), d: t('20 setin üstünde toparlanma uzar. Hacmi azalt ya da 2–3 güne böl.') }));
   const sets = [];
@@ -307,10 +400,9 @@ export function historyWarnings(st, list) {
     const fail = sets.filter((x) => x.rir <= 0.5).length / sets.length;
     if (fail >= 0.3) w.push({ lv: 'warn', t: t('Setlerin {p}’i tükenişte', { p: pct(Math.round(fail * 100)) }), d: t('Tükeniş toparlanmayı 24–48 sa uzatır. 1–3 tekrar kala bitirmek benzer kazanım sağlar.') });
   }
-  const sl = st.checkins.filter((c) => now - (c.at || 0) < 7 * DAY_MS);
-  if (sl.length >= 2) {
-    const a = sl.reduce((x, c) => x + Number(c.sleep), 0) / sl.length;
-    if (a < 7) w.push({ lv: 'warn', t: t('Uyku ortalaması {h} sa', { h: nf(Math.round(a * 10) / 10) }), d: t('Son 7 gün. 7 saatin altı aynı yükü daha ağır hissettirir.') });
+  const sl = periodSleep(st, now, 7);
+  if (sl.n >= 2 && sl.avg < 7) {
+    w.push({ lv: 'warn', t: t('Uyku ortalaması {h} sa', { h: nf(Math.round(sl.avg * 10) / 10) }), d: t('Son 7 gün. 7 saatin altı aynı yükü daha ağır hissettirir.') });
   }
   const seen = {};
   done.forEach((s) => s.items.forEach((it) => { if (bestE1(it.sets)) seen[it.exId || it.name] = it; }));

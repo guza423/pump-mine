@@ -107,4 +107,14 @@ export const dashboard: Record<string, Entry> = {
   "Pliometrikte ileri seviye için bile 120–140 temas önerilir; fazlası kaliteyi düşürür, sakatlık riskini artırır.": "Even advanced plyometric work tops out around 120–140 contacts; more lowers quality and raises injury risk.",
   "{n} gündür antrenman yok": ["No workout for {n} day", "No workout for {n} days"],
   "Uzun aradan sonra ilk antrenmanda yükü %5–10 düşük başla.": "After a long break, start your first workout 5–10% lighter.",
+  // V32 · yorgunluk dönemi ve gece ortalaması uyku
+  "Son {d} gün ortalama yorgunluk {n}": "Last {d} days average fatigue {n}",
+  "{n} gün kayıt": ["{n} day logged", "{n} days logged"],
+  "{a}/{b} gece": "{a}/{b} nights",
+  "Yorgunluk hangi döneme göre": "Fatigue period",
+  "Son": "Last",
+  "{n} gün": ["{n} day", "{n} days"],
+  "Son {n} günün gece ortalaması uyku": "Average nightly sleep, last {n} days",
+  "gece ort.": "nightly avg",
+  "gün": "days",
 };

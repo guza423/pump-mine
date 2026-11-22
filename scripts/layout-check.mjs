@@ -291,6 +291,28 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
     screen = 'planli-dinlenme';
     await check(page, label, screen, { session: true, rest: true });
 
+    // V32 · kayıt dolu Gözlem: hareket gelişimi (liste + hareket) ve bu hafta yapılan yük
+    screen = 'gozlem-dolu';
+    await page.locator('#tab-gozlem').click();
+    await page.locator('#day-panel').waitFor();
+    await check(page, label, screen);
+    screen = 'gelisim-liste';
+    await page.locator('#obs-progress').click();
+    await page.locator('.prog-row').first().waitFor();
+    await check(page, label, screen);
+    screen = 'gelisim-hareket';
+    await page.locator('.prog-row').first().click();
+    await page.locator('.prog-detail').waitFor();
+    await check(page, label, screen);
+    await page.getByRole('dialog').last().getByRole('button', { name: 'Kapat', exact: true }).last().click();
+    await page.waitForFunction(() => document.querySelectorAll('[role="dialog"]').length === 1);
+    await closeSheet(page);
+    screen = 'yapilan-yuk';
+    await page.locator('#obs-done').click();
+    await page.locator('.week-done').waitFor();
+    await check(page, label, screen);
+    await closeSheet(page);
+
     screen = 'lab-hareketler';
     await page.locator('#tab-lab').click();
     await page.locator('#lab-part-hareket').click();
@@ -499,6 +521,23 @@ async function flowLang(lang, viewport, scale = 1, tablet = false, safeArea = fa
     await page.locator('#tab-gozlem').click();
     await page.locator('#day-panel').waitFor();
     await check(page, label, screen);
+    // V32 · hareket gelişimi (liste + hareket) ve bu hafta yapılan yük
+    screen = 'insights-progress';
+    await page.locator('#obs-progress').click();
+    await page.locator('.prog-row').first().waitFor();
+    await check(page, label, screen);
+    screen = 'insights-progress-exercise';
+    await page.locator('.prog-row').first().click();
+    await page.locator('.prog-detail').waitFor();
+    await check(page, label, screen);
+    await page.getByRole('dialog').last().getByRole('button', { name: T('Kapat'), exact: true }).last().click();
+    await page.waitForFunction(() => document.querySelectorAll('[role="dialog"]').length === 1);
+    await closeSheet(page, T('Kapat'));
+    screen = 'insights-week-done';
+    await page.locator('#obs-done').click();
+    await page.locator('.week-done').waitFor();
+    await check(page, label, screen);
+    await closeSheet(page, T('Kapat'));
 
     // V24 · Lab sekmesi (dersler, ölçüm ve biyomekanik İngilizcede daha uzun)
     screen = 'lab-basics';

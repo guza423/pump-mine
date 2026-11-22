@@ -10,6 +10,8 @@ interface RestTimerPlugin {
   stop(): Promise<void>;
   exactAlarm(): Promise<ExactAlarm>;
   openExactAlarmSettings(): Promise<void>;
+  idleArm(options: { askAt: number; endAt: number; askTitle: string; askBody: string; endTitle: string; endBody: string; channel?: string }): Promise<void>;
+  idleStop(options?: { clearEnd?: boolean }): Promise<void>;
 }
 /** Tam zamanlı alarm izni (V27). `needed`: Android 12+; `allowed`: kullanıcı izin vermiş. */
 export interface ExactAlarm { needed: boolean; allowed: boolean }
@@ -20,6 +22,7 @@ const RestTimer = registerPlugin<RestTimerPlugin>('RestTimer', {
     requestPermissions: async () => ({ notifications: 'denied' as const }),
     start: async () => {}, stop: async () => {},
     exactAlarm: async () => NO_NEED, openExactAlarmSettings: async () => {},
+    idleArm: async () => {}, idleStop: async () => {},
   }),
 });
 
@@ -31,14 +34,17 @@ function enqueue(action: () => Promise<void>) {
   });
   return pending;
 }
+async function notifyAllowed() {
+  let permission = await RestTimer.checkPermissions();
+  if ((permission.notifications === 'prompt' || permission.notifications === 'prompt-with-rationale') && !localStorage.getItem('restNotifyAsked')) {
+    localStorage.setItem('restNotifyAsked', '1');
+    permission = await RestTimer.requestPermissions();
+  }
+  return permission.notifications === 'granted';
+}
 export function startRest(rest: SessionRest, exName: string) {
   return enqueue(async () => {
-    let permission = await RestTimer.checkPermissions();
-    if ((permission.notifications === 'prompt' || permission.notifications === 'prompt-with-rationale') && !localStorage.getItem('restNotifyAsked')) {
-      localStorage.setItem('restNotifyAsked', '1');
-      permission = await RestTimer.requestPermissions();
-    }
-    if (permission.notifications !== 'granted') return;
+    if (!(await notifyAllowed())) return;
     await RestTimer.start({
       endAt: rest.start + rest.total * 1000,
       title: t('Dinlenme · {x}', { x: exName }), body: t('{n}. set sırada', { n: rest.setNo + 1 }),
@@ -49,6 +55,15 @@ export function startRest(rest: SessionRest, exName: string) {
   });
 }
 export const stopRest = () => enqueue(() => RestTimer.stop());
+
+// V32 · Unutulan antrenman bildirimleri (Android). Metinler kurulurken etkin dilde verilir.
+export function armIdle(o: { askAt: number; endAt: number; askTitle: string; askBody: string; endTitle: string; endBody: string }) {
+  return enqueue(async () => {
+    if (!(await notifyAllowed())) return;
+    await RestTimer.idleArm({ ...o, channel: t('Antrenman kontrolü') });
+  });
+}
+export const stopIdle = () => enqueue(() => RestTimer.idleStop({ clearEnd: true }));
 
 // V27: izin yoksa dinlenme bildirimi gecikebilir; Hesap ve ayarlar bunu gösterir ve ayar ekranını açar.
 export async function exactAlarmStatus(): Promise<ExactAlarm> {

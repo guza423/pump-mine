@@ -410,11 +410,31 @@ describe('İngilizce arayüz (V21)', () => {
     expect(container.querySelector('.cal-wds').textContent).toBe('MonTueWedThuFriSatSun');
     expect(container.querySelector('.day-h').textContent).toMatch(/^[A-Z][a-z]+day, [A-Z][a-z]+ \d+ · Today$/);
     expect(screen.getByText('Exercise progress')).toBeTruthy();
-    expect(within(container.querySelector('.chips-scroll')).getByText('Incline barbell bench press')).toBeTruthy();
     expect(turkishIn(device(), userData)).toEqual([]);
     expect(attrsTurkish(device(), userData)).toEqual([]);
-    click('#obs-week');
-    const week = await screen.findByRole('dialog', { name: 'Weekly load' });
+    // V32 · hareket gelişimi listesi ve hareket penceresi
+    click('#obs-progress');
+    const prog = await screen.findByRole('dialog', { name: 'Exercise progress' });
+    expect(within(prog).getByText('Incline barbell bench press')).toBeTruthy();
+    expect(turkishIn(prog)).toEqual([]);
+    fireEvent.click(prog.querySelector('.prog-row'));
+    await waitFor(() => expect(screen.getAllByRole('dialog').length).toBe(2));
+    const exprog = screen.getAllByRole('dialog').at(-1);
+    expect(within(exprog).getByText('Best 1RM')).toBeTruthy();
+    expect(turkishIn(exprog)).toEqual([]);
+    expect(attrsTurkish(exprog)).toEqual([]);
+    fireEvent.click(within(exprog).getAllByRole('button', { name: 'Close' }).at(-1));
+    await waitFor(() => expect(screen.getAllByRole('dialog').length).toBe(1));
+    fireEvent.click(within(screen.getByRole('dialog')).getAllByRole('button', { name: 'Close' }).at(-1));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    // V32 · haftalık yük: yapılan ve planlanan ayrı
+    click('#obs-done');
+    const done = await screen.findByRole('dialog', { name: 'Weekly load done' });
+    expect(turkishIn(done, userData)).toEqual([]);
+    fireEvent.click(within(done).getAllByRole('button', { name: 'Close' }).at(-1));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    click('#obs-plan');
+    const week = await screen.findByRole('dialog', { name: 'Planned weekly load' });
     expect(turkishIn(week, userData)).toEqual([]);
     fireEvent.click(within(week).getAllByRole('button', { name: 'Close' }).at(-1));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
@@ -641,6 +661,16 @@ describe('yeni dil hazırlığı (V26)', () => {
     click('#tab-gozlem');
     await waitFor(() => expect(container.querySelector('#day-panel')).toBeTruthy());
     scan('gozlem');
+    await sheet('#obs-done', 'yapilan-yuk');
+    click('#obs-progress');
+    await waitFor(() => expect(screen.getAllByRole('dialog').length).toBeGreaterThan(0));
+    scan('gelisim-liste');
+    fireEvent.click(document.querySelector('.prog-row'));
+    await waitFor(() => expect(screen.getAllByRole('dialog').length).toBe(2));
+    scan('gelisim-hareket');
+    fireEvent.click(screen.getAllByRole('button', { name: ps('Close') }).at(-1));
+    await waitFor(() => expect(screen.getAllByRole('dialog').length).toBe(1));
+    await closeTop();
     // Lab: temeller, ölçüm, dersler, hareketler, biyomekanikli hareket sayfası
     click('#tab-lab');
     scan('lab');
@@ -676,5 +706,5 @@ describe('yeni dil hazırlığı (V26)', () => {
     await waitFor(() => expect(container.querySelector('#rest-big')).toBeTruthy());
     scan('planli-dinlenme');
     expect([...leaks]).toEqual([]);
-  });
+  }, 20000); // uzun akış: tek başına çalışınca 5 sn sınırını aşabiliyor
 });

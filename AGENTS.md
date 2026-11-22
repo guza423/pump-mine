@@ -61,6 +61,8 @@ Yerine cihazda IndexedDB (Dexie) kullan, veri modeli aynı kalsın:
 - `programs`: plan belgelerini taşır: `{ id, name, createdAt, updatedAt, days: [{ id, name, weekdays: number[] (0=Pazar … 6=Cumartesi), dates?: string[] ('YYYY-MM-DD'), skip?: string[] ('YYYY-MM-DD'), weekday?: number | null (geriye uyumlu), items: [{ id, exId, name, muscle, sets, repMin, repMax, kg, rpeMin, rpeMax, rest (sn), note }] }] }`
 - `sessions`: `{ id, programId, programName, dayId, dayName, startedAt, endedAt, status: 'active' | 'done', ready?: true, items: [{ id, exId, name, muscle, note, target: { sets, repMin, repMax, kg, rpeMin, rpeMax, rest }, sets: [{ kg, reps, lvl (0–4), vl, rpe, rir, rirEst, rom?, plyo?, skill?, hold?, q?, at }] }] }`
 - `sessions` belgesinde isteğe bağlı `rest: { start, total, exId, setNo }` dinlenme sayacını saklar. `start` epoch ms, `total` saniye, `setNo` biten setin numarasıdır.
+- `sessions` belgesinde isteğe bağlı `autoEnd: { at, last }` (V32): 15 dk giriş olmadığı için kendiliğinden bitti; `endedAt = last` (son giriş). Son giriş cihazda `localStorage['outmove.idle'] = { sid, at }`.
+- `checkins`: `{ id: 'c_<YYYY-MM-DD>', sleep, at, span? }`. `span` (V32) varsa `sleep` o tarihle biten `span` gecenin günlük ortalamasıdır; yoksa yalnızca o gece. Okuma `sleepNights()` ile (bir geceyi kapsayan en son giriş). Dashboard dönemi `localStorage['outmove.fspan']` (7/10/30).
 - `settings` içinde `key: 'restPrefs'`, `value: { [exId]: saniye }` plansız hareketlerin dinlenme tercihleridir; hesapta buluta eşitlenir.
 - `settings` içinde `key: 'fx'`, `value: { sound: boolean, haptic: boolean }` ses ve titreşim tercihleridir (varsayılan ikisi de `true`).
 - `settings` içinde `key: 'goals'`, `value: Goal[]` güç (`perf`) ve öğrenme (`skill`) hedeflerini tutar; eski tekil `key: 'goal'` kaydı okuma sırasında otomatik taşınır.
@@ -94,6 +96,7 @@ src/
 - Animasyonlar `requestAnimationFrame` ile. `prefers-reduced-motion` desteklensin.
 - Modeller birim testleriyle korunsun. Prototipten alınan kontrol değerleri:
   - Uyku yok → 0; tek 5 saatlik gece → ≈23; üç 5 saatlik gece → 30
+  - Dönem uykusu (V32): gece ortalaması 5 sa → 30, 6 sa → 17, 7 sa → 4, 8 sa → 0 (bilinen gece oranıyla küçülür)
   - `rirFromSpeed(20, 4)` = 0, `rirFromSpeed(20, 2)` = 2, `rirFromSpeed(5, 0)` = 5
   - `e1rm(75, 8, 2)` = 100
   - `bestE1([{ kg: 40, reps: 20, rir: 1 }])` = 0

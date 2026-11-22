@@ -150,6 +150,81 @@ public class RestTimerPlugin extends Plugin {
         } catch (Exception error) { call.reject("Could not open alarm settings", error); }
     }
 
+    // V32 · Unutulan antrenman: son girişten 10 dk sonra "Hâlâ orada mısın?" (titreşimli), 15 dk sonra "bitirildi".
+    // Kaydı JS bitirir (uygulama açılınca/öne gelince); bildirimler uygulama kapalıyken de zamanında çıksın diye alarmla.
+    static final int IDLE_ASK_ID = 4105;
+    static final int IDLE_END_ID = 4106;
+    static final String IDLE_PREFS = "idle-watch";
+    static final String IDLE_CHANNEL = "workout-idle";
+    static final long[] IDLE_VIBRATION = { 0, 500, 200, 500, 200, 500 };
+
+    static void createIdleChannel(Context context, String name) {
+        if (Build.VERSION.SDK_INT < 26) return;
+        NotificationManager manager = context.getSystemService(NotificationManager.class);
+        NotificationChannel existing = manager.getNotificationChannel(IDLE_CHANNEL);
+        if (existing != null) {
+            if (name != null && !name.contentEquals(existing.getName())) { existing.setName(name); manager.createNotificationChannel(existing); }
+            return;
+        }
+        NotificationChannel idle = new NotificationChannel(IDLE_CHANNEL, name != null ? name : "Workout check", NotificationManager.IMPORTANCE_HIGH);
+        idle.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),
+            new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION).build());
+        idle.enableVibration(true);
+        idle.setVibrationPattern(IDLE_VIBRATION);
+        idle.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+        manager.createNotificationChannel(idle);
+    }
+
+    private void scheduleIdle(AlarmManager alarms, long at, PendingIntent pending) {
+        if (Build.VERSION.SDK_INT < 31 || alarms.canScheduleExactAlarms()) {
+            try { alarms.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pending); return; }
+            catch (SecurityException denied) { /* gecikmeli alarma düş */ }
+        }
+        alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pending);
+    }
+
+    static PendingIntent idlePending(Context context, int id, Intent intent) {
+        return PendingIntent.getBroadcast(context, id, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    @PluginMethod
+    public void idleArm(PluginCall call) {
+        Long askAt = call.getLong("askAt");
+        Long endAt = call.getLong("endAt");
+        if (askAt == null || endAt == null || askAt <= 0 || endAt <= askAt) { call.reject("askAt ve endAt gerekli"); return; }
+        try {
+            Context context = getContext();
+            createIdleChannel(context, call.getString("channel"));
+            AlarmManager alarms = context.getSystemService(AlarmManager.class);
+            NotificationManager manager = context.getSystemService(NotificationManager.class);
+            manager.cancel(IDLE_ASK_ID);
+            manager.cancel(IDLE_END_ID);
+            context.getSharedPreferences(IDLE_PREFS, Context.MODE_PRIVATE).edit().putLong("askAt", askAt).putLong("endAt", endAt).commit();
+            Intent ask = new Intent(context, IdleReceiver.class).putExtra("kind", "ask").putExtra("stamp", askAt.longValue())
+                .putExtra("title", call.getString("askTitle", "Still there?")).putExtra("body", call.getString("askBody", ""));
+            Intent end = new Intent(context, IdleReceiver.class).putExtra("kind", "end").putExtra("stamp", endAt.longValue())
+                .putExtra("title", call.getString("endTitle", "Workout ended")).putExtra("body", call.getString("endBody", ""));
+            scheduleIdle(alarms, askAt, idlePending(context, IDLE_ASK_ID, ask));
+            scheduleIdle(alarms, endAt, idlePending(context, IDLE_END_ID, end));
+            call.resolve();
+        } catch (Exception error) { call.reject("Could not arm the workout check", error); }
+    }
+
+    @PluginMethod
+    public void idleStop(PluginCall call) {
+        try {
+            Context context = getContext();
+            context.getSharedPreferences(IDLE_PREFS, Context.MODE_PRIVATE).edit().clear().commit();
+            AlarmManager alarms = context.getSystemService(AlarmManager.class);
+            alarms.cancel(idlePending(context, IDLE_ASK_ID, new Intent(context, IdleReceiver.class)));
+            alarms.cancel(idlePending(context, IDLE_END_ID, new Intent(context, IdleReceiver.class)));
+            NotificationManager manager = context.getSystemService(NotificationManager.class);
+            manager.cancel(IDLE_ASK_ID);
+            if (call.getBoolean("clearEnd", true)) manager.cancel(IDLE_END_ID);
+            call.resolve();
+        } catch (Exception error) { call.reject("Could not stop the workout check", error); }
+    }
+
     @PluginMethod
     public void stop(PluginCall call) {
         try {

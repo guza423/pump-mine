@@ -8,7 +8,7 @@
 > Konuşmaların kronolojik kaydı `docs/KONUSMA-KAYDI.md`'de. Kalıcı her karar bu dosyaya da işlenir (bkz. §9 Karar günlüğü).
 > Repo **herkese açık**. Buraya şifre, token ya da kişisel sağlık/vücut verisi yazılmaz.
 
-Son güncelleme: 2026-11-19 · V26 (çok dil hazırlığı: yeni Latin alfabeli dil yalnızca çeviri dosyalarıyla eklenir).
+Son güncelleme: 2026-11-22 · V32 (dönem yorgunluğu ve gece ortalaması uyku, yapılan/planlanan haftalık yük, hareket gelişimi listesi, unutulan antrenmanın kendiliğinden bitmesi).
 
 ---
 
@@ -36,9 +36,9 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 
 | Sekme (id) | İçerik |
 |---|---|
-| **Dashboard** (`bugun`) | Hesap düğmesi (eşitleme durumu: sarı bekleyen, yeşil eşit, gri çevrimdışı). Yorgunluk halkası + kırılım, uyku girişi (5–9 sa), plan kartı (bugün plan var / sıradaki / plan yok; hazır plansız oturumda `başlamadı`), bu hafta şeridi. **Hedefler:** güç (1RM) ve öğrenme (beceri, 4 aşama, "Pratik et"). |
+| **Dashboard** (`bugun`) | Hesap düğmesi (eşitleme durumu: sarı bekleyen, yeşil eşit, gri çevrimdışı). Yorgunluk halkası + kırılım: **seçili dönemin ortalaması** (SON 7 · 10 · 30 gün, V32), uyku girişi = dönemin gece ortalaması (5–9 sa), plan kartı (bugün plan var / sıradaki / plan yok; hazır plansız oturumda `başlamadı`), bu hafta şeridi. **Hedefler:** güç (1RM) ve öğrenme (beceri, 4 aşama, "Pratik et"). |
 | **Antrenman** (`antrenman`) | `Plansız antrenman` ve `Yeni plan` düğmeleri; **Planlarım**; ay başlıklı, kaydırılabilir **geçmiş**. Aktif oturum ekranı da burada. |
-| **Gözlem** (`gozlem`, başlık "Antrenman plan ve gözlem") | Aylık takvim (yapılan ●, planlı ○, kaçırılan ·). Gün paneli: yapılanlar, planlar, uyku, yorgunluk, "Bu güne plan ekle" (tek gün ya da her hafta). Ay özeti, uyarılar, 1RM gelişimi, haftalık yük. |
+| **Gözlem** (`gozlem`, başlık "Antrenman plan ve gözlem") | Aylık takvim (yapılan ●, planlı ○, kaçırılan ·). Gün paneli: yapılanlar, planlar, uyku, yorgunluk, "Bu güne plan ekle" (tek gün ya da her hafta). Ay özeti, uyarılar, **Hareket gelişimi** düğmesi (yapılmış bütün hareketler; son 20 gün belirgin, eskiler soluk + son tarih; hareket penceresinde türüne göre ölçüler, V32), **Haftalık yük: Yapılan / Planlanan** (planlanan, bu hafta plan yoksa kapalı, V32). |
 | **Lab** (`lab`) | 01 Temeller: sinir sistemi dersleri, "Yorgunluk nasıl ölçülür?", yorgunluk ölçer. 02 Hareketler: 466 hareket, arama + tür + kas + ekipman filtresi, biyomekanik kartlar. |
 
 **Oturum ekranları:**
@@ -59,6 +59,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
   - set kutucuğuna dokununca salt okunur ayrıntı: RPE, kalan tekrar, zor set, e1RM, son tekrar hızı, ROM, tonaj;
   - "Bu antrenmanda çalışan kaslar" (zor set sayısıyla) + yardımcı kaslar;
   - son 7 gün kas başına zor set çubukları (az / iyi / fazla, bu antrenmanın katkısı `+n`) ve uyarılar (az, bu hafta hiç, fazla).
+- **Unutulan antrenman (V32):** başlamış antrenmanda 10 dk giriş yoksa bildirim + titreşim ve "Hâlâ orada mısın?"; 5 dk daha cevap yoksa antrenman son giriş saatinde kendiliğinden biter (`autoEnd`), geçmişte ve özette belirtilir. Set yoksa oturum hazır durumuna döner.
 - **Android geri tuşu:** sheet'i / pixel pencereyi kapatır → büyük dinlenmeyi küçültür → set ekranından listeye döner → oturumdan Dashboard'a (oturum sürer) → sekmeden Dashboard'a → Dashboard'da iki kez basınca çıkar.
 
 **Hesap ve ayarlar** (eski adı Hesap ve yedek; Dashboard sağ üst):
@@ -75,7 +76,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 - **Uygulama:** Vite + React 19 + TypeScript. El yapımı CSS (Tailwind / UI kütüphanesi yok). El yapımı SVG grafikler. Fontlar `@fontsource` ile gömülü: Saira, IBM Plex Sans, JetBrains Mono.
 - **Mobil:** Capacitor 8 (`app.performance.training` paket adı **değişmez**). Yerel kod:
   - `MainActivity`: kenardan kenara koyu sistem çubukları, metin yakınlaştırma 100–115.
-  - `RestTimerPlugin` + `RestTimerReceiver`: dinlenme bildirimi, kesin alarm.
+  - `RestTimerPlugin` + `RestTimerReceiver`: dinlenme bildirimi, kesin alarm. `idleArm` / `idleStop` + `IdleReceiver` (V32): unutulan antrenman bildirimleri ("Hâlâ orada mısın?" 10. dk, "bitti" 15. dk; kanal `workout-idle`).
   - `@capacitor/app`: geri tuşu.
   - `@capacitor-firebase/authentication`: Google girişi.
 - **Dil (V21–V26):** `src/i18n/` (diller `langs.ts`, paketler `dicts.ts`). Kaynak metin Türkçe ve anahtar; `t()` / `tc()` / `byLang()`; İngilizce sözlük `src/i18n/en/*.ts`. Veri Türkçe saklanır, gösterimde `muscleName()` / `exName()` / `dayLabel()` çevirir. Dil değişince `.device-wrap` `key={lang}` ile yeniden kurulur. Ek dil: eksik metin İngilizce, çoğul `Intl.PluralRules`, `byLang` sabitleri sözlükten türer. Yasal metinler `src/legal/texts/<dil>/<taban>.md`; uygulama `appDocs.ts` ile etkin dildekini (yoksa İngilizcesini) açar, `legal.html` metnin yazılı olduğu dillere bağlantı verir.
@@ -117,7 +118,8 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 - **Plan** = program belgesinin günü. Yeni plan = tek günlük program belgesi.
   - Takvim alanları: `weekdays: number[]` (JS `getDay()`, 0 = Pazar), `dates: string[]` ve `skip: string[]` (`'YYYY-MM-DD'`, yerel).
   - Eski `weekday` okunurken diziye çevrilir.
-- **Oturum:** `{ id, programId, dayId, dayName, startedAt, endedAt, status, ready?, items[{ exId, name, target, sets[] }], rest? }`. Plansız = `dayId == null`. `ready: true` iken süre başlamamıştır (`dur = 0`).
+- **Oturum:** `{ id, programId, dayId, dayName, startedAt, endedAt, status, ready?, items[{ exId, name, target, sets[] }], rest?, autoEnd? }`. Plansız = `dayId == null`. `ready: true` iken süre başlamamıştır (`dur = 0`). `autoEnd: { at, last }` (V32): 15 dk giriş olmadığı için kendiliğinden bitti; `endedAt = last` (son giriş).
+- **Uyku girişi (`checkins`):** `{ id: 'c_<YYYY-MM-DD>', sleep, at, span? }`. V32'den beri Dashboard'dan girilen değer, o tarihle biten `span` (7 / 10 / 30) gecenin **günlük ortalaması**; `span` yoksa yalnızca o tarihin gecesi (eski giriş). Bir geceyi birden çok giriş kapsıyorsa en son yapılan geçerli.
 - **Set:**
   - Kuvvet: `{ kg, reps, lvl 0–4, vl, rpe, rir, rom?, at }` (`rom` yoksa 100 sayılır)
   - Pliometrik: `{ kg, reps (temas), plyo: true, q 0–2, rir: 9 }`
@@ -154,7 +156,18 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
   - Pliometrik set = temas × `[0, .03, .05, .08, .12][yoğunluk]`.
   - Beceri set = deneme × `[0, .02, .04, .06][fat]`.
   - Azalma `e^(−saat/36)`. Skor = `100 × (1 − e^(−toplam/20))`.
-- **Uyku puanı:** `20 × clamp((7,5 − dün gece)/2,5) + 10 × clamp((7 − son 3 gece ort.)/2) × (bilinen gece/3)`.
+- **Uyku puanı:** `20 × clamp((7,5 − dün gece)/2,5) + 10 × clamp((7 − son 3 gece ort.)/2) × (bilinen gece/3)`. Gece değerleri `sleepNights()`'tan: dönem ortalaması girişi kapsadığı her gecenin değeri sayılır (V32).
+- **Dönem yorgunluğu (Dashboard, V32):** `periodFatigue(st, N)`, N = 7 / 10 / 30 gün.
+  - Antrenman payı = dönem boyunca saatlik örneklenen antrenman skorunun ortalaması (aynı set ağırlıkları ve azalma). Kayıtlar dönemden sonra başlıyorsa ilk kayıt gününden itibaren.
+  - Uyku payı = `sleepPts(ort, ort, 3) × bilinen gece / N` (her gece aynı saat uyunmuş gibi, eski ölçekle). Kontrol: ort. 5 sa → 30, 6 sa → 17, 7 sa → 4, 8 sa → 0.
+  - Toparlanma süresi şimdiki yükten. Anlık model (seans başı/sonu, "Şu an", gün paneli) değişmedi.
+- **Bu haftanın yükü (V32):** yapılan = Pazartesi 00:00'dan şu ana kas başına zor set (süren antrenman dahil); planlanan = `thisWeekProgram()` (haftalık tekrar + bu haftaya düşen tek gün, atlanan gün hariç) ile `planStats`.
+- **Hareket gelişimi (V32, `progress.ts`):**
+  - Ağırlıklı: seans başına en iyi e1RM ve tonaj. Ek yüksüz: tekrar kapasitesi = tekrar + RIR (RIR ≤ 4, ROM ≥ %90).
+  - Pliometrik puan: set = temas × kalite (1 / 0,75 / 0,5) × (1 + ek kg / 75); seans = en iyi set. 75 kg referans vücut ağırlığı (uygulama tutmuyor); göreli ölçek.
+  - Beceri: en uzun tutuş (en az kısmen çıkan), temiz oran (temiz 1, kısmen 0,5, olmadı 0).
+  - "Son 20 gün" listesi; daha eskiler soluk + son tarih.
+- **Unutulan antrenman (V32, `idle.ts`):** son girişten (dinlenme sürüyorsa dinlenme bitişinden) 10 dk → sor, +5 dk → son giriş saatinde bitir (`autoEnd`). Set yoksa oturum hazıra döner.
 - **Bölgeler:** 0–39 Yönetilebilir · 40–69 Birikiyor · 70+ Yüksek.
 - **Kontrol değerleri** (testlerde sabit):
   - antrenman yok + tek 5 sa gece = 23
@@ -185,6 +198,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | V11 | 2026-11-14 | Sade plansız antrenman, bildirimli dinlenme sayacı, Android geri tuşu | `c5c588d` |
 | V12 | 2026-11-15 | Dashboard, antrenman planları (program katmanı kalktı), Gözlem takvimi, satır içi geçmiş, öğrenme hedefleri, 28 beceri hareketi | `c2f274b` (Antigravity) |
 | V14–V20 | 2026-11-17 → 18 | Pixel tema bütün sekmelere (V14–V17), plan ayarları ve özet (V18), basılı tutma ve göreli sürükleme (V19), yasal metinler, kabul kapısı, hesap/veri silme (V20) | `docs/gorevler/V14…V20` |
+| V32 | 2026-11-22 | Dashboard yorgunluğu seçili dönemin ortalaması (7/10/30 gün) ve uyku = dönemin gece ortalaması; Gözlem'de haftalık yük Yapılan / Planlanan; Hareket gelişimi listesi ve türüne göre gelişim penceresi (1RM + tonaj, tekrar kapasitesi, pliometrik puan, beceri); unutulan antrenman 10 dk'da sorulur, 15 dk'da son giriş saatinde kendiliğinden biter | `docs/gorevler/V32-donem-yorgunlugu-yuk-gelisim-unutulan-idman.md` |
 | V26 | 2026-11-19 | Çok dil hazırlığı: dil listesi ve paketleri, İngilizceye düşme, `Intl` çoğul ve sayı, yasal metinler dil klasörlerinde, sözde dil taraması, iş listesi komutu, yerleşim akışı her dilde, uzun dillere CSS | `docs/gorevler/V26-cok-dil-hazirligi.md` |
 | V25 | 2026-11-19 | Yasal metinlerin İngilizcesi (Terms of Use, KVKK Privacy Notice, Explicit Consent Notice, Account and data deletion; Privacy Policy Türkçeyle eşitlendi), `legal.html` iki dilde, son tarama | `docs/gorevler/V25-ingilizce-yasal-son-tarama.md` |
 | V24 | 2026-11-19 | Lab sekmesi İngilizce: temeller, yorgunluk ölçümü, sinir sistemi dersleri, biyomekanik, hareket sayfası | `docs/gorevler/V24-ingilizce-lab.md` |
@@ -294,6 +308,11 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | 2026-11-21 | Planlı oturum da plansızın pixel set ekranını kullanır; eski planlı görünüm (`SessionView2`) silindi. Ayrı RPE çipleri yok: RPE son tekrarın hızından gelir. Hedef ve not ek yükseklik almadan set kutusu başlığında ve üst satırda | Kullanıcı: "Planlamış idmanı seçince ekran bu hala"; her telefonda kaydet düğmesi kaydırmadan görünmeli |
 | 2026-11-22 | Test dağıtımı Play dahili test kanalından: her kod push'u AAB'yi otomatik yükler; debug APK telefona kurulmaz | Kullanıcı: "direkt play stora atsak hemen ordan indirip denesem bundan sonaki her güncellemeyi"; debug ve Play imzaları farklı, aynı paket yan yana kurulamaz |
 | 2026-11-17 | Pixel'e geçiş bir **tema katmanıyla** yapılır (`px-theme.css`, kök sınıf `.pxt`): var olan DOM ve kimlikler aynen kalır, yalnızca görünüm değişir. Yeni pixel bileşenleri `pixel.css`'te `px-` önekiyle yazılır | "sadece stil değişicek"; testler ve akışlar bozulmasın |
+| 2026-11-22 | Dashboard yorgunluğu **seçili dönemin ortalaması**: son 7 gün varsayılan, 10 ve 30 gün seçilebilir (cihazda saklanır). Antrenman payı dönem boyunca saatlik skorun ortalaması; toparlanma süresi şimdiki yükten | Kullanıcı: "son 7 gün baz alınsın hep … istersek son 10 gün ve son 30 günde seçelim"; anlık skor dünkü seansa çok bağlıydı |
+| 2026-11-22 | Uyku girişi **dönemin gece ortalaması** (`checkins.span`); her gece ayrı girilmez. Puan eski ölçekle (`sleepPts(ort, ort, 3)`), bilinmeyen gece varsayılmaz. Ortalamadan gelen değere "dün gece" denmez | "o hafta günlük ortalama kaç saat uyuduğumuzu girelim her günün uykusu değil" |
+| 2026-11-22 | Haftalık yük ikiye ayrıldı: **Yapılan** (Pazartesi'den şu ana) ve **Planlanan** (bu takvim haftasının planı); bu hafta plan yoksa Planlanan kapalı | "bir yapılan weekly load bide planned weekly load … planı olmayanlar için o buton deaktif" |
+| 2026-11-22 | Hareket gelişimi grafik değil düğme: yapılmış bütün hareketler, son 20 gün belirgin, eskiler soluk + son tarih; harekete göre ölçü (1RM + tek seans tonajı; ek yüksüzde tekrar kapasitesi; pliometrik puan; beceride tutuş ve temiz oran). Pliometrik puan göreli ölçek, 75 kg referans | "direkt böyle chart olmayacak … plyometrics'te … ağırlık var mı yok mu bunları bir skala yapacağız"; vücut ağırlığı tutulmuyor, pliometrikte süre kaydı yok |
+| 2026-11-22 | Unutulan antrenman: 10 dk giriş yoksa bildirim + titreşim ve "Hâlâ orada mısın?", 5 dk daha cevap yoksa **son giriş saatinde** biter ve kayda `autoEnd` yazılır; set yoksa kayıt açılmaz, oturum hazıra döner | Kullanıcı isteği; bitiş saati son giriş olunca süre ve yorgunluk doğru kalır, boş kayıt oluşmaz |
 
 ---
 

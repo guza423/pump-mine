@@ -384,9 +384,16 @@ describe('ana ekran akışları', () => {
     click('#cal-prev');
     expect(container.querySelector('#cal-today')).toBeNull();
 
-    // Gözlem bölümünde Metric ve E1Chart
+    // Gözlem bölümünde Metric; hareket gelişimi (V32) düğmeyle açılan listede, grafik hareketin penceresinde
     expect(container.querySelector('.mgrid .metric')).toBeTruthy();
-    expect(container.querySelector('.chart-svg')).toBeTruthy();
+    expect(container.querySelector('.chart-svg')).toBeNull();
+    click('#obs-progress');
+    const list = await screen.findByRole('dialog', { name: 'Hareket gelişimi' });
+    const row = list.querySelector('.prog-row');
+    expect(row).toBeTruthy();
+    fireEvent.click(row!);
+    await waitFor(() => expect(screen.getAllByRole('dialog').length).toBe(2));
+    expect(screen.getAllByRole('dialog').at(-1)!.querySelector('.chart-svg')).toBeTruthy();
   });
 
   it('hedef boş açılır, yalnızca geçerli hedef kaydedilir ve kaldırılabilir', async () => {
@@ -746,9 +753,15 @@ describe('ana ekran akışları', () => {
     await waitFor(() => expect(container.querySelector('#tab-antrenman')?.getAttribute('aria-current')).toBe('page'));
 
     click('#tab-gozlem');
-    await waitFor(() => expect(container.querySelector('#obs-week')).toBeTruthy());
-    click('#obs-week');
-    expect(await screen.findByRole('dialog', { name: 'Haftalık yük' })).toBeTruthy();
+    await waitFor(() => expect(container.querySelector('#obs-done')).toBeTruthy());
+    click('#obs-done');
+    const doneSheet = await screen.findByRole('dialog', { name: 'Yapılan haftalık yük' });
+    expect(doneSheet.querySelector('.mbar')).toBeTruthy();
+    closeTopSheet();
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(container.querySelector('#obs-plan').disabled).toBe(false);
+    click('#obs-plan');
+    expect(await screen.findByRole('dialog', { name: 'Planlanan haftalık yük' })).toBeTruthy();
     fireEvent.click(container.querySelector('.plan2-meter')!);
     expect(await screen.findByRole('dialog', { name: 'Yorgunluk ölçer' })).toBeTruthy();
     closeTopSheet();
@@ -862,5 +875,63 @@ describe('ana ekran akışları', () => {
     expect(mkSlider.getAttribute('aria-valuenow')).toBe('5');
     fireEvent.keyDown(mkSlider, { key: 'PageUp' });
     expect(mkSlider.getAttribute('aria-valuenow')).toBe('25');
+  });
+  // V32 · unutulan antrenman: 10 dk girişsiz → "Hâlâ orada mısın?"; 15 dk → son girişte kendiliğinden biter.
+  // Son giriş cihazda oturum kimliğiyle saklanır; her test kendi kimliğini kullanır.
+  let idleN = 0;
+  const activeSession = (lastSetAgoMin, sets = true) => {
+    const now = Date.now();
+    idleN += 1;
+    return {
+      id: 's-idle-' + idleN, programId: null, programName: '', dayId: null, dayName: 'Plansız antrenman', status: 'active',
+      startedAt: now - (lastSetAgoMin + 30) * 60_000, endedAt: null,
+      items: [{ id: 'i1', exId: 'egimli-bench', name: 'Eğimli bench press', muscle: 'Göğüs', note: '', target: { rest: 120 },
+        sets: sets ? [{ kg: 80, reps: 8, lvl: 2, vl: 0.3, rpe: null, rir: 2, rom: 100, at: now - lastSetAgoMin * 60_000 }] : [] }],
+    };
+  };
+
+  it('10 dk giriş yoksa "Hâlâ orada mısın?" sorar; "Buradayım" antrenmanı sürdürür', async () => {
+    const s = activeSession(11);
+    await db.sessions.put(s);
+    render(<App />);
+    const ask = await screen.findByRole('alertdialog', { name: 'Hâlâ orada mısın?' });
+    expect(ask.textContent).toMatch(/\d:\d\d/);
+    fireEvent.click(within(ask).getByRole('button', { name: 'Buradayım, devam' }));
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
+    expect((await db.sessions.get(s.id)).status).toBe('active');
+  });
+
+  it('pencerede "Antrenmanı bitir" son girişin saatinde bitirir (kendiliğinden işareti yok)', async () => {
+    const s = activeSession(12);
+    await db.sessions.put(s);
+    render(<App />);
+    const ask = await screen.findByRole('alertdialog', { name: 'Hâlâ orada mısın?' });
+    fireEvent.click(within(ask).getByRole('button', { name: 'Antrenmanı bitir' }));
+    await waitFor(async () => expect((await db.sessions.get(s.id)).status).toBe('done'));
+    const done = await db.sessions.get(s.id);
+    expect(done.endedAt).toBe(s.items[0].sets[0].at);
+    expect(done.autoEnd).toBeUndefined();
+  });
+
+  it('15 dk giriş yoksa antrenman son girişin saatinde kendiliğinden biter ve kayıtta belirtilir', async () => {
+    const s = activeSession(20);
+    await db.sessions.put(s);
+    const { container } = render(<App />);
+    await waitFor(async () => expect((await db.sessions.get(s.id)).status).toBe('done'));
+    const done = await db.sessions.get(s.id);
+    expect(done.endedAt).toBe(s.items[0].sets[0].at);
+    expect(done.autoEnd.last).toBe(s.items[0].sets[0].at);
+    expect(done.fatigue).toMatchObject({ v: 2 });
+    expect(container.querySelector('#idle-notice').textContent).toContain('kendiliğinden bitti');
+    fireEvent.click(container.querySelector('#tab-antrenman'));
+    expect(await screen.findByText('Kendiliğinden bitirildi: 15 dakika giriş olmadı. Bitiş saati son girişin saati.')).toBeTruthy();
+  });
+
+  it('set kaydı yoksa 15 dk sonra kayıt açılmaz: antrenman hazır durumuna döner', async () => {
+    const s = activeSession(20, false);
+    await db.sessions.put(s);
+    render(<App />);
+    await waitFor(async () => expect((await db.sessions.get(s.id)).ready).toBe(true));
+    expect((await db.sessions.get(s.id)).status).toBe('active');
   });
 });

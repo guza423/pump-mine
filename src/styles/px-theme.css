@@ -153,8 +153,37 @@
 .pxt .ready-parts b { color: var(--px-tx); font-weight: 700; }
 .pxt .ready-parts .bad b { color: var(--bad); }
 .pxt .ready-parts .ask b { color: var(--px-gold); }
-.pxt .sleep-row { grid-column: 1 / -1; grid-row: 3; gap: 9px; margin: 0; }
-.pxt .ready-warn { grid-column: 1 / -1; grid-row: 4; }
+.pxt .sleep-row { grid-column: 1 / -1; grid-row: 4; gap: 9px; margin: 0; }
+.pxt .ready-warn { grid-column: 1 / -1; grid-row: 5; }
+/* V32 · dönem seçici (son 7 / 10 / 30 gün) ve gece ortalaması uyku */
+.pxt .fspan-row { grid-column: 1 / -1; grid-row: 3; display: flex; align-items: center; gap: 9px; margin: 0; }
+.pxt .fspan-row .sleep-k, .pxt .sleep-row .sleep-k { flex: 0 0 auto; min-width: 52px; }
+.pxt .sleep-row .sleep-k small { display: block; font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em; color: var(--px-mt); opacity: 0.85; }
+.pxt .fspan-row .fsp {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 36px;
+  margin: 0 2px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  font-family: var(--px-f-big);
+  font-size: 16px;
+  font-weight: 400;
+  -webkit-font-smoothing: none;
+  white-space: nowrap;
+  color: var(--px-mt);
+  background: var(--px-pn2);
+  box-shadow: 0 -3px 0 0 var(--px-ln), 0 3px 0 0 var(--px-ln), -3px 0 0 0 var(--px-ln), 3px 0 0 0 var(--px-ln);
+  cursor: pointer;
+}
+.pxt .fspan-row .fsp.on {
+  color: var(--px-btx);
+  background: var(--px-gold);
+  box-shadow: 0 -3px 0 0 var(--px-gold), 0 3px 0 0 var(--px-gold), -3px 0 0 0 var(--px-gold), 3px 0 0 0 var(--px-gold);
+}
+.pxt .fspan-row .fsp:focus-visible { outline: 3px solid var(--px-gold); outline-offset: 4px; }
+.pxt .ready-cov { margin-left: 6px; font-style: normal; font-size: 11.5px; color: var(--px-mt); white-space: nowrap; }
 .pxt .ready-k {
   font-family: var(--px-f-head);
   font-size: 19px;
@@ -1025,6 +1054,72 @@
 /* V27: tam zamanlı alarm izni uyarısı (metin + düğme) */
 .pxt #exact-alarm { display: grid; gap: 6px; justify-items: start; }
 .pxt #exact-alarm p { margin: 0; }
+
+/* ---------- V32 · haftalık yük düğmeleri, hareket gelişimi, yapılan yük ---------- */
+.pxt .obs-load { gap: 8px; }
+.pxt .obs-load-btns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.pxt .obs-load-b { min-height: 64px; padding: 10px 12px; }
+.pxt .obs-load-b .obs-week-l strong { font-size: 15px; }
+.pxt .obs-load-b .obs-week-l small { font-size: 12.5px; }
+.pxt .mbar-p { position: absolute; top: 0; bottom: 0; width: 4px; background: var(--px-tx); opacity: 0.85; }
+.pxt .mbars.with-st.with-plan .mbar { grid-template-columns: 96px minmax(0, 1fr) 44px 40px; }
+.pxt .wd-sum { margin: 0; font-size: 13px; color: var(--px-mt); }
+.pxt .wd-sum b { color: var(--px-tx); }
+.pxt .eyebrow.dim { color: var(--px-mt); }
+.pxt .prog-list { display: grid; gap: 10px; }
+.pxt .prog-ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.pxt .prog-row {
+  appearance: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 12px;
+  align-items: center;
+  gap: 10px;
+  width: calc(100% - 6px);
+  margin: 3px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 0;
+  text-align: left;
+  font: inherit;
+  color: var(--px-tx);
+  background: var(--px-pn);
+  box-shadow: 0 -3px 0 0 var(--px-ln), 0 3px 0 0 var(--px-ln), -3px 0 0 0 var(--px-ln), 3px 0 0 0 var(--px-ln);
+  cursor: pointer;
+}
+.pxt .prog-row:active { background: var(--px-pn2); }
+.pxt .prog-row:focus-visible { outline: 3px solid var(--px-gold); outline-offset: 3px; }
+.pxt .prog-row-t { display: grid; gap: 3px; min-width: 0; }
+.pxt .prog-row-t strong { font-family: var(--px-f-head); font-size: 16px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pxt .prog-row-t small { font-size: 12.5px; color: var(--px-mt); }
+.pxt .prog-row-v { font-size: 14px; font-weight: 700; color: var(--px-gold); white-space: nowrap; }
+.pxt .prog-row.old { opacity: 0.5; }
+.pxt .prog-row.old .prog-row-v { color: var(--px-mt); }
+.pxt .prog-tag { display: inline-block; padding: 1px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--px-fire); box-shadow: inset 0 0 0 2px currentColor; }
+.pxt .prog-tag.plyo { color: var(--px-gold); }
+.pxt .prog-tag.skill { color: var(--px-sk); }
+.pxt .prog-tag.reps { color: var(--ok); }
+.pxt .prog-detail { display: grid; gap: 12px; }
+.pxt .prog-chart .chart-svg { width: calc(100% - 6px); margin: 3px; background: var(--px-pn); box-shadow: 0 -3px 0 0 var(--px-ln), 0 3px 0 0 var(--px-ln), -3px 0 0 0 var(--px-ln), 3px 0 0 0 var(--px-ln); }
+.pxt .hrow-auto { color: var(--px-gold) !important; font-weight: 600; }
+.pxt .auto-end-note { margin: 0; padding: 8px 10px; font-size: 13px; line-height: 1.4; color: var(--px-tx); background: #2a2316; box-shadow: inset 4px 0 0 0 var(--px-gold); }
+
+/* V32 · "Hâlâ orada mısın?" penceresi ve kendiliğinden bitirme uyarısı (bütün uygulama) */
+.idle-wrap { position: absolute; inset: 0; z-index: 90; display: grid; place-items: center; padding: 16px; background: rgba(7, 6, 13, 0.82); }
+.idle-box {
+  display: grid;
+  gap: 12px;
+  width: min(100%, 360px);
+  padding: 18px 16px;
+  color: #f5f1e8;
+  background: #1d1a33;
+  box-shadow: 0 -3px 0 0 #ffc53d, 0 3px 0 0 #ffc53d, -3px 0 0 0 #ffc53d, 3px 0 0 0 #ffc53d, 0 9px 0 0 #07060d;
+  font: 500 14px 'IBM Plex Sans', system-ui, sans-serif;
+}
+.idle-box h3 { margin: 0; font: 700 22px 'Saira Variable', 'Saira', sans-serif; letter-spacing: 0.03em; text-transform: uppercase; color: #ffc53d; }
+.idle-box p { margin: 0; line-height: 1.45; }
+.idle-count { font-family: 'Press Start 2P', monospace; font-size: 24px; line-height: 1.2; color: #ff5b3a; -webkit-font-smoothing: none; }
+.idle-btns { display: grid; gap: 10px; }
+.idle-toast { white-space: normal !important; width: min(92%, 380px); text-align: left; cursor: pointer; }
 
 /* "Çıkmak için tekrar bas" uyarısı (bütün uygulama, .pxt dışında da) */
 .back-toast {

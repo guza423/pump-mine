@@ -18,7 +18,7 @@ import {
 } from '../features/antrenman/core';
 import {
   allPlans, dateKey, parseDateKey, plansOn, newPlanDoc, upsertPlan, removePlan,
-  addOnce, addWeekly, removeOn, weekProgram, normalizeDay, weekdaysOf,
+  addOnce, addWeekly, removeOn, weekProgram, thisWeekProgram, normalizeDay, weekdaysOf,
 } from '../features/plan/plans';
 import {
   SKILL_STAGES, readGoals, upsertGoal, removeGoal, advanceSkillStage, matchesSkillGoal, skillStats,
@@ -28,7 +28,11 @@ import { isFree, sessionName } from '../lib/models/session';
 import { useAndroidBack, useBack } from './back';
 import { FreePixelSession } from '../features/antrenman/FreePixelSession';
 import { PixelSummaryScreen } from '../features/antrenman/PixelSummaryScreen';
-import { planStats, logStats, proxW, costW, loadScore, hoursToFresh, decayK, setLoads, sleepInfo, sleepPts, fatigueAt, steadyWeek, simFromLogs, simFromPlan, simulatePlan, fatigueRecs, e1Series, prevPerf, sessionFatigue, periodMetrics, historyWarnings } from '../lib/models/fatigue';
+import { planStats, logStats, proxW, costW, loadScore, hoursToFresh, decayK, setLoads, sleepInfo, sleepPts, fatigueAt, steadyWeek, simFromLogs, simFromPlan, simulatePlan, fatigueRecs, e1Series, prevPerf, sessionFatigue, periodMetrics, historyWarnings, periodFatigue, FATIGUE_SPANS, sleepNights, weekDoneStats } from '../lib/models/fatigue';
+import { exerciseIndex, RECENT_DAYS } from '../lib/models/progress';
+import { ProgressListBody, ProgressDetailBody } from '../features/gozlem/ProgressSheets';
+import { useIdleWatch } from '../features/antrenman/idleWatch';
+import { IDLE_ASK_MS, IDLE_END_MS } from '../lib/models/idle';
 import '../styles/cns.css';
 import '../styles/app.css';
 import '../styles/log.css';
@@ -142,21 +146,23 @@ function Ring({ score, zone, size = 76, label, pixel = false }) {
   );
 }
 const MBAR_ST = byLang('mbar', { tr: { none: 'yok', low: 'az', ok: 'iyi', high: 'fazla' }, en: { none: 'none', low: 'low', ok: 'good', high: 'high' } });
-function MuscleBars({ muscles, list, max = 24, compact, mark, status }) {
+function MuscleBars({ muscles, list, max = 24, compact, mark, status, plan }) {
   const names = list || Object.keys(muscles).sort((a, b) => (muscles[b] || 0) - (muscles[a] || 0));
   return (
-    <div className={'mbars' + (compact ? ' compact' : '') + (status ? ' with-st' : '')}>
+    <div className={'mbars' + (compact ? ' compact' : '') + (status ? ' with-st' : '') + (plan ? ' with-plan' : '')}>
       {names.map((m) => {
         const n = muscles[m] || 0;
         const st = n === 0 ? 'none' : n < 10 ? 'low' : n > 20 ? 'high' : 'ok';
+        const p = plan ? plan[m] || 0 : 0;
         return (
           <div key={m} className={'mbar ' + st + (mark && mark[m] ? ' hit' : '')}>
             <span className="mbar-m">{muscleName(m)}{mark && mark[m] ? <em className="mbar-hit">+{mark[m]}</em> : null}</span>
             <div className="mbar-t">
               <span className="mbar-z" style={{ left: (10 / max) * 100 + '%', width: (10 / max) * 100 + '%' }} />
               <span className="mbar-f" style={{ width: Math.min(100, (n / max) * 100) + '%' }} />
+              {p ? <span className="mbar-p" style={{ left: 'calc(' + Math.min(100, (p / max) * 100) + '% - 2px)' }} /> : null}
             </div>
-            <span className="mbar-n mono">{nf(n)}</span>
+            <span className="mbar-n mono">{plan ? nf(n) + '/' + nf(p) : nf(n)}</span>
             {status ? <span className={'mbar-s ' + st}>{MBAR_ST[st]}</span> : null}
           </div>
         );
@@ -316,16 +322,25 @@ function formatDue(due) {
   if (Number.isNaN(d.getTime())) return '';
   return t("{d} {m}'ya kadar", { d: d.getDate(), m: MONTHS[d.getMonth()] });
 }
+// V32 · Dashboard yorgunluğu seçilen dönemin ortalaması (varsayılan son 7 gün; 10 ve 30 gün seçilebilir, cihazda saklanır).
+const SPAN_KEY = 'outmove.fspan';
+const readSpan = () => { try { const v = Number(localStorage.getItem(SPAN_KEY)); return FATIGUE_SPANS.includes(v) ? v : 7; } catch (e) { return 7; } };
 function TodayScreen({ st, put, openSheet, startSession, newPlan, practiceSkill, goTab, acct }) {
-  const fz = fatigueAt(st, Date.now());
+  const [span, setSpan0] = useState(readSpan);
+  const setSpan = (d) => { setSpan0(d); try { localStorage.setItem(SPAN_KEY, String(d)); } catch (e) { /* yer yoksa yalnızca bu açılışta */ } };
+  const tick5 = Math.floor(Date.now() / 300000);
+  const fz = useMemo(() => periodFatigue(st, span, Date.now()), [st.sessions, st.checkins, span, tick5]);
   const sl = fz.sleep;
   const active = st.sessions.find((s) => s.status === 'active');
   const plans = allPlans(st.programs);
   const next = nextPlanned(st.programs, st.sessions);
   const goals = readGoals(st.settings);
-  const setSleep = (h) => put('checkins', { id: dayKey(Date.now()), sleep: h, at: Date.now() });
+  // Uyku: seçili dönemin gece ortalaması (bugünle biten `span` gece). Her günün uykusu ayrı girilmez.
+  const setSleep = (h) => put('checkins', { id: dayKey(Date.now()), sleep: h, at: Date.now(), span });
   const loading = st.status === 'loading' || !st.loaded.programs || !st.loaded.sessions;
-  const short = sl.known && sl.last < 6.5;
+  const sleepKnown = sl.avg != null;
+  const sleepSel = sleepKnown ? Math.min(9, Math.max(5, Math.round(sl.avg))) : null;
+  const short = sleepKnown && sl.avg < 6.5;
   let perfCount = 0;
 
   return (
@@ -341,7 +356,7 @@ function TodayScreen({ st, put, openSheet, startSession, newPlan, practiceSkill,
         ) : null}
         <section className="ready">
           <button type="button" id="ready-ring" className="ready-ring" onClick={() => openSheet('fatigue', {})} aria-label={t('Yorgunluk ayrıntısı')}>
-            <Ring pixel size={104} score={fz.score} zone={fz.zone} label={t('Yorgunluk {n}', { n: Math.round(fz.score) })} />
+            <Ring pixel size={104} score={fz.score} zone={fz.zone} label={t('Son {d} gün ortalama yorgunluk {n}', { d: span, n: Math.round(fz.score) })} />
           </button>
           <div className="ready-r">
             <div className="ready-top">
@@ -349,14 +364,21 @@ function TodayScreen({ st, put, openSheet, startSession, newPlan, practiceSkill,
               <span className="zone-pill" style={{ color: fz.zone.c, borderColor: fz.zone.c }}>{fz.zone.k}</span>
             </div>
             <div className="ready-parts mono">
-              <span>{tc('load', 'Antrenman')} <b>{Math.round(fz.train)}</b></span>
-              <span className={sl.known ? (fz.sleepPts >= 8 ? 'bad' : '') : 'ask'}>{t('Uyku')} {sl.known ? <b>+{Math.round(fz.sleepPts)}</b> : <b>?</b>}</span>
+              <span>{tc('load', 'Antrenman')} <b>{Math.round(fz.train)}</b>{fz.covered != null && fz.covered < span ? <em className="ready-cov">{t('{n} gün kayıt', { n: fz.covered })}</em> : null}</span>
+              <span className={sleepKnown ? (fz.sleepPts >= 8 ? 'bad' : '') : 'ask'}>{t('Uyku')} {sleepKnown ? <b>+{Math.round(fz.sleepPts)}</b> : <b>?</b>}{sleepKnown && sl.n < span ? <em className="ready-cov">{t('{a}/{b} gece', { a: sl.n, b: span })}</em> : null}</span>
               <span>{fz.hrs ? t('~{n} sa toparlanma', { n: fz.hrs }) : t('toparlanmış')}</span>
             </div>
-            <div className="sleep-row" role="radiogroup" aria-label={t('Dün geceki uyku')}>
-              <span className="sleep-k">{t('Uyku')}</span>
+            <div className="fspan-row" role="radiogroup" aria-label={t('Yorgunluk hangi döneme göre')}>
+              <span className="sleep-k">{t('Son')}</span>
+              {FATIGUE_SPANS.map((d) => (
+                <button key={d} type="button" id={'fspan-' + d} role="radio" aria-checked={span === d} aria-label={t('Son {n} gün', { n: d })} className={'fsp' + (span === d ? ' on' : '')} onClick={() => setSpan(d)}>{d}</button>
+              ))}
+              <span className="sleep-u">{t('gün')}</span>
+            </div>
+            <div className="sleep-row" role="radiogroup" aria-label={t('Son {n} günün gece ortalaması uyku', { n: span })}>
+              <span className="sleep-k">{t('Uyku')}<small>{t('gece ort.')}</small></span>
               {[5, 6, 7, 8, 9].map((h) => (
-                <button key={h} type="button" role="radio" aria-checked={sl.known && sl.last === h} className={'sl' + (sl.known && sl.last === h ? ' on' : '')} onClick={() => setSleep(h)}>{h}</button>
+                <button key={h} type="button" role="radio" aria-checked={sleepSel === h} className={'sl' + (sleepSel === h ? ' on' : '')} onClick={() => setSleep(h)}>{h}</button>
               ))}
               <span className="sleep-u">{t('sa')}</span>
             </div>
@@ -559,6 +581,7 @@ function StartView({ st, startSession, newPlan, openSheet }) {
                               <strong>{sessionName(s)}</strong>
                               <small className="mono">{WD_SHORT[d.getDay()]} {hm(s.startedAt)}–{hm(s.endedAt || s.startedAt)} · {durTxt(ss.dur)}</small>
                               <small className="mono">{t('{n} set', { n: ss.sets.length })} · {sessionSubTxt(ss)}{nn ? ' · ✎ ' + nn : ''}</small>
+                              {s.autoEnd ? <small className="hrow-auto">{t('Kendiliğinden bitirildi')}</small> : null}
                             </span>
                             {f != null ? <span className="hrow-f mono" style={{ color: zoneOf(f).c, borderColor: zoneOf(f).c }}>{Math.round(f)}</span> : <span />}
                           </button>
@@ -771,6 +794,7 @@ function SummaryBody({ session, st, put, del, openSheet, onDelete, onClose }) {
   return (
     <div className="summary2">
       <p className="sum-when mono"><Icon name="clock" size={13} /> {fullDate(session.startedAt)} · {hm(session.startedAt)}–{hm(session.endedAt || Date.now())}</p>
+      {session.autoEnd ? <p className="auto-end-note">{t('Kendiliğinden bitirildi: 15 dakika giriş olmadı. Bitiş saati son girişin saati.')}</p> : null}
       <div className="tiles">
         <Tile k={t('Süre')} v={durTxt(ss.dur)} unit="" />
         <Tile k={t('Set')} v={ss.sets.length} unit="" sub={t('{n} zor set', { n: ss.hard.length })} />
@@ -1077,10 +1101,6 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
   const [viewYm, setViewYm] = useState(() => { const d = new Date(); return { y: d.getFullYear(), m: d.getMonth() }; });
   const [menuDid, setMenuDid] = useState(null);
 
-  const goals = readGoals(st.settings);
-  const firstPerfGoal = goals.find((g) => g.type === 'perf') || null;
-  const [selEx, setSelEx] = useState(firstPerfGoal?.exId ?? null);
-
   const done = useMemo(() => st.sessions.filter((s) => s.status === 'done'), [st.sessions]);
   const isCurrentMonth = viewYm.y === today.getFullYear() && viewYm.m === today.getMonth();
 
@@ -1137,7 +1157,7 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
   const selIsFuture = selKey > todayKey;
   const selSessions = done.filter((s) => dateKey(s.startedAt) === selKey);
   const selPlans = plansOn(selKey, st.programs);
-  const selCheckin = st.checkins.find((c) => c.id === 'c_' + selKey);
+  const selSleep = selIsFuture ? null : sleepNights(st.checkins, new Date(selDate.getFullYear(), selDate.getMonth(), selDate.getDate(), 12).getTime(), 1)[0];
   const selFatTs = selIsToday ? Date.now() : new Date(selDate.getFullYear(), selDate.getMonth(), selDate.getDate(), 23, 59, 59, 999).getTime();
   const selFatScore = !selIsFuture ? Math.round(fatigueAt(st, selFatTs).score) : null;
 
@@ -1166,20 +1186,16 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
   const warns = historyWarnings(st, monthSessions);
   const alerts = warns.filter((w) => w.lv !== 'info').length;
 
-  // Hareket gelişimi (tüm zamanlar)
-  const exs = [];
-  done.forEach((s) => s.items.forEach((it) => {
-    if (bestE1(it.sets) && !exs.some((e) => e.key === (it.exId || it.name))) {
-      exs.push({ key: it.exId || it.name, exId: it.exId, name: it.name });
-    }
-  }));
-  const curEx = exs.find((e) => e.key === selEx) || exs[0];
-  const pts = curEx ? e1Series(st.sessions, curEx.exId, curEx.name) : [];
-  const matchingPerfGoal = curEx ? goals.find((g) => g.type === 'perf' && g.exId === curEx.exId) : null;
-  const gLine = matchingPerfGoal ? matchingPerfGoal.target : null;
+  // Hareket gelişimi (V32): yapılmış bütün hareketler; ayrıntı pencerede.
+  const progIdx = useMemo(() => exerciseIndex(st.sessions), [st.sessions]);
+  const progRecent = progIdx.filter((e) => e.recent).length;
 
-  const wp = weekProgram(st.programs);
-  const hasWeekly = wp.days.length > 0;
+  // Haftalık yük (V32): bu hafta yapılan ve bu haftanın planı ayrı.
+  const weekDone = weekDoneStats(st.sessions, Date.now());
+  const twp = thisWeekProgram(st.programs, Date.now());
+  const twStats = planStats(twp);
+  const planSets = Object.values(twStats.muscles).reduce((a, n) => a + n, 0);
+  const hasWeekPlan = twp.days.length > 0;
 
   return (
     <div className="screen pxt gozlem-screen">
@@ -1280,7 +1296,7 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
           })}
           {!selIsFuture ? (
             <p className="day-meta mono">
-              {selCheckin ? t('Uyku') + ' ' + t('{n} sa', { n: nf(Number(selCheckin.sleep)) }) : t('Uyku') + ' –'} · {t('Yorgunluk')} {selFatScore}
+              {selSleep != null ? t('Uyku') + ' ' + t('{n} sa', { n: nf(Math.round(selSleep * 10) / 10) }) : t('Uyku') + ' –'} · {t('Yorgunluk')} {selFatScore}
             </p>
           ) : null}
           {!selIsPast ? (
@@ -1322,30 +1338,33 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
           )}
         </section>
 
-        <section className="hsec">
-          <div className="sec2-h"><span className="eyebrow">{t('Hareket gelişimi')}</span>{pts.length ? <span className="mono big-e1">{nf(Math.round(pts[pts.length - 1].v * 2) / 2)} kg</span> : null}</div>
-          {exs.length ? (
-            <React.Fragment>
-              <div className="chips-scroll">{exs.map((e) => <button key={e.key} type="button" className={'fchip' + (curEx && curEx.key === e.key ? ' on' : '')} onClick={() => setSelEx(e.key)}>{exName(e)}</button>)}</div>
-              {pts.length ? <E1Chart pts={pts} goal={gLine} /> : null}
-              <p className="chart-note">{t('Tahmini 1RM · yalnızca tükenişe yakın (RIR ≤ 4) setlerden.')}</p>
-            </React.Fragment>
-          ) : <p className="muted-p">{t('Tükenişe yakın setler kaydettikçe her hareketin 1RM eğrisi burada oluşur.')}</p>}
-        </section>
-
-        <button
-          type="button"
-          id="obs-week"
-          className="tcard obs-week"
-          disabled={!hasWeekly}
-          onClick={() => openSheet('plan', { getProgram: () => weekProgram(st.programs) })}
-        >
+        <button type="button" id="obs-progress" className="tcard obs-week" onClick={() => openSheet('progress', {})}>
           <span className="obs-week-l">
-            <strong>{t('Haftalık yük')}</strong>
-            <small>{hasWeekly ? t('{n} planlı gün · kas başına haftalık set', { n: wp.days.length }) : t('Haftalık tekrarlayan planın yok')}</small>
+            <strong>{t('Hareket gelişimi')}</strong>
+            <small>{progIdx.length ? t('{n} hareket', { n: progIdx.length }) + ' · ' + t('son {d} günde {n}', { d: RECENT_DAYS, n: progRecent }) : t('Kayıt yaptıkça hareketlerin burada listelenir')}</small>
           </span>
           <PxIcon name="right" size={16} />
         </button>
+
+        <section className="hsec obs-load" aria-label={t('Haftalık yük')}>
+          <div className="sec2-h"><span className="eyebrow">{t('Haftalık yük')}</span><span className="mono">{t('kas başına zor set')}</span></div>
+          <div className="obs-load-btns">
+            <button type="button" id="obs-done" className="tcard obs-week obs-load-b" onClick={() => openSheet('weekDone', {})}>
+              <span className="obs-week-l">
+                <strong>{t('Yapılan')}</strong>
+                <small>{t('bu hafta {n} zor set', { n: weekDone.hard })}</small>
+              </span>
+              <PxIcon name="right" size={14} />
+            </button>
+            <button type="button" id="obs-plan" className="tcard obs-week obs-load-b" disabled={!hasWeekPlan} onClick={() => openSheet('plan', { getProgram: () => thisWeekProgram(st.programs, Date.now()) })}>
+              <span className="obs-week-l">
+                <strong>{t('Planlanan')}</strong>
+                <small>{hasWeekPlan ? t('bu hafta {n} zor set', { n: planSets }) : t('bu hafta plan yok')}</small>
+              </span>
+              <PxIcon name="right" size={14} />
+            </button>
+          </div>
+        </section>
       </div>
     </div>
   );
@@ -1506,6 +1525,34 @@ function PlanBody({ getProgram, st, openSheet }) {
   );
 }
 
+// V32 · Bu hafta yapılan yük (Pazartesi'den şu ana): kas başına zor set; plan varsa her kasta planlanan da işaretlenir.
+function WeekDoneBody({ st }) {
+  const now = Date.now();
+  const w = weekDoneStats(st.sessions, now);
+  const twp = thisWeekProgram(st.programs, now);
+  const plan = twp.days.length ? planStats(twp).muscles : null;
+  const names = Array.from(new Set([...MAIN_MUSCLES, ...Object.keys(w.muscles), ...(plan ? Object.keys(plan) : [])]))
+    .sort((a, b) => (w.muscles[b] || 0) - (w.muscles[a] || 0) || ((plan && plan[b]) || 0) - ((plan && plan[a]) || 0));
+  const planTotal = plan ? Object.values(plan).reduce((a, n) => a + n, 0) : 0;
+  const d0 = new Date(w.from);
+  return (
+    <div className="plan2 week-done">
+      <p className="wd-sum mono">
+        {t('{d} {m} – bugün', { d: d0.getDate(), m: MONTHS[d0.getMonth()] })} · {t('{n} antrenman', { n: w.n })} · <b>{t('{n} zor set', { n: w.hard })}</b>
+        {plan ? ' · ' + t('plan {n}', { n: planTotal }) : ''}
+      </p>
+      {w.contacts || w.attempts ? (
+        <p className="wd-sum mono">{[w.contacts ? t('{n} temas', { n: w.contacts }) : null, w.attempts ? t('{n} deneme', { n: w.attempts }) : null].filter(Boolean).join(' · ')}</p>
+      ) : null}
+      <span className="st-k">{t('Kas başına zor set · bu hafta')}</span>
+      <MuscleBars muscles={w.muscles} list={names} plan={plan} status />
+      <p className="chart-note">{plan
+        ? t('Sayı: yapılan/planlanan. Çizgi bu haftanın planı, taralı alan haftada 10–20 zor set. Zor set: bitişe 4 tekrar ya da daha az kala biten set.')
+        : t('Taralı alan haftada 10–20 zor set: kas gelişimi için sık önerilen aralık. Zor set: bitişe 4 tekrar ya da daha az kala biten set.')}</p>
+    </div>
+  );
+}
+
 function FatigueBody({ st, init, source, showNow, openSheet }) {
   const [v, setV] = useState(init);
   // Ölçer iki şey gösterebilir: kayıtlardan "şu an" ya da kaydırıcılardaki "simülasyon".
@@ -1519,7 +1566,7 @@ function FatigueBody({ st, init, source, showNow, openSheet }) {
     ? { score: now.score, zone: now.zone, l1: t('antrenman {a} + uyku {b}', { a: Math.round(now.train), b: now.sleep.known ? Math.round(now.sleepPts) : '?' }), l2: now.hrs ? t('~{n} sa sonra toparlanmış', { n: now.hrs }) : t('antrenmandan toparlanmış'), l3: t('Şu an · kayıtların ve uykun') }
     : { score: r.pre, zone: r.zone, l1: t('seans başında · sonda {n}', { n: Math.round(r.post) }), l2: t('seans sonrası ~{n} sa toparlanma', { n: r.hrs }), l3: (now ? t('Simülasyon') : source) + ' · ' + t('haftan böyle sürerse') };
   const recs = useNow
-    ? fatigueRecs({ score: now.score, sleepLast: now.sleep.last, sleepAvg: now.sleep.avg3, sleepN: now.sleep.n }).concat(fatigueRecs({ pre: 0, rir: v.rir, perSession: r.perSession, post: r.post }).filter((x) => x !== t(REC_FRESH))).slice(0, 3)
+    ? fatigueRecs({ score: now.score, sleepLast: now.sleep.lastAvg ? null : now.sleep.last, sleepAvg: now.sleep.avg3, sleepN: now.sleep.lastAvg ? 3 : now.sleep.n }).concat(fatigueRecs({ pre: 0, rir: v.rir, perSession: r.perSession, post: r.post }).filter((x) => x !== t(REC_FRESH))).slice(0, 3)
     : fatigueRecs({ pre: r.pre, post: r.post, sleepLast: v.sleepLast, sleepAvg: v.sleepAvg, rir: v.rir, perSession: r.perSession });
   return (
     <div className="fat2">
@@ -1796,26 +1843,6 @@ function GoalBody({ id, st, put, del, addCustom, onClose }) {
 }
 
 /* ================= İLERLEME / METRİKLER ================= */
-function E1Chart({ pts, goal }) {
-  const W = 340, H = 190, m = { l: 36, r: 12, t: 14, b: 26 };
-  const iw = W - m.l - m.r, ih = H - m.t - m.b;
-  const vs = pts.map((p) => p.v).concat(goal ? [goal] : []);
-  const lo = Math.floor((Math.min(...vs) - 2) / 5) * 5, hi = Math.ceil((Math.max(...vs) + 2) / 5) * 5;
-  const t0 = pts[0].t, t1 = pts.length > 1 ? pts[pts.length - 1].t : t0 + DAY_MS;
-  const X = (t) => m.l + ((t - t0) / (t1 - t0 || 1)) * iw, Y = (v) => m.t + ih - ((v - lo) / (hi - lo || 1)) * ih;
-  const ticks = []; for (let v = lo; v <= hi; v += (hi - lo) > 20 ? 10 : 5) ticks.push(v);
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg" role="img" aria-label={t('Tahmini 1RM eğrisi')}>
-      {ticks.map((v) => <g key={v}><line x1={m.l} x2={W - m.r} y1={Y(v)} y2={Y(v)} className="grid" /><text x={m.l - 6} y={Y(v) + 3.5} textAnchor="end" className="tick">{v}</text></g>)}
-      {goal ? <g><line x1={m.l} x2={W - m.r} y1={Y(goal)} y2={Y(goal)} className="goal-line" /><text x={W - m.r} y={Y(goal) - 5} textAnchor="end" className="goal-t">{t('hedef {n}', { n: goal })}</text></g> : null}
-      <path d={'M' + pts.map((p) => X(p.t) + ',' + Y(p.v)).join(' L') + ` L${X(pts[pts.length - 1].t)},${m.t + ih} L${X(pts[0].t)},${m.t + ih} Z`} className="area" style={{ fill: 'var(--fire)' }} />
-      <polyline points={pts.map((p) => X(p.t) + ',' + Y(p.v)).join(' ')} className="line" style={{ stroke: 'var(--fire)' }} />
-      {pts.map((p, i) => { const h = i === pts.length - 1 ? 5 : 3.5; return <rect key={i} x={X(p.t) - h} y={Y(p.v) - h} width={h * 2} height={h * 2} className="cursor-dot" style={{ stroke: 'var(--fire)' }} />; })}
-      <text x={m.l} y={H - 6} className="tick">{dateTxt(t0)}</text>
-      {pts.length > 1 ? <text x={W - m.r} y={H - 6} textAnchor="end" className="tick">{dateTxt(t1)}</text> : null}
-    </svg>
-  );
-}
 function FatigueBars({ pts }) {
   const W = 132, H = 44, n = pts.length;
   if (!n) return null;
@@ -1968,7 +1995,10 @@ const SHEET_TITLES = {
   note: 'Not',
   summary: 'Antrenman özeti',
   saveTemplate: 'Plan olarak kaydet',
-  plan: 'Haftalık yük',
+  plan: 'Planlanan haftalık yük',
+  weekDone: 'Yapılan haftalık yük',
+  progress: 'Hareket gelişimi',
+  exprog: 'Hareket gelişimi',
   goal: 'Hedef',
   measure: 'Yorgunluk nasıl ölçülür?',
   wtype: 'Antrenman planı',
@@ -1976,6 +2006,28 @@ const SHEET_TITLES = {
   planPick: 'Bu güne plan ekle',
   legal: 'Yasal metin',
 };
+
+// V32 · "Hâlâ orada mısın?": cevap için kalan süre geri sayılır; dokunmak yeterli, düğmeyle de seçilebilir.
+function IdleAskModal({ ask, onStay, onEnd }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => { const iv = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(iv); }, []);
+  const left = Math.max(0, ask.from + IDLE_ASK_MS + IDLE_END_MS - now);
+  const mm = Math.floor(left / 60000), ss = Math.floor((left % 60000) / 1000);
+  useBack(true, onStay);
+  return (
+    <div className="idle-wrap pxt" role="alertdialog" aria-modal="true" aria-labelledby="idle-h">
+      <div className="idle-box">
+        <h3 id="idle-h">{t('Hâlâ orada mısın?')}</h3>
+        <p>{t('10 dakikadır giriş yok. Cevap gelmezse antrenman son girişin saatinde ({h}) kendiliğinden biter.', { h: clock(ask.last) })}</p>
+        <span className="idle-count" aria-label={t('Kalan süre')}>{mm}:{String(ss).padStart(2, '0')}</span>
+        <div className="idle-btns">
+          <button type="button" id="idle-stay" className="btn primary full" onClick={onStay}>{t('Buradayım, devam')}</button>
+          <button type="button" id="idle-end" className="btn ghost full" onClick={onEnd}>{t('Antrenmanı bitir')}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function App() {
   const lang = useLang();
@@ -2006,6 +2058,13 @@ function App() {
   const closeAll = () => setSheets([]);
   const active = st.sessions.find((s) => s.status === 'active');
   const exitToast = useAndroidBack(tab, () => setTab('bugun'));
+  // V32 · unutulan antrenman: 10 dk giriş yoksa sor, 5 dk daha cevap yoksa son giriş saatinde bitir.
+  const idle = useIdleWatch(active, st, put, (ns) => { setJumpExId(null); setPixelSummary(ns); });
+  useEffect(() => {
+    if (!idle.notice) return undefined;
+    const tm = setTimeout(idle.clearNotice, 9000);
+    return () => clearTimeout(tm);
+  }, [idle.notice]);
 
   useEffect(() => {
     const onHash = () => {
@@ -2110,6 +2169,9 @@ function App() {
       case 'summary': { const s = p.draft || st.sessions.find((x) => x.id === p.id); return s ? <SummaryBody session={s} st={st} put={put} del={del} openSheet={openSheet} onDelete={(id) => del('sessions', id)} onClose={close} /> : <p className="muted-p">{t('Kayıt bulunamadı.')}</p>; }
       case 'saveTemplate': return <SaveTemplateBody session={p.session} st={st} put={put} onClose={close} onSaved={(pr, d) => { closeAll(); setPixelSummary(null); editPlan(pr, d, 'antrenman'); }} />;
       case 'plan': return <PlanBody getProgram={p.getProgram} st={st} openSheet={openSheet} />;
+      case 'weekDone': return <WeekDoneBody st={st} />;
+      case 'progress': return <ProgressListBody st={st} openSheet={openSheet} />;
+      case 'exprog': return <ProgressDetailBody exKey={p.key} st={st} />;
       case 'goal': return <GoalBody id={p.id} st={st} put={put} del={del} addCustom={addCustom} onClose={close} />;
       case 'planPick': return <PlanPickBody dayKey={p.dayKey} st={st} put={put} newPlan={newPlan} onClose={close} />;
       default: return null;
@@ -2118,12 +2180,13 @@ function App() {
   const sheetTitle = (sh) => {
     const p = sh.props;
     if (sh.type === 'exercise') return exName(exMeta(p.exId, p.name) || { name: p.name }) || t('Hareket');
+    if (sh.type === 'exprog') return exName({ exId: p.exId, name: p.name }) || t(SHEET_TITLES.exprog);
     if (sh.type === 'legal') return appDocTitle(p.doc);
     if (sh.type === 'note' || sh.type === 'item' || sh.type === 'setdetail') return p.title || (p.it && exName(p.it)) || t(SHEET_TITLES[sh.type]);
     if (sh.type === 'wtype') { const pr = st.programs.find((x) => x.id === p.pid); const d = pr && pr.days.find((x) => x.id === p.did); return d ? dayLabel(d.name) : t(SHEET_TITLES.wtype); }
     return t(SHEET_TITLES[sh.type]);
   };
-  const sheetSize = (sh) => (['lesson', 'exercise', 'fatigue', 'summary', 'picker', 'measure', 'legal'].includes(sh.type) ? 'full' : '');
+  const sheetSize = (sh) => (['lesson', 'exercise', 'fatigue', 'summary', 'picker', 'measure', 'legal', 'progress', 'exprog'].includes(sh.type) ? 'full' : '');
 
   let screen = null;
   if (planEd) {
@@ -2191,6 +2254,14 @@ function App() {
           {st.error ? <div className="store-message" role="alert">{t(st.error)}</div> : null}
           {acct.migrating ? <div className="store-message" role="status">{t('Kayıtlar hesabına taşınıyor…')}</div> : null}
           {exitToast ? <div className="back-toast" role="status">{t('Çıkmak için tekrar bas')}</div> : null}
+          {idle.notice ? (
+            <button type="button" key={idle.notice.n} id="idle-notice" className="back-toast idle-toast" role="status" onClick={idle.clearNotice}>
+              {idle.notice.kind === 'done'
+                ? t('Antrenman 15 dakika giriş olmadığı için kendiliğinden bitti. Bitiş saati son girişin saati: {h}.', { h: clock(idle.notice.last) })
+                : t('15 dakika giriş olmadı ve set kaydı yoktu: süre durdu, antrenman hazır bekliyor.')}
+            </button>
+          ) : null}
+          {idle.ask ? <IdleAskModal ask={idle.ask} onStay={idle.stay} onEnd={idle.endNow} /> : null}
           <nav className="tabbar tb4" aria-label={t('Ana gezinme')} inert={acct.migrating || acct.busy || !legalOk}>
             {TABS2.map((tb) => (
               <button key={tb.id} id={'tab-' + tb.id} type="button" className={'tab' + (tb.id === tab ? ' on' : '')} aria-label={t(tb.label)} aria-current={tb.id === tab ? 'page' : undefined} onClick={() => pick(tb.id)}>
