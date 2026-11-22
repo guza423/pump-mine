@@ -5,6 +5,7 @@ import { Icon, Switch } from '../lab/Cns';
 import { BackupPanel, exportBackup } from '../programlar/BackupPanel';
 import { accountError } from '../../lib/cloud/errors';
 import { readFxSettings } from '../../lib/native/fx';
+import { remindersOn } from '../plan/reminders';
 import { exactAlarmStatus, openExactAlarmSettings } from '../../lib/native/restTimer';
 import { allPlans } from '../plan/plans';
 import { HoldButton } from '../../app/HoldButton';
@@ -61,6 +62,8 @@ function AccountBody({ st, acct, actions, openSheet, onClose, put }) {
       <Switch id="fx-sound" label={t('Sesler')} on={fx.sound} onChange={(v) => put('settings', { key: 'fx', value: { ...fx, sound: v } })} />
       <Switch id="fx-haptic" label={t('Titreşim')} on={fx.haptic} onChange={(v) => put('settings', { key: 'fx', value: { ...fx, haptic: v } })} />
       <Switch id="fx-motion" label={t('Animasyonlar (cihaz azaltsa da)')} on={fx.motion} onChange={(v) => put('settings', { key: 'fx', value: { ...fx, motion: v } })} />
+      <Switch id="fx-slow" label={t('Sürgüler yavaş (hızın %40\'ı)')} on={!!fx.slow} onChange={(v) => put('settings', { key: 'fx', value: { ...fx, slow: v } })} />
+      <Switch id="remind-plan" label={t('Plan hatırlatması (bir gün önce 20:00)')} on={remindersOn(st.settings)} onChange={(v) => put('settings', { key: 'reminders', value: { plan: v } })} />
       {sysReduce && !fx.motion ? <p className="acct-fx-note">{t('Bu cihaz animasyonları azaltıyor. Bu yüzden set kutucuğa uçmuyor, yerinde yanıp sönüyor. Açarsan tam oynar.')}</p> : null}
       {alarm && alarm.needed && !alarm.allowed ? (
         <div className="acct-fx-note" id="exact-alarm">

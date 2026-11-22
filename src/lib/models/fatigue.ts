@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { EX_LIB, PLYO_W, SKILL_W, isPlyo, isSkill, skillSetTxt, sessionStats, bestE1, hasNum, nf } from "../../features/antrenman/core";
+import { EX_LIB, PLYO_W, SKILL_W, isPlyo, isSkill, isWarmEx, skillSetTxt, sessionStats, bestE1, hasNum, nf } from "../../features/antrenman/core";
 import { weekProgram } from "../../features/plan/plans";
 import { clamp } from "./training";
 import { muscleName, pct, t } from "../../i18n";
@@ -104,7 +104,7 @@ export function planStats(program) {
   (program ? program.days : []).forEach((d) => {
     const mult = d.weekday == null && Array.isArray(d.weekdays) && d.weekdays.length ? d.weekdays.length : 1;
     d.items.forEach((it) => {
-      if (isPlyo(it.exId) || isSkill(it.exId) || 10 - rpeMid(it.rpeMin, it.rpeMax) > 4) return;
+      if (isPlyo(it.exId) || isSkill(it.exId) || isWarmEx(it.exId) || 10 - rpeMid(it.rpeMin, it.rpeMax) > 4) return;
       muscles[it.muscle] = (muscles[it.muscle] || 0) + Number(it.sets || 0) * mult;
     });
   });
@@ -125,7 +125,7 @@ export function weekDoneStats(sessions, now = Date.now()) {
     s.items.forEach((it) => it.sets.forEach((x) => {
       if (x.plyo) contacts += Number(x.reps) || 0;
       else if (x.skill) attempts += Number(x.reps) || 0;
-      else if (x.rir <= 4) { muscles[it.muscle] = (muscles[it.muscle] || 0) + 1; hard += 1; }
+      else if (!x.warm && x.rir <= 4) { muscles[it.muscle] = (muscles[it.muscle] || 0) + 1; hard += 1; }
     }));
   });
   return { muscles, n, hard, contacts, attempts, from };
@@ -134,7 +134,7 @@ export function logStats(sessions, endTs) {
   const from = endTs - 7 * DAY_MS;
   const muscles = {};
   sessions.filter((s) => (s.status === 'done' || s.status === 'active') && !s.ready && s.startedAt >= from && s.startedAt <= endTs + 1000).forEach((s) => s.items.forEach((it) => {
-    it.sets.forEach((x) => { if (!x.plyo && !x.skill && x.rir <= 4) muscles[it.muscle] = (muscles[it.muscle] || 0) + 1; });
+    it.sets.forEach((x) => { if (!x.plyo && !x.skill && !x.warm && x.rir <= 4) muscles[it.muscle] = (muscles[it.muscle] || 0) + 1; });
   }));
   return { muscles };
 }
@@ -163,7 +163,7 @@ export function setLoads(sessions, t) {
         if (!x.at || x.at > t || t - x.at >= 7 * DAY_MS) return;
         if (x.plyo) { out.push({ at: x.at, w: x.reps * PLYO_W[(lib && lib.int) || 2], plyo: true, contacts: x.reps }); return; }
         if (x.skill) { out.push({ at: x.at, w: x.reps * SKILL_W[(lib && lib.fat) || 1], skill: true, attempts: x.reps }); return; }
-        if (x.rir <= 4) out.push({ at: x.at, w: proxW(x.rir) * c, rir: x.rir, heavy: c >= 1.5 });
+        if (!x.warm && x.rir <= 4) out.push({ at: x.at, w: proxW(x.rir) * c, rir: x.rir, heavy: c >= 1.5 });
       });
     });
   });
@@ -246,7 +246,7 @@ export function periodFatigue(st, days, now = Date.now()) {
       if (!x.at || x.at > now || x.at < start - 7 * DAY_MS) return;
       if (x.plyo) loads.push({ at: x.at, w: x.reps * PLYO_W[(lib && lib.int) || 2] });
       else if (x.skill) loads.push({ at: x.at, w: x.reps * SKILL_W[(lib && lib.fat) || 1] });
-      else if (x.rir <= 4) loads.push({ at: x.at, w: proxW(x.rir) * c });
+      else if (!x.warm && x.rir <= 4) loads.push({ at: x.at, w: proxW(x.rir) * c });
     });
   }));
   loads.sort((a, b) => a.at - b.at);
@@ -299,7 +299,7 @@ export function simFromPlan(p) {
   const days = p.days.filter((d) => d.items.length);
   days.forEach((d) => d.items.forEach((it) => {
     const r = 10 - rpeMid(it.rpeMin, it.rpeMax);
-    if (isPlyo(it.exId) || isSkill(it.exId) || r > 4) return;
+    if (isPlyo(it.exId) || isSkill(it.exId) || isWarmEx(it.exId) || r > 4) return;
     const n = Number(it.sets || 0);
     sets += n; rir += r * n;
     const m = exMeta(it.exId, it.name);

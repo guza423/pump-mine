@@ -2226,3 +2226,88 @@
   color: var(--gold);
   letter-spacing: 0.02em;
 }
+
+/* ---------- V33 · ısınma seti, hedef kutucukları, set özelliği, hedef aralık, sürükleme hızı, antrenman öncesi ısınma ---------- */
+.px .px-spd-wrap { display: flex; gap: 9px; margin: 6px 3px 0; align-items: stretch; }
+.px .px-spd-wrap .px-spd-row { flex: 1 1 auto; min-width: 0; margin: 0; }
+.px .sb.wu { flex: 0 0 40px; color: #4aa8ff; }
+.px .sb.wu .sbl { color: #4aa8ff; }
+.px .sb.wu.sel {
+  background: #16283f;
+  box-shadow: 0 -3px 0 0 #4aa8ff, 0 3px 0 0 #4aa8ff, -3px 0 0 0 #4aa8ff, 3px 0 0 0 #4aa8ff;
+}
+@media (max-width: 360px) { .px .px-spd-wrap { gap: 5px; } .px .sb.wu { flex-basis: 34px; } }
+
+.px .st.wu { background: #16283f; box-shadow: inset 0 0 0 2px #2f5a86; }
+.px .st.wu .st-main { color: #9cc9f5; }
+.px .st-attr { position: absolute; left: 3px; top: 3px; width: 6px; height: 6px; background: var(--gold); }
+.px .st-no { position: absolute; left: 3px; bottom: 1px; font-size: 9px; line-height: 1; color: var(--mt); opacity: 0.8; }
+.px .st.slot {
+  cursor: default;
+  background: transparent;
+  box-shadow: inset 0 0 0 2px #3a3462;
+  background-image: repeating-linear-gradient(90deg, transparent 0 6px, rgba(255, 255, 255, 0.03) 6px 8px);
+}
+.px .st.slot .st-main { color: var(--mt); font-size: 14px; }
+.px .st.slot-next { box-shadow: inset 0 0 0 2px var(--gold); animation: pxSlotPulse 1.2s steps(2) infinite; }
+.px .st.slot-next .st-main { color: var(--gold); }
+.px .st.slot.fill { cursor: pointer; background: #2f2a55; background-image: none; box-shadow: inset 0 0 0 2px #4a4378; }
+.px .st.slot.fill.new { box-shadow: inset 0 0 0 3px var(--gold); }
+@keyframes pxSlotPulse { 0% { box-shadow: inset 0 0 0 2px var(--gold); } 50% { box-shadow: inset 0 0 0 2px #6b5a2a; } }
+
+.px .ib { position: relative; }
+.px .ib.attr {
+  color: var(--btx);
+  background: var(--gold);
+  box-shadow: 0 -3px 0 0 var(--gold), 0 3px 0 0 var(--gold), -3px 0 0 0 var(--gold), 3px 0 0 0 var(--gold);
+}
+.px .ib-badge { position: absolute; right: -6px; top: -6px; min-width: 16px; height: 16px; padding: 0 3px; font-size: 10px; line-height: 16px; color: var(--btx); background: var(--fire); }
+.px .px-attr-on { color: var(--gold); font-weight: 700; }
+
+.px .px-sens {
+  appearance: none;
+  border: 0;
+  margin-left: auto;
+  padding: 3px 8px;
+  font: 700 12px var(--px-f-body, 'IBM Plex Sans', system-ui, sans-serif);
+  letter-spacing: 0.06em;
+  color: var(--mt);
+  background: var(--pn);
+  box-shadow: inset 0 0 0 2px var(--ln);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.px .px-sens b { color: var(--tx); font-size: 11px; margin-left: 2px; }
+.px .px-sens.on { color: var(--btx); background: var(--gold); box-shadow: inset 0 0 0 2px var(--gold); }
+.px .px-sens.on b { color: var(--btx); }
+.px .px-rep-head .px-sens { margin-right: 10px; }
+.px .sg.rg { box-shadow: inset 0 -5px 0 0 var(--gold); }
+
+.px .go.px-wu { background: #4aa8ff; box-shadow: 0 -4px 0 0 #4aa8ff, 0 4px 0 0 #4aa8ff, -4px 0 0 0 #4aa8ff, 4px 0 0 0 #4aa8ff, 0 10px 0 0 #1f5c96; }
+.px .go.px-wu:active { box-shadow: 0 -4px 0 0 #4aa8ff, 0 4px 0 0 #4aa8ff, -4px 0 0 0 #4aa8ff, 4px 0 0 0 #4aa8ff, 0 5px 0 0 #1f5c96; }
+
+.px .px-wu-dur { margin-top: 10px; padding: 0 3px; }
+.px .px-hz-row { display: flex; gap: 8px; margin: 6px 3px 0; height: clamp(72px, 14vh, 96px); }
+.px .px-hz {
+  flex: 1 1 0;
+  min-width: 0;
+  border: 0;
+  padding: 5px 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font: inherit;
+  color: var(--mt);
+  background: var(--pn);
+  box-shadow: 0 -3px 0 0 var(--ln), 0 3px 0 0 var(--ln), -3px 0 0 0 var(--ln), 3px 0 0 0 var(--ln);
+  cursor: pointer;
+}
+.px .px-hz-bar { flex: 1; position: relative; }
+.px .px-hz-bar i { position: absolute; left: 4px; right: 4px; bottom: 0; background: var(--c); opacity: 0.35; }
+.px .px-hz-k { font-size: 11px; font-weight: 600; line-height: 1.1; min-height: 2.2em; display: flex; align-items: center; justify-content: center; text-align: center; overflow: hidden; overflow-wrap: normal; }
+.px .px-hz.on { color: var(--tx); background: var(--pn2); box-shadow: 0 -3px 0 0 var(--c), 0 3px 0 0 var(--c), -3px 0 0 0 var(--c), 3px 0 0 0 var(--c); }
+.px .px-hz.on .px-hz-bar i { opacity: 1; }
+
+.px-dr-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.px-dr-bw { font-size: 16px !important; }
+.px-dr-bwk { position: absolute; transform: translateX(-10%); font-weight: 700; color: var(--px-gold, #ffc53d); }

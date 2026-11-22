@@ -11,6 +11,9 @@ export interface ProgramItem {
   rpeMax: number | null;
   rest: number;
   note: string;
+  /** V33 · antrenman öncesi ısınma: süre (dk) ve yoğunluk skalası 1–5 (sayısız nabız kademesi). */
+  dur?: number;
+  z?: number;
 }
 
 export interface ProgramDay {
@@ -46,7 +49,13 @@ export interface RecordedSet {
   q?: 0 | 1 | 2;
   at: number;
   note?: string;
+  /** Nasıldı etiketleri ve V33 set özellikleri (Drop set, Tükenişe kadar …); Türkçe anahtar, gösterimde çevrilir. */
   tags?: string[];
+  /** V33 · ısınma seti: kilo, tekrar ve hız önemsiz; 1RM, yorgunluk, zor set, tonaj ve gelişime girmez (rir 9). */
+  warm?: boolean;
+  /** V33 · antrenman öncesi ısınma (kardiyo) seti: süre (dk) ve yoğunluk 1–5. `warm` da true'dur. */
+  dur?: number;
+  z?: number;
 }
 
 export interface FxSettings {
@@ -54,6 +63,8 @@ export interface FxSettings {
   haptic: boolean;
   /** Cihaz "animasyonları azalt" dese de oyun animasyonları (set inişi vb.) tam oynasın. */
   motion: boolean;
+  /** V33 · sürgüler yavaş: sürükleme hızı %40. */
+  slow?: boolean;
 }
 
 export type PerfGoal = {
@@ -89,6 +100,9 @@ export interface SessionItem {
   memo?: string;
   target: Omit<ProgramItem, 'id' | 'exId' | 'name' | 'muscle' | 'note'>;
   sets: RecordedSet[];
+  /** V33 · plansız antrenmanda hareketin hedef tekrar aralığı (setler yine tek sayı kaydolur). */
+  range?: { lo: number; hi: number };
+  done?: boolean;
 }
 
 export interface SessionRest {

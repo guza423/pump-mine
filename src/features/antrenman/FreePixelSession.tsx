@@ -3,14 +3,16 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   EQ, EX_LIB, MUSCLES, PLYO_INT, PLYO_W, SKILL_W,
   bestE1, clone, e1Ok, e1rm, firstOpen, hasNum, itemFromEx, libById, newId, nf, normTr, noteLabel, rpeLabel, sessionStats, skillSetTxt, targetTxt,
+  WARM_Z, WARM_Z_COLORS, warmSetTxt, canBodyweight, warmFirst, SET_ATTRS, repTxt,
 } from './core';
+import { PxStair } from './PxDrag';
 import { dbMultiplier, freeEntry, isFree, sessionName } from '../../lib/models/session';
 import { changeRest, restDuration } from '../../lib/models/rest';
 import { startRest, stopRest } from '../../lib/native/restTimer';
 import { fatigueAt } from '../../lib/models/fatigue';
 import { clamp } from '../lab/Cns';
 import { useBack } from '../../app/back';
-import { pixelFx, readFxSettings } from '../../lib/native/fx';
+import { dragSpeed, pixelFx, readFxSettings } from '../../lib/native/fx';
 import { PixelWeightVisual } from './PixelWeightVisual';
 import { HoldButton } from '../../app/HoldButton';
 import {
@@ -27,6 +29,7 @@ const EX_KINDS: Array<[string, string]> = [
   ['olimpik', 'Olimpik'],
   ['plyo', 'Pliometrik'],
   ['beceri', 'Beceri'],
+  ['isinma', 'Isınma'],
 ];
 
 const exMeta = (exId: string | null, name?: string) =>
@@ -43,6 +46,24 @@ interface Props {
   onDiscarded: () => void;
   jumpExId?: string | null;
   onJumpHandled?: () => void;
+}
+
+function RangeWin({ it, reps, fx, onSave, onClose }: { it: any; reps: number; fx: any; onSave: (next: any) => void; onClose: () => void }) {
+  const [rg, setRg] = useState(() => it.range || { lo: Math.max(1, Math.min(reps, 8)), hi: Math.max(reps, 12) });
+  return (
+    <React.Fragment>
+      <button type="button" className="bd" onClick={onClose} aria-label={t('Pencereyi kapat')} />
+      <div className="win" role="dialog" aria-label={t('Hedef tekrar aralığı')}>
+        <span className="lbl" style={{ color: 'var(--gold)', fontSize: 15 }}>{t('HEDEF TEKRAR ARALIĞI')}</span>
+        <div style={{ fontSize: 13, color: 'var(--mt)' }}>{t('Setleri yine yaptığın tekrar sayısıyla kaydedersin; aralık hedef olarak görünür ve bu hareket için hatırlanır.')}</div>
+        <PxStair id="range-stair" label={t('Tekrar')} min={1} max={30} range lo={rg.lo} hi={rg.hi} onChange={(a, b) => setRg({ lo: a, hi: b })} fx={fx} marks={[1, 5, 10, 15, 20, 25, 30]} loLabel={t('En az tekrar')} hiLabel={t('En çok tekrar')} />
+        <div style={{ display: 'flex', gap: 12 }}>
+          {it.range ? <button type="button" id="range-clear" className="bb" onClick={() => onSave(null)}>{t('KALDIR')}</button> : <button type="button" className="bb" onClick={onClose}>{t('VAZGEÇ')}</button>}
+          <button type="button" id="range-ok" className="go" onClick={() => onSave(rg)}>{t('TAMAM')}</button>
+        </div>
+      </div>
+    </React.Fragment>
+  );
 }
 
 export const FreePixelSession: React.FC<Props> = ({
@@ -77,6 +98,11 @@ export const FreePixelSession: React.FC<Props> = ({
   const [hold, setHold] = useState(0);
   const [entryNote, setEntryNote] = useState('');
   const [entryTags, setEntryTags] = useState<string[]>([]);
+  // V33 · ısınma seti (hız satırının solunda), antrenman öncesi ısınmanın süresi ve yoğunluğu, hedef tekrar aralığı penceresi
+  const [warm, setWarm] = useState(false);
+  const [wDur, setWDur] = useState(10);
+  const [wZ, setWZ] = useState(2);
+  const [rangeOpen, setRangeOpen] = useState(false);
 
   // Efekt sayaçları
   const [fxKg, setFxKg] = useState(0);
@@ -145,9 +171,10 @@ export const FreePixelSession: React.FC<Props> = ({
     return ns;
   };
 
+  // Kilo penceresinin sol ucu (V33: barbell 20 kg'dan başlar, pencere en altta min değerden açılır).
   const centerKg = (v: number, cfg = cfgRef.current) => {
-    const span = Math.max(0, cfg.max - cfg.W);
-    return Math.min(span, Math.max(0, Math.round((v - cfg.W / 2) / cfg.step) * cfg.step));
+    const span = Math.max(cfg.min, cfg.max - cfg.W);
+    return Math.min(span, Math.max(cfg.min, Math.round((v - cfg.W / 2) / cfg.step) * cfg.step));
   };
 
   const autoStart = (why: string) => {
@@ -187,7 +214,9 @@ export const FreePixelSession: React.FC<Props> = ({
       reps: hasNum(tg.repMax) ? Number(tg.repMax) : hasNum(tg.repMin) ? Number(tg.repMin) : fe.reps,
     };
     const snappedKg = Math.min(cfg.max, Math.max(cfg.min, Math.round(init.kg / cfg.step) * cfg.step));
-    const initReps = clamp(Math.round(init.reps || 10), 1, lib?.kind === 'plyo' || lib?.kind === 'beceri' ? 60 : 30);
+    // V33 · plansızda hareketin hedef aralığı varsa ilk set aralığın üst ucundan başlar
+    const rg = isFree(sRef.current) && !target.sets.length && target.range ? target.range : null;
+    const initReps = clamp(Math.round(rg ? rg.hi : init.reps || 10), 1, lib?.kind === 'plyo' || lib?.kind === 'beceri' ? 60 : 30);
     const initLvl = (clamp(init.lvl ?? 1, 0, 4)) as 0 | 1 | 2 | 3 | 4;
     const initLo = centerKg(snappedKg, cfg);
 
@@ -202,6 +231,13 @@ export const FreePixelSession: React.FC<Props> = ({
     setHold(init.hold || 0);
     setEntryNote('');
     setEntryTags([]);
+    setWarm(false);
+    setRangeOpen(false);
+    {
+      const lastW = target.sets.filter((x: any) => x.dur).at(-1);
+      setWDur(clamp(Math.round(Number(lastW?.dur ?? tg.dur ?? 10)) || 10, 1, 60));
+      setWZ(clamp(Math.round(Number(lastW?.z ?? tg.z ?? 2)) || 2, 1, 5));
+    }
     setSelIdx(null);
     setConfirmDelSet(false);
     setListEnd(false);
@@ -343,6 +379,7 @@ export const FreePixelSession: React.FC<Props> = ({
 
   // Android geri tuşu zinciri (üste açık pencereden aşağı)
   useBack(!!confirmModal, () => setConfirmModal(null));
+  useBack(rangeOpen && !confirmModal, () => setRangeOpen(false));
   useBack(selIdx != null && !confirmModal, closeSel);
   useBack(scr === 'log' && restOpen && selIdx == null && !confirmModal, hideRest);
   useBack(scr === 'log' && !restOpen && selIdx == null && !confirmModal, goList);
@@ -352,6 +389,9 @@ export const FreePixelSession: React.FC<Props> = ({
   const itemLib = item ? exMeta(item.exId, item.name) : null;
   const isPlyoEx = !!(itemLib && itemLib.kind === 'plyo');
   const isSkillEx = !!(itemLib && itemLib.kind === 'beceri');
+  const isWarmupEx = !!(itemLib && itemLib.kind === 'isinma');
+  const bwOk = canBodyweight(itemLib);
+  const slowF = dragSpeed(readFxSettings(st.settings));
   const cfg = eqConfig(itemLib?.eq);
   cfgRef.current = cfg;
 
@@ -361,8 +401,14 @@ export const FreePixelSession: React.FC<Props> = ({
     const len = item?.sets.length ?? 0;
     if (len !== prevLenRef.current) {
       prevLenRef.current = len;
-      if (setListRef.current) {
-        try { setListRef.current.scrollTop = 0; } catch { /* ignore */ }
+      const g = setListRef.current;
+      if (g) {
+        // planlıda sıradaki boş hedef kutucuğu görünür kalır (setler sırayla doluyor); plansızda en yeni set en üstte
+        const next = !isFree(sRef.current) ? (g.querySelector('.slot-next') as HTMLElement | null) : null;
+        try {
+          if (next) g.scrollTop = Math.max(0, next.offsetTop - g.offsetTop - 40);
+          else g.scrollTop = 0;
+        } catch { /* ignore */ }
       }
       setListEnd(false);
     }
@@ -480,7 +526,7 @@ export const FreePixelSession: React.FC<Props> = ({
     let nlo = lo;
     if (v > lo + c.W * 0.88) nlo = v - c.W * 0.88;
     else if (v < lo + c.W * 0.12) nlo = v - c.W * 0.12;
-    nlo = Math.min(Math.max(0, c.max - c.W), Math.max(0, Math.round(nlo / c.step) * c.step));
+    nlo = Math.min(Math.max(c.min, c.max - c.W), Math.max(c.min, Math.round(nlo / c.step) * c.step));
     if (nlo !== lo) { curVals.current.lo = nlo; setLoState(nlo); }
   };
 
@@ -499,7 +545,7 @@ export const FreePixelSession: React.FC<Props> = ({
         setEdge(ed);
         setKgVal(nv);
         keepKgInView(curVals.current.kg);
-        delay = Math.max(35, 120 - d.n * 7);
+        delay = Math.max(35, 120 - d.n * 7) / dragSpeed(fxRef.current);
       } else {
         setEdge(0);
       }
@@ -527,7 +573,8 @@ export const FreePixelSession: React.FC<Props> = ({
     const fn = fineOf(e.clientY, d.r);
     setFine(fn);
     d.f = frac(e.clientX, d.r);
-    d.acc = Math.min(c.max, Math.max(c.min, d.acc + ((e.clientX - d.x) * fn * c.W) / (d.r.width || barWRef.current || 354)));
+    // V33 · "Yavaş" seçiliyse sürükleme %40 hızda
+    d.acc = Math.min(c.max, Math.max(c.min, d.acc + ((e.clientX - d.x) * fn * dragSpeed(fxRef.current) * c.W) / (d.r.width || barWRef.current || 354)));
     d.x = e.clientX;
     setKgVal(d.acc);
     keepKgInView(curVals.current.kg);
@@ -581,7 +628,7 @@ export const FreePixelSession: React.FC<Props> = ({
     if (!d) return;
     const fn = fineOf(e.clientY, d.r);
     setFine(fn);
-    d.acc = Math.min(30.49, Math.max(0.5, d.acc + ((e.clientX - d.x) * fn * 30) / (d.r.width || barWRef.current || 354)));
+    d.acc = Math.min(30.49, Math.max(0.5, d.acc + ((e.clientX - d.x) * fn * dragSpeed(fxRef.current) * 30) / (d.r.width || barWRef.current || 354)));
     d.x = e.clientX;
     setRepsVal(d.acc);
   };
@@ -599,6 +646,7 @@ export const FreePixelSession: React.FC<Props> = ({
 
   const setLvlVal = (v: number) => {
     const l = Math.min(4, Math.max(0, Math.round(v))) as 0 | 1 | 2 | 3 | 4;
+    setWarm(false);
     if (l === curVals.current.lvl) return;
     curVals.current.lvl = l;
     setLvlState(l);
@@ -725,7 +773,13 @@ export const FreePixelSession: React.FC<Props> = ({
       autoStart('İlk setini kaydettin');
     }
     const nowTs = Date.now();
-    const set: any = isSkillEx
+    const set: any = isWarmupEx
+      // V33 · antrenman öncesi ısınma: yalnızca süre ve yoğunluk; hesaplara girmez
+      ? { kg: 0, reps: 1, dur: wDur, z: wZ, warm: true, lvl: null, vl: 0, rpe: null, rir: 9, at: nowTs }
+      : warm && !isSkillEx && !isPlyoEx
+      // V33 · ısınma seti: kilo ve tekrar kayda geçer ama 1RM, yorgunluk, zor set, tonaj ve gelişime girmez
+      ? { kg: curVals.current.kg, reps: curVals.current.reps, warm: true, lvl: null, vl: 0, rpe: null, rir: 9, rom: 100, at: nowTs }
+      : isSkillEx
       ? {
           kg: 0,
           reps: Math.max(1, Math.round(reps)),
@@ -766,7 +820,8 @@ export const FreePixelSession: React.FC<Props> = ({
 
     const nextRest = {
       start: nowTs,
-      total: restDuration(sRef.current, item, prefsRef.current),
+      // ısınma setinden sonra en çok 60 sn
+      total: set.warm ? Math.min(60, restDuration(sRef.current, item, prefsRef.current)) : restDuration(sRef.current, item, prefsRef.current),
       exId: item.exId,
       setNo: item.sets.length + 1,
     };
@@ -786,6 +841,8 @@ export const FreePixelSession: React.FC<Props> = ({
     setQQuality(0);
     setEntryNote('');
     setEntryTags([]);
+    // her ısınma seti ayrıca seçilir: unutulursa iş seti ısınma sayılmasın
+    setWarm(false);
     setSelIdx(null);
     setFxLog((x) => x + 1);
     setNow(nowTs);
@@ -816,14 +873,14 @@ export const FreePixelSession: React.FC<Props> = ({
     const br = btn.getBoundingClientRect();
     const gr = grid.getBoundingClientRect();
     const cs = getComputedStyle(grid);
-    const first = grid.querySelector('.st') as HTMLElement | null;
+    const first = (grid.querySelector(set.warm ? '.st.wu' : '.st.slot-next') || grid.querySelector('.st')) as HTMLElement | null;
     const fr = first ? first.getBoundingClientRect() : null;
     const gap = parseFloat(cs.columnGap || '8') || 8;
     const w = fr ? fr.width : Math.max(80, (gr.width - (parseFloat(cs.paddingRight) || 0) - 2 * gap) / 3);
     const h = fr ? fr.height : 34;
     const x = (fr ? fr.left : gr.left + (parseFloat(cs.paddingLeft) || 0)) - rr.left;
     const y = (fr ? fr.top : gr.top + (parseFloat(cs.paddingTop) || 0)) - rr.top;
-    const txt = isSkillEx ? t('{n}d', { n: set.reps }) : isPlyoEx ? t('{n}t', { n: set.reps }) : `${fk(Number(set.kg))}×${set.reps}`;
+    const txt = isWarmupEx ? t('{n} dk', { n: set.dur }) : isSkillEx ? t('{n}d', { n: set.reps }) : isPlyoEx ? t('{n}t', { n: set.reps }) : `${fk(Number(set.kg))}×${set.reps}`;
     setFly({ n: nowTs, x, y, w, h, dx: br.left + br.width / 2 - (rr.left + x + w / 2), dy: br.top + br.height / 2 - (rr.top + y + h / 2), txt });
     pixelFx.land(fxRef.current);
     if (landT.current) clearTimeout(landT.current);
@@ -838,10 +895,12 @@ export const FreePixelSession: React.FC<Props> = ({
     if (!item) return;
     openSheet('note', {
       title: exLabel(item),
-      init: { note: entryNote, tags: entryTags, memo: item.memo || '', canProgram: !!(sRef.current.programId && item.srcId) },
+      init: { note: entryNote, tags: entryTags, memo: item.memo || '', canProgram: !!(sRef.current.programId && item.srcId), attrs: !isPlyoEx && !isSkillEx && !isWarmupEx },
       onSave: (r: any) => {
         setEntryNote(r.note || '');
         setEntryTags(r.tags || []);
+        // "Tükenişe kadar" seçildiyse son tekrar hızı "Zar zor" (RIR 0) olur: hesap set özelliğiyle tutarlı kalır.
+        if ((r.tags || []).includes('Tükenişe kadar') && !entryTags.includes('Tükenişe kadar')) setLvlVal(4);
         mutate((ns) => { ns.items[cur].memo = r.memo || ''; });
         // Planlı oturumda not istenirse plana da yazılır
         if (r.toProgram) {
@@ -859,7 +918,7 @@ export const FreePixelSession: React.FC<Props> = ({
 
   // Seçici (scrPick) için veri
   const allPickerExercises = useMemo(() => [
-    ...EX_LIB.map((e) => ({ ...e, exId: e.id, src: 'lib' })),
+    ...warmFirst(EX_LIB.map((e) => ({ ...e, exId: e.id, src: 'lib' }))),
     ...(st.custom || []).map((c: any) => ({ id: c.id, exId: c.id, name: c.name, en: '', muscle: c.muscle, eq: 'dg', rest: 90, kind: 'kuvvet', src: 'custom' })),
   ], [st.custom]);
 
@@ -888,10 +947,13 @@ export const FreePixelSession: React.FC<Props> = ({
     if (!picked.length) return;
     const chosen = picked.map((id) => allPickerExercises.find((e) => e.exId === id)).filter(Boolean);
     if (!chosen.length) return;
+    const ranges = st.settings.find((x: any) => x.key === 'repRanges')?.value || {};
     mutate((ns) => {
       chosen.forEach((ex: any) => {
         const d = itemFromEx(ex);
+        const rg = ranges[d.exId || d.name];
         ns.items.push({
+          ...(isFree(ns) && Array.isArray(rg) ? { range: { lo: rg[0], hi: rg[1] } } : {}),
           id: newId('e'),
           srcId: null,
           exId: d.exId,
@@ -899,7 +961,7 @@ export const FreePixelSession: React.FC<Props> = ({
           muscle: d.muscle,
           note: '',
           memo: '',
-          target: { sets: d.sets, repMin: d.repMin, repMax: d.repMax, kg: d.kg, rpeMin: d.rpeMin, rpeMax: d.rpeMax, rest: d.rest },
+          target: { sets: d.sets, repMin: d.repMin, repMax: d.repMax, kg: d.kg, rpeMin: d.rpeMin, rpeMax: d.rpeMax, rest: d.rest, ...(d.dur ? { dur: d.dur, z: d.z } : {}) },
           sets: [],
         });
       });
@@ -1002,6 +1064,20 @@ export const FreePixelSession: React.FC<Props> = ({
     );
   };
 
+  // V33 · plansızda hareketin hedef tekrar aralığı: setler yine tek sayı; aralık hareket için hatırlanır (ayar: repRanges).
+  const saveRange = (it: any, next: any) => {
+    const idx = sRef.current.items.findIndex((x: any) => x.id === it.id);
+    if (idx < 0) return;
+    mutate((ns) => { if (next) ns.items[idx].range = next; else delete ns.items[idx].range; });
+    const key = it.exId || it.name;
+    const cur0 = st.settings.find((x: any) => x.key === 'repRanges')?.value || {};
+    const nv = { ...cur0 };
+    if (next) nv[key] = [next.lo, next.hi]; else delete nv[key];
+    put('settings', { key: 'repRanges', value: nv });
+    if (next && !it.sets.length) setRepsVal(next.hi);
+    setRangeOpen(false);
+  };
+
   /* ================= EKRAN 1: HAREKET LİSTESİ ================= */
   if (scr === 'list') {
     return (
@@ -1059,10 +1135,14 @@ export const FreePixelSession: React.FC<Props> = ({
               const plyo = !!(lib && lib.kind === 'plyo');
               const skill = !!(lib && lib.kind === 'beceri');
               const n = it.sets.length;
-              const ton = it.sets.reduce((a: number, x: any) => a + (x.plyo || x.skill ? 0 : (Number(x.kg) || 0) * x.reps * mult), 0);
-              const tgSets = planned && it.target ? Number(it.target.sets) || 0 : 0;
-              const sum = tgSets
-                ? t('{d}/{n} set', { d: n, n: tgSets }) + (n && !plyo && !skill ? ' · ' + num(Math.round(ton)) + ' kg' : '')
+              const ton = it.sets.reduce((a: number, x: any) => a + (x.plyo || x.skill || x.warm ? 0 : (Number(x.kg) || 0) * x.reps * mult), 0);
+              const wu = !!(lib && lib.kind === 'isinma');
+              const tgSets = planned && it.target && !wu ? Number(it.target.sets) || 0 : 0;
+              const nWork = it.sets.filter((x: any) => !x.warm).length;
+              const sum = wu
+                ? (n ? t('{n} dk', { n: it.sets.reduce((a: number, x: any) => a + (Number(x.dur) || 0), 0) }) : targetTxt(it.target || {}, it.exId))
+                : tgSets
+                ? t('{d}/{n} set', { d: nWork, n: tgSets }) + (n && !plyo && !skill ? ' · ' + num(Math.round(ton)) + ' kg' : '')
                 : !n
                 ? t('set yok')
                 : plyo
@@ -1102,12 +1182,16 @@ export const FreePixelSession: React.FC<Props> = ({
                     {n > 0 ? (
                       <span style={{ display: 'flex', gap: 6, flexWrap: 'nowrap', overflow: 'hidden' }}>
                         {recent.map((x: any, rIdx: number) => {
-                          const chipColor = x.plyo
+                          const chipColor = x.warm
+                            ? WARM_Z_COLORS[0]
+                            : x.plyo
                             ? PX_PLYO_Q[x.q || 0].c
                             : x.skill
                               ? PX_SKILL_Q[x.q || 0].c
                               : PX_SPEED_COLORS[x.lvl ?? 1];
-                          const chipTxt = x.skill
+                          const chipTxt = x.dur
+                            ? t('{n} dk', { n: x.dur })
+                            : x.skill
                             ? t('{n}d', { n: x.reps })
                             : x.plyo
                               ? (Number(x.kg) ? '+' + fk(Number(x.kg)) + '×' : '') + t('{n}t', { n: x.reps })
@@ -1330,50 +1414,53 @@ export const FreePixelSession: React.FC<Props> = ({
 
   const sets = item.sets;
   const nS = sets.length;
-  const tgt = planned && item.target && Number(item.target.sets) ? item.target : null;
-  const setCount = tgt ? t('{d}/{n} set', { d: nS, n: tgt.sets }) : t('{n} set', { n: nS });
+  // V33 · ısınma setleri sayılmaz: set numarası ve hedef sayacı iş setlerinden
+  const workN = sets.filter((x: any) => !x.warm).length;
+  const tgt = planned && item.target && Number(item.target.sets) && !isWarmupEx ? item.target : null;
+  const setCount = tgt ? t('{d}/{n} set', { d: workN, n: tgt.sets }) : t('{n} set', { n: workN });
   const planNote = planned ? (item.memo || noteLabel(item.note) || '') : '';
-  // Son sefer: bu hareketin önceki biten antrenmandaki setleri (planlıda boş set alanında görünür)
-  const prevTxt = (() => {
-    if (!planned) return null;
-    const same = (e: any) => (item.exId && e.exId === item.exId) || e.name === item.name;
-    const prevSes = st.sessions
-      .filter((x: any) => x.status === 'done' && x.startedAt < s.startedAt && x.items.some(same))
-      .sort((a: any, b: any) => b.startedAt - a.startedAt)[0];
-    const prevItem = prevSes ? prevSes.items.find(same) : null;
-    if (!prevItem || !prevItem.sets.length) return null;
-    return prevItem.sets.map((z: any) => (z.skill ? t('{n}d', { n: z.reps }) : z.plyo ? t('{n}t', { n: z.reps }) : fk(Number(z.kg)) + '×' + z.reps)).join(', ');
-  })();
   const mult = dbMultiplier(item.exId, item.name);
-  const vol = sets.reduce((a: number, x: any) => a + (x.plyo || x.skill ? 0 : (Number(x.kg) || 0) * x.reps * mult), 0);
+  const vol = sets.reduce((a: number, x: any) => a + (x.plyo || x.skill || x.warm ? 0 : (Number(x.kg) || 0) * x.reps * mult), 0);
+  const range = !planned && item.range ? item.range : null;
+  const attrs = entryTags.filter((x) => SET_ATTRS.includes(x));
   const eqNameUpper = upper(itemLib ? eqLabel(itemLib.eq) : t('Özel'));
   const hasNote = !!(entryNote || entryTags.length || item.memo);
 
   const hasMore = nS > 6;
   const rowsReversed = sets.map((x: any, i: number) => ({ x, i })).reverse();
+  // V33 · planlıda hedef setler sırayla kutucuk: yapıldıkça dolar; ısınma setleri önde, ayrı renkte
+  const slotPlan = (() => {
+    if (!tgt) return null;
+    const all = sets.map((x: any, i: number) => ({ x, i }));
+    const work = all.filter((o: any) => !o.x.warm);
+    const n = Math.max(Number(tgt.sets) || 0, work.length);
+    return { warm: all.filter((o: any) => o.x.warm), slots: Array.from({ length: n }, (_, k) => work[k] || null), next: work.length };
+  })();
+  const slotTxt = tgt ? (hasNum(tgt.kg) && Number(tgt.kg) > 0 ? fk(Number(tgt.kg)) + '×' : '') + repTxt(tgt.repMin, tgt.repMax) : '';
 
   // Kuvvet / Olimpik hesapları
+  // Bant, ekipmanın en düşük değerinden başlar (V33: barbell 20 kg); ek yüksüz yapılabilen harekette 0 = VA.
   const PPK = barWidth / cfg.W;
   const ticks: Array<{ v: number; x: number; cls: string }> = [];
   const labels: Array<{ v: number; x: number; t: string; cls: string }> = [];
-  for (let v = 0; v <= cfg.max + 1e-9; v += cfg.step) {
+  for (let v = cfg.min; v <= cfg.max + 1e-9; v += cfg.step) {
     const rv = Math.round(v * 100) / 100;
-    const x = +(rv * PPK).toFixed(2);
+    const x = +((rv - cfg.min) * PPK).toFixed(2);
     const kind = rv % 10 === 0 ? 'mj' : rv % 5 === 0 ? 'md' : 'mn';
     ticks.push({ v: rv, x, cls: kind + (rv <= kg ? ' on' : '') });
-    if (rv % 10 === 0) labels.push({ v: rv, x, t: String(rv), cls: rv === kg ? 'lb cur' : 'lb' });
+    if (rv % 10 === 0) labels.push({ v: rv, x, t: rv === 0 && bwOk ? t('VA') : String(rv), cls: rv === kg ? 'lb cur' : 'lb' });
   }
-  const thumbX = +(kg * PPK).toFixed(2);
-  const tapeX = -(+(lo * PPK).toFixed(2));
+  const thumbX = +((kg - cfg.min) * PPK).toFixed(2);
+  const tapeX = -(+((lo - cfg.min) * PPK).toFixed(2));
   const prevSet = sets[sets.length - 1];
-  const ghostX = prevSet ? +(Number(prevSet.kg) * PPK).toFixed(2) : -40;
-  const trackW = Math.ceil(cfg.max * PPK) + 24;
+  const ghostX = prevSet && !prevSet.warm ? +((Number(prevSet.kg) - cfg.min) * PPK).toFixed(2) : -40;
+  const trackW = Math.ceil((cfg.max - cfg.min) * PPK) + 24;
 
   const kgPop = par(fxKg, 'popA', 'popB');
   const repPop = par(fxRep, 'popA', 'popB');
   const curSp = PX_SPEED[lvl];
   const rir = curSp.rir;
-  const e1okLive = rir <= 4 && reps + rir <= 12 && rom >= 90 && kg > 0;
+  const e1okLive = !warm && rir <= 4 && reps + rir <= 12 && rom >= 90 && kg > 0;
   const e1Live = e1okLive ? fk(Math.round(e1rm(kg, reps, rir) * 2) / 2) : '—';
 
   const sx = selIdx != null ? sets[selIdx] : null;
@@ -1424,13 +1511,14 @@ export const FreePixelSession: React.FC<Props> = ({
             >
               <span className="px-head-title">{upTr(exLabel(item))}</span>
               <span className="px-head-sub">
-                {planned && tgt ? <React.Fragment>{t('SET')} {sets.length + 1}/{tgt.sets}</React.Fragment> : <React.Fragment>{t('PLANSIZ')} · {t('SET')} {sets.length + 1}</React.Fragment>} · {planNote ? <span className="px-plan-note">{planNote}</span> : <span style={{ color: 'var(--gold)' }}>{eqNameUpper}</span>}
+                {isWarmupEx ? <React.Fragment>{t('ISINMA')}</React.Fragment> : warm ? <span style={{ color: WARM_Z_COLORS[0] }}>{t('ISINMA SETİ')}</span> : planned && tgt ? <React.Fragment>{t('SET')} {workN + 1}/{tgt.sets}</React.Fragment> : <React.Fragment>{t('PLANSIZ')} · {t('SET')} {workN + 1}</React.Fragment>} · {attrs.length ? <span className="px-attr-on">{attrs.map((a) => upper(t(a))).join(' · ')}</span> : planNote ? <span className="px-plan-note">{planNote}</span> : <span style={{ color: 'var(--gold)' }}>{eqNameUpper}</span>}
               </span>
             </button>
-            <button type="button" id="note-btn" className={'ib' + (hasNote ? ' has' : '')} onClick={openNote} aria-label={t('Not ekle')}>
+            <button type="button" id="note-btn" className={'ib' + (hasNote ? ' has' : '') + (attrs.length ? ' attr' : '')} onClick={openNote} aria-label={t('Set özelliği ve not')}>
               <svg width="22" height="22" viewBox="0 0 9 9" shapeRendering="crispEdges" aria-hidden="true">
                 <path d="M6 1h2v2H6zM5 3h2v1H5zM4 4h2v1H4zM3 5h2v1H3zM2 6h1v1H2zM1 8h7v1H1z" fill="currentColor" />
               </svg>
+              {attrs.length ? <b className="ib-badge nm">{attrs.length}</b> : null}
             </button>
           </div>
 
@@ -1442,6 +1530,11 @@ export const FreePixelSession: React.FC<Props> = ({
                   <span className="px-plan-k">{upper(t('Hedef'))}</span>
                   <span className="px-plan-v">{targetTxt(tgt, item.exId)}</span>
                 </span>
+              ) : range ? (
+                <span className="px-plan">
+                  <span className="px-plan-k">{upper(t('Hedef'))}</span>
+                  <span className="px-plan-v">{repTxt(range.lo, range.hi)} {t('tekrar')}</span>
+                </span>
               ) : <span className="lbl">{t('SETLER')}</span>}
               <span className="px-sets-sum">
                 {tgt
@@ -1450,33 +1543,47 @@ export const FreePixelSession: React.FC<Props> = ({
                   ? setCount + ' · ' + t('{n} temas', { n: sets.reduce((a: number, x: any) => a + x.reps, 0) })
                   : isSkillEx
                     ? setCount + ' · ' + t('{n} deneme', { n: sets.reduce((a: number, x: any) => a + x.reps, 0) })
-                    : setCount + ' · ' + t('tonaj {x} kg', { x: num(Math.round(vol)) })}
+                    : isWarmupEx
+                      ? t('{n} dk', { n: sets.reduce((a: number, x: any) => a + (Number(x.dur) || 0), 0) })
+                      : setCount + ' · ' + t('tonaj {x} kg', { x: num(Math.round(vol)) })}
               </span>
             </div>
             <div className="px-sets-wrap">
               <div
                 ref={setListRef}
                 onScroll={onSetsScroll}
-                className={'px-scroll px-sets-grid' + (hasMore && !listEnd ? ' fade' : '') + (sets.length === 0 ? ' px-empty' : '')}
+                className={'px-scroll px-sets-grid' + (hasMore && !listEnd ? ' fade' : '') + (sets.length === 0 && !slotPlan ? ' px-empty' : '') + (slotPlan ? ' px-slots' : '')}
               >
-                {rowsReversed.map(({ x, i }) => {
+                {(slotPlan ? [...slotPlan.warm] : rowsReversed).map(({ x, i }) => {
                   const isNewest = i === nS - 1;
-                  const c = x.plyo
+                  const c = x.warm
+                    ? WARM_Z_COLORS[0]
+                    : x.plyo
                     ? PX_PLYO_Q[x.q || 0].c
                     : x.skill
                       ? PX_SKILL_Q[x.q || 0].c
                       : PX_SPEED_COLORS[x.lvl ?? 1];
-                  const mainTxt = x.skill
+                  const mainTxt = x.dur
+                    ? t('{n} dk', { n: x.dur })
+                    : x.skill
                     ? t('{n}d', { n: x.reps }) + (Number(x.hold) > 0 ? '·' + x.hold + 's' : '')
                     : x.plyo
                       ? (Number(x.kg) ? '+' + fk(Number(x.kg)) + '×' : '') + t('{n}t', { n: x.reps })
                       : `${fk(Number(x.kg))}×${x.reps}`;
-                  const rightBadge = x.skill
+                  const rightBadge = x.dur
+                    ? String(x.z || 1)
+                    : x.warm
+                    ? t('ISN')
+                    : x.skill
                     ? PX_SKILL_Q[x.q || 0].k.slice(0, 3)
                     : x.plyo
                       ? (x.q === 0 ? '✓' : x.q === 1 ? '~' : '!')
                       : rpeForSet(x);
-                  const aria = x.skill
+                  const aria = x.dur
+                    ? t('Isınma: {x}. Ayrıntı', { x: warmSetTxt(x) })
+                    : x.warm
+                    ? t('Isınma seti: {kg} kilo, {r} tekrar. Ayrıntı', { kg: fk(Number(x.kg)), r: x.reps })
+                    : x.skill
                     ? t('Set {n}: {x}. Ayrıntı', { n: i + 1, x: skillSetTxt(x) })
                     : x.plyo
                       ? t('Set {n}: {r} temas. Ayrıntı', { n: i + 1, r: x.reps })
@@ -1486,16 +1593,43 @@ export const FreePixelSession: React.FC<Props> = ({
                     <button
                       key={x.at + '-' + i}
                       type="button"
-                      className={'st' + (isNewest ? ' new ' + par(fxLog, 'px-landA', 'px-landB') : '')}
+                      className={'st' + (x.warm && !x.dur ? ' wu' : '') + (isNewest ? ' new ' + par(fxLog, 'px-landA', 'px-landB') : '')}
                       aria-label={aria}
                       onClick={() => { setSelIdx(i); setConfirmDelSet(false); pixelFx.openSel(fxRef.current); }}
                     >
                       <span className="nm st-main">{mainTxt}</span>
                       <span className="nm st-rpe" style={{ background: c }}>{rightBadge}</span>
+                      {x.tags && x.tags.some((tg: string) => SET_ATTRS.includes(tg)) ? <i className="st-attr" aria-hidden="true" /> : null}
                     </button>
                   );
                 })}
-                {sets.length === 0 ? <div className="px-sets-empty">{prevTxt ? t('Son sefer {x}', { x: prevTxt }) : t('İlk setini kaydet')}</div> : null}
+                {slotPlan ? slotPlan.slots.map((o: any, k: number) => {
+                  if (!o) {
+                    return (
+                      <div key={'slot' + k} className={'st slot' + (k === slotPlan.next ? ' slot-next' : '')} aria-label={t('Set {n}: hedef {x}', { n: k + 1, x: slotTxt })}>
+                        <span className="nm st-main">{slotTxt}</span>
+                        <span className="st-no nm">{k + 1}</span>
+                      </div>
+                    );
+                  }
+                  const { x, i } = o;
+                  const isNewest = i === nS - 1;
+                  return (
+                    <button
+                      key={x.at + '-' + i}
+                      type="button"
+                      className={'st slot fill' + (isNewest ? ' new ' + par(fxLog, 'px-landA', 'px-landB') : '')}
+                      aria-label={t('Set {n}: {kg} kilo, {r} tekrar, RPE {rpe}. Ayrıntı için dokun.', { n: k + 1, kg: fk(Number(x.kg)), r: x.reps, rpe: x.skill || x.plyo ? '–' : rpeForSet(x) })}
+                      onClick={() => { setSelIdx(i); setConfirmDelSet(false); pixelFx.openSel(fxRef.current); }}
+                    >
+                      <span className="nm st-main">{x.skill ? t('{n}d', { n: x.reps }) : x.plyo ? (Number(x.kg) ? '+' + fk(Number(x.kg)) + '×' : '') + t('{n}t', { n: x.reps }) : `${fk(Number(x.kg))}×${x.reps}`}</span>
+                      <span className="nm st-rpe" style={{ background: x.plyo ? PX_PLYO_Q[x.q || 0].c : x.skill ? PX_SKILL_Q[x.q || 0].c : PX_SPEED_COLORS[x.lvl ?? 1] }}>{x.skill ? PX_SKILL_Q[x.q || 0].k.slice(0, 3) : x.plyo ? (x.q === 0 ? '✓' : x.q === 1 ? '~' : '!') : rpeForSet(x)}</span>
+                      <span className="st-no nm">{k + 1}</span>
+                      {x.tags && x.tags.some((tg: string) => SET_ATTRS.includes(tg)) ? <i className="st-attr" aria-hidden="true" /> : null}
+                    </button>
+                  );
+                }) : null}
+                {sets.length === 0 && !slotPlan ? <div className="px-sets-empty">{isWarmupEx ? t('Süreyi ve yoğunluğu seç') : t('İlk setini kaydet')}</div> : null}
               </div>
               {hasMore && !listEnd ? (
                 <span className="more">
@@ -1508,7 +1642,40 @@ export const FreePixelSession: React.FC<Props> = ({
             </div>
           </div>
 
-          {isPlyoEx || isSkillEx ? (
+          {isWarmupEx ? (
+            /* V33 · Antrenman öncesi ısınma: yalnızca süre ve nabız skalası (sayı değil, konuşma testi) */
+            <React.Fragment>
+              <div className="pxb px-alt-stage">
+                <span style={{ fontSize: 13, color: 'var(--mt)', lineHeight: 1.35 }}>{t('Kas sıcaklığını ve nabzı yükselt. Hesaplara girmez.')}</span>
+              </div>
+              <div className="px-wu-dur">
+                <PxStair id={'wdur-' + item.id} label={t('Süre')} unit={t('dk')} min={1} max={30} lo={wDur} onChange={(a) => setWDur(a)} fx={readFxSettings(st.settings)} marks={[1, 5, 10, 15, 20, 25, 30]} />
+              </div>
+              <div style={{ marginTop: 8 }}>
+                <div className="px-ctl-head">
+                  <span className="lbl">{t('NABIZ')}</span>
+                  <span className="px-ctl-hint" style={{ color: WARM_Z_COLORS[wZ - 1] }}>{WARM_Z[wZ - 1].d}</span>
+                </div>
+                <div className="px-hz-row" role="radiogroup" aria-label={t('Nabız skalası')}>
+                  {WARM_Z.map((zo: any, i: number) => (
+                    <button
+                      key={i}
+                      type="button"
+                      id={'hz-' + (i + 1)}
+                      role="radio"
+                      aria-checked={wZ === i + 1}
+                      className={'px-hz' + (wZ === i + 1 ? ' on' : '')}
+                      style={{ '--c': WARM_Z_COLORS[i] } as React.CSSProperties}
+                      onClick={() => { pixelFx.unlock(fxRef.current); pixelFx.setLvl(fxRef.current, Math.min(4, i)); setWZ(i + 1); }}
+                    >
+                      <span className="px-hz-bar"><i style={{ height: 20 + i * 20 + '%' }} /></span>
+                      <span className="px-hz-k">{zo.k}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </React.Fragment>
+          ) : isPlyoEx || isSkillEx ? (
             /* Pliometrik / Beceri: bugünkü giriş mantığı yeni .px kabuğunda */
             <React.Fragment>
               {isPlyoEx ? (
@@ -1653,7 +1820,18 @@ export const FreePixelSession: React.FC<Props> = ({
                     <span className="num" style={{ fontSize: 20, color: 'var(--tx)' }}>{fk(kg)}</span>
                     <span className="nm" style={{ fontSize: 13, color: 'var(--mt)' }}>KG</span>
                   </span>
-                  {kgDrag && fine < 1 ? <span className="px-fine">{t('HASSAS')} 1/{Math.round(1 / fine)}</span> : <span className="px-ctl-hint">{t('sürükle · uzaklaş: hassas')}</span>}
+                  {kgDrag && fine < 1 ? <span className="px-fine">{t('HASSAS')} 1/{Math.round(1 / fine)}</span> : (
+                    <button
+                      type="button"
+                      id="drag-speed"
+                      className={'px-sens' + (slowF < 1 ? ' on' : '')}
+                      aria-pressed={slowF < 1}
+                      aria-label={t('Sürükleme hızı: {x}', { x: slowF < 1 ? pct(40) : pct(100) })}
+                      onClick={() => { pixelFx.unlock(fxRef.current); const fx = readFxSettings(st.settings); put('settings', { key: 'fx', value: { ...fx, slow: !fx.slow } }); }}
+                    >
+                      {t('HIZ')} <b className="nm">{slowF < 1 ? pct(40) : pct(100)}</b>
+                    </button>
+                  )}
                 </div>
                 <div
                   ref={kgTrackRef}
@@ -1703,7 +1881,11 @@ export const FreePixelSession: React.FC<Props> = ({
               <div className="px-rep-sec">
                 <div className="px-rep-head">
                   <span className="lbl">{t('TEKRAR')}</span>
-                  {repD.current && fine < 1 ? <span className="px-fine">HASSAS 1/{Math.round(1 / fine)}</span> : null}
+                  {repD.current && fine < 1 ? <span className="px-fine">{t('HASSAS')} 1/{Math.round(1 / fine)}</span> : !planned ? (
+                    <button type="button" id="rep-range" className={'px-sens' + (range ? ' on' : '')} onClick={() => { pixelFx.unlock(fxRef.current); setRangeOpen(true); }}>
+                      {range ? <React.Fragment>{t('HEDEF')} <b className="nm">{repTxt(range.lo, range.hi)}</b></React.Fragment> : '+ ' + t('HEDEF ARALIK')}
+                    </button>
+                  ) : null}
                   <span className={'num px-rep-num ' + repPop}>{reps}</span>
                 </div>
                 <div
@@ -1727,7 +1909,8 @@ export const FreePixelSession: React.FC<Props> = ({
                       const on = i < reps;
                       const top = i === reps - 1;
                       const h = Math.round(14 + (38 * i) / 29);
-                      const cls = 'sg' + ((i + 1) % 5 === 0 ? ' five' : '') + (on ? ' on' : '') + (top ? ' top ' + repPop : '');
+                      const inRg = range && i + 1 >= range.lo && i + 1 <= range.hi;
+                      const cls = 'sg' + ((i + 1) % 5 === 0 ? ' five' : '') + (on ? ' on' : '') + (inRg ? ' rg' : '') + (top ? ' top ' + repPop : '');
                       return <i key={i} className={cls} style={{ height: h }} />;
                     })}
                     <div style={{ position: 'absolute', left: `${((reps - 0.5) / 30) * 100}%`, bottom: Math.round(14 + (38 * (reps - 1)) / 29) + 2, width: 0, height: 0 }}>
@@ -1748,12 +1931,27 @@ export const FreePixelSession: React.FC<Props> = ({
                 </div>
               </div>
 
-              {/* Son tekrarın hızı */}
+              {/* Son tekrarın hızı; solunda ısınma seti (V33) */}
               <div className="px-spd-sec">
                 <div className="px-spd-head">
-                  <span className="lbl">{t('SON TEKRARIN HIZI')}</span>
-                  <span className="px-spd-desc" style={{ color: PX_SPEED_COLORS[lvl] }}>{curSp.d}</span>
+                  <span className="lbl">{warm ? t('ISINMA SETİ') : t('SON TEKRARIN HIZI')}</span>
+                  <span className="px-spd-desc" style={{ color: warm ? WARM_Z_COLORS[0] : PX_SPEED_COLORS[lvl] }}>{warm ? t('Kilo, tekrar ve hız hesaplara girmez') : curSp.d}</span>
                 </div>
+                <div className="px-spd-wrap">
+                <button
+                  type="button"
+                  id="speed-warm"
+                  className={'sb wu' + (warm ? ' sel' : '')}
+                  aria-pressed={warm}
+                  aria-label={t('Isınma seti')}
+                  style={{ border: 0, padding: 0, font: 'inherit', color: 'inherit', cursor: 'pointer' }}
+                  onClick={() => { pixelFx.unlock(fxRef.current); pixelFx.setLvl(fxRef.current, 0); setWarm((w) => !w); }}
+                >
+                  <span className="sbl">
+                    <svg width="14" height="14" viewBox="0 0 7 7" shapeRendering="crispEdges" aria-hidden="true"><path d="M3 0h1v1H3zM2 1h2v1H2zM2 2h3v1H2zM1 3h5v1H1zM1 4h5v1H1zM2 5h3v1H2zM3 6h1v1H3z" fill="currentColor" /></svg>
+                  </span>
+                  <span className="sbw"><i className="sbf" style={{ height: '22%', background: WARM_Z_COLORS[0] }} /></span>
+                </button>
                 <div
                   className="ctl px-spd-row"
                   role="radiogroup"
@@ -1766,7 +1964,7 @@ export const FreePixelSession: React.FC<Props> = ({
                   onKeyDown={lvKey}
                 >
                   {PX_SPEED.map((sp, i) => {
-                    const sel = i === lvl;
+                    const sel = !warm && i === lvl;
                     const fillPct = Math.round((1 - sp.vl) * 100);
                     return (
                       <button
@@ -1793,17 +1991,18 @@ export const FreePixelSession: React.FC<Props> = ({
                     ))}
                   </div>
                 </div>
+                </div>
               </div>
 
               {/* RIR · RPE · e1RM · ROM */}
               <div className="px-ro-grid">
                 <div className="ro">
                   <span className="ro-k">RIR</span>
-                  <span className="nm ro-v" style={{ color: PX_SPEED_COLORS[lvl] }}>{rir >= 5 ? '5+' : '~' + rir}</span>
+                  <span className="nm ro-v" style={{ color: warm ? 'var(--mt)' : PX_SPEED_COLORS[lvl] }}>{warm ? '–' : rir >= 5 ? '5+' : '~' + rir}</span>
                 </div>
                 <div className="ro">
                   <span className="ro-k">RPE</span>
-                  <span className="nm ro-v" style={{ color: 'var(--tx)' }}>{rir >= 5 ? '≤6' : String(10 - rir)}</span>
+                  <span className="nm ro-v" style={{ color: warm ? 'var(--mt)' : 'var(--tx)' }}>{warm ? '–' : rir >= 5 ? '≤6' : String(10 - rir)}</span>
                 </div>
                 <div className="ro">
                   <span className="ro-k">e1RM</span>
@@ -1857,10 +2056,10 @@ export const FreePixelSession: React.FC<Props> = ({
                 ref={logBtnRef}
                 type="button"
                 id="log-set"
-                className={'go' + (!isPlyoEx && !isSkillEx ? ' px-lv' + lvl : '')}
+                className={'go' + (isWarmupEx || warm ? ' px-wu' : !isPlyoEx && !isSkillEx ? ' px-lv' + lvl : '')}
                 onClick={logSet}
               >
-                {t('SET {n} BİTTİ', { n: sets.length + 1 })}
+                {isWarmupEx ? t('ISINMA BİTTİ') : warm ? t('ISINMA SETİ BİTTİ') : t('SET {n} BİTTİ', { n: workN + 1 })}
               </button>
             )}
             {sets.length ? (
@@ -1883,11 +2082,13 @@ export const FreePixelSession: React.FC<Props> = ({
           <div id="rest-big" className="ov" role="timer" aria-label={t('Dinlenme sayacı')}>
             <div className="pxb" style={{ margin: '3px 3px 0', padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6, flex: '0 0 auto' }}>
               <span className="lbl" style={{ color: 'var(--gold)' }}>
-                {t('SET {n} BİTTİ', { n: sets.length })}{!lastLogged.plyo && !lastLogged.skill && (lastLogged.rom ?? 100) < 100 ? ' · ' + pct(lastLogged.rom) + ' ROM' : ''}
+                {lastLogged.warm ? (lastLogged.dur ? t('ISINMA BİTTİ') : t('ISINMA SETİ BİTTİ')) : t('SET {n} BİTTİ', { n: workN })}{!lastLogged.plyo && !lastLogged.skill && !lastLogged.warm && (lastLogged.rom ?? 100) < 100 ? ' · ' + pct(lastLogged.rom) + ' ROM' : ''}
               </span>
               <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                 <span className="nm" style={{ fontSize: 21, color: 'var(--tx)' }}>
-                  {lastLogged.skill
+                  {lastLogged.dur
+                    ? warmSetTxt(lastLogged)
+                    : lastLogged.skill
                     ? skillSetTxt(lastLogged)
                     : lastLogged.plyo
                       ? (Number(lastLogged.kg) ? '+' + fk(Number(lastLogged.kg)) + '×' : '') + t('{n} temas', { n: lastLogged.reps })
@@ -1899,14 +2100,18 @@ export const FreePixelSession: React.FC<Props> = ({
                       display: 'block',
                       width: 10,
                       height: 10,
-                      background: lastLogged.plyo
+                      background: lastLogged.warm
+                        ? WARM_Z_COLORS[0]
+                        : lastLogged.plyo
                         ? PX_PLYO_Q[lastLogged.q || 0].c
                         : lastLogged.skill
                           ? PX_SKILL_Q[lastLogged.q || 0].c
                           : PX_SPEED_COLORS[lastLogged.lvl ?? 1],
                     }}
                   />
-                  {lastLogged.plyo
+                  {lastLogged.warm
+                    ? t('hesaplara girmez')
+                    : lastLogged.plyo
                     ? PX_PLYO_Q[lastLogged.q || 0].k
                     : lastLogged.skill
                       ? PX_SKILL_Q[lastLogged.q || 0].k
@@ -1955,7 +2160,7 @@ export const FreePixelSession: React.FC<Props> = ({
                 <button type="button" className="bb" aria-label={t('15 saniye ekle')} onClick={() => { pixelFx.unlock(fxRef.current); adjustRest(15); }}>+{t('15 SN')}</button>
               </div>
               <div style={{ textAlign: 'center', fontSize: 14, color: 'var(--mt)' }}>
-                {t('sıradaki: SET {n}', { n: sets.length + 1 })} · {isSkillEx ? t('{n} deneme', { n: reps }) : `${fk(kg)} kg`}
+                {t('sıradaki: SET {n}', { n: workN + 1 })} · {isWarmupEx ? warmSetTxt({ dur: wDur, z: wZ }) : isSkillEx ? t('{n} deneme', { n: reps }) : `${fk(kg)} kg`}
               </div>
             </div>
 
@@ -1972,13 +2177,18 @@ export const FreePixelSession: React.FC<Props> = ({
             <button type="button" className="bd" onClick={closeSel} aria-label={t('Pencereyi kapat')} />
             <div className="win" role="dialog" aria-label={t('Set ayrıntısı')}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span className="lbl" style={{ color: 'var(--gold)', fontSize: 15 }}>{t('SET')} {selIdx + 1}</span>
+                <span className="lbl" style={{ color: 'var(--gold)', fontSize: 15 }}>{sx.warm ? t('ISINMA') : <React.Fragment>{t('SET')} {sets.slice(0, selIdx + 1).filter((z: any) => !z.warm).length}</React.Fragment>}</span>
                 <span style={{ fontSize: 13, color: 'var(--mt)' }}>
-                  {sx.skill ? t('beceri') : sx.plyo ? t('pliometrik') : mult === 2 ? t('tek el kilo') : lower(eqLabel(itemLib?.eq))}
+                  {sx.warm ? '' : sx.skill ? t('beceri') : sx.plyo ? t('pliometrik') : mult === 2 ? t('tek el kilo') : lower(eqLabel(itemLib?.eq))}
                 </span>
               </div>
 
-              {sx.skill ? (
+              {sx.warm ? (
+                <React.Fragment>
+                  <div className="num" style={{ fontSize: 20, lineHeight: 1.2 }}>{sx.dur ? warmSetTxt(sx) : `${fk(Number(sx.kg))} × ${sx.reps}`}</div>
+                  <div style={{ fontSize: 13, color: 'var(--mt)' }}>{(sx.dur ? t('Antrenman öncesi ısınma') : t('Isınma seti')) + ' · ' + t('1RM, yorgunluk, zor set, tonaj ve gelişime girmez.') + ' · ' + clock(sx.at)}</div>
+                </React.Fragment>
+              ) : sx.skill ? (
                 <React.Fragment>
                   <div className="num" style={{ fontSize: 20, lineHeight: 1.2 }}>{skillSetTxt(sx)}</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
@@ -2064,6 +2274,7 @@ export const FreePixelSession: React.FC<Props> = ({
           </React.Fragment>
         ) : null}
 
+        {rangeOpen && item ? <RangeWin it={item} reps={reps} fx={readFxSettings(st.settings)} onSave={(next: any) => saveRange(item, next)} onClose={() => setRangeOpen(false)} /> : null}
         {renderToast()}
         {renderFx()}
         {renderConfirmModal()}

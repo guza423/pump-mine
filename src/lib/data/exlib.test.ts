@@ -3,16 +3,16 @@ import { EX_LIB, MUS_CODE, EQ } from './exlib';
 import referenceSource from '../../../reference/v09/exlib.js?raw';
 
 describe('hareket kütüphanesi', () => {
-  it('438 referans kaydını değiştirmeden taşır ve 28 beceri hareketi ekler (toplam 466)', () => {
+  it('438 referans kaydını değiştirmeden taşır, 28 beceri hareketi ve antrenman öncesi ısınmayı ekler (toplam 467)', () => {
     const reference = JSON.parse(new Function(referenceSource + ';return JSON.stringify(EX_LIB)')());
     expect(EX_LIB.slice(0, 438)).toEqual(reference);
-    expect(EX_LIB).toHaveLength(466);
-    expect(['kuvvet', 'olimpik', 'plyo', 'beceri'].map(kind => EX_LIB.filter(ex => ex.kind === kind).length)).toEqual([359, 28, 51, 28]);
+    expect(EX_LIB).toHaveLength(467);
+    expect(['kuvvet', 'olimpik', 'plyo', 'beceri', 'isinma'].map(kind => EX_LIB.filter(ex => ex.kind === kind).length)).toEqual([359, 28, 51, 28, 1]);
   });
 
   it('benzersiz kimlik, ad ve geçerli kas/ekipman kullanır', () => {
-    expect(new Set(EX_LIB.map(ex => ex.id)).size).toBe(466);
-    expect(new Set(EX_LIB.map(ex => ex.name)).size).toBe(466);
+    expect(new Set(EX_LIB.map(ex => ex.id)).size).toBe(467);
+    expect(new Set(EX_LIB.map(ex => ex.name)).size).toBe(467);
     const muscles = Object.values(MUS_CODE);
     expect(muscles).toHaveLength(19);
     for (const ex of EX_LIB) {

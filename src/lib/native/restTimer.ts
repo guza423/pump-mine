@@ -12,6 +12,9 @@ interface RestTimerPlugin {
   openExactAlarmSettings(): Promise<void>;
   idleArm(options: { askAt: number; endAt: number; askTitle: string; askBody: string; endTitle: string; endBody: string; channel?: string }): Promise<void>;
   idleStop(options?: { clearEnd?: boolean }): Promise<void>;
+  workoutShow(options: { startedAt: number; title: string; body: string; channel?: string }): Promise<void>;
+  workoutHide(): Promise<void>;
+  remindSet(options: { items: Array<{ at: number; title: string; body: string }>; channel?: string }): Promise<void>;
 }
 /** Tam zamanlı alarm izni (V27). `needed`: Android 12+; `allowed`: kullanıcı izin vermiş. */
 export interface ExactAlarm { needed: boolean; allowed: boolean }
@@ -23,6 +26,7 @@ const RestTimer = registerPlugin<RestTimerPlugin>('RestTimer', {
     start: async () => {}, stop: async () => {},
     exactAlarm: async () => NO_NEED, openExactAlarmSettings: async () => {},
     idleArm: async () => {}, idleStop: async () => {},
+    workoutShow: async () => {}, workoutHide: async () => {}, remindSet: async () => {},
   }),
 });
 
@@ -72,4 +76,21 @@ export async function exactAlarmStatus(): Promise<ExactAlarm> {
 }
 export async function openExactAlarmSettings() {
   try { if (Capacitor.isNativePlatform()) await RestTimer.openExactAlarmSettings(); } catch { /* ayar ekranı açılamazsa sessiz geç */ }
+}
+
+// V33 · süren antrenman bildirim panelinde ileri sayan süreyle durur (antrenman bitene dek).
+export function showWorkout(o: { startedAt: number; title: string; body: string }) {
+  return enqueue(async () => {
+    if (!(await notifyAllowed())) return;
+    await RestTimer.workoutShow({ ...o, channel: t('Süren antrenman') });
+  });
+}
+export const hideWorkout = () => enqueue(() => RestTimer.workoutHide());
+
+// V33 · plan hatırlatmaları (bir gün önce 20:00); boş liste hepsini siler.
+export function setReminders(items: Array<{ at: number; title: string; body: string }>) {
+  return enqueue(async () => {
+    if (items.length && !(await notifyAllowed())) return;
+    await RestTimer.remindSet({ items, channel: t('Antrenman hatırlatmaları') });
+  });
 }

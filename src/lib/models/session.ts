@@ -17,8 +17,9 @@ export function dbMultiplier(exId?: string | null, name?: string): number {
 export function freeEntry(item: SessionItem | undefined, sessions: Session[]) {
   const lib = item ? EX_LIB.find(ex => ex.id === item.exId) : null;
   const current = item?.sets.at(-1);
+  // V33 · önceki antrenmandan başlarken ısınma setleri atlanır (iş setinden başlanır)
   const previous = item?.exId ? sessions.filter(s => s.status === 'done')
-    .flatMap(s => s.items.filter(it => it.exId === item.exId).flatMap(it => it.sets))
+    .flatMap(s => s.items.filter(it => it.exId === item.exId).flatMap(it => it.sets.filter(set => !(set as { warm?: boolean }).warm)))
     .reduce<SessionItem['sets'][number] | undefined>((last, set) => !last || set.at > last.at ? set : last, undefined) : undefined;
   const last = current || previous;
   return {

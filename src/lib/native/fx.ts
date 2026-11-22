@@ -7,8 +7,11 @@ export function readFxSettings(settings: Setting[] = []): FxSettings {
     haptic: raw?.haptic ?? true,
     // Kullanıcı isteği: set inişi ve diğer animasyonlar varsayılan olarak tam oynar (Hesap'tan kapatılabilir).
     motion: raw?.motion ?? true,
+    slow: raw?.slow ?? false,
   };
 }
+/** V33 · sürükleme hız çarpanı: normal 1, yavaş 0,4. */
+export const dragSpeed = (fx: Pick<FxSettings, 'slow'> | undefined) => (fx && fx.slow ? 0.4 : 1);
 
 class PixelFxEngine {
   private ac: AudioContext | null = null;

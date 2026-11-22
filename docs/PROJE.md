@@ -39,7 +39,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | **Dashboard** (`bugun`) | Hesap düğmesi (eşitleme durumu: sarı bekleyen, yeşil eşit, gri çevrimdışı). Yorgunluk halkası + kırılım: **seçili dönemin ortalaması** (SON 7 · 10 · 30 gün, V32), uyku girişi = dönemin gece ortalaması (5–9 sa), plan kartı (bugün plan var / sıradaki / plan yok; hazır plansız oturumda `başlamadı`), bu hafta şeridi. **Hedefler:** güç (1RM) ve öğrenme (beceri, 4 aşama, "Pratik et"). |
 | **Antrenman** (`antrenman`) | `Plansız antrenman` ve `Yeni plan` düğmeleri; **Planlarım**; ay başlıklı, kaydırılabilir **geçmiş**. Aktif oturum ekranı da burada. |
 | **Gözlem** (`gozlem`, başlık "Antrenman plan ve gözlem") | Aylık takvim (yapılan ●, planlı ○, kaçırılan ·). Gün paneli: yapılanlar, planlar, uyku, yorgunluk, "Bu güne plan ekle" (tek gün ya da her hafta). Ay özeti, uyarılar, **Hareket gelişimi** düğmesi (yapılmış bütün hareketler; son 20 gün belirgin, eskiler soluk + son tarih; hareket penceresinde türüne göre ölçüler, V32), **Haftalık yük: Yapılan / Planlanan** (planlanan, bu hafta plan yoksa kapalı, V32). |
-| **Lab** (`lab`) | 01 Temeller: sinir sistemi dersleri, "Yorgunluk nasıl ölçülür?", yorgunluk ölçer. 02 Hareketler: 466 hareket, arama + tür + kas + ekipman filtresi, biyomekanik kartlar. |
+| **Lab** (`lab`) | 01 Temeller: sinir sistemi dersleri, "Yorgunluk nasıl ölçülür?", yorgunluk ölçer. 02 Hareketler: 467 hareket (en üstte antrenman öncesi ısınma), arama + tür + kas + ekipman filtresi, biyomekanik kartlar. |
 
 **Oturum ekranları:**
 - **Plansız oturum** (`dayId == null`, V13 pixel arayüz `.px`):
@@ -124,7 +124,10 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
   - Kuvvet: `{ kg, reps, lvl 0–4, vl, rpe, rir, rom?, at }` (`rom` yoksa 100 sayılır)
   - Pliometrik: `{ kg, reps (temas), plyo: true, q 0–2, rir: 9 }`
   - Beceri: `{ kg: 0, reps (deneme), hold?, skill: true, q 0–2, rir: 9 }`
-- **Ayarlar:** `goals: Goal[]` (`perf` / `skill`; eski tekil `goal` otomatik taşınır), `restPrefs: { [exId]: sn }`, `fx: { sound: boolean, haptic: boolean }`.
+  - Isınma seti (V33): `{ kg, reps, warm: true, lvl: null, rpe: null, rir: 9 }`; antrenman öncesi ısınma hareketi (`exId: 'isinma'`): `{ kg: 0, reps: 1, warm: true, dur (dk), z 1–5, rir: 9 }`. `warm` setler hiçbir hesaba girmez.
+  - Set özellikleri (V33) `tags: string[]` içinde (Drop set, Tükenişe kadar, Rest-pause…).
+- **Oturum hareketi (V33):** `range?: { lo, hi }` plansız antrenmanda hareketin hedef tekrar aralığı. **Plan hareketi:** ısınma hareketinde `dur`, `z`.
+- **Ayarlar:** `goals: Goal[]` (`perf` / `skill`; eski tekil `goal` otomatik taşınır), `restPrefs: { [exId]: sn }`, `fx: { sound: boolean, haptic: boolean, slow?: boolean }` (`slow` = sürgüler %40 hız, V33), `repRanges: { [exId]: [lo, hi] }` (V33), `reminders: { plan: boolean }` (V33, varsayılan açık).
 - **Misafir → hesap taşıma kuralları:**
   - Programlarda `updatedAt` yeni olan, oturumlarda seti fazla olan (eşitse bulut) kazanır.
   - Uyku girişlerinde `at` yeni olan kazanır. Özel hareketler birleşir, ayarlarda bulut kazanır.
@@ -178,7 +181,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
   - Seans başına temas: 80–100 (başlangıç), 100–120 (orta), 120–140 (ileri).
   - Seanslar arası 48–72 sa. 100 kg üstünde derinlik sıçramasında kutu en fazla 45 cm.
 - **Hareket kütüphanesi** (`src/lib/data/exlib.ts`):
-  - 466 hareket: 359 kuvvet, 28 olimpik, 51 pliometrik, 28 beceri.
+  - 467 hareket: 359 kuvvet, 28 olimpik, 51 pliometrik, 28 beceri, 1 ısınma (V33; süre + nabız skalası, hesaplara girmez).
   - Her hareket: Türkçe + İngilizce ad, 19 kas grubu, 18 ekipman, fat 1–3, direnç profili (a altta / u üstte / o ortada / d dengeli ağır).
   - İlk 17 id korunur.
 
@@ -198,6 +201,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | V11 | 2026-11-14 | Sade plansız antrenman, bildirimli dinlenme sayacı, Android geri tuşu | `c5c588d` |
 | V12 | 2026-11-15 | Dashboard, antrenman planları (program katmanı kalktı), Gözlem takvimi, satır içi geçmiş, öğrenme hedefleri, 28 beceri hareketi | `c2f274b` (Antigravity) |
 | V14–V20 | 2026-11-17 → 18 | Pixel tema bütün sekmelere (V14–V17), plan ayarları ve özet (V18), basılı tutma ve göreli sürükleme (V19), yasal metinler, kabul kapısı, hesap/veri silme (V20) | `docs/gorevler/V14…V20` |
+| V33 | 2026-11-22 | Isınma seti (RPE 6'nın solunda, hesaplara girmez) ve kütüphanede antrenman öncesi ısınma (süre + nabız skalası, listenin başında); bar 20 kg altına inmez; plan düzenleyicide vücut ağırlığı ve Onayla; set özellikleri (drop set, tükenişe kadar…); plansızda hareketin hedef tekrar aralığı; sürgü hızı %40 seçeneği; planlı sette "son sefer" yok, hedef setler dolan kutucuklar; plan penceresinde günler, Başlat ve Çoğalt basılı tutmalı, Başlat hazır açar; bildirim panelinde süren antrenman sayacı; planlı günden bir gün önce 20:00 hatırlatma; takvim parmakla kaydırılır | `docs/gorevler/V33-isinma-set-ozelligi-hatirlatma-takvim.md` |
 | V32 | 2026-11-22 | Dashboard yorgunluğu seçili dönemin ortalaması (7/10/30 gün) ve uyku = dönemin gece ortalaması; Gözlem'de haftalık yük Yapılan / Planlanan; Hareket gelişimi listesi ve türüne göre gelişim penceresi (1RM + tonaj, tekrar kapasitesi, pliometrik puan, beceri); unutulan antrenman 10 dk'da sorulur, 15 dk'da son giriş saatinde kendiliğinden biter | `docs/gorevler/V32-donem-yorgunlugu-yuk-gelisim-unutulan-idman.md` |
 | V26 | 2026-11-19 | Çok dil hazırlığı: dil listesi ve paketleri, İngilizceye düşme, `Intl` çoğul ve sayı, yasal metinler dil klasörlerinde, sözde dil taraması, iş listesi komutu, yerleşim akışı her dilde, uzun dillere CSS | `docs/gorevler/V26-cok-dil-hazirligi.md` |
 | V25 | 2026-11-19 | Yasal metinlerin İngilizcesi (Terms of Use, KVKK Privacy Notice, Explicit Consent Notice, Account and data deletion; Privacy Policy Türkçeyle eşitlendi), `legal.html` iki dilde, son tarama | `docs/gorevler/V25-ingilizce-yasal-son-tarama.md` |
@@ -228,6 +232,9 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
   - Herkese açmadan önce kalan: Play Console'da mağaza sayfası ve formları doldurmak (`docs/PLAY-MAGAZA.md`), Firebase Blaze + bütçe uyarısı + günlük yedek, yasal adımlar (VERBİS vb.). Adres ve e-posta (`wworksof@gmail.com`) metinlerde (20 Kasım).
   - **V30 (22 Kasım):** `main`'e her kod push'u imzalı AAB'yi Play **dahili test** kanalına kendisi yükler (`release.yml`, secret `PLAY_SERVICE_ACCOUNT_JSON`; kurulum `docs/PLAY-MAGAZA.md` › 4b). Kullanıcı uygulamayı yalnızca Play'den günceller; debug APK yan yükleme değil, yedek. **Kurulum tamam (22 Kasım):** hizmet hesabı `play-upload@outmove-cd140.iam.gserviceaccount.com` (yalnız test kanallarına yayın izni), secret eklendi; ilk otomatik yükleme versionCode 5 başarılı. Sürüm adı `android/release.txt` (üretim sürümünde artırılır), versionCode iş akışının çalışma sayısı.
   - Play Console formları: mağaza sayfası (EN ana, TR ek), gizlilik `legal.html#privacy-en`, hesap silme `#deletion-en`, veri güvenliği, içerik derecelendirmesi, hedef kitle 18+, sağlık uygulaması beyanı (Fitness), inceleme için test hesabı.
+
+**İstendi, ertelendi:**
+- **Plan hatırlatması e-postası (V33):** kullanıcı "şimdilik sadece telefon" dedi. Gerekenler: Firebase Blaze, e-posta gönderici (ör. Trigger Email eklentisi + SMTP ya da bir e-posta API'si), zamanlanmış Cloud Function (planlı günden bir gün önce 20:00, kullanıcının saat diliminde), hesabı olanların `users/{uid}.email` adresi, ayarlarda ayrı anahtar ve gizlilik metnine ek.
 
 **Önerildi, henüz istenmedi:**
 - **WhatsApp içe aktarma:** yıllardır WhatsApp grubuna yazılan antrenmanlar. WhatsApp → Sohbeti dışa aktar → Medya olmadan → .txt → uygulama biçimine çevir.
@@ -313,6 +320,14 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | 2026-11-22 | Haftalık yük ikiye ayrıldı: **Yapılan** (Pazartesi'den şu ana) ve **Planlanan** (bu takvim haftasının planı); bu hafta plan yoksa Planlanan kapalı | "bir yapılan weekly load bide planned weekly load … planı olmayanlar için o buton deaktif" |
 | 2026-11-22 | Hareket gelişimi grafik değil düğme: yapılmış bütün hareketler, son 20 gün belirgin, eskiler soluk + son tarih; harekete göre ölçü (1RM + tek seans tonajı; ek yüksüzde tekrar kapasitesi; pliometrik puan; beceride tutuş ve temiz oran). Pliometrik puan göreli ölçek, 75 kg referans | "direkt böyle chart olmayacak … plyometrics'te … ağırlık var mı yok mu bunları bir skala yapacağız"; vücut ağırlığı tutulmuyor, pliometrikte süre kaydı yok |
 | 2026-11-22 | Unutulan antrenman: 10 dk giriş yoksa bildirim + titreşim ve "Hâlâ orada mısın?", 5 dk daha cevap yoksa **son giriş saatinde** biter ve kayda `autoEnd` yazılır; set yoksa kayıt açılmaz, oturum hazıra döner | Kullanıcı isteği; bitiş saati son giriş olunca süre ve yorgunluk doğru kalır, boş kayıt oluşmaz |
+| 2026-11-22 | **Isınma seti** set başına seçilir (RPE 6'nın solunda), kayıttan sonra kapanır; `warm: true` + `rir: 9` ile 1RM, tonaj, zor set, yorgunluk, gelişim ve önerilerin dışında. Dinlenme en çok 60 sn | "ne kilo ne rpe ne tekrar önemli olacak, progress takibi de olmayacak"; ısınma setleri fizyolojik olarak yorgunluğa anlamlı katkı yapmaz |
+| 2026-11-22 | Antrenman öncesi ısınma yeni tür (`isinma`): yalnız süre + 5 basamaklı nabız skalası (konuşma testiyle tarif, sayı yok); listelerde en üstte; yük hesaplarına girmez | Kullanıcı: "nabız sayılarla değil bir skala ile" |
+| 2026-11-22 | Bar hareketleri 20 kg altına inmez (olimpik bar); vücut ağırlığı seçeneği yalnız ekipmansız, barfiks/paralel ve dambıl ya da ekipmansız yapılabilen tek bacak hareketlerinde (lunge, split squat, step-up, tek bacak RDL) | Kullanıcı isteği; barlı harekette vücut ağırlığı anlamsız |
+| 2026-11-22 | Set özelliği "Tükenişe kadar" hızı Zar zor (RIR 0) yapar | Yorgunluk modeli RIR'den hesaplar; özellik ile hız çelişmesin |
+| 2026-11-22 | Hedef tekrar aralığı hareketin hedefidir (setler tek sayı), yalnız plansızda; hareket başına hatırlanır (`settings.repRanges`) | Kullanıcı seçimi "Hareketin hedef aralığı" |
+| 2026-11-22 | Planlı antrenman da **hazır** açılır, sayaç ekrandaki BAŞLAT ile başlar; plan penceresinde günler (0,45 sn), Başlat ve Çoğalt (0,6 sn) basılı tutmalı | "yanlışlıkla elim değiyor … Start'a basalım ready desin sonra bir daha basınca başlasın" |
+| 2026-11-22 | Plan hatırlatması planlı günden bir gün önce 20:00, yalnız telefon (14 gün, en çok 30 alarm; açılışta ve plan değişince yeniden kurulur, yeniden başlatmada `BootReceiver`); e-posta ertelendi | Kullanıcı seçimleri "Bir gün önce 20:00", "Şimdilik sadece telefon" |
+| 2026-11-22 | Antrenman sürerken bildirim panelinde kronometreli kalıcı bildirim (ayrı düşük önemli kanal, ses yok) | Kullanıcı isteği; sesli dinlenme bildiriminden ayrı tutuldu |
 
 ---
 

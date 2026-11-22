@@ -120,4 +120,7 @@ export const account: Record<string, Entry> = {
   "Onayı kaydetmek için internete bağlan.": "Go online to save your consent.",
   "Önce giriş yap.": "Sign in first.",
   "Silmek için şifreni tekrar gir.": "Re-enter your password to delete.",
+  // V33 · ayarlar
+  "Sürgüler yavaş (hızın %40'ı)": "Slow sliders (40% speed)",
+  "Plan hatırlatması (bir gün önce 20:00)": "Plan reminder (8 pm the day before)",
 };

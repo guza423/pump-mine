@@ -271,8 +271,10 @@ describe('ana ekran akışları', () => {
     fireEvent.click(within(container.querySelector('.wd-pick')).getByRole('button', { name: 'Pzt' }));
     click('#add-item');
     const picker = await screen.findByRole('dialog', { name: 'Hareket ekle' });
-    const exName = picker.querySelector('.exr-n').textContent;
-    fireEvent.click(picker.querySelector('.exr-main'));
+    // V33 · antrenman öncesi ısınma listenin başında; ilk kuvvet hareketi ikinci sırada
+    expect(picker.querySelectorAll('.exr-n')[0].textContent).toBe('Antrenman öncesi ısınma');
+    const exName = picker.querySelectorAll('.exr-n')[1].textContent;
+    fireEvent.click(picker.querySelectorAll('.exr-main')[1]);
     // Hareket seçilince ayar penceresi kendiliğinden açılır; sayılar sürüklemeli, not hazır seçeneklerden
     const itemSheet = await screen.findByRole('dialog', { name: exName });
     const setSlider = within(itemSheet).getByRole('slider', { name: 'Set' });
@@ -933,5 +935,148 @@ describe('ana ekran akışları', () => {
     render(<App />);
     await waitFor(async () => expect((await db.sessions.get(s.id)).ready).toBe(true));
     expect((await db.sessions.get(s.id)).status).toBe('active');
+  });
+  // V33 · ısınma seti, set özelliği, hedef aralık, sürükleme hızı
+  it('ısınma seti hesaplara girmez; set özelliği "Tükenişe kadar" hızı Zar zor yapar; hedef aralık hatırlanır', async () => {
+    const { container } = render(<App />);
+    const click = (selector) => fireEvent.click(container.querySelector(selector));
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    click('#tab-antrenman');
+    click('#free-session');
+    await waitFor(() => expect(container.querySelector('#ses-add-first')).toBeTruthy());
+    click('#ses-add-first');
+    fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'düz bench' } });
+    fireEvent.click(container.querySelector('.pk'));
+    click('#pick-add');
+    await waitFor(() => expect(container.querySelector('.card-main')).toBeTruthy());
+    fireEvent.click(container.querySelector('.card-main'));
+    // barbell 20 kg'ın altına inmez
+    const kgBar = container.querySelector('[id^="kg-"]');
+    expect(kgBar.getAttribute('aria-valuemin')).toBe('20');
+    fireEvent.keyDown(kgBar, { key: 'ArrowLeft' });
+    expect(kgBar.getAttribute('aria-valuenow')).toBe('20');
+
+    click('#speed-warm');
+    expect(container.querySelector('#log-set').textContent).toBe('ISINMA SETİ BİTTİ');
+    expect(container.querySelector('.px-head-sub').textContent).toContain('ISINMA SETİ');
+    click('#log-set');
+    fireEvent.click(await screen.findByRole('button', { name: 'GEÇ' }));
+    await waitFor(() => expect(container.querySelector('#log-set')).toBeTruthy());
+    let saved = (await db.sessions.toArray())[0];
+    expect(saved.items[0].sets[0]).toMatchObject({ warm: true, rir: 9, lvl: null });
+    expect(saved.rest).toBeUndefined();
+    // ısınma bir kez seçilir: sonraki set yine iş seti, numarası 1
+    expect(container.querySelector('#log-set').textContent).toBe('SET 1 BİTTİ');
+
+    // set özelliği: sağ üstten
+    click('#note-btn');
+    const sheet = await screen.findByRole('dialog');
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Drop set' }));
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Tükenişe kadar' }));
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Kaydet' }));
+    await waitFor(() => expect(container.querySelector('#speed-4').getAttribute('aria-checked')).toBe('true'));
+    expect(container.querySelector('.px-head-sub').textContent).toContain('DROP SET');
+    expect(container.querySelector('#note-btn .ib-badge').textContent).toBe('2');
+
+    // hedef tekrar aralığı (plansız)
+    click('#rep-range');
+    const win = await screen.findByRole('dialog', { name: 'Hedef tekrar aralığı' });
+    fireEvent.click(within(win).getByRole('button', { name: 'TAMAM' }));
+    await waitFor(() => expect(container.querySelector('#rep-range').textContent).toContain('HEDEF'));
+    click('#log-set');
+    await waitFor(async () => expect((await db.sessions.toArray())[0].items[0].sets).toHaveLength(2));
+    saved = (await db.sessions.toArray())[0];
+    expect(saved.items[0].sets[1]).toMatchObject({ lvl: 4, rir: 0, tags: ['Drop set', 'Tükenişe kadar'] });
+    expect(saved.items[0].sets[1].warm).toBeUndefined();
+    expect(saved.items[0].range).toEqual({ lo: 8, hi: 12 });
+    expect((await db.settings.get('repRanges')).value).toEqual({ 'duz-bench': [8, 12] });
+  });
+
+  it('sürgü hızı %40 ayarı kilo başlığından açılıp kapanır', async () => {
+    const { container } = render(<App />);
+    const click = (selector) => fireEvent.click(container.querySelector(selector));
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    click('#tab-antrenman');
+    click('#free-session');
+    await waitFor(() => expect(container.querySelector('#ses-add-first')).toBeTruthy());
+    click('#ses-add-first');
+    fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'düz bench' } });
+    fireEvent.click(container.querySelector('.pk'));
+    click('#pick-add');
+    await waitFor(() => expect(container.querySelector('.card-main')).toBeTruthy());
+    fireEvent.click(container.querySelector('.card-main'));
+    expect(container.querySelector('#drag-speed').getAttribute('aria-pressed')).toBe('false');
+    click('#drag-speed');
+    await waitFor(async () => expect((await db.settings.get('fx')).value.slow).toBe(true));
+    await waitFor(() => expect(container.querySelector('#drag-speed').getAttribute('aria-pressed')).toBe('true'));
+  });
+
+  it('antrenman öncesi ısınma: listenin başında, süre ve nabız skalası kaydolur', async () => {
+    const { container } = render(<App />);
+    const click = (selector) => fireEvent.click(container.querySelector(selector));
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    click('#tab-antrenman');
+    click('#free-session');
+    await waitFor(() => expect(container.querySelector('#ses-add-first')).toBeTruthy());
+    click('#ses-add-first');
+    expect(container.querySelector('.pk').textContent).toContain('Antrenman öncesi ısınma');
+    fireEvent.click(container.querySelector('.pk'));
+    click('#pick-add');
+    await waitFor(() => expect(container.querySelector('.card-main')).toBeTruthy());
+    fireEvent.click(container.querySelector('.card-main'));
+    expect(container.querySelector('#log-set').textContent).toBe('ISINMA BİTTİ');
+    expect(container.querySelector('[id^="kg-"]')).toBeNull();
+    click('#hz-3');
+    expect(container.querySelector('#hz-3').getAttribute('aria-checked')).toBe('true');
+    click('#log-set');
+    await waitFor(async () => expect((await db.sessions.toArray())[0].items[0].sets).toHaveLength(1));
+    expect((await db.sessions.toArray())[0].items[0].sets[0]).toMatchObject({ warm: true, dur: 10, z: 3 });
+  });
+
+  it('planlı antrenman hazır açılır, hedef setler kutucuk olarak sırayla dolar; plan penceresinde gün basılı tutulur', async () => {
+    await db.programs.put({ id: 'p1', name: '', createdAt: 1, updatedAt: 1, days: [{ id: 'd1', name: 'Buff', weekdays: [2], dates: [], skip: [], items: [
+      { id: 'i1', exId: 'duz-bench', name: 'Düz bench press', muscle: 'Göğüs', sets: 3, repMin: 8, repMax: 12, kg: 60, rpeMin: 8, rpeMax: 9, rest: 120, note: '' },
+    ] }] });
+    const { container } = render(<App />);
+    const click = (selector) => fireEvent.click(container.querySelector(selector));
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    click('#tab-antrenman');
+    await waitFor(() => expect(container.querySelector('.wtype-main, .plan-row, [data-plan]')).toBeTruthy());
+    fireEvent.click(container.querySelector('.wtype-main, .plan-row, [data-plan]'));
+    const menu = await screen.findByRole('dialog');
+    // kısa dokunuş günü değiştirmez (basılı tutmak gerekir)
+    const wed = within(menu).getByRole('button', { name: 'Çarşamba: basılı tut' });
+    fireEvent.pointerDown(wed, { button: 0, pointerId: 1 });
+    fireEvent.pointerUp(wed, { button: 0, pointerId: 1 });
+    expect((await db.programs.get('p1')).days[0].weekdays).toEqual([2]);
+    // Başlat (klavye/erişilebilirlik tıklaması basılı tutmadan çalışır) → hazır
+    fireEvent.click(within(menu).getByRole('button', { name: /Başlat/ }));
+    await waitFor(() => expect(container.querySelector('#start-ses-btn')).toBeTruthy());
+    expect(screen.getByText('başlamadı')).toBeTruthy();
+    click('#start-ses-btn');
+    await waitFor(() => expect(container.querySelector('#finish-btn')).toBeTruthy());
+    fireEvent.click(container.querySelector('.card-main'));
+    expect(container.querySelectorAll('.st.slot')).toHaveLength(3);
+    expect(container.querySelector('.st.slot-next').textContent).toContain('60×8–12');
+    expect(screen.queryByText(/Son sefer/)).toBeNull();
+    click('#log-set');
+    await waitFor(() => expect(container.querySelectorAll('.st.slot.fill')).toHaveLength(1));
+    expect(container.querySelectorAll('.st.slot')).toHaveLength(3);
+  });
+
+  it('takvimde parmakla sola kaydırınca sonraki aya geçer, kaydırma gün seçmez', async () => {
+    const { container } = render(<App />);
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    fireEvent.click(container.querySelector('#tab-gozlem'));
+    await waitFor(() => expect(container.querySelector('.cal')).toBeTruthy());
+    const title = container.querySelector('.cal-title').textContent;
+    const cal = container.querySelector('.cal');
+    fireEvent.pointerDown(cal, { clientX: 260, clientY: 300 });
+    fireEvent.pointerUp(cal, { clientX: 120, clientY: 305 });
+    fireEvent.click(cal);
+    await waitFor(() => expect(container.querySelector('.cal-title').textContent).not.toBe(title));
+    fireEvent.pointerDown(cal, { clientX: 100, clientY: 300 });
+    fireEvent.pointerUp(cal, { clientX: 260, clientY: 300 });
+    await waitFor(() => expect(container.querySelector('.cal-title').textContent).toBe(title));
   });
 });

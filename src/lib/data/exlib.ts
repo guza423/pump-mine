@@ -3,7 +3,8 @@
    Yorgunluk maliyeti (fat): 3 = ağır, eksenel yüklü ya da çok büyük kas kütlesi çalıştıran serbest ağırlık;
    2 = çok eklemli makine / dumbbell; 1 = tek eklem (izolasyon). Pliometrikte yorgunluk temas sayısı × yoğunluktan gelir.
    Direnç profili (prof): a = kas uzunken en zor, u = kas kısalırken en zor, o = hareketin ortasında en zor, d = boyunca benzer.
-   Ek: k = 'o' olimpik, 'p' pliometrik · i = pliometrik yoğunluk 1–4 · r = dinlenme (sn) · bio = biyomekanik modeli · not = kısa not
+   Ek: k = 'o' olimpik, 'p' pliometrik, 'b' beceri, 'w' antrenman öncesi ısınma (V33) · i = pliometrik yoğunluk 1–4 · r = dinlenme (sn)
+   · bio = biyomekanik modeli · not = kısa not
    Mevcut kayıtların id'leri korunur. */
 import { byLang } from '../../i18n';
 
@@ -13,12 +14,12 @@ const EQ = byLang('eq', {
   tr: { bb: 'Barbell', db: 'Dumbbell', kb: 'Kettlebell', ez: 'EZ bar', tb: 'Trap bar', sm: 'Smith', cb: 'Kablo', mk: 'Makine', bw: 'Vücut ağırlığı', bd: 'Band', lm: 'Landmine', mb: 'Sağlık topu', pl: 'Plaka', sb: 'Özel bar', kz: 'Kızak', kt: 'Kutu / engel', sg: 'Strongman', dg: 'Diğer' },
   en: { bb: 'Barbell', db: 'Dumbbell', kb: 'Kettlebell', ez: 'EZ bar', tb: 'Trap bar', sm: 'Smith', cb: 'Cable', mk: 'Machine', bw: 'Bodyweight', bd: 'Band', lm: 'Landmine', mb: 'Medicine ball', pl: 'Plate', sb: 'Specialty bar', kz: 'Sled', kt: 'Box / hurdle', sg: 'Strongman', dg: 'Other' },
 });
-const KIND = byLang('kind', { tr: { k: 'Kuvvet', o: 'Olimpik', p: 'Pliometrik', b: 'Beceri' }, en: { k: 'Strength', o: 'Olympic', p: 'Plyometric', b: 'Skill' } });
+const KIND = byLang('kind', { tr: { k: 'Kuvvet', o: 'Olimpik', p: 'Pliometrik', b: 'Beceri', w: 'Isınma' }, en: { k: 'Strength', o: 'Olympic', p: 'Plyometric', b: 'Skill', w: 'Warm-up' } });
 const PLYO_INT = byLang('plyoint', { tr: ['', 'Düşük', 'Orta', 'Yüksek', 'Şok (reaktif)'], en: ['', 'Low', 'Moderate', 'High', 'Shock (reactive)'] });
-type Extra = { k?: 'o' | 'p' | 'b'; i?: 1 | 2 | 3 | 4; h?: 1; r?: number; bio?: 'bench' | 'rdl' | 'yanaacis'; not?: string };
+type Extra = { k?: 'o' | 'p' | 'b' | 'w'; i?: 1 | 2 | 3 | 4; h?: 1; r?: number; bio?: 'bench' | 'rdl' | 'yanaacis'; not?: string };
 export interface LibraryExercise {
   id: string; name: string; en: string; muscle: string; sec: string[];
-  eq: keyof typeof EQ; kind: 'kuvvet' | 'olimpik' | 'plyo' | 'beceri'; fat: 1 | 2 | 3;
+  eq: keyof typeof EQ; kind: 'kuvvet' | 'olimpik' | 'plyo' | 'beceri' | 'isinma'; fat: 1 | 2 | 3;
   prof: 'a' | 'u' | 'o' | 'd'; rest: number; int?: 1 | 2 | 3 | 4; h?: 1;
   bio?: Extra['bio']; not?: string;
 }
@@ -534,10 +535,12 @@ const EX_ROWS: Row[] = [
   ['cift-gecis', 'İp atlama çift geçiş', 'Double under', 'BA', 'OY', 'dg', 1, 'd', { k: 'b' }],
   ['tek-kol-barfiks', 'Tek kol barfiks', 'One-arm pull-up', 'S', 'BI,OK', 'bw', 3, 'a', { k: 'b' }],
   ['tek-kol-sinav', 'Tek kol şınav', 'One-arm push-up', 'G', 'TR,K', 'bw', 2, 'a', { k: 'b' }],
+  /* ---------- ISINMA (V33): listelerde en üstte gösterilir; yalnızca süre ve yoğunluk skalası girilir, hesaplara girmez ---------- */
+  ['isinma', 'Antrenman öncesi ısınma', 'Pre-workout warm-up', 'TV', '', 'dg', 1, 'd', { k: 'w', r: 60 }],
 ];
 const EX_LIB: LibraryExercise[] = EX_ROWS.map(([id, name, en, mus, sec, eq, fat, prof, x]) => {
   const o = x || {};
-  const kind = o.k === 'o' ? 'olimpik' : o.k === 'p' ? 'plyo' : o.k === 'b' ? 'beceri' : 'kuvvet';
+  const kind = o.k === 'o' ? 'olimpik' : o.k === 'p' ? 'plyo' : o.k === 'b' ? 'beceri' : o.k === 'w' ? 'isinma' : 'kuvvet';
   const rest = o.r || (kind === 'beceri' ? 90 : kind === 'plyo' ? ((o.i || 2) >= 4 ? 180 : 120) : kind === 'olimpik' ? 150 : fat === 3 ? 180 : fat === 2 ? 120 : 75);
   const e: LibraryExercise = { id, name, en, muscle: MUS_CODE[mus], sec: sec ? sec.split(',').map((c) => MUS_CODE[c as keyof typeof MUS_CODE]) : [], eq, kind, fat, prof, rest };
   if (o.i) e.int = o.i;
@@ -547,4 +550,16 @@ const EX_LIB: LibraryExercise[] = EX_ROWS.map(([id, name, en, mus, sec, eq, fat,
   return e;
 });
 
-export { EX_LIB, MUS_CODE, EQ, KIND, PLYO_INT };
+/* V33 · Kilo sürgüsünde "vücut ağırlığı" seçeneği: ekipmanı vücut ağırlığı ya da plaka (ağırlıklı dips, barfiks vb.)
+   olanlar ve ek yük olmadan da yapılan dumbbell hareketleri (lunge, split squat, step-up, tek bacak RDL). */
+const BW_OK_IDS = new Set(['curtsy-lunge', 'bulgarian-split-squat', 'split-squat', 'one-lunge', 'geri-lunge', 'deficit-geri-lunge', 'yuruyen-lunge', 'yan-lunge', 'step-up', 'yan-step-up', 'tek-bacak-rdl']);
+const canBodyweight = (ex?: Pick<LibraryExercise, 'id' | 'eq' | 'kind'> | null) =>
+  !!ex && ex.kind !== 'isinma' && (ex.eq === 'bw' || ex.eq === 'pl' || BW_OK_IDS.has(ex.id));
+/** V33 · ısınma (kardiyo) en üstte: listeler bununla sıralanır. */
+const WARMUP_ID = 'isinma';
+const warmFirst = <T extends { id?: string; exId?: string | null }>(list: T[]) => {
+  const i = list.findIndex((e) => (e.exId || e.id) === WARMUP_ID);
+  return i > 0 ? [list[i], ...list.slice(0, i), ...list.slice(i + 1)] : list;
+};
+
+export { EX_LIB, MUS_CODE, EQ, KIND, PLYO_INT, canBodyweight, WARMUP_ID, warmFirst };

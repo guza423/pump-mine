@@ -10,7 +10,7 @@ export const RECENT_DAYS = 20;
 
 export type ProgKind = 'e1' | 'reps' | 'plyo' | 'skill';
 
-type AnySet = { kg?: number; reps: number; rir?: number; rom?: number; plyo?: boolean; skill?: boolean; q?: number; hold?: number; at?: number };
+type AnySet = { kg?: number; reps: number; rir?: number; rom?: number; plyo?: boolean; skill?: boolean; warm?: boolean; q?: number; hold?: number; at?: number };
 type AnyItem = { exId?: string | null; name: string; muscle?: string; sets: AnySet[] };
 type AnySession = { id: string; status: string; ready?: boolean; startedAt: number; items: AnyItem[] };
 
@@ -106,12 +106,16 @@ export function exerciseIndex(sessions: AnySession[], now = Date.now()): ProgEnt
   const map = new Map<string, { exId: string | null; name: string; per: Map<string, { t: number; sets: AnySet[] }> }>();
   for (const s of done) {
     for (const it of s.items || []) {
-      if (!it.sets || !it.sets.length) continue;
+      // V33 · ısınma setleri ve antrenman öncesi ısınma gelişime girmez
+      const lib = libOf(it.exId, it.name);
+      if (lib && lib.kind === 'isinma') continue;
+      const work = (it.sets || []).filter((x) => !x.warm);
+      if (!work.length) continue;
       const key = exKey(it);
       let e = map.get(key);
       if (!e) { e = { exId: it.exId || null, name: it.name, per: new Map() }; map.set(key, e); }
       const cur = e.per.get(s.id) || { t: s.startedAt, sets: [] };
-      cur.sets.push(...it.sets);
+      cur.sets.push(...work);
       e.per.set(s.id, cur);
     }
   }
@@ -149,7 +153,7 @@ export function bestE1Set(sessions: AnySession[], key: string) {
     for (const it of s.items || []) {
       if (exKey(it) !== key) continue;
       for (const x of it.sets || []) {
-        if (!e1Ok(x as never)) continue;
+        if (x.warm || !e1Ok(x as never)) continue;
         const v = e1rm(Number(x.kg), x.reps, x.rir ?? 0);
         if (!best || v > best.v) best = { kg: Number(x.kg), reps: x.reps, rir: x.rir ?? 0, v, t: s.startedAt };
       }

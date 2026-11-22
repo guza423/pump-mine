@@ -2,7 +2,7 @@
 // Dokunulan yere atlamaz: bar her yerinden tutulup sürüklenir; parmak bardan yukarı/aşağı uzaklaştıkça hassaslaşır (1, 1/2, 1/4, 1/8).
 // PxStair: tek değer ya da aralık (en az–en çok; dokunulan yere yakın uç oynar). PxKgTape: isteğe bağlı kilo; kenarda tutunca kayar.
 import React, { useEffect, useRef, useState } from 'react';
-import { pixelFx } from '../../lib/native/fx';
+import { dragSpeed, pixelFx } from '../../lib/native/fx';
 import { lower, t } from '../../i18n';
 import type { FxSettings } from '../../lib/store/types';
 
@@ -73,7 +73,7 @@ export function PxStair({ id, label, min, max, step = 1, lo, hi, range = false, 
     if (!d) return;
     const fn = fineOf(e.clientY, d.r);
     setFine(fn);
-    d.acc = clampN(d.acc + ((e.clientX - d.x) * fn * n) / (d.r.width || 1), 0, n - 1);
+    d.acc = clampN(d.acc + ((e.clientX - d.x) * fn * dragSpeed(fx) * n) / (d.r.width || 1), 0, n - 1);
     d.x = e.clientX;
     apply(Math.round(d.acc), d.h);
   };
@@ -148,13 +148,18 @@ type TapeProps = {
   span?: number;
   max?: number;
   start?: number;
+  /** V33 · en düşük değer (barbell 20 kg). */
+  min?: number;
+  /** V33 · 0 = vücut ağırlığı (ek yük olmadan yapılan hareket); `plus`: VA + ek yük olarak gösterilir. */
+  bw?: boolean;
+  plus?: boolean;
 };
 
-export function PxKgTape({ id, label, value, onChange, fx, step = 2.5, span = 40, max = 400, start = 20 }: TapeProps) {
+export function PxKgTape({ id, label, value, onChange, fx, step = 2.5, span = 40, max = 400, start = 20, min = 0, bw = false, plus = false }: TapeProps) {
   const has = value != null && Number.isFinite(Number(value));
-  const v = has ? Number(value) : null;
-  const winFor = (x: number) => clampN(Math.floor((x - span / 2) / 10) * 10, 0, Math.max(0, max - span));
-  const [w0, setW0] = useState(() => winFor(v ?? start));
+  const v = has ? Math.max(min, Number(value)) : null;
+  const winFor = (x: number) => clampN(Math.floor((x - span / 2) / 10) * 10, min, Math.max(min, max - span));
+  const [w0, setW0] = useState(() => winFor(v ?? Math.max(min, start)));
   const drag = useRef<null | { r: DOMRect; x: number; f: number; acc: number }>(null);
   const [fine, setFine] = useState(1);
   const timer = useRef(0);
@@ -162,7 +167,7 @@ export function PxKgTape({ id, label, value, onChange, fx, step = 2.5, span = 40
   cur.current = { v, w0 };
   useEffect(() => () => clearInterval(timer.current), []);
 
-  const snap = (x: number) => clampN(Math.round(x / step) * step, 0, max);
+  const snap = (x: number) => clampN(Math.round(x / step) * step, min, max);
   const set = (x: number) => {
     const nv = snap(x);
     if (nv === cur.current.v) return;
@@ -176,7 +181,7 @@ export function PxKgTape({ id, label, value, onChange, fx, step = 2.5, span = 40
     let nw = w;
     if (x > w + span * 0.88) nw = x - span * 0.88;
     else if (x < w + span * 0.12) nw = x - span * 0.12;
-    nw = clampN(Math.round(nw / step) * step, 0, Math.max(0, max - span));
+    nw = clampN(Math.round(nw / step) * step, min, Math.max(min, max - span));
     if (nw !== w) { cur.current.w0 = nw; setW0(nw); }
   };
   const edge = () => {
@@ -184,7 +189,7 @@ export function PxKgTape({ id, label, value, onChange, fx, step = 2.5, span = 40
     if (!d) return;
     const dir = d.f > 0.92 ? 1 : d.f < 0.08 ? -1 : 0;
     if (!dir) return;
-    d.acc = clampN((cur.current.v ?? start) + dir * step, 0, max);
+    d.acc = clampN((cur.current.v ?? start) + dir * step, min, max);
     set(d.acc);
     follow(d.acc);
   };
@@ -195,7 +200,7 @@ export function PxKgTape({ id, label, value, onChange, fx, step = 2.5, span = 40
     const r = el.getBoundingClientRect();
     drag.current = { r, x: e.clientX, f: (e.clientX - r.left) / (r.width || 1), acc: cur.current.v ?? start };
     clearInterval(timer.current);
-    timer.current = window.setInterval(edge, 110);
+    timer.current = window.setInterval(edge, Math.round(110 / dragSpeed(fx)));
   };
   const move = (e: React.PointerEvent<HTMLDivElement>) => {
     const d = drag.current;
@@ -203,7 +208,7 @@ export function PxKgTape({ id, label, value, onChange, fx, step = 2.5, span = 40
     const fn = fineOf(e.clientY, d.r);
     setFine(fn);
     d.f = (e.clientX - d.r.left) / (d.r.width || 1);
-    d.acc = clampN(d.acc + ((e.clientX - d.x) * fn * span) / (d.r.width || 1), 0, max);
+    d.acc = clampN(d.acc + ((e.clientX - d.x) * fn * dragSpeed(fx) * span) / (d.r.width || 1), min, max);
     d.x = e.clientX;
     set(d.acc);
     follow(d.acc);
@@ -234,17 +239,21 @@ export function PxKgTape({ id, label, value, onChange, fx, step = 2.5, span = 40
       <div className="px-dr-head">
         <span className="px-dr-k">{label}</span>
         {fine < 1 ? <span className="px-dr-fine">{t('HASSAS')} 1/{Math.round(1 / fine)}</span> : null}
-        {has ? <span className="px-dr-v">{fmtN(v as number)}<small>kg</small></span> : <span className="px-dr-none">{t('isteğe bağlı · sürükle')}</span>}
+        {has
+          ? (bw && v === 0
+            ? <span className="px-dr-v px-dr-bw">{t('Vücut ağırlığı')}</span>
+            : <span className="px-dr-v">{bw && plus ? t('VA') + ' +' : ''}{fmtN(v as number)}<small>kg</small></span>)
+          : <span className="px-dr-none">{t('isteğe bağlı · sürükle')}</span>}
       </div>
       <div
         className={'px-dr-bar px-dr-tape' + (has ? '' : ' off')}
         role="slider"
         tabIndex={0}
         aria-label={label}
-        aria-valuemin={0}
+        aria-valuemin={min}
         aria-valuemax={max}
         aria-valuenow={has ? (v as number) : undefined}
-        aria-valuetext={has ? fmtN(v as number) + ' kg' : t('hedef kilo yok')}
+        aria-valuetext={has ? (bw && v === 0 ? t('Vücut ağırlığı') : fmtN(v as number) + ' kg') : t('hedef kilo yok')}
         onPointerDown={down}
         onPointerMove={move}
         onPointerUp={up}
@@ -262,8 +271,12 @@ export function PxKgTape({ id, label, value, onChange, fx, step = 2.5, span = 40
       <div className="px-dr-scale" aria-hidden="true">
         {/* kenara yapışan etiketler yarım görünmesin diye pencerenin iç kısmındakiler yazılır */}
         {segs.filter((x) => Math.abs(x % 10) < 1e-6 && pct(x) > 4 && pct(x) < 96).map((x) => <span key={x} style={{ left: pct(x) + '%' }}>{x}</span>)}
+        {bw && w0 === 0 ? <span className="px-dr-bwk" style={{ left: '2%' }}>{t('VA')}</span> : null}
       </div>
-      {has ? <button type="button" className="px-dr-clear" onClick={() => onChange(null)}>{t('Kilo hedefini kaldır')}</button> : null}
+      <div className="px-dr-acts">
+        {bw && v !== 0 ? <button type="button" id={id + '-bw'} className="px-dr-clear" onClick={() => { cur.current.v = 0; setW0(0); onChange(0); }}>{t('Vücut ağırlığı')}</button> : null}
+        {has ? <button type="button" className="px-dr-clear" onClick={() => onChange(null)}>{t('Kilo hedefini kaldır')}</button> : null}
+      </div>
     </div>
   );
 }

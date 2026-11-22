@@ -11,8 +11,9 @@ export interface EqConfig {
   W: number;
 }
 
+// V33 · barbell 20 kg'ın altına inemez (boş olimpik bar); 0 kg seçeneği yok.
 export const EQT: Record<VisKind, EqConfig> = {
-  bar: { vis: 'bar', step: 2.5, min: 0, max: 300, W: 50 },
+  bar: { vis: 'bar', step: 2.5, min: 20, max: 300, W: 50 },
   mk: { vis: 'mk', step: 5, min: 0, max: 200, W: 100 },
   db: { vis: 'db', step: 2.5, min: 0, max: 80, W: 50 },
   other: { vis: 'other', step: 2.5, min: 0, max: 300, W: 50 },

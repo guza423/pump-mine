@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { clamp, Icon, reducedMotion } from '../lab/Cns';
-import { EX_LIB, MUS_CODE, EQ, PLYO_INT } from '../../lib/data/exlib';
+import { EX_LIB, MUS_CODE, EQ, PLYO_INT, canBodyweight, warmFirst, WARMUP_ID } from '../../lib/data/exlib';
 import { e1Ok, bestE1 } from '../../lib/models/training';
 import { dbMultiplier } from '../../lib/models/session';
 import { nextPlanned } from '../plan/plans';
@@ -36,6 +36,29 @@ const LIB_MAP = new Map(EX_LIB.map((e) => [e.id, e]));
 const libById = (id) => (id ? LIB_MAP.get(id) : undefined);
 const isPlyo = (exId) => { const e = libById(exId); return !!(e && e.kind === 'plyo'); };
 const isSkill = (exId) => { const e = libById(exId); return !!(e && e.kind === 'beceri'); };
+// V33 · antrenman öncesi ısınma (kardiyo): yalnızca süre ve yoğunluk skalası; yorgunluk, zor set, tonaj ve gelişime girmez.
+const isWarmEx = (exId) => { const e = libById(exId); return !!(e && e.kind === 'isinma'); };
+// Nabız skalası: sayı değil, konuşma testiyle tarif edilen 5 kademe (renkler pixel paletten, mavi → kırmızı).
+const WARM_Z = byLang('warmz', {
+  tr: [
+    { k: 'Çok hafif', d: 'Rahat konuşursun' },
+    { k: 'Hafif', d: 'Konuşursun, hafif terlersin' },
+    { k: 'Orta', d: 'Kısa cümlelerle konuşursun' },
+    { k: 'Yüksek', d: 'Birkaç kelime söyleyebilirsin' },
+    { k: 'Çok yüksek', d: 'Konuşamazsın' },
+  ],
+  en: [
+    { k: 'Very light', d: 'You can chat easily' },
+    { k: 'Light', d: 'You can talk, light sweat' },
+    { k: 'Medium', d: 'You can speak in short sentences' },
+    { k: 'Hard', d: 'Only a few words at a time' },
+    { k: 'Very hard', d: 'You can\'t talk' },
+  ],
+});
+const WARM_Z_COLORS = ['#4aa8ff', '#52e07c', '#ffc53d', '#ff8a3a', '#ff3b4e'];
+const warmSetTxt = (x) => t('{n} dk', { n: Number(x.dur) || 0 }) + ' · ' + (WARM_Z[(Number(x.z) || 1) - 1] || WARM_Z[0]).k;
+// V33 · set özellikleri (set kaydında sağ üstten): hazır plan notlarıyla aynı Türkçe anahtarlar, ikisi yeni.
+const SET_ATTRS = ['Drop set', 'Tükenişe kadar', 'Rest-pause', 'Kısmi tekrar', 'Yardımlı tekrar', 'Yavaş eksantrik', 'Altta beklet', 'Patlayıcı kaldır', 'Pump seti', 'Süperset'];
 // Pliometrik yorgunluk: temas başına yük, yoğunluğa göre (düşük, orta, yüksek, şok). 100 orta temas ≈ 5 orta maliyetli zor set.
 const PLYO_W = [0, 0.03, 0.05, 0.08, 0.12];
 const PLYO_Q = byLang('plyoq', {
@@ -141,10 +164,11 @@ function sessionFromDay(program, day) {
   return {
     id: newId('s'), programId: program ? program.id : null, programName: program ? program.name : '', dayId: day ? day.id : null,
     dayName: day ? day.name : 'Plansız antrenman', startedAt: Date.now(), endedAt: null, status: 'active',
-    ...(day ? {} : { ready: true }),
+    // V33 · planlı antrenman da "hazır" açılır: süre ancak İDMANI BAŞLAT'a basınca (ya da ilk sette) başlar.
+    ready: true,
     items: (day ? day.items : []).map((it) => ({
       id: newId('e'), srcId: it.id || null, exId: it.exId || null, name: it.name, muscle: it.muscle, note: it.note || '', memo: '',
-      target: { sets: it.sets, repMin: it.repMin, repMax: it.repMax, kg: hasNum(it.kg) ? Number(it.kg) : null, rpeMin: it.rpeMin, rpeMax: it.rpeMax, rest: it.rest || 120 },
+      target: { sets: it.sets, repMin: it.repMin, repMax: it.repMax, kg: hasNum(it.kg) ? Number(it.kg) : null, rpeMin: it.rpeMin, rpeMax: it.rpeMax, rest: it.rest || 120, ...(hasNum(it.dur) ? { dur: Number(it.dur), z: Number(it.z) || 2 } : {}) },
       sets: [],
     })),
   };
@@ -153,6 +177,7 @@ function itemFromEx(ex) {
   const exId = ex.exId || ex.id || null;
   const lib = libById(exId);
   const base = { id: newId('i'), exId, name: ex.name, muscle: ex.muscle, kg: null, rest: ex.rest || (lib && lib.rest) || 120, note: '' };
+  if (lib && lib.kind === 'isinma') return { ...base, rest: 60, sets: 1, repMin: 1, repMax: 1, rpeMin: null, rpeMax: null, dur: 10, z: 2 };
   if (lib && lib.kind === 'beceri') return { ...base, rest: ex.rest || 90, sets: 5, repMin: 3, repMax: 3, rpeMin: null, rpeMax: null };
   if (lib && lib.kind === 'plyo') return { ...base, sets: 3, repMin: 5, repMax: 5, rpeMin: null, rpeMax: null };
   if (lib && lib.kind === 'olimpik') return { ...base, sets: 4, repMin: 2, repMax: 3, rpeMin: 7, rpeMax: 8 };
@@ -161,10 +186,12 @@ function itemFromEx(ex) {
 function repTxt(a, b) { return !hasNum(b) || Number(a) === Number(b) ? String(a) : a + '–' + b; }
 function rpeTxt(a, b) { if (!hasNum(a)) return null; return 'RPE ' + (!hasNum(b) || Number(a) === Number(b) ? nf(Number(a)) : nf(Number(a)) + '–' + nf(Number(b))); }
 function targetTxt(tg, exId) {
+  if (isWarmEx(exId)) return t('{n} dk', { n: Number(tg.dur) || 10 }) + ' · ' + (WARM_Z[(Number(tg.z) || 2) - 1] || WARM_Z[1]).k;
   const plyo = isPlyo(exId);
   const skill = isSkill(exId);
   const parts = [tg.sets + ' × ' + repTxt(tg.repMin, tg.repMax) + (plyo ? ' ' + t('temas') : skill ? ' ' + t('deneme') : '')];
-  if (!skill && hasNum(tg.kg)) parts.push(kgTxt(tg.kg));
+  // V33 · ek yüksüz yapılabilen harekette 0 kg = vücut ağırlığı
+  if (!skill && hasNum(tg.kg)) parts.push(Number(tg.kg) === 0 && canBodyweight(libById(exId)) ? t('vücut ağırlığı') : kgTxt(tg.kg));
   const r = skill ? null : rpeTxt(tg.rpeMin, tg.rpeMax);
   if (r) parts.push(r);
   return parts.join(' · ');
@@ -176,19 +203,20 @@ function sessionStats(s) {
     const mult = dbMultiplier(it.exId, it.name);
     it.sets.forEach((x) => {
       sets.push({ ...x, muscle: it.muscle, rest: it.target?.rest });
-      if (!x.plyo && !x.skill) tonnage += (Number(x.kg) || 0) * x.reps * mult;
+      // V33 · ısınma setleri tonaja girmez
+      if (!x.plyo && !x.skill && !x.warm) tonnage += (Number(x.kg) || 0) * x.reps * mult;
     });
   });
-  const hard = sets.filter((x) => !x.plyo && !x.skill && x.rir <= 4);
+  const hard = sets.filter((x) => !x.plyo && !x.skill && !x.warm && x.rir <= 4);
   const contacts = sets.reduce((a, x) => a + (x.plyo ? x.reps : 0), 0);
   const attempts = sets.reduce((a, x) => a + (x.skill ? x.reps : 0), 0);
-  return { sets, hard, tonnage, contacts, attempts, dur: s.ready ? 0 : (s.endedAt || Date.now()) - s.startedAt };
+  return { sets, hard, tonnage, contacts, attempts, warm: sets.filter((x) => x.warm).length, dur: s.ready ? 0 : (s.endedAt || Date.now()) - s.startedAt };
 }
 function weeklyHard(sessions, endTs) {
   const from = endTs - 7 * 864e5;
   const map = {};
   sessions.filter((s) => s.status === 'done' && s.startedAt >= from && s.startedAt <= endTs + 1000).forEach((s) => s.items.forEach((it) => {
-    const h = it.sets.filter((x) => !x.plyo && !x.skill && x.rir <= 4).length;
+    const h = it.sets.filter((x) => !x.plyo && !x.skill && !x.warm && x.rir <= 4).length;
     if (h) map[it.muscle] = (map[it.muscle] || 0) + h;
   }));
   return Object.entries(map).sort((a, b) => b[1] - a[1]);
@@ -233,6 +261,10 @@ const noteLabel = (note) => String(note || '').split(' · ').map((x) => (NOTE_PR
 function ItemEditor({ it, idx, n, onChange, onMove, onRemove, fx = { sound: true, haptic: true } }) {
   const plyo = isPlyo(it.exId);
   const skill = isSkill(it.exId);
+  const lib = libById(it.exId);
+  // V33 · barbell en az 20 kg; ek yük olmadan da yapılan harekette sürgünün başı "vücut ağırlığı"
+  const kgMin = lib && lib.eq === 'bb' && !plyo ? 20 : 0;
+  const bw = !plyo && canBodyweight(lib);
   const set = (k) => (v) => onChange({ ...it, [k]: v });
   const pid = 'it-' + it.id;
   const parsed = splitNote(it.note);
@@ -241,6 +273,28 @@ function ItemEditor({ it, idx, n, onChange, onMove, onRemove, fx = { sound: true
     const on = parsed.on.includes(p) ? parsed.on.filter((x) => x !== p) : [...parsed.on, p];
     onChange({ ...it, note: joinNote(on, free) });
   };
+  if (isWarmEx(it.exId)) {
+    const z = Number(it.z) || 2;
+    return (
+      <div className="item-ed">
+        <div className="ied-drag">
+          <PxStair id={'it-' + it.id + '-dur'} label={t('Süre')} unit={t('dk')} min={1} max={30} lo={Number(it.dur) || 10} onChange={(a) => onChange({ ...it, dur: a, sets: 1 })} fx={fx} marks={[1, 5, 10, 15, 20, 25, 30]} />
+        </div>
+        <div className="field-pair">
+          <span className="st-k">{t('Nabız')}</span>
+          <div className="chips-wrap" role="radiogroup" aria-label={t('Nabız skalası')}>
+            {WARM_Z.map((zo, i) => <button key={i} type="button" id={'it-' + it.id + '-z' + (i + 1)} role="radio" aria-checked={z === i + 1} className={'fchip sm' + (z === i + 1 ? ' on' : '')} style={{ borderColor: WARM_Z_COLORS[i] }} onClick={() => onChange({ ...it, z: i + 1, sets: 1 })}>{zo.k}</button>)}
+          </div>
+          <p className="muted-p" style={{ margin: 0 }}>{WARM_Z[z - 1].d} · {t('Hesaplara girmez.')}</p>
+        </div>
+        <div className="ied-actions">
+          <button type="button" className="btn ghost sm" disabled={idx === 0} onClick={() => onMove(-1)} aria-label={t('Yukarı taşı')}>↑ {t('Yukarı')}</button>
+          <button type="button" className="btn ghost sm" disabled={idx === n - 1} onClick={() => onMove(1)} aria-label={t('Aşağı taşı')}>↓ {t('Aşağı')}</button>
+          <HoldButton className="btn ghost sm danger-t" onHold={onRemove}>{t('Hareketi sil')}</HoldButton>
+        </div>
+      </div>
+    );
+  }
   const repWord = plyo ? t('Temas') : skill ? t('Deneme') : t('Tekrar');
   const rMin = hasNum(it.repMin) ? Number(it.repMin) : 8;
   const rMax = hasNum(it.repMax) ? Number(it.repMax) : rMin;
@@ -249,7 +303,7 @@ function ItemEditor({ it, idx, n, onChange, onMove, onRemove, fx = { sound: true
       <div className="ied-drag">
         <PxStair id={pid + '-sets'} label={t('Set')} min={1} max={12} lo={Number(it.sets) || 3} onChange={(a) => onChange({ ...it, sets: a })} fx={fx} marks={[1, 4, 8, 12]} />
         <PxStair id={pid + '-reps'} label={repWord} min={1} max={30} range lo={rMin} hi={rMax} onChange={(a, b) => onChange({ ...it, repMin: a, repMax: b })} fx={fx} marks={[1, 5, 10, 15, 20, 25, 30]} loLabel={t('En az {x}', { x: lower(repWord) })} hiLabel={t('En çok {x}', { x: lower(repWord) })} />
-        {skill ? null : <PxKgTape id={pid + '-kg'} label={plyo ? t('Ek yük') : t('Kilo')} value={hasNum(it.kg) ? Number(it.kg) : null} onChange={(x) => onChange({ ...it, kg: x })} fx={fx} />}
+        {skill ? null : <PxKgTape id={pid + '-kg'} label={plyo ? t('Ek yük') : t('Kilo')} value={hasNum(it.kg) ? Number(it.kg) : null} onChange={(x) => onChange({ ...it, kg: x })} fx={fx} min={kgMin} start={kgMin || 20} bw={bw} plus={!!lib && (lib.eq === 'bw' || lib.eq === 'pl')} />}
         {plyo || skill ? null : <PxStair id={pid + '-rpe'} label="RPE" min={5} max={10} step={0.5} range lo={hasNum(it.rpeMin) ? Number(it.rpeMin) : 7} hi={hasNum(it.rpeMax) ? Number(it.rpeMax) : hasNum(it.rpeMin) ? Number(it.rpeMin) : 9} onChange={(a, b) => onChange({ ...it, rpeMin: a, rpeMax: b })} fx={fx} marks={[5, 6, 7, 8, 9, 10]} loLabel={t('En düşük RPE')} hiLabel={t('En yüksek RPE')} />}
       </div>
       <div className="field-pair">
@@ -430,4 +484,5 @@ export {
   blankProgram, sessionFromDay, itemFromEx,
   repTxt, rpeTxt, targetTxt, sessionStats, weeklyHard, nextPlanned,
   Stepper, ItemEditor, Lane, RepBars, SetReplay, firstOpen, entryFor, RestBar, NOTE_PRESETS, noteLabel,
+  isWarmEx, WARM_Z, WARM_Z_COLORS, warmSetTxt, SET_ATTRS, canBodyweight, warmFirst, WARMUP_ID,
 };

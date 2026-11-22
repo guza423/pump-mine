@@ -15,6 +15,7 @@ import {
   hasNum, itemFromEx, newId, nextPlanned, nf, normTr,
   repTxt, restTxt, rirTxt, rpeLabel,
   sameDay, sessionFromDay, sessionStats, targetTxt, vlColor,
+  isWarmEx, warmFirst, SET_ATTRS, warmSetTxt,
 } from '../features/antrenman/core';
 import {
   allPlans, dateKey, parseDateKey, plansOn, newPlanDoc, upsertPlan, removePlan,
@@ -32,6 +33,8 @@ import { planStats, logStats, proxW, costW, loadScore, hoursToFresh, decayK, set
 import { exerciseIndex, RECENT_DAYS } from '../lib/models/progress';
 import { ProgressListBody, ProgressDetailBody } from '../features/gozlem/ProgressSheets';
 import { useIdleWatch } from '../features/antrenman/idleWatch';
+import { planReminders, remindersOn } from '../features/plan/reminders';
+import { hideWorkout, setReminders, showWorkout } from '../lib/native/restTimer';
 import { IDLE_ASK_MS, IDLE_END_MS } from '../lib/models/idle';
 import '../styles/cns.css';
 import '../styles/app.css';
@@ -71,7 +74,7 @@ const DAY_MS = 864e5;
 const dayKey = (ts) => { const d = new Date(ts); return 'c_' + d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
 const fullDate = (ts) => { const d = new Date(ts); return t('{wd}, {d} {m}', { wd: WD_LONG[d.getDay()], d: d.getDate(), m: MONTHS_LONG[d.getMonth()] }); };
 const exMeta = (exId, name) => EX_LIB.find((e) => e.id === exId) || EX_LIB.find((e) => e.name === name) || null;
-const dayMinutes = (day) => Math.round(day.items.reduce((a, i) => a + Number(i.sets || 0) * ((i.rest || 120) + 45), 0) / 60);
+const dayMinutes = (day) => Math.round(day.items.reduce((a, i) => a + (isWarmEx(i.exId) ? (Number(i.dur) || 10) * 60 : Number(i.sets || 0) * ((i.rest || 120) + 45)), 0) / 60);
 const hm = (ts) => { const d = new Date(ts); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
 const zoneOf = (score) => (score < 40 ? { k: t('Yönetilebilir'), c: 'var(--ok)', cls: 'ok' } : score < 70 ? { k: t('Birikiyor'), c: 'var(--warn)', cls: 'warn' } : { k: t('Yüksek'), c: 'var(--bad)', cls: 'bad' });
 const tonTxt = (kg) => (kg >= 10000 ? nf(Math.round(kg / 100) / 10) + ' t' : nf(Math.round(kg)) + ' kg');
@@ -241,7 +244,9 @@ function FactChips({ ex }) {
     </div>
   );
 }
-const EX_KINDS = [['all', 'Tümü'], ['kuvvet', 'Kuvvet'], ['olimpik', 'Olimpik'], ['plyo', 'Pliometrik'], ['beceri', 'Beceri']]; // etiketler gösterimde t() ile
+// V33 · antrenman öncesi ısınma listelerin başında
+const LIB_WARM_FIRST = warmFirst(EX_LIB);
+const EX_KINDS = [['all', 'Tümü'], ['kuvvet', 'Kuvvet'], ['olimpik', 'Olimpik'], ['plyo', 'Pliometrik'], ['beceri', 'Beceri'], ['isinma', 'Isınma']]; // etiketler gösterimde t() ile
 function useExFilter(all, initGrp) {
   const [q, setQ0] = useState('');
   const [kind, setKind0] = useState('all');
@@ -642,28 +647,35 @@ function WtypeMenuBody({ st, pid, did, put, del, onStart, onEdit, onClose }) {
         </ol>
       ) : <p className="muted-p">{t('Bu planda henüz hareket yok.')}</p>}
       <span className="st-k">{t('Her hafta')}</span>
+      {/* V33 · yanlışlıkla dokunmaya karşı günler, Başlat ve Kopyala basılı tutularak çalışır */}
       <div className="wd-pick">
         {WEEK_ORDER.map((w) => {
           const on = (d.weekdays || []).includes(w);
           return (
-            <button
+            <HoldButton
               key={w}
-              type="button"
+              id={'wtype-wd-' + w}
+              ms={450}
+              tone="go"
+              hint={null}
+              aria-pressed={on}
+              aria-label={t('{x}: basılı tut', { x: WD_LONG[w] })}
               className={'wd-btn' + (on ? ' on' : '')}
-              onClick={() => saveDay((x) => {
+              onHold={() => saveDay((x) => {
                 const cur = x.weekdays || [];
                 x.weekdays = cur.includes(w) ? cur.filter((z) => z !== w) : [...cur, w];
               })}
             >
               {WD_SHORT[w]}
-            </button>
+            </HoldButton>
           );
         })}
       </div>
+      <p className="wmenu-hint">{t('Günü seçmek ya da kaldırmak için basılı tut.')}</p>
       <div className="wmenu-act">
-        {d.items.length ? <button type="button" id="wtype-start" className="btn primary" onClick={() => onStart(p, d)}><Icon name="play" size={13} /> {t('Başlat')}</button> : null}
+        {d.items.length ? <HoldButton id="wtype-start" ms={600} tone="go" className="btn primary" onHold={() => onStart(p, d)}><Icon name="play" size={13} /> {t('Başlat')}</HoldButton> : null}
         <button type="button" id="wtype-edit" className="btn ghost" onClick={() => onEdit(p, d)}><Icon name="edit" size={14} /> {t('Düzenle')}</button>
-        <button type="button" id="wtype-copy" className="btn ghost" onClick={copyPlan}>{t('Kopyala')}</button>
+        <HoldButton id="wtype-copy" ms={600} tone="go" className="btn ghost" onHold={copyPlan}>{t('Kopyala')}</HoldButton>
       </div>
       <HoldButton id="wtype-del" className="btn ghost danger-t wmenu-del" aria-label={t('Planı sil (1 saniye basılı tut; geçmiş kayıtlar kalır)')} onHold={remove}><Icon name="trash" size={14} /> {t('Planı sil')}</HoldButton>
     </div>
@@ -751,6 +763,16 @@ function NoteSheetBody({ init, onSave, onClose }) {
   const tog = (tag) => setTags(tags.includes(tag) ? tags.filter((x) => x !== tag) : [...tags, tag]);
   return (
     <div className="note-sheet">
+      {init.attrs ? (
+        <React.Fragment>
+          {/* V33 · set özelliği: yalnızca sıradaki sete yazılır */}
+          <span className="st-k">{t('Sıradaki setin özelliği')}</span>
+          <div className="chips-wrap" id="set-attrs">
+            {SET_ATTRS.map((tag) => <button key={tag} type="button" aria-pressed={tags.includes(tag)} className={'fchip attr' + (tags.includes(tag) ? ' on' : '')} onClick={() => tog(tag)}>{t(tag)}</button>)}
+          </div>
+          {tags.includes('Tükenişe kadar') ? <p className="muted-p" style={{ margin: 0 }}>{t('Tükenişe kadar: son tekrar hızı "Zar zor" (RIR 0) olarak kaydolur.')}</p> : null}
+        </React.Fragment>
+      ) : null}
       <span className="st-k">{t('Sonraki set')}</span>
       <div className="chips-wrap">
         {NOTE_TAGS.map((tag) => <button key={tag} type="button" className={'fchip' + (tags.includes(tag) ? ' on' : '')} onClick={() => tog(tag)}>{t(tag)}</button>)}
@@ -827,13 +849,17 @@ function SummaryBody({ session, st, put, del, openSheet, onDelete, onClose }) {
                 {it.sets.map((z, j) => (
                   <button key={j} type="button" className="se-set" aria-label={t('Set {n} ayrıntısı', { n: j + 1 })} onClick={() => openSheet('setdetail', { title: exName(it), exId: it.exId, set: z, idx: j })}>
                     <span className="mono">
-                      {z.skill
+                      {z.dur
+                        ? warmSetTxt(z)
+                        : z.warm
+                        ? t('ısn') + ' ' + nf(Number(z.kg)) + '×' + z.reps
+                        : z.skill
                         ? skillSetTxt(z)
                         : z.plyo
                           ? (Number(z.kg) ? '+' + nf(Number(z.kg)) + '×' + z.reps : t('{n} temas', { n: z.reps }))
                           : nf(Number(z.kg)) + '×' + z.reps}
                     </span>
-                    <i style={z.skill ? { background: (SKILL_Q[z.q || 0] || SKILL_Q[0]).c, width: '100%' } : z.plyo ? { background: PLYO_Q[z.q || 0].c, width: '100%' } : { background: vlColor(z.vl), width: Math.max(10, z.vl * 100) + '%' }} />
+                    <i style={z.warm ? { background: '#4aa8ff', width: '100%', opacity: 0.6 } : z.skill ? { background: (SKILL_Q[z.q || 0] || SKILL_Q[0]).c, width: '100%' } : z.plyo ? { background: PLYO_Q[z.q || 0].c, width: '100%' } : { background: vlColor(z.vl), width: Math.max(10, z.vl * 100) + '%' }} />
                     <small className="mono">{hm(z.at)}</small>
                   </button>
                 ))}
@@ -872,9 +898,15 @@ function SummaryBody({ session, st, put, del, openSheet, onDelete, onClose }) {
 function SaveTemplateBody({ session, put, onClose, onSaved }) {
   const [name, setName] = useState(isFree(session) ? '' : t('{x} (yeni)', { x: sessionName(session) }));
   const [wds, setWds] = useState([]);
+  // V33 · plan kaydında ısınma setleri sayılmaz; yalnızca ısınma yapılan hareket ve antrenman öncesi ısınma süresiyle kaydedilir
   const items = session.items.filter((it) => it.sets.length).map((it) => {
-    const reps = it.sets.map((z) => z.reps);
-    const rpes = it.sets.map((z) => z.rpe).filter((r) => r != null);
+    if (isWarmEx(it.exId)) {
+      const last = it.sets.at(-1) || {};
+      return { id: newId('i'), exId: it.exId, name: it.name, muscle: it.muscle, sets: 1, repMin: 1, repMax: 1, kg: null, rpeMin: null, rpeMax: null, rest: 60, note: '', dur: Number(last.dur) || 10, z: Number(last.z) || 2 };
+    }
+    const work = it.sets.filter((z) => !z.warm);
+    const reps = (work.length ? work : it.sets).map((z) => z.reps);
+    const rpes = work.map((z) => z.rpe).filter((r) => r != null);
     const sk = isSkill(it.exId);
     const pl = isPlyo(it.exId);
     return {
@@ -882,10 +914,10 @@ function SaveTemplateBody({ session, put, onClose, onSaved }) {
       exId: it.exId,
       name: it.name,
       muscle: it.muscle,
-      sets: it.sets.length,
+      sets: work.length || it.sets.length,
       repMin: Math.min(...reps),
       repMax: Math.max(...reps),
-      kg: sk ? null : Number(it.sets[it.sets.length - 1].kg) || null,
+      kg: sk ? null : Number((work.length ? work : it.sets).at(-1).kg) || null,
       rpeMin: sk || pl || !rpes.length ? null : Math.min(...rpes),
       rpeMax: sk || pl || !rpes.length ? null : Math.max(...rpes),
       rest: it.target.rest || (sk ? 90 : 120),
@@ -1135,10 +1167,23 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
     });
   }, [viewYm.y, viewYm.m, todayKey, done, st.programs]);
 
+  const [slide, setSlide] = useState(null); // V33 · ay değişiminde kısa kayma: { d: -1 | 1, n }
   const changeMonth = (delta) => {
     const nd = new Date(viewYm.y, viewYm.m + delta, 1);
     setViewYm({ y: nd.getFullYear(), m: nd.getMonth() });
+    setSlide((p) => ({ d: delta, n: (p ? p.n : 0) + 1 }));
   };
+  // V33 · takvimde parmakla sağa sola kaydırınca ay değişir (sola: sonraki ay). Kaydırma sonrası gelen tıklama gün seçmez.
+  const swipe = useRef(null);
+  const calDown = (e) => { swipe.current = { x: e.clientX, y: e.clientY, done: false }; };
+  const calUp = (e) => {
+    const sw = swipe.current;
+    if (!sw) return;
+    const dx = e.clientX - sw.x, dy = e.clientY - sw.y;
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.4) { sw.done = true; changeMonth(dx < 0 ? 1 : -1); }
+    else swipe.current = null;
+  };
+  const calClickCapture = (e) => { if (swipe.current && swipe.current.done) { e.stopPropagation(); e.preventDefault(); } swipe.current = null; };
   const goToday = () => {
     const nowD = new Date();
     setViewYm({ y: nowD.getFullYear(), m: nowD.getMonth() });
@@ -1215,7 +1260,15 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
           <div className="cal-wds" aria-hidden="true">
             {WEEK_ORDER.map((w) => <span key={w}>{WD_SHORT[w]}</span>)}
           </div>
-          <div className="cal" role="grid" aria-label={t('Aylık antrenman takvimi')}>
+          <div
+            className={'cal' + (slide ? (slide.d > 0 ? (slide.n % 2 ? ' slA' : ' slB') : (slide.n % 2 ? ' srA' : ' srB')) : '')}
+            role="grid"
+            aria-label={t('Aylık antrenman takvimi')}
+            onPointerDown={calDown}
+            onPointerUp={calUp}
+            onPointerCancel={() => { swipe.current = null; }}
+            onClickCapture={calClickCapture}
+          >
             {cells.map((c) => {
               const showMarkers = c.markers.length <= 3 ? c.markers : c.markers.slice(0, 2);
               const extra = c.markers.length > 3;
@@ -1429,6 +1482,8 @@ function ItemSheetBody({ it: it0, idx, n, onChange, onMove, onRemove, onClose, o
       <FactChips ex={m} />
       {m ? <button type="button" className="mod-link" onClick={() => openSheet('exercise', { exId: m.id })}><Icon name="info" size={13} /> {m.bio ? t('Biyomekanik ve geçmiş') : t('Hareket bilgisi ve geçmiş')}</button> : null}
       <ItemEditor it={it} idx={idx} n={n} fx={fx} onChange={(nit) => { setIt(nit); onChange(nit); }} onMove={(d) => { onMove(d); onClose(); }} onRemove={() => { onRemove(); onClose(); }} />
+      {/* V33 · değişiklikler anında kaydedilir; onay düğmesi pencereyi kapatır */}
+      <button type="button" id="item-ok" className="btn primary full item-ok" onClick={onClose}>{t('Onayla')}</button>
     </div>
   );
 }
@@ -1437,7 +1492,7 @@ function PickerBody({ custom, addCustom, onPick, onClose, low, openSheet }) {
   const [newMuscle, setNewMuscle] = useState(null);
   const [showNew, setShowNew] = useState(false);
   const all = useMemo(() => [
-    ...EX_LIB.map((e) => ({ ...e, exId: e.id, src: 'lib' })),
+    ...warmFirst(EX_LIB.map((e) => ({ ...e, exId: e.id, src: 'lib' }))),
     ...custom.map((c) => ({ id: c.id, exId: c.id, name: c.name, muscle: c.muscle, rest: 90, kind: 'kuvvet', src: 'custom' })),
   ], [custom]);
   const f = useExFilter(all);
@@ -1642,7 +1697,7 @@ function ExerciseBody({ exId, name, st }) {
   const latKind = m && m.id === 'band-yana-acis' ? 'band' : m && m.id === 'kablo-yana-acis' ? 'cable' : 'db';
   const plyo = m && m.kind === 'plyo';
   const skill = m && m.kind === 'beceri';
-  const setTxt = (z) => (z.skill ? skillSetTxt(z) : z.plyo ? (Number(z.kg) ? '+' + nf(Number(z.kg)) + '×' : '') + z.reps : nf(Number(z.kg)) + '×' + z.reps);
+  const setTxt = (z) => (z.dur ? warmSetTxt(z) : z.skill ? skillSetTxt(z) : z.plyo ? (Number(z.kg) ? '+' + nf(Number(z.kg)) + '×' : '') + z.reps : (z.warm ? t('ısn') + ' ' : '') + nf(Number(z.kg)) + '×' + z.reps);
   return (
     <div className="exsheet">
       <FactChips ex={m} />
@@ -1707,8 +1762,8 @@ function GoalBody({ id, st, put, del, addCustom, onClose }) {
   const recorded = st.sessions.filter(s => s.status === 'done').sort((a, b) => b.startedAt - a.startedAt)
     .flatMap(s => s.items.filter(it => bestE1(it.sets)).map(it => exMeta(it.exId, it.name)))
     .filter(e => e && e.kind !== 'plyo' && e.kind !== 'beceri');
-  const suggestedPerf = [...new Map([...recorded, ...EX_LIB.filter(e => e.kind !== 'plyo' && e.kind !== 'beceri' && e.fat >= 2)].map(e => [e.id, e])).values()];
-  const perfOpts = (toks.length ? EX_LIB.filter(e => e.kind !== 'plyo' && e.kind !== 'beceri' && toks.every(t => normTr(e.name + ' ' + e.en).includes(t))) : suggestedPerf).slice(0, 8);
+  const suggestedPerf = [...new Map([...recorded, ...EX_LIB.filter(e => e.kind !== 'plyo' && e.kind !== 'beceri' && e.kind !== 'isinma' && e.fat >= 2)].map(e => [e.id, e])).values()];
+  const perfOpts = (toks.length ? EX_LIB.filter(e => e.kind !== 'plyo' && e.kind !== 'beceri' && e.kind !== 'isinma' && toks.every(t => normTr(e.name + ' ' + e.en).includes(t))) : suggestedPerf).slice(0, 8);
   const perfValid = !!perf.exId && Number(perf.base) > 0 && Number(perf.target) > Number(perf.base);
   const selectPerf = (e) => {
     const pts = e1Series(st.sessions, e.id, e.name);
@@ -1718,7 +1773,7 @@ function GoalBody({ id, st, put, del, addCustom, onClose }) {
   // Öğrenme seçenekleri (önce beceri hareketleri, sonra diğerleri, en fazla 8)
   const allSkillCandidates = useMemo(() => {
     const skills = EX_LIB.filter((e) => e.kind === 'beceri');
-    const others = EX_LIB.filter((e) => e.kind !== 'beceri');
+    const others = EX_LIB.filter((e) => e.kind !== 'beceri' && e.kind !== 'isinma');
     const customs = (st.custom || []).map((c) => ({ id: c.id, name: c.name, en: '', muscle: c.muscle, kind: 'kuvvet' }));
     return [...skills, ...others, ...customs];
   }, [st.custom]);
@@ -1884,7 +1939,7 @@ const LAB_BASICS = [
   { id: 'meter', t: 'Toparlanma ve yorgunluk ölçer', d: 'Yük, RPE, hacim ve uykuyu kendin dene', sheet: ['fatigue', {}] },
 ];
 function LabScreen({ openSheet }) {
-  const f = useExFilter(EX_LIB);
+  const f = useExFilter(LIB_WARM_FIRST);
   const [part, setPart] = useState('temel');
   return (
     <div className="screen pxt lab-screen">
@@ -2060,6 +2115,23 @@ function App() {
   const exitToast = useAndroidBack(tab, () => setTab('bugun'));
   // V32 · unutulan antrenman: 10 dk giriş yoksa sor, 5 dk daha cevap yoksa son giriş saatinde bitir.
   const idle = useIdleWatch(active, st, put, (ns) => { setJumpExId(null); setPixelSummary(ns); });
+  // V33 · süren antrenman bildirim panelinde ileri sayan süreyle durur; bitince kalkar.
+  const liveSig = active && !active.ready ? active.id + '|' + active.startedAt + '|' + active.dayName + '|' + lang : '';
+  useEffect(() => {
+    if (!liveSig) { void hideWorkout(); return; }
+    void showWorkout({ startedAt: active.startedAt, title: isFree(active) ? t('Plansız antrenman') : sessionName(active), body: t('Antrenman sürüyor · dokun: devam et') });
+  }, [liveSig]);
+  // V33 · plan hatırlatmaları: planlı günden bir gün önce 20:00; plan, ayar ya da dil değişince yeniden kurulur.
+  const remindOn = remindersOn(st.settings);
+  const remindList = useMemo(() => (st.loaded.programs && remindOn ? planReminders(st.programs) : []), [st.programs, st.loaded.programs, remindOn, lang, new Date().toDateString()]);
+  const remindSig = useRef('');
+  useEffect(() => {
+    if (!st.loaded.programs) return;
+    const sig = JSON.stringify(remindList.map((x) => [x.at, x.title, x.body]));
+    if (sig === remindSig.current) return;
+    remindSig.current = sig;
+    void setReminders(remindList.map(({ at, title, body }) => ({ at, title, body })));
+  }, [remindList, st.loaded.programs]);
   useEffect(() => {
     if (!idle.notice) return undefined;
     const tm = setTimeout(idle.clearNotice, 9000);

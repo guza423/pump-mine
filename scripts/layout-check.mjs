@@ -204,6 +204,19 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
     await page.locator('#log-set').waitFor();
     screen = 'seans-kuvvet';
     await check(page, label, screen, { session: true });
+    // V33 · ısınma seti, hedef tekrar aralığı penceresi
+    await page.locator('#speed-warm').click();
+    screen = 'seans-isinma-seti';
+    await check(page, label, screen, { session: true });
+    await page.locator('#speed-warm').click();
+    await page.locator('#rep-range').click();
+    await page.locator('#range-ok').waitFor();
+    screen = 'hedef-aralik';
+    await check(page, label, screen);
+    await page.locator('#range-ok').click();
+    await page.locator('#range-ok').waitFor({ state: 'detached' });
+    screen = 'seans-aralikli';
+    await check(page, label, screen, { session: true });
 
     await page.locator('#log-set').click();
     await page.locator('#rest-big').waitFor();
@@ -253,6 +266,20 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
 
     await page.getByRole('button', { name: 'GEÇ' }).click();
     await page.getByRole('button', { name: 'Geri: antrenman listesi' }).click();
+    // V33 · antrenman öncesi ısınma (süre + nabız skalası)
+    await page.locator('#fx-add').click();
+    await page.locator('#ex-search').fill('ısınma');
+    await page.locator('.pk').filter({ hasText: 'Antrenman öncesi ısınma' }).first().click();
+    await page.locator('#pick-add').click();
+    await page.locator('.card-main').nth(3).click();
+    await page.locator('#hz-3').waitFor();
+    screen = 'seans-isinma';
+    await check(page, label, screen, { session: true });
+    await page.locator('#hz-4').click();
+    await page.locator('#log-set').click();
+    await page.getByRole('button', { name: 'Geri: antrenman listesi' }).click();
+    screen = 'plansiz-liste-isinma';
+    await check(page, label, screen);
     // İDMANI BİTİR yarım saniye basılı tutulur (HoldButton)
     const fb = await page.locator('#finish-btn').boundingBox();
     await page.mouse.move(fb.x + fb.width / 2, fb.y + fb.height / 2);
@@ -443,6 +470,19 @@ async function flowLang(lang, viewport, scale = 1, tablet = false, safeArea = fa
     await page.locator('#log-set').waitFor();
     screen = 'session-strength';
     await check(page, label, screen, { session: true });
+    // V33 · warm-up set, target rep range window
+    await page.locator('#speed-warm').click();
+    screen = 'session-warm-set';
+    await check(page, label, screen, { session: true });
+    await page.locator('#speed-warm').click();
+    await page.locator('#rep-range').click();
+    await page.locator('#range-ok').waitFor();
+    screen = 'rep-range';
+    await check(page, label, screen);
+    await page.locator('#range-ok').click();
+    await page.locator('#range-ok').waitFor({ state: 'detached' });
+    screen = 'session-ranged';
+    await check(page, label, screen, { session: true });
     await page.locator('#log-set').click();
     await page.locator('#rest-big').waitFor();
     screen = 'session-rest';
@@ -484,6 +524,20 @@ async function flowLang(lang, viewport, scale = 1, tablet = false, safeArea = fa
     await check(page, label, screen, { session: true, rest: true });
     await page.getByRole('button', { name: T('GEÇ') }).click();
     await page.getByRole('button', { name: T('Geri: antrenman listesi') }).click();
+    // V33 · pre-workout warm-up (duration + heart-rate scale)
+    await page.locator('#fx-add').click();
+    await page.locator('#ex-search').fill(X('isinma'));
+    await page.locator('.pk').filter({ hasText: X('isinma') }).first().click();
+    await page.locator('#pick-add').click();
+    await page.locator('.card-main').nth(3).click();
+    await page.locator('#hz-3').waitFor();
+    screen = 'session-warmup';
+    await check(page, label, screen, { session: true });
+    await page.locator('#hz-4').click();
+    await page.locator('#log-set').click();
+    await page.getByRole('button', { name: T('Geri: antrenman listesi') }).click();
+    screen = 'quick-list-warmup';
+    await check(page, label, screen);
     const fbEn = await page.locator('#finish-btn').boundingBox();
     await page.mouse.move(fbEn.x + fbEn.width / 2, fbEn.y + fbEn.height / 2);
     await page.mouse.down();

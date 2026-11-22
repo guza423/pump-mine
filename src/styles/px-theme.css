@@ -1173,3 +1173,17 @@
 
 /* V26 · uzun dillere hazırlık: bölge hapı sığmazsa "…" ile kısalır (pixel ekranındaki karşılıkları pixel.css sonunda). */
 .zone-pill { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+
+/* V33 · plan penceresi: basılı tutma ipucu, öğe onayı; takvimde kaydırma */
+.pxt .wmenu-hint { margin: -2px 0 0; font-size: 12px; color: var(--px-mt); }
+.pxt .item-ok { margin-top: 12px; }
+.pxt .fchip.attr.on { color: var(--px-btx); background: var(--px-gold); }
+.pxt .cal { touch-action: pan-y; }
+.pxt .cal.slA, .pxt .cal.slB { animation: pxCalL 0.18s steps(4); }
+.pxt .cal.srA, .pxt .cal.srB { animation: pxCalR 0.18s steps(4); }
+.pxt .cal.slB { animation-name: pxCalL2; }
+.pxt .cal.srB { animation-name: pxCalR2; }
+@keyframes pxCalL { 0% { transform: translateX(24px); opacity: 0.3; } 100% { transform: none; opacity: 1; } }
+@keyframes pxCalL2 { 0% { transform: translateX(24px); opacity: 0.3; } 100% { transform: none; opacity: 1; } }
+@keyframes pxCalR { 0% { transform: translateX(-24px); opacity: 0.3; } 100% { transform: none; opacity: 1; } }
+@keyframes pxCalR2 { 0% { transform: translateX(-24px); opacity: 0.3; } 100% { transform: none; opacity: 1; } }

@@ -13,7 +13,10 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
+import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
@@ -185,6 +188,117 @@ public class RestTimerPlugin extends Plugin {
 
     static PendingIntent idlePending(Context context, int id, Intent intent) {
         return PendingIntent.getBroadcast(context, id, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    // V33 · Süren antrenman: bildirim panelinde ileri sayan süre (kronometre), antrenman bitene dek.
+    static final int LIVE_ID = 4107;
+    static final String LIVE_CHANNEL = "workout-live";
+
+    @PluginMethod
+    public void workoutShow(PluginCall call) {
+        Long startedAt = call.getLong("startedAt");
+        if (startedAt == null || startedAt <= 0) { call.reject("startedAt gerekli"); return; }
+        try {
+            Context context = getContext();
+            NotificationManager manager = context.getSystemService(NotificationManager.class);
+            if (Build.VERSION.SDK_INT >= 26) {
+                String name = call.getString("channel", "Workout in progress");
+                NotificationChannel live = manager.getNotificationChannel(LIVE_CHANNEL);
+                if (live == null) {
+                    live = new NotificationChannel(LIVE_CHANNEL, name, NotificationManager.IMPORTANCE_LOW);
+                    live.setSound(null, null);
+                    live.enableVibration(false);
+                    live.setShowBadge(false);
+                    live.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+                    manager.createNotificationChannel(live);
+                } else if (!name.contentEquals(live.getName())) {
+                    live.setName(name);
+                    manager.createNotificationChannel(live);
+                }
+            }
+            Notification.Builder notification = builder(context, LIVE_CHANNEL)
+                .setSmallIcon(R.drawable.ic_stat_rest)
+                .setContentTitle(call.getString("title", "Workout"))
+                .setContentText(call.getString("body", ""))
+                .setWhen(startedAt)
+                .setShowWhen(true)
+                .setUsesChronometer(true)
+                .setOngoing(true)
+                .setOnlyAlertOnce(true)
+                .setCategory(Notification.CATEGORY_STOPWATCH)
+                .setVisibility(Notification.VISIBILITY_PUBLIC)
+                .setContentIntent(openApp(context));
+            if (Build.VERSION.SDK_INT < 26) notification.setPriority(Notification.PRIORITY_LOW);
+            manager.notify(LIVE_ID, notification.build());
+            call.resolve();
+        } catch (SecurityException denied) {
+            call.resolve();
+        } catch (Exception error) { call.reject("Could not show the workout timer", error); }
+    }
+
+    @PluginMethod
+    public void workoutHide(PluginCall call) {
+        try {
+            getContext().getSystemService(NotificationManager.class).cancel(LIVE_ID);
+            call.resolve();
+        } catch (Exception error) { call.reject("Could not hide the workout timer", error); }
+    }
+
+    // V33 · Plan hatırlatması: planlı günden bir gün önce 20:00 (JS hesaplar). Liste saklanır; telefon yeniden
+    // açılınca BootReceiver yeniden kurar.
+    static final int REMIND_BASE = 4300;
+    static final int REMIND_MAX = 30;
+    static final String REMIND_PREFS = "plan-remind";
+    static final String REMIND_CHANNEL = "plan-reminder";
+
+    static void createRemindChannel(Context context, String name) {
+        if (Build.VERSION.SDK_INT < 26) return;
+        NotificationManager manager = context.getSystemService(NotificationManager.class);
+        NotificationChannel existing = manager.getNotificationChannel(REMIND_CHANNEL);
+        if (existing != null) {
+            if (name != null && !name.contentEquals(existing.getName())) { existing.setName(name); manager.createNotificationChannel(existing); }
+            return;
+        }
+        NotificationChannel ch = new NotificationChannel(REMIND_CHANNEL, name != null ? name : "Workout reminders", NotificationManager.IMPORTANCE_DEFAULT);
+        ch.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+        manager.createNotificationChannel(ch);
+    }
+
+    static void scheduleReminders(Context context, JSONArray items) {
+        AlarmManager alarms = context.getSystemService(AlarmManager.class);
+        long now = System.currentTimeMillis();
+        for (int i = 0; i < REMIND_MAX; i++) {
+            alarms.cancel(idlePending(context, REMIND_BASE + i, new Intent(context, ReminderReceiver.class)));
+        }
+        if (items == null) return;
+        for (int i = 0; i < Math.min(items.length(), REMIND_MAX); i++) {
+            JSONObject it = items.optJSONObject(i);
+            if (it == null) continue;
+            long at = it.optLong("at", 0);
+            if (at <= now) continue;
+            Intent intent = new Intent(context, ReminderReceiver.class)
+                .putExtra("stamp", at).putExtra("slot", i)
+                .putExtra("title", it.optString("title", "")).putExtra("body", it.optString("body", ""));
+            PendingIntent pending = idlePending(context, REMIND_BASE + i, intent);
+            if (Build.VERSION.SDK_INT < 31 || alarms.canScheduleExactAlarms()) {
+                try { alarms.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pending); continue; }
+                catch (SecurityException denied) { /* gecikmeli alarma düş */ }
+            }
+            alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pending);
+        }
+    }
+
+    @PluginMethod
+    public void remindSet(PluginCall call) {
+        try {
+            Context context = getContext();
+            createRemindChannel(context, call.getString("channel"));
+            JSArray list = call.getArray("items", new JSArray());
+            JSONArray items = new JSONArray(list.toString());
+            context.getSharedPreferences(REMIND_PREFS, Context.MODE_PRIVATE).edit().putString("items", items.toString()).commit();
+            scheduleReminders(context, items);
+            call.resolve();
+        } catch (Exception error) { call.reject("Could not schedule reminders", error); }
     }
 
     @PluginMethod
