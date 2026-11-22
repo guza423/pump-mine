@@ -727,3 +727,14 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Kullanıcı:** "bunu kurarsam playstoredaki ne olucka ve bunu direkt telefona krmaktansa direkt play stora atsak hemen ordan indirip denesem bundan sonaki her güncellemeyi ?"
 **Cevap:** Debug APK, Play sürümünün üstüne kurulmaz (aynı paket `app.performance.training`, farklı imza); kurmak için Play sürümünü kaldırmak gerekir, bu da telefondaki misafir verisini siler (hesaptaki veri bulutta kalır). Doğru yol dahili test kanalı: yayın dakikalar içinde testçiye gelir.
 **Yapılan:** **V30**: `release.yml` artık `main`'e her kod push'unda çalışır, AAB'yi `PLAY_SERVICE_ACCOUNT_JSON` secret'ı varsa dahili teste kendisi yükler (sürüm notu = commit başlığı); secret yoksa yalnızca AAB üretir. Bir kerelik kurulum `docs/PLAY-MAGAZA.md` › 4b (hizmet hesabı, Play izni, GitHub secret). AGENTS.md madde 9.
+
+### 2026-11-22 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** (ekran görüntüleri: Varsayılan mağaza girişi; ad OUTMOVE, kısa ve tam açıklama dolu; Kontrol paneli Uygulama içeriği 10/12, kalan "Bir uygulama kategorisi seçip iletişim bilgilerini sağlayın" ve "Mağaza girişinizi oluşturun") "tamam hallettim . şunlar falan kaldı bize logo falan fistan lazım bu istedikleri ."
+**Cevap:** Görseller zaten zip'teydi; zip yeniden gönderildi, hangi dosyanın nereye gideceği ve mağaza ayarları (Sağlık ve Fitness, wworksof@gmail.com, web sitesi) yazıldı.
+
+**Kullanıcı:** "logomuz iyi değil ya böyle çok münhasır ve güzel logo olsun pixel art şeklinde"
+**Cevap:** Önce 4, sonra 3 piksel logo seçeneği (A plaka + hız, B piksel kaldırıcı, C halter + seviye atla oku) gösterildi.
+
+**Kullanıcı:** "3 iyi"
+**Yapılan (V29):** C cilalandı (gölgeli ok, parıltılar, plaka ve kilit detayları). `scripts/brand-icons.py` 32×32 ızgaradan bütün ikonları üretir: `public/icon.svg`, `icon-192.png`, `icon-512.png`, yeni `icon-maskable-512.png` ve `apple-touch-icon.png` (`vite.config.ts` ve `index.html` bunlara bağlandı), Android mipmap ön plan (tam sayı ölçek, logo ~%59) + eski/yuvarlak ikonlar, adaptive arka plan `#100E1B` (önce beyazdı), Play ikonu. Öne çıkan görsele logo eklendi (`scripts/store-art.mjs`). `android/release.txt` 1.0.1 (yeni AAB). Kontroller: `npm test` 136 (i18n-screens bir kez zamanlamadan kırıldı, tekrarında geçti), `tsc -b`, lint, build.
+**Kayıt:** bu commit.

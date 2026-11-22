@@ -68,9 +68,11 @@ p { font-family: 'Plex'; font-weight: 400; font-size: 38px; line-height: 1.32; c
 
 const featurePage = (img, lang) => `<!doctype html><html><head><meta charset="utf-8"><style>${base}
 body { width: 1024px; height: 500px; position: relative; }
-.brand { position: absolute; left: 64px; top: 92px; }
-.logo { font-size: 62px; line-height: 1; letter-spacing: 2px; color: #f5f1e8; text-shadow: 6px 6px 0 #ff5b3a; }
-.tag { font-family: 'Saira'; font-weight: 800; font-stretch: 112%; font-size: 46px; line-height: 1.05; margin-top: 44px; text-transform: uppercase; }
+.brand { position: absolute; left: 64px; top: 70px; }
+.row { display: flex; align-items: center; gap: 26px; }
+.mark { width: 112px; height: 112px; image-rendering: pixelated; box-shadow: 8px 8px 0 #07060d; border-radius: 24px; }
+.logo { font-size: 50px; line-height: 1; letter-spacing: 2px; color: #f5f1e8; text-shadow: 5px 5px 0 #ff5b3a; }
+.tag { font-family: 'Saira'; font-weight: 800; font-stretch: 112%; font-size: 44px; line-height: 1.05; margin-top: 34px; text-transform: uppercase; }
 .sub { font-family: 'Plex'; font-size: 22px; color: #aaa4ca; margin-top: 18px; }
 .bar { position: absolute; left: 64px; bottom: 64px; display: flex; gap: 10px; }
 .bar i { width: 26px; height: 26px; background: #ffc53d; display: block; }
@@ -78,7 +80,7 @@ body { width: 1024px; height: 500px; position: relative; }
 .phone { position: absolute; right: 70px; top: 46px; width: 300px; border: 6px solid #3c3660; background: #3c3660; box-shadow: 12px 12px 0 #07060d; transform: rotate(4deg); }
 .phone img { display: block; width: 100%; }
 </style></head><body>
-<div class="brand"><div class="px logo">OUTMOVE</div><div class="tag">${lang === 'tr' ? 'Hızlı kaydet.<br><span class="gold">Akıllı çalış.</span>' : 'Log fast.<br><span class="gold">Train smart.</span>'}</div><div class="sub">${lang === 'tr' ? 'Antrenman günlüğü · yorgunluk · gelişim' : 'Workout log · fatigue · progress'}</div></div>
+<div class="brand"><div class="row"><img class="mark" src="${fu('public/icon-512.png')}"><div class="px logo">OUTMOVE</div></div><div class="tag">${lang === 'tr' ? 'Hızlı kaydet.<br><span class="gold">Akıllı çalış.</span>' : 'Log fast.<br><span class="gold">Train smart.</span>'}</div><div class="sub">${lang === 'tr' ? 'Antrenman günlüğü · yorgunluk · gelişim' : 'Workout log · fatigue · progress'}</div></div>
 <div class="bar"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
 <div class="phone"><img src="${pathToFileURL(img).href}"></div>
 </body></html>`;

@@ -1,6 +1,6 @@
 # OUTMOVE · Google Play mağaza sayfası ve formlar
 
-Hazırlayan: Claude, 20 Kasım 2026 (V28). Play Console'a kopyala-yapıştır için. Görseller `docs/play-store/`, üretimleri `scripts/store-shots.mjs` (örnek veriyle ham ekranlar) ve `scripts/store-art.mjs` (başlıklı vitrin + öne çıkan görsel).
+Hazırlayan: Claude, 20 Kasım 2026 (V28). Play Console'a kopyala-yapıştır için. Görseller `docs/play-store/` (ikon `scripts/brand-icons.py`), üretimleri `scripts/store-shots.mjs` (örnek veriyle ham ekranlar) ve `scripts/store-art.mjs` (başlıklı vitrin + öne çıkan görsel).
 
 Play Console'da sol menü: **Büyüme › Mağaza varlığı › Ana mağaza girişi** (metin + görseller) ve **Politika ve programlar › Uygulama içeriği** (formlar). Varsayılan dil İngilizce; Türkçe için aynı sayfada **Çeviriler › Kendi çevirilerimi yönet › Türkçe (tr-TR)** ekle.
 
@@ -204,7 +204,7 @@ Telefonda: Play sürümü kurulu kalır; debug APK **kurulmaz** (aynı paket, fa
 1. Yukarıdakiler bitince Play Console › **Yayınlama özeti**'nde eksik kalmamalı.
 2. **Test et ve yayınla › Üretim › Yeni sürüm oluştur** › "Kitaplıktan ekle" ile dahili testteki AAB'yi (1.0.0) seç. Sürüm notu: `First release.`
 3. Ülkeler: **Üretim › Ülkeler/bölgeler**'den başlangıç için istediğin ülkeleri ekle (örn. tümü).
-4. **İncelemeye gönder.** İlk sürümde Google incelemesi genelde birkaç gün sürüyor.
+4. **İncelemeye gönder.** (22 Kasım: yeni logolu **1.0.1** üretildi; üretime 1.0.0 yerine 1.0.1'i ekle.) İlk sürümde Google incelemesi genelde birkaç gün sürüyor.
 
 Göndermeden önce yapılması gerekenler (`docs/PROJE.md` › Play Store):
 - Firebase Blaze + bütçe uyarısı + günlük yedek (başkaları veri girmeye başlamadan önce).

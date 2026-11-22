@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         disable: isAndroid,
         registerType: 'autoUpdate',
-        includeAssets: ['icon.svg', 'icon-192.png', 'icon-512.png'],
+        includeAssets: ['icon.svg', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png'],
         manifest: {
           name: 'OUTMOVE',
           short_name: 'OUTMOVE',
@@ -42,7 +42,7 @@ export default defineConfig(({ mode }) => {
               purpose: 'any'
             },
             {
-              src: 'icon-512.png',
+              src: 'icon-maskable-512.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'maskable'
