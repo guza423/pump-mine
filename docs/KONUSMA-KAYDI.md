@@ -722,3 +722,8 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 **Kullanıcı:** "amaan çoktan işaretledim gitti değişemiomda bişi olmaz ama zaten admin ekranı falan yok bizde. veri güvenliği kısmına geldim şuan"
 **Cevap:** Oturum açma bilgileri "Hayır" olarak kaldı; ret gelirse Uygulama içeriği'nden değiştirilir. Veri güvenliği formu adım adım verildi (`docs/PLAY-MAGAZA.md` › Veri güvenliği ile aynı).
 **Kayıt:** bu commit (`[skip ci]`).
+
+### 2026-11-22 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** "bunu kurarsam playstoredaki ne olucka ve bunu direkt telefona krmaktansa direkt play stora atsak hemen ordan indirip denesem bundan sonaki her güncellemeyi ?"
+**Cevap:** Debug APK, Play sürümünün üstüne kurulmaz (aynı paket `app.performance.training`, farklı imza); kurmak için Play sürümünü kaldırmak gerekir, bu da telefondaki misafir verisini siler (hesaptaki veri bulutta kalır). Doğru yol dahili test kanalı: yayın dakikalar içinde testçiye gelir.
+**Yapılan:** **V30**: `release.yml` artık `main`'e her kod push'unda çalışır, AAB'yi `PLAY_SERVICE_ACCOUNT_JSON` secret'ı varsa dahili teste kendisi yükler (sürüm notu = commit başlığı); secret yoksa yalnızca AAB üretir. Bir kerelik kurulum `docs/PLAY-MAGAZA.md` › 4b (hizmet hesabı, Play izni, GitHub secret). AGENTS.md madde 9.

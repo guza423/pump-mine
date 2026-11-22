@@ -186,6 +186,19 @@ OUTMOVE bir antrenman aracıdır, tıbbi tavsiye değildir. Bir sağlık sorunun
 - Özellikler: fitness/aktivite takibi ve uyku ile ilgili seçenekleri işaretle.
 - Tıbbi cihaz mı, teşhis/tedavi sunuyor mu, sağlık araştırması mı: **Hayır**.
 
+## 4b. Otomatik dahili test (V30)
+
+`main`'e her kod push'unda `release.yml` imzalı AAB üretir ve **dahili test** kanalına yükler; telefonda güncelleme Play Store'dan gelir (birkaç dakika). Yalnızca belge değişen push'lar ve `[skip ci]` atlanır. Sürüm notu commit başlığıdır.
+
+Bir kerelik kurulum (kullanıcı yapar; anahtar dosyası depoya **asla** girmez):
+1. Google Cloud Console, proje `outmove-cd140` › **API'ler ve Hizmetler › Kitaplık** › "Google Play Android Developer API" › **Etkinleştir**.
+2. **IAM ve Yönetici › Hizmet hesapları › Hizmet hesabı oluştur**: ad `play-upload`, rol verme (boş geç) › Bitti. Hesaba gir › **Anahtarlar › Anahtar ekle › Yeni anahtar oluştur › JSON** (dosya iner).
+3. Play Console › **Kullanıcılar ve izinler › Yeni kullanıcıları davet et**: e-posta `play-upload@outmove-cd140.iam.gserviceaccount.com` › **Uygulama izinleri › Uygulama ekle › OUTMOVE** › "Uygulama bilgilerini görüntüleme" ve **"Uygulamaları test kanallarına yayınlama"** › Davet et. (Üretim izni verilmez; üretime çıkarmak elle kalır.)
+4. GitHub › repo **Settings › Secrets and variables › Actions › New repository secret**: ad `PLAY_SERVICE_ACCOUNT_JSON`, değer JSON dosyasının **tüm içeriği**. Sonra indirilen JSON dosyasını bilgisayardan sil.
+5. Actions › "Build Play Store AAB" › **Run workflow** ile dene; "Upload to Play internal testing" adımı yeşil olmalı.
+
+Telefonda: Play sürümü kurulu kalır; debug APK **kurulmaz** (aynı paket, farklı imza: kurulum reddedilir, Play sürümünü kaldırmak cihazdaki misafir verisini siler). Güncelleme görünmezse Play Store › OUTMOVE sayfasını yenile.
+
 ## 5. Herkese açık yayın (Üretim)
 
 1. Yukarıdakiler bitince Play Console › **Yayınlama özeti**'nde eksik kalmamalı.

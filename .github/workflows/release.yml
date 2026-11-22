@@ -1,11 +1,13 @@
 name: Build Play Store AAB
 
-# V27: Play Console'a yüklenecek imzalı AAB. android/release.txt (sürüm adı) main'de değişince
-# ya da Actions › "Build Play Store AAB" › Run workflow ile çalışır. versionCode = bu iş akışının çalışma sayısı.
+# V27: Play Console'a yüklenecek imzalı AAB. versionCode = bu iş akışının çalışma sayısı.
+# V30: main'e her kod push'unda çalışır ve AAB'yi Play'de **dahili test** kanalına kendisi yükler
+# (GitHub Secrets › PLAY_SERVICE_ACCOUNT_JSON varsa; yoksa yalnızca AAB üretir). Yalnızca belge değişen push'lar atlanır.
+# Üretime çıkarmak elle: Play Console › Üretim › Yeni sürüm › "Kitaplıktan ekle".
 on:
   push:
     branches: [main]
-    paths: ['android/release.txt']
+    paths-ignore: ['docs/**', '**/*.md', 'reference/**']
   workflow_dispatch:
 
 permissions:
@@ -80,5 +82,37 @@ jobs:
           name: outmove-play-${{ env.OUTMOVE_VERSION_NAME }}-${{ github.run_number }}
           path: android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
-          retention-days: 90
+          retention-days: 30
           compression-level: 0
+
+      - name: Play upload configured?
+        id: play
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -n "$PLAY_SERVICE_ACCOUNT_JSON" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Play'e otomatik yükleme kapalı: GitHub Secrets'a PLAY_SERVICE_ACCOUNT_JSON ekle (docs/PLAY-MAGAZA.md › Otomatik dahili test). AAB yukarıdaki artifact'te."
+          fi
+
+      - name: Release notes from commit
+        if: steps.play.outputs.ok == 'true'
+        run: |
+          mkdir -p whatsnew
+          msg="$(git log -1 --format=%s | cut -c1-480)"
+          printf '%s\n' "$msg" > whatsnew/whatsnew-en-US
+          printf '%s\n' "$msg" > whatsnew/whatsnew-tr-TR
+
+      - name: Upload to Play internal testing
+        if: steps.play.outputs.ok == 'true'
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: app.performance.training
+          releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
+          tracks: internal
+          status: completed
+          releaseName: ${{ env.OUTMOVE_VERSION_NAME }} (${{ github.run_number }})
+          whatsNewDirectory: whatsnew
