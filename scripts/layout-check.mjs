@@ -50,6 +50,10 @@ async function scaleFonts(page, factor) {
 
 async function check(page, label, screen, { session = false, tablet = false, rest = false } = {}) {
   await page.evaluate(() => document.fonts.ready);
+  // Pixel ekran giriş animasyonu (pxScrIn, 26 px kayarak gelir) "Animasyonlar" açıkken azaltılmış harekette de oynar;
+  // ölçüm animasyon bitmeden yapılırsa düğme anlık olarak ekran dışında görünür (V32: CI'da rastgele kırılıyordu).
+  // Sonsuz döngülü süslemeler beklenmez.
+  await page.waitForFunction(() => document.getAnimations().every((a) => a.playState !== 'running' || a.effect?.getComputedTiming().iterations === Infinity), null, { timeout: 3000 }).catch(() => {});
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   const errors = await page.evaluate(({ session, tablet, rest }) => {
     const errors = [];
