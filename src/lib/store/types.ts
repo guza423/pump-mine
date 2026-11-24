@@ -63,8 +63,6 @@ export interface FxSettings {
   haptic: boolean;
   /** Cihaz "animasyonları azalt" dese de oyun animasyonları (set inişi vb.) tam oynasın. */
   motion: boolean;
-  /** V33 · sürgüler yavaş: sürükleme hızı %40. */
-  slow?: boolean;
 }
 
 export type PerfGoal = {

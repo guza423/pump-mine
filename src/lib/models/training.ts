@@ -57,6 +57,19 @@ export const animVl = (reps: number, rir: number) => velocityLossFor(Math.max(1,
 export const e1Ok = (set: { kg: number; reps: number; rir: number; plyo?: boolean; skill?: boolean; warm?: boolean; rom?: number }) =>
   !set.plyo && !set.skill && !set.warm && (set.rom ?? 100) >= 90 && Number(set.kg) > 0 && isE1rmEligible(set.reps, set.rir);
 
+// V34 · Setin kendi 1RM tahmini her zaman gösterilir. `ok`: gelişim ve 1RM serisine giren güvenilir aralık
+// (RIR ≤ 4, tekrar + RIR ≤ 12, ROM ≥ %90). Dışındaysa yaklaşık (≈): yüksek tekrarda ya da kalan tekrar belirsizken
+// (hız "Aynı" = RIR 5+, 5 alınır) formüller sapar; kısmi tekrarda tam hareketin 1RM'si olmaz.
+export function setE1(set: { kg: number; reps: number; rir?: number | null; plyo?: boolean; skill?: boolean; warm?: boolean; rom?: number }): { v: number; ok: boolean } | null {
+  if (!set || set.plyo || set.skill || set.warm) return null;
+  const kg = Number(set.kg);
+  const reps = Number(set.reps);
+  if (!(kg > 0) || !(reps > 0)) return null;
+  const rir = Math.min(5, Math.max(0, Number(set.rir ?? 0)));
+  const v = Math.round(e1rm(kg, reps, rir) * 2) / 2;
+  return { v, ok: e1Ok({ ...set, rir }) && rir <= 4 };
+}
+
 export const bestE1 = (sets: Array<{ kg: number; reps: number; rir: number; plyo?: boolean; skill?: boolean; warm?: boolean; rom?: number }>) =>
   sets.filter(e1Ok).reduce((best, set) => Math.max(best, e1rm(set.kg, set.reps, set.rir)), 0);
 

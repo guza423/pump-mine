@@ -937,7 +937,7 @@ describe('ana ekran akışları', () => {
     expect((await db.sessions.get(s.id)).status).toBe('active');
   });
   // V33 · ısınma seti, set özelliği, hedef aralık, sürükleme hızı
-  it('ısınma seti hesaplara girmez; set özelliği "Tükenişe kadar" hızı Zar zor yapar; hedef aralık hatırlanır', async () => {
+  it('ısınma seti yalnız ISN görünür ve hesaplara girmez; set özelliği dinlenmede kaydedilen sete yazılır; hedef aralık hatırlanır', async () => {
     const { container } = render(<App />);
     const click = (selector) => fireEvent.click(container.querySelector(selector));
     await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
@@ -956,27 +956,30 @@ describe('ana ekran akışları', () => {
     fireEvent.keyDown(kgBar, { key: 'ArrowLeft' });
     expect(kgBar.getAttribute('aria-valuenow')).toBe('20');
 
+    // V34 · RIR kutusu yok; setin 1RM'si her zaman yazılır (güvenilir aralık dışında ≈)
+    const ro = container.querySelector('.px-ro-grid');
+    expect(ro.textContent).not.toContain('RIR');
+    expect(ro.textContent).toContain('1RM');
+    expect(ro.textContent).not.toContain('—');
+
     click('#speed-warm');
     expect(container.querySelector('#log-set').textContent).toBe('ISINMA SETİ BİTTİ');
     expect(container.querySelector('.px-head-sub').textContent).toContain('ISINMA SETİ');
     click('#log-set');
-    fireEvent.click(await screen.findByRole('button', { name: 'GEÇ' }));
+    // ısınma setinde dinlenmede özellik sorulmaz
+    await screen.findByRole('button', { name: 'GEÇ' });
+    expect(container.querySelector('#set-attr-btn')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'GEÇ' }));
     await waitFor(() => expect(container.querySelector('#log-set')).toBeTruthy());
     let saved = (await db.sessions.toArray())[0];
     expect(saved.items[0].sets[0]).toMatchObject({ warm: true, rir: 9, lvl: null });
     expect(saved.rest).toBeUndefined();
+    // V34 · ısınma kutucuğunda kilo ve tekrar yok, yalnızca ISN
+    expect(container.querySelector('.st.wu').textContent).toBe('ISN');
     // ısınma bir kez seçilir: sonraki set yine iş seti, numarası 1
     expect(container.querySelector('#log-set').textContent).toBe('SET 1 BİTTİ');
-
-    // set özelliği: sağ üstten
-    click('#note-btn');
-    const sheet = await screen.findByRole('dialog');
-    fireEvent.click(within(sheet).getByRole('button', { name: 'Drop set' }));
-    fireEvent.click(within(sheet).getByRole('button', { name: 'Tükenişe kadar' }));
-    fireEvent.click(within(sheet).getByRole('button', { name: 'Kaydet' }));
-    await waitFor(() => expect(container.querySelector('#speed-4').getAttribute('aria-checked')).toBe('true'));
-    expect(container.querySelector('.px-head-sub').textContent).toContain('DROP SET');
-    expect(container.querySelector('#note-btn .ib-badge').textContent).toBe('2');
+    // sağ üst artık yalnızca hareket notu
+    expect(container.querySelector('#note-btn').getAttribute('aria-label')).toBe('Hareket notu');
 
     // hedef tekrar aralığı (plansız)
     click('#rep-range');
@@ -985,14 +988,26 @@ describe('ana ekran akışları', () => {
     await waitFor(() => expect(container.querySelector('#rep-range').textContent).toContain('HEDEF'));
     click('#log-set');
     await waitFor(async () => expect((await db.sessions.toArray())[0].items[0].sets).toHaveLength(2));
+
+    // V34 · set özelliği dinlenmede sorulur ve kaydedilen sete yazılır
+    await waitFor(() => expect(container.querySelector('#set-attr-btn')).toBeTruthy());
+    expect(container.querySelector('#set-attr-btn').textContent).toContain('Bu sette özel bir durum var mı?');
+    click('#set-attr-btn');
+    const sheet = await screen.findByRole('dialog');
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Drop set' }));
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Tükenişe kadar' }));
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Yorgun' }));
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Kaydet' }));
+    await waitFor(async () => expect((await db.sessions.toArray())[0].items[0].sets[1].tags).toEqual(['Drop set', 'Tükenişe kadar', 'Yorgun']));
     saved = (await db.sessions.toArray())[0];
-    expect(saved.items[0].sets[1]).toMatchObject({ lvl: 4, rir: 0, tags: ['Drop set', 'Tükenişe kadar'] });
+    expect(saved.items[0].sets[1]).toMatchObject({ lvl: 4, rir: 0 });
     expect(saved.items[0].sets[1].warm).toBeUndefined();
     expect(saved.items[0].range).toEqual({ lo: 8, hi: 12 });
     expect((await db.settings.get('repRanges')).value).toEqual({ 'duz-bench': [8, 12] });
+    await waitFor(() => expect(container.querySelector('#set-attr-btn').textContent).toContain('Drop set'));
   });
 
-  it('sürgü hızı %40 ayarı kilo başlığından açılıp kapanır', async () => {
+  it('sürgü: normal sürükleme tam hızda, parmak aşağı iyice inince %40 hızda (gösterge yok)', async () => {
     const { container } = render(<App />);
     const click = (selector) => fireEvent.click(container.querySelector(selector));
     await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
@@ -1005,10 +1020,18 @@ describe('ana ekran akışları', () => {
     click('#pick-add');
     await waitFor(() => expect(container.querySelector('.card-main')).toBeTruthy());
     fireEvent.click(container.querySelector('.card-main'));
-    expect(container.querySelector('#drag-speed').getAttribute('aria-pressed')).toBe('false');
-    click('#drag-speed');
-    await waitFor(async () => expect((await db.settings.get('fx')).value.slow).toBe(true));
-    await waitFor(() => expect(container.querySelector('#drag-speed').getAttribute('aria-pressed')).toBe('true'));
+    expect(container.querySelector('#drag-speed')).toBeNull();
+    const bar = container.querySelector('[id^="reps-"]');
+    const r0 = Number(bar.getAttribute('aria-valuenow'));
+    // jsdom'da bar genişliği 0 → 354 px kabul edilir: 59 px = 5 tekrar
+    fireEvent.pointerDown(bar, { clientX: 100, clientY: 0, pointerId: 1 });
+    fireEvent.pointerMove(bar, { clientX: 159, clientY: 10, pointerId: 1 });
+    expect(Number(bar.getAttribute('aria-valuenow'))).toBe(r0 + 5);
+    fireEvent.pointerMove(bar, { clientX: 159, clientY: 200, pointerId: 1 });
+    fireEvent.pointerMove(bar, { clientX: 218, clientY: 200, pointerId: 1 });
+    expect(Number(bar.getAttribute('aria-valuenow'))).toBe(r0 + 7);
+    fireEvent.pointerUp(bar, { clientX: 218, clientY: 200, pointerId: 1 });
+    expect(container.textContent).not.toMatch(/%40|40%|HASSAS/);
   });
 
   it('antrenman öncesi ısınma: listenin başında, süre ve nabız skalası kaydolur', async () => {
@@ -1057,11 +1080,22 @@ describe('ana ekran akışları', () => {
     await waitFor(() => expect(container.querySelector('#finish-btn')).toBeTruthy());
     fireEvent.click(container.querySelector('.card-main'));
     expect(container.querySelectorAll('.st.slot')).toHaveLength(3);
-    expect(container.querySelector('.st.slot-next').textContent).toContain('60×8–12');
+    // V34 · kutucukta set numarası, hedef kilo ve "tekrar" ibaresi
+    expect(container.querySelector('.st.slot-next .st-no').textContent).toBe('SET 1 · 60 kg');
+    expect(container.querySelector('.st.slot-next .st-main').textContent).toBe('8–12tekrar');
     expect(screen.queryByText(/Son sefer/)).toBeNull();
+    // ısınma seti kutucukların önüne ISN olarak eklenir, sıradaki hâlâ 1. set
+    click('#speed-warm');
     click('#log-set');
-    await waitFor(() => expect(container.querySelectorAll('.st.slot.fill')).toHaveLength(1));
+    await waitFor(() => expect(container.querySelector('.px-slots .st.wu')).toBeTruthy());
+    expect(container.querySelector('.px-slots .st.wu').textContent).toBe('ISN');
+    expect(container.querySelector('.st.slot-next .st-no').textContent).toContain('SET 1');
+    fireEvent.click(await screen.findByRole('button', { name: 'GEÇ' }));
+    await waitFor(() => expect(container.querySelector('#log-set')).toBeTruthy());
+    click('#log-set');
+    await waitFor(() => expect(container.querySelectorAll('.st.slot.slot-done')).toHaveLength(1));
     expect(container.querySelectorAll('.st.slot')).toHaveLength(3);
+    expect(container.querySelector('.st.slot-next .st-no').textContent).toContain('SET 2');
   });
 
   it('takvimde parmakla sola kaydırınca sonraki aya geçer, kaydırma gün seçmez', async () => {

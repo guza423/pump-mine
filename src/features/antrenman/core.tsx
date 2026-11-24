@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { clamp, Icon, reducedMotion } from '../lab/Cns';
 import { EX_LIB, MUS_CODE, EQ, PLYO_INT, canBodyweight, warmFirst, WARMUP_ID } from '../../lib/data/exlib';
-import { e1Ok, bestE1 } from '../../lib/models/training';
+import { e1Ok, bestE1, setE1 } from '../../lib/models/training';
 import { dbMultiplier } from '../../lib/models/session';
 import { nextPlanned } from '../plan/plans';
 import { PxKgTape, PxStair } from './PxDrag';
@@ -59,6 +59,11 @@ const WARM_Z_COLORS = ['#4aa8ff', '#52e07c', '#ffc53d', '#ff8a3a', '#ff3b4e'];
 const warmSetTxt = (x) => t('{n} dk', { n: Number(x.dur) || 0 }) + ' · ' + (WARM_Z[(Number(x.z) || 1) - 1] || WARM_Z[0]).k;
 // V33 · set özellikleri (set kaydında sağ üstten): hazır plan notlarıyla aynı Türkçe anahtarlar, ikisi yeni.
 const SET_ATTRS = ['Drop set', 'Tükenişe kadar', 'Rest-pause', 'Kısmi tekrar', 'Yardımlı tekrar', 'Yavaş eksantrik', 'Altta beklet', 'Patlayıcı kaldır', 'Pump seti', 'Süperset'];
+// V34 · set özelliği sete aittir ve set kaydedildikten sonra (dinlenmede ya da set ayrıntısından) eklenir.
+// Durum: o setteki halin (hasta, yorgun…); nasıl geçti: setin gidişatı. Hepsi `set.tags` içinde, hesapları değiştirmez
+// ("Tükenişe kadar" hariç: hızı Zar zor / RIR 0 yapar).
+const SET_CONDS = ['Hasta', 'Yorgun', 'Uykusuz', 'Stresli', 'Ağrı'];
+const SET_FEEL = ['Kolay geldi', 'Form bozuldu', 'Takıldı', 'Pump', 'Yardım aldım'];
 // Pliometrik yorgunluk: temas başına yük, yoğunluğa göre (düşük, orta, yüksek, şok). 100 orta temas ≈ 5 orta maliyetli zor set.
 const PLYO_W = [0, 0.03, 0.05, 0.08, 0.12];
 const PLYO_Q = byLang('plyoq', {
@@ -480,9 +485,9 @@ export {
   EX_LIB, EQ, PLYO_INT, isPlyo, isSkill, PLYO_W, PLYO_Q, SKILL_W, SKILL_Q, skillSetTxt, PROF, FAT, libById, clone, rid, newId, nf, hasNum,
   kgTxt, restTxt, mmss, durTxt, dateTxt, sameDay, normTr,
   SPEED, rirTxt, rirFromSpeed, animVl, BENCH_IDS, rpeFromRir, repVelocities,
-  e1rm, rpeLabel, e1Ok, bestE1, vlColor,
+  e1rm, rpeLabel, e1Ok, bestE1, setE1, vlColor,
   blankProgram, sessionFromDay, itemFromEx,
   repTxt, rpeTxt, targetTxt, sessionStats, weeklyHard, nextPlanned,
   Stepper, ItemEditor, Lane, RepBars, SetReplay, firstOpen, entryFor, RestBar, NOTE_PRESETS, noteLabel,
-  isWarmEx, WARM_Z, WARM_Z_COLORS, warmSetTxt, SET_ATTRS, canBodyweight, warmFirst, WARMUP_ID,
+  isWarmEx, WARM_Z, WARM_Z_COLORS, warmSetTxt, SET_ATTRS, SET_CONDS, SET_FEEL, canBodyweight, warmFirst, WARMUP_ID,
 };

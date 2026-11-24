@@ -31,6 +31,14 @@ export function eqLabel(eq?: string): string {
   return (EQ as Record<string, string>)[eq] || t('Diğer');
 }
 
+// V34 · Bütün yatay sürgülerde iki hız: normal sürükleme %100; parmak bardan aşağı iyice inince (alt kenarın
+// 56 px altı) %40. Geri dönüşte 36 px eşiği (titremesin diye). Ekranda gösterge yok.
+export const SLOW_RATE = 0.4;
+export function dragRate(clientY: number, r: { bottom: number }, prev = 1): number {
+  const below = clientY - r.bottom;
+  return below > (prev < 1 ? 36 : 56) ? SLOW_RATE : 1;
+}
+
 export const PX_SPEED_COLORS = ['#52e07c', '#c6e04a', '#ffc53d', '#ff8a3a', '#ff3b4e'] as const;
 
 // Etiketler dile göre (V21/V22); sayılar (rir, rpe, vl) iki dilde aynı.

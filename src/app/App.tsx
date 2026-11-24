@@ -11,11 +11,11 @@ import { CompactCtx, Icon, NeedleGauge, Range, STAGES, StageFatigue, StageRate, 
 import {
   BENCH_IDS, EX_LIB, FAT, EQ, PLYO_INT, isPlyo, isSkill, PLYO_W, PLYO_Q, SKILL_W, SKILL_Q, skillSetTxt, libById, MONTHS, MUSCLES, PROF, SPEED,
   WD_LONG, WD_SHORT, WEEK_ORDER, ItemEditor, SetReplay, Stepper, noteLabel,
-  bestE1, clone, dateTxt, durTxt, e1Ok, e1rm,
+  bestE1, clone, dateTxt, durTxt, e1Ok, e1rm, setE1,
   hasNum, itemFromEx, newId, nextPlanned, nf, normTr,
   repTxt, restTxt, rirTxt, rpeLabel,
   sameDay, sessionFromDay, sessionStats, targetTxt, vlColor,
-  isWarmEx, warmFirst, SET_ATTRS, warmSetTxt,
+  isWarmEx, warmFirst, SET_ATTRS, SET_CONDS, SET_FEEL, warmSetTxt,
 } from '../features/antrenman/core';
 import {
   allPlans, dateKey, parseDateKey, plansOn, newPlanDoc, upsertPlan, removePlan,
@@ -68,7 +68,6 @@ const MONTHS_LONG = byLang('monthslong', {
 const MAIN_MUSCLES = ['Göğüs', 'Omuz (ön)', 'Omuz (yan)', 'Sırt', 'Trapez', 'Triceps', 'Hamstring', 'Quadriceps'];
 const SPEED_SHORT = byLang('speedshort', { tr: ['Aynı', 'Hafif', 'Belirgin', 'Çok', 'Grind'], en: ['Same', 'Slight', 'Clear', 'Big', 'Grind'] });
 // Set notu etiketleri Türkçe saklanır (set.tags); gösterimde t() ile çevrilir.
-const NOTE_TAGS = ['Kolay geldi', 'Form bozuldu', 'Takıldı', 'Ağrı', 'Pump', 'Yardım aldım'];
 const DAY_MS = 864e5;
 
 const dayKey = (ts) => { const d = new Date(ts); return 'c_' + d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
@@ -683,6 +682,22 @@ function WtypeMenuBody({ st, pid, did, put, del, onStart, onEdit, onClose }) {
 }
 
 function SetDetailBody({ set, idx, exId, name, onDelete, onClose }) {
+  // V34 · ısınma: kilo, tekrar ve hız gösterilmez
+  if (set.warm) {
+    return (
+      <div className="setd">
+        <div className="setd-top">
+          <span className="setd-n mono">{set.dur ? t('Isınma') : t('Isınma seti')}</span>
+          <span className="setd-v mono">{set.dur ? warmSetTxt(set) : t('ISN')}</span>
+          <span className="setd-t mono">{hm(set.at)}</span>
+        </div>
+        <p className="sd-note">{t('1RM, yorgunluk, zor set, tonaj ve gelişime girmez.')}</p>
+        {set.tags && set.tags.length ? <div className="chips-wrap">{set.tags.map((x) => <span key={x} className="fchip on">{t(x)}</span>)}</div> : null}
+        {set.note ? <p className="sd-note">{set.note}</p> : null}
+        {onDelete ? <HoldButton id="set-del" className="btn ghost sm danger-t setd-del" onHold={() => { onDelete(); onClose(); }}><Icon name="trash" size={13} /> {t('Seti sil')}</HoldButton> : null}
+      </div>
+    );
+  }
   if (set.skill) {
     const lib = libById(exId);
     const q = SKILL_Q[set.q || 0] || SKILL_Q[0];
@@ -727,7 +742,7 @@ function SetDetailBody({ set, idx, exId, name, onDelete, onClose }) {
       </div>
     );
   }
-  const e1 = e1Ok(set) ? Math.round(e1rm(set.kg, set.reps, set.rir) * 2) / 2 : null;
+  const e1 = setE1(set);
   return (
     <div className="setd">
       <div className="setd-top">
@@ -740,7 +755,7 @@ function SetDetailBody({ set, idx, exId, name, onDelete, onClose }) {
         <div><small>RPE</small><b className="mono">{rpeLabel(set.rpe, set.rir)}</b></div>
         <div><small>{t('Kalan tekrar')}</small><b className="mono">{rirTxt(set.rir)}</b></div>
         <div><small>{t('Zor set')}</small><b className="mono" style={{ color: set.rir <= 4 ? 'var(--ok)' : 'var(--faint)' }}>{set.rir <= 4 ? t('evet') : t('hayır')}</b></div>
-        <div><small>e1RM</small><b className="mono">{e1 ? nf(e1) : '–'}</b></div>
+        <div><small>1RM</small><b className="mono" style={e1 && !e1.ok ? { color: 'var(--faint)' } : undefined}>{e1 ? (e1.ok ? '' : '≈') + nf(e1.v) : '–'}</b></div>
       </div>
       {/* Set kaydında seçilenler: son tekrarın hızı, ROM ve tonaj */}
       <div className="setd-grid three">
@@ -756,34 +771,43 @@ function SetDetailBody({ set, idx, exId, name, onDelete, onClose }) {
 }
 
 function NoteSheetBody({ init, onSave, onClose }) {
-  const [note, setNote] = useState(init.note || '');
-  const [tags, setTags] = useState(init.tags || []);
   const [memo, setMemo] = useState(init.memo || '');
   const [toProgram, setToProgram] = useState(false);
-  const tog = (tag) => setTags(tags.includes(tag) ? tags.filter((x) => x !== tag) : [...tags, tag]);
   return (
     <div className="note-sheet">
-      {init.attrs ? (
-        <React.Fragment>
-          {/* V33 · set özelliği: yalnızca sıradaki sete yazılır */}
-          <span className="st-k">{t('Sıradaki setin özelliği')}</span>
-          <div className="chips-wrap" id="set-attrs">
-            {SET_ATTRS.map((tag) => <button key={tag} type="button" aria-pressed={tags.includes(tag)} className={'fchip attr' + (tags.includes(tag) ? ' on' : '')} onClick={() => tog(tag)}>{t(tag)}</button>)}
-          </div>
-          {tags.includes('Tükenişe kadar') ? <p className="muted-p" style={{ margin: 0 }}>{t('Tükenişe kadar: son tekrar hızı "Zar zor" (RIR 0) olarak kaydolur.')}</p> : null}
-        </React.Fragment>
-      ) : null}
-      <span className="st-k">{t('Sonraki set')}</span>
-      <div className="chips-wrap">
-        {NOTE_TAGS.map((tag) => <button key={tag} type="button" className={'fchip' + (tags.includes(tag) ? ' on' : '')} onClick={() => tog(tag)}>{t(tag)}</button>)}
-      </div>
-      <input id="set-note" className="text-in" placeholder={t('Set notu (isteğe bağlı)')} value={note} onChange={(e) => setNote(e.target.value)} />
+      {/* V34 · yalnızca hareket notu; set özellikleri ve set notu set kaydedildikten sonra (SetAttrSheetBody) */}
       <label className="st-k" htmlFor="ex-memo">{t('Hareket notu')}</label>
-      <textarea id="ex-memo" className="text-area" rows={2} placeholder={t('örn. koltuk 4. kademe, gelecek hafta 77,5 kg')} value={memo} onChange={(e) => setMemo(e.target.value)} />
+      <textarea id="ex-memo" className="text-area" rows={3} placeholder={t('örn. koltuk 4. kademe, gelecek hafta 77,5 kg')} value={memo} onChange={(e) => setMemo(e.target.value)} />
       {init.canProgram ? (
         <label className="check-row"><input id="memo-to-program" type="checkbox" checked={toProgram} onChange={(e) => setToProgram(e.target.checked)} /> {t('Plandaki nota da kaydet, sonraki antrenmanda görünsün')}</label>
       ) : null}
-      <button type="button" id="note-save" className="btn primary full" onClick={() => { onSave({ note, tags, memo, toProgram }); onClose(); }}>{t('Kaydet')}</button>
+      <p className="muted-p" style={{ margin: 0 }}>{t('Bir setin özelliğini (drop set, hasta, yorgun…) set bitince dinlenme ekranından ya da sete dokunarak ekle.')}</p>
+      <button type="button" id="note-save" className="btn primary full" onClick={() => { onSave({ memo, toProgram }); onClose(); }}>{t('Kaydet')}</button>
+    </div>
+  );
+}
+
+// V34 · Set özelliği: kaydedilmiş bir sete set tipi, o anki durum ve nasıl geçtiği yazılır; set ayrıntısında görünür.
+function SetAttrSheetBody({ init, onSave, onClose }) {
+  const [tags, setTags] = useState(init.tags || []);
+  const [note, setNote] = useState(init.note || '');
+  const tog = (tag) => setTags(tags.includes(tag) ? tags.filter((x) => x !== tag) : [...tags, tag]);
+  const group = (id, title, list) => (
+    <React.Fragment>
+      <span className="st-k">{title}</span>
+      <div className="chips-wrap" id={id}>
+        {list.map((tag) => <button key={tag} type="button" aria-pressed={tags.includes(tag)} className={'fchip attr' + (tags.includes(tag) ? ' on' : '')} onClick={() => tog(tag)}>{t(tag)}</button>)}
+      </div>
+    </React.Fragment>
+  );
+  return (
+    <div className="note-sheet">
+      {init.strength ? group('set-attrs', t('Set tipi'), SET_ATTRS) : null}
+      {init.strength && tags.includes('Tükenişe kadar') && !(init.tags || []).includes('Tükenişe kadar') ? <p className="muted-p" style={{ margin: 0 }}>{t('Tükenişe kadar: son tekrar hızı "Zar zor" (RIR 0) olarak kaydolur.')}</p> : null}
+      {group('set-conds', t('Durum'), SET_CONDS)}
+      {group('set-feel', t('Nasıl geçti'), SET_FEEL)}
+      <input id="set-note" className="text-in" placeholder={t('Set notu (isteğe bağlı)')} value={note} onChange={(e) => setNote(e.target.value)} />
+      <button type="button" id="attr-save" className="btn primary full" onClick={() => { onSave({ tags, note: note.trim() }); onClose(); }}>{t('Kaydet')}</button>
     </div>
   );
 }
@@ -852,7 +876,7 @@ function SummaryBody({ session, st, put, del, openSheet, onDelete, onClose }) {
                       {z.dur
                         ? warmSetTxt(z)
                         : z.warm
-                        ? t('ısn') + ' ' + nf(Number(z.kg)) + '×' + z.reps
+                        ? t('ısn')
                         : z.skill
                         ? skillSetTxt(z)
                         : z.plyo
@@ -1697,7 +1721,7 @@ function ExerciseBody({ exId, name, st }) {
   const latKind = m && m.id === 'band-yana-acis' ? 'band' : m && m.id === 'kablo-yana-acis' ? 'cable' : 'db';
   const plyo = m && m.kind === 'plyo';
   const skill = m && m.kind === 'beceri';
-  const setTxt = (z) => (z.dur ? warmSetTxt(z) : z.skill ? skillSetTxt(z) : z.plyo ? (Number(z.kg) ? '+' + nf(Number(z.kg)) + '×' : '') + z.reps : (z.warm ? t('ısn') + ' ' : '') + nf(Number(z.kg)) + '×' + z.reps);
+  const setTxt = (z) => (z.dur ? warmSetTxt(z) : z.skill ? skillSetTxt(z) : z.plyo ? (Number(z.kg) ? '+' + nf(Number(z.kg)) + '×' : '') + z.reps : (z.warm ? t('ısn') : nf(Number(z.kg)) + '×' + z.reps));
   return (
     <div className="exsheet">
       <FactChips ex={m} />
@@ -2236,6 +2260,7 @@ function App() {
       case 'picker': return <PickerBody custom={st.custom} addCustom={addCustom} onPick={p.onPick} onClose={close} low={p.low} openSheet={openSheet} />;
       case 'item': return <ItemSheetBody {...p} fx={readFxSettings(st.settings)} onClose={close} openSheet={openSheet} />;
       case 'note': return <NoteSheetBody init={p.init} onSave={p.onSave} onClose={close} />;
+      case 'setattr': return <SetAttrSheetBody init={p.init} onSave={p.onSave} onClose={close} />;
       case 'setdetail': return <SetDetailBody set={p.set} idx={p.idx} exId={p.exId} name={p.title} onDelete={p.onDelete} onClose={close} />;
       case 'wtype': return <WtypeMenuBody st={st} pid={p.pid} did={p.did} put={put} del={del} onStart={startSession} onEdit={(pr, d) => editPlan(pr, d, tab)} onClose={close} />;
       case 'summary': { const s = p.draft || st.sessions.find((x) => x.id === p.id); return s ? <SummaryBody session={s} st={st} put={put} del={del} openSheet={openSheet} onDelete={(id) => del('sessions', id)} onClose={close} /> : <p className="muted-p">{t('Kayıt bulunamadı.')}</p>; }
@@ -2254,7 +2279,7 @@ function App() {
     if (sh.type === 'exercise') return exName(exMeta(p.exId, p.name) || { name: p.name }) || t('Hareket');
     if (sh.type === 'exprog') return exName({ exId: p.exId, name: p.name }) || t(SHEET_TITLES.exprog);
     if (sh.type === 'legal') return appDocTitle(p.doc);
-    if (sh.type === 'note' || sh.type === 'item' || sh.type === 'setdetail') return p.title || (p.it && exName(p.it)) || t(SHEET_TITLES[sh.type]);
+    if (sh.type === 'note' || sh.type === 'setattr' || sh.type === 'item' || sh.type === 'setdetail') return p.title || (p.it && exName(p.it)) || t(SHEET_TITLES[sh.type]);
     if (sh.type === 'wtype') { const pr = st.programs.find((x) => x.id === p.pid); const d = pr && pr.days.find((x) => x.id === p.did); return d ? dayLabel(d.name) : t(SHEET_TITLES.wtype); }
     return t(SHEET_TITLES[sh.type]);
   };

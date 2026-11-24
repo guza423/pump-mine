@@ -104,6 +104,13 @@ async function check(page, label, screen, { session = false, tablet = false, res
         const timer = [...document.querySelectorAll('#rest-big, .restchip, .px .px-rchip, .px .px-restbar')].find(visible);
         const rr = timer?.getBoundingClientRect();
         if (!rr || rr.top < 0 || rr.bottom >= tr.top || rr.left < 0 || rr.right > innerWidth) errors.push('dinlenme sayacı: tamamı kaydırmadan görünmüyor');
+        // V34 · dinlenme ekranında set özelliği düğmesi üstteki yazıların üstüne binmemeli
+        const ask = document.querySelector('#set-attr-btn');
+        const mid = document.querySelector('.px-rest-mid');
+        if (ask && mid && visible(ask)) {
+          const last = [...mid.children].filter(visible).at(-1);
+          if (last && last.getBoundingClientRect().bottom > ask.getBoundingClientRect().top + 1) errors.push('dinlenme: set özelliği düğmesi üstteki yazıyla çakışıyor');
+        }
         for (const control of timer?.querySelectorAll('button') || []) {
           const cr = control.getBoundingClientRect();
           if (!visible(control) || cr.top < rr.top || cr.bottom > rr.bottom + 1) errors.push('dinlenme sayacı: süre düğmesi kırpılıyor');
@@ -222,6 +229,17 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
     await page.locator('#rest-big').waitFor();
     screen = 'seans-set-kayitli';
     await check(page, label, screen, { session: true, rest: true });
+    // V34 · set özelliği dinlenmede
+    await page.locator('#set-attr-btn').click();
+    await page.locator('#attr-save').waitFor();
+    screen = 'set-ozelligi';
+    await check(page, label, screen);
+    await page.locator('#set-attrs .fchip').first().click();
+    await page.locator('#set-conds .fchip').nth(1).click();
+    await page.locator('#attr-save').click();
+    await page.locator('#attr-save').waitFor({ state: 'detached' });
+    screen = 'seans-ozellikli-dinlenme';
+    await check(page, label, screen, { session: true, rest: true });
 
     // Uzun set listesi yalnızca kendi içinde kaymalı; ana eylem yerinde kalmalı.
     for (let i = 0; i < 6; i++) {
@@ -321,6 +339,15 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
     await page.locator('#rest-big').waitFor();
     screen = 'planli-dinlenme';
     await check(page, label, screen, { session: true, rest: true });
+    // V34 · ısınma seti kutucukların önüne eklenir: iki satır
+    await page.getByRole('button', { name: 'GEÇ' }).click();
+    await page.locator('#speed-warm').click();
+    await page.locator('#log-set').click();
+    await page.locator('#rest-big').waitFor();
+    await page.getByRole('button', { name: 'GEÇ' }).click();
+    await page.locator('.px-slots .st.wu').waitFor();
+    screen = 'planli-seans-iki-satir';
+    await check(page, label, screen, { session: true });
 
     // V32 · kayıt dolu Gözlem: hareket gelişimi (liste + hareket) ve bu hafta yapılan yük
     screen = 'gozlem-dolu';
@@ -487,6 +514,17 @@ async function flowLang(lang, viewport, scale = 1, tablet = false, safeArea = fa
     await page.locator('#rest-big').waitFor();
     screen = 'session-rest';
     await check(page, label, screen, { session: true, rest: true });
+    // V34 · set details on the rest screen
+    await page.locator('#set-attr-btn').click();
+    await page.locator('#attr-save').waitFor();
+    screen = 'set-details';
+    await check(page, label, screen);
+    await page.locator('#set-attrs .fchip').first().click();
+    await page.locator('#set-conds .fchip').nth(1).click();
+    await page.locator('#attr-save').click();
+    await page.locator('#attr-save').waitFor({ state: 'detached' });
+    screen = 'session-rest-details';
+    await check(page, label, screen, { session: true, rest: true });
     for (let i = 0; i < 6; i++) {
       await page.getByRole('button', { name: T('GEÇ') }).click();
       await page.locator('#log-set').click();
@@ -573,6 +611,15 @@ async function flowLang(lang, viewport, scale = 1, tablet = false, safeArea = fa
     await page.locator('#rest-big').waitFor();
     screen = 'planned-rest';
     await check(page, label, screen, { session: true, rest: true });
+    // V34 · warm-up set goes in front of the slots: two rows
+    await page.getByRole('button', { name: T('GEÇ') }).click();
+    await page.locator('#speed-warm').click();
+    await page.locator('#log-set').click();
+    await page.locator('#rest-big').waitFor();
+    await page.getByRole('button', { name: T('GEÇ') }).click();
+    await page.locator('.px-slots .st.wu').waitFor();
+    screen = 'planned-session-two-rows';
+    await check(page, label, screen, { session: true });
 
     // V23 · Insights sekmesi (kayıtlar, uyarılar ve 1RM eğrisi dolu)
     screen = 'insights';
