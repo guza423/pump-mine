@@ -825,3 +825,4 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 - 8-bit yüksek bildirim sesi (`res/raw/outmove_ping.wav`, `scripts/pixel-sound.py`); sesli kanallar yeni `-px` kimlikleriyle.
 - 40 dk sonra 3 dk dokunulmazsa titreşim, dokunulmadıkça her 3 dk (önde yalnız titreşim, arkada sessiz titreşimli "İdman bitti mi?" bildirimi).
 - Okuma kararları: 2 ve 4 Hesap ve ayarlar'da iki anahtar (varsayılan açık); ses bildirim akışında (alarm akışı sessiz modu ezerdi), yükseklik dosyanın tam genliğinden.
+**Kayıt:** `6acbf09` (kod + belgeler) ve bu commit (`GOREV.md`). Kontroller: `npx vitest run` (181), `tsc -b`, lint, build, `test:layout` geçti; APK ve Play AAB (dahili test) iş akışları başarılı.
