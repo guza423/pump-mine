@@ -375,6 +375,13 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
     await page.locator('#tab-lab').click();
     await page.locator('#lab-part-hareket').click();
     await check(page, label, screen);
+    // V35: hareket bilgisinde kas payları (Göğüs + Omuz (ön) ½, Triceps ½)
+    screen = 'hareket-bilgi';
+    await page.locator('.screen [id$="-search"]').first().fill('deadlift');
+    await page.locator('#labex-deadlift').click();
+    await page.locator('.sheet-wrap .facts').waitFor();
+    await check(page, label, screen);
+    await closeSheet(page);
     screen = 'hesap';
     await page.locator('#tab-bugun').click();
     await page.locator('#account-btn').click();

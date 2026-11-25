@@ -129,6 +129,8 @@ export const workout: Record<string, Entry> = {
   "Kaydı sil": "Delete log",
   "Bu antrenmanda çalışan kaslar": "Muscles worked this session",
   "Yardımcı olarak çalışanlar: {list}": "Assisting: {list}",
+  "Yardımcı kaslar yarım, dengeleyiciler çeyrek set sayılır.": "Assisting muscles count as half a set, stabilisers as a quarter.",
+  "Bir zor set kaslara bu paylarla sayılır": "Each hard set counts toward these muscles with these shares",
   "Son 7 gün · kas başına zor set": "Last 7 days · hard sets per muscle",
   "hedef 10–20": "target 10–20",
   "Taralı şerit haftada 10–20 zor set: kas gelişimi için sık önerilen aralık. +n bu antrenmanın katkısı. Zor set: bitişe 4 tekrar ya da daha az kala biten set.": "The shaded band is 10–20 hard sets a week, the range commonly recommended for muscle growth. +n is this session's contribution. A hard set ends 4 reps or fewer short of failure.",

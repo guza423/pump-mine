@@ -39,7 +39,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | **Dashboard** (`bugun`) | Hesap düğmesi (eşitleme durumu: sarı bekleyen, yeşil eşit, gri çevrimdışı). Yorgunluk halkası + kırılım: **seçili dönemin ortalaması** (SON 7 · 10 · 30 gün, V32), uyku girişi = dönemin gece ortalaması (5–9 sa), plan kartı (bugün plan var / sıradaki / plan yok; hazır plansız oturumda `başlamadı`), bu hafta şeridi. **Hedefler:** güç (1RM) ve öğrenme (beceri, 4 aşama, "Pratik et"). |
 | **Antrenman** (`antrenman`) | `Plansız antrenman` ve `Yeni plan` düğmeleri; **Planlarım**; ay başlıklı, kaydırılabilir **geçmiş**. Aktif oturum ekranı da burada. |
 | **Gözlem** (`gozlem`, başlık "Antrenman plan ve gözlem") | Aylık takvim (yapılan ●, planlı ○, kaçırılan ·). Gün paneli: yapılanlar, planlar, uyku, yorgunluk, "Bu güne plan ekle" (tek gün ya da her hafta). Ay özeti, uyarılar, **Hareket gelişimi** düğmesi (yapılmış bütün hareketler; son 20 gün belirgin, eskiler soluk + son tarih; hareket penceresinde türüne göre ölçüler, V32), **Haftalık yük: Yapılan / Planlanan** (planlanan, bu hafta plan yoksa kapalı, V32). |
-| **Lab** (`lab`) | 01 Temeller: sinir sistemi dersleri, "Yorgunluk nasıl ölçülür?", yorgunluk ölçer. 02 Hareketler: 467 hareket (en üstte antrenman öncesi ısınma), arama + tür + kas + ekipman filtresi, biyomekanik kartlar. |
+| **Lab** (`lab`) | 01 Temeller: sinir sistemi dersleri, "Yorgunluk nasıl ölçülür?", yorgunluk ölçer. 02 Hareketler: 470 hareket (en üstte antrenman öncesi ısınma), arama + tür + kas + ekipman filtresi, biyomekanik kartlar. |
 
 **Oturum ekranları:**
 - **Plansız oturum** (`dayId == null`, V13 pixel arayüz `.px`):
@@ -57,7 +57,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
   - "Nasıl yapılacak" hazır seçenekleri (Hissederek yap, Altta beklet, Pump seti …) + ek not; seçilenler notta ` · ` ile birleşir, plan menüsünde ve hedef kartında görünür.
 - **Antrenman özeti (geçmiş, V18):**
   - set kutucuğuna dokununca salt okunur ayrıntı: RPE, kalan tekrar, zor set, e1RM, son tekrar hızı, ROM, tonaj;
-  - "Bu antrenmanda çalışan kaslar" (zor set sayısıyla) + yardımcı kaslar;
+  - "Bu antrenmanda çalışan kaslar" (zor set, yardımcılar ½ / ¼ payla);
   - son 7 gün kas başına zor set çubukları (az / iyi / fazla, bu antrenmanın katkısı `+n`) ve uyarılar (az, bu hafta hiç, fazla).
 - **Unutulan antrenman (V32):** başlamış antrenmanda 10 dk giriş yoksa bildirim + titreşim ve "Hâlâ orada mısın?"; 5 dk daha cevap yoksa antrenman son giriş saatinde kendiliğinden biter (`autoEnd`), geçmişte ve özette belirtilir. Set yoksa oturum hazır durumuna döner.
 - **Android geri tuşu:** sheet'i / pixel pencereyi kapatır → büyük dinlenmeyi küçültür → set ekranından listeye döner → oturumdan Dashboard'a (oturum sürer) → sekmeden Dashboard'a → Dashboard'da iki kez basınca çıkar.
@@ -181,7 +181,8 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
   - Seans başına temas: 80–100 (başlangıç), 100–120 (orta), 120–140 (ileri).
   - Seanslar arası 48–72 sa. 100 kg üstünde derinlik sıçramasında kutu en fazla 45 cm.
 - **Hareket kütüphanesi** (`src/lib/data/exlib.ts`):
-  - 467 hareket: 359 kuvvet, 28 olimpik, 51 pliometrik, 28 beceri, 1 ısınma (V33; süre + nabız skalası, hesaplara girmez).
+  - 470 hareket: 360 kuvvet, 28 olimpik, 53 pliometrik, 28 beceri, 1 ısınma (V33; süre + nabız skalası, hesaplara girmez). V35 eklemeleri sona eklenir (ilk 438 kayıt referansla aynı kalmalı).
+  - **Kas başına set payı (V35):** zor set ana kasa 1, yardımcı kasa ½, dengeleyiciye (karın, ön kol, boyun) ¼ sayılır; trapez yalnızca hareket ettirdiğinde ½, bel menteşede ½ squat/row'da ¼, tek eklem hareketlerinde yardımcılar ¼; satırda `KAS:pay` ile elle (`exShare`, `itemShares`, `addShares` · `exlib.ts`). Haftalık, son 7 gün, plan ve antrenman özeti kas tabloları payla toplar; "bu hafta n zor set" gibi toplamlar gerçek set sayısıdır. Kaynak: Pelland ve ark. 2024 (dolaylı set = 0,5).
   - Her hareket: Türkçe + İngilizce ad, 19 kas grubu, 18 ekipman, fat 1–3, direnç profili (a altta / u üstte / o ortada / d dengeli ağır).
   - İlk 17 id korunur.
 
@@ -321,6 +322,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | 2026-11-22 | Haftalık yük ikiye ayrıldı: **Yapılan** (Pazartesi'den şu ana) ve **Planlanan** (bu takvim haftasının planı); bu hafta plan yoksa Planlanan kapalı | "bir yapılan weekly load bide planned weekly load … planı olmayanlar için o buton deaktif" |
 | 2026-11-22 | Hareket gelişimi grafik değil düğme: yapılmış bütün hareketler, son 20 gün belirgin, eskiler soluk + son tarih; harekete göre ölçü (1RM + tek seans tonajı; ek yüksüzde tekrar kapasitesi; pliometrik puan; beceride tutuş ve temiz oran). Pliometrik puan göreli ölçek, 75 kg referans | "direkt böyle chart olmayacak … plyometrics'te … ağırlık var mı yok mu bunları bir skala yapacağız"; vücut ağırlığı tutulmuyor, pliometrikte süre kaydı yok |
 | 2026-11-22 | Unutulan antrenman: 10 dk giriş yoksa bildirim + titreşim ve "Hâlâ orada mısın?", 5 dk daha cevap yoksa **son giriş saatinde** biter ve kayda `autoEnd` yazılır; set yoksa kayıt açılmaz, oturum hazıra döner | Kullanıcı isteği; bitiş saati son giriş olunca süre ve yorgunluk doğru kalır, boş kayıt oluşmaz |
+| 2026-11-25 | Haftalık kas seti kesirli sayılır: ana kas 1, yardımcı ½, dengeleyici ¼ (kural + satırda elle pay). Pliometrik ve beceri setleri yine zor sete girmez (temas/deneme), ama kas payları kütüphanede yazılı | Kullanıcı: "yarım set ön omuz yarım set triceps … haftalık setimi düzgün hesaplayabileyim"; Pelland ve ark. 2024 dolaylı seti 0,5 sayar |
 | 2026-11-22 | **Isınma seti** set başına seçilir (RPE 6'nın solunda), kayıttan sonra kapanır; `warm: true` + `rir: 9` ile 1RM, tonaj, zor set, yorgunluk, gelişim ve önerilerin dışında. Dinlenme en çok 60 sn | "ne kilo ne rpe ne tekrar önemli olacak, progress takibi de olmayacak"; ısınma setleri fizyolojik olarak yorgunluğa anlamlı katkı yapmaz |
 | 2026-11-22 | Antrenman öncesi ısınma yeni tür (`isinma`): yalnız süre + 5 basamaklı nabız skalası (konuşma testiyle tarif, sayı yok); listelerde en üstte; yük hesaplarına girmez | Kullanıcı: "nabız sayılarla değil bir skala ile" |
 | 2026-11-22 | Bar hareketleri 20 kg altına inmez (olimpik bar); vücut ağırlığı seçeneği yalnız ekipmansız, barfiks/paralel ve dambıl ya da ekipmansız yapılabilen tek bacak hareketlerinde (lunge, split squat, step-up, tek bacak RDL) | Kullanıcı isteği; barlı harekette vücut ağırlığı anlamsız |

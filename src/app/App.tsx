@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BackupContext } from '../lib/store/BackupContext';
 import { AccountChip, AccountBody, ConsentBody, PrivacyBody } from '../features/hesap/Account';
+import { addShares, exShare, searchAlias } from '../lib/data/exlib';
 import { LegalGate } from '../legal/LegalGate';
 import { LegalDoc } from '../legal/LegalDoc';
 import { appDocId, appDocTitle } from '../legal/appDocs';
@@ -158,7 +159,7 @@ function MuscleBars({ muscles, list, max = 24, compact, mark, status, plan }) {
         const p = plan ? plan[m] || 0 : 0;
         return (
           <div key={m} className={'mbar ' + st + (mark && mark[m] ? ' hit' : '')}>
-            <span className="mbar-m">{muscleName(m)}{mark && mark[m] ? <em className="mbar-hit">+{mark[m]}</em> : null}</span>
+            <span className="mbar-m">{muscleName(m)}{mark && mark[m] ? <em className="mbar-hit">+{nf(mark[m])}</em> : null}</span>
             <div className="mbar-t">
               <span className="mbar-z" style={{ left: (10 / max) * 100 + '%', width: (10 / max) * 100 + '%' }} />
               <span className="mbar-f" style={{ width: Math.min(100, (n / max) * 100) + '%' }} />
@@ -175,16 +176,12 @@ function MuscleBars({ muscles, list, max = 24, compact, mark, status, plan }) {
 
 // Antrenman özeti: bu seansta çalışan (uyarılan) kaslar + son 7 günün kas başına zor seti ve uyarılar.
 function SessionMuscles({ session, week }) {
+  // V35: yardımcı kaslar da paylarıyla sayılır (ana 1, yardımcı ½, dengeleyici ¼)
   const here = {};
-  const helpers = new Set();
   session.items.forEach((it) => {
-    if (!it.sets.length) return;
-    const h = it.sets.filter((x) => !x.plyo && !x.skill && x.rir <= 4).length;
-    if (h) here[it.muscle] = (here[it.muscle] || 0) + h;
-    const m = exMeta(it.exId, it.name);
-    if (m && m.sec) m.sec.forEach((x) => helpers.add(x));
+    const h = it.sets.filter((x) => !x.plyo && !x.skill && !x.warm && x.rir <= 4).length;
+    addShares(here, it, h);
   });
-  Object.keys(here).forEach((k) => helpers.delete(k));
   const hits = Object.entries(here).sort((a, b) => b[1] - a[1]);
   const names = Object.keys(week).sort((a, b) => (week[b] || 0) - (week[a] || 0));
   const low = names.filter((m) => week[m] > 0 && week[m] < 10);
@@ -197,9 +194,9 @@ function SessionMuscles({ session, week }) {
         <React.Fragment>
           <span className="st-k">{t('Bu antrenmanda çalışan kaslar')}</span>
           <div className="mus-hits">
-            {hits.map(([m, n]) => <span key={m} className="mus-hit"><b>{muscleName(m)}</b><span className="mono">{t('{n} zor set', { n })}</span></span>)}
+            {hits.map(([m, n]) => <span key={m} className="mus-hit"><b>{muscleName(m)}</b><span className="mono">{t('{n} zor set', { n: nf(n) })}</span></span>)}
           </div>
-          {helpers.size ? <p className="mus-help">{t('Yardımcı olarak çalışanlar: {list}', { list: [...helpers].map(muscleName).join(', ') })}</p> : null}
+          <p className="mus-help">{t('Yardımcı kaslar yarım, dengeleyiciler çeyrek set sayılır.')}</p>
         </React.Fragment>
       ) : null}
       {names.length ? (
@@ -208,9 +205,9 @@ function SessionMuscles({ session, week }) {
           <MuscleBars muscles={week} list={names} compact mark={here} status />
           <p className="chart-note">{t('Taralı şerit haftada 10–20 zor set: kas gelişimi için sık önerilen aralık. +n bu antrenmanın katkısı. Zor set: bitişe 4 tekrar ya da daha az kala biten set.')}</p>
           <div className="mus-warn">
-            {low.length ? <p className="mw low"><b>{t('Az')}</b>{t('{list}: haftalık 10 setin altında.', { list: low.map((m) => muscleName(m) + ' ' + week[m]).join(', ') })}</p> : null}
+            {low.length ? <p className="mw low"><b>{t('Az')}</b>{t('{list}: haftalık 10 setin altında.', { list: low.map((m) => muscleName(m) + ' ' + nf(week[m])).join(', ') })}</p> : null}
             {none.length ? <p className="mw none"><b>{t('Bu hafta hiç')}</b>{none.map(muscleName).join(', ')}</p> : null}
-            {high.length ? <p className="mw high"><b>{t('Fazla')}</b>{t('{list}: 20 setin üstünde, toparlanmaya dikkat.', { list: high.map((m) => muscleName(m) + ' ' + week[m]).join(', ') })}</p> : null}
+            {high.length ? <p className="mw high"><b>{t('Fazla')}</b>{t('{list}: 20 setin üstünde, toparlanmaya dikkat.', { list: high.map((m) => muscleName(m) + ' ' + nf(week[m])).join(', ') })}</p> : null}
             {!low.length && !none.length && !high.length ? <p className="mw ok"><b>{t('Dengeli')}</b>{t('Bütün ana kaslar haftalık aralıkta.')}</p> : null}
           </div>
         </div>
@@ -228,11 +225,17 @@ function exLine(e) {
   if (e.kind === 'beceri') return muscleName(e.muscle) + ' · ' + EQ[e.eq] + ' · ' + t('beceri') + (e.h ? ' · ' + t('süre') : '');
   return muscleName(e.muscle) + ' · ' + EQ[e.eq] + ' · ' + (e.kind === 'plyo' ? t('yoğunluk {x}', { x: lower(PLYO_INT[e.int || 2].split(' ')[0]) }) : PROF[e.prof].k);
 }
+// V35: yardımcı kasların set payı (½, ¼)
+const fracTxt = (f) => (f === 0.5 ? '½' : f === 0.25 ? '¼' : f === 0.75 ? '¾' : nf(f));
+const shareTxt = (ex) => {
+  const sh = ex.id ? exShare(ex).slice(1) : (ex.sec || []).map((m) => [m, 0.5]);
+  return sh.length ? ' + ' + sh.map(([m, f]) => muscleName(m) + ' ' + fracTxt(f)).join(', ') : '';
+};
 function FactChips({ ex }) {
   if (!ex) return null;
   return (
     <div className="facts">
-      <span className="fact"><b>{muscleName(ex.muscle)}</b>{ex.sec && ex.sec.length ? ' + ' + ex.sec.map(muscleName).join(', ') : ''}</span>
+      <span className="fact" title={t('Bir zor set kaslara bu paylarla sayılır')}><b>{muscleName(ex.muscle)}</b>{shareTxt(ex)}</span>
       {ex.eq ? <span className="fact">{EQ[ex.eq]}</span> : null}
       {ex.kind && ex.kind !== 'kuvvet' ? <span className={'fact ' + (ex.kind === 'beceri' ? 'skill' : 'kind')}>{ex.kind === 'plyo' ? t('Pliometrik') : ex.kind === 'beceri' ? t('Beceri') : t('Olimpik')}</span> : null}
       {ex.kind === 'beceri' && ex.h ? <span className="fact skill">{t('Süreyle tutulur')}</span> : null}
@@ -255,7 +258,7 @@ function useExFilter(all, initGrp) {
   const wrap = (f) => (v) => { f(v); setLim(40); };
   const toks = normTr(q).split(/\s+/).filter(Boolean);
   // Arama iki dilde de eşleşir: Türkçe ve İngilizce ad, kas ve ekipman.
-  const hay = useMemo(() => new Map(all.map((e) => [e, normTr(e.name + ' ' + (e.en || '') + ' ' + e.muscle + ' ' + muscleName(e.muscle) + ' ' + (EQ[e.eq] || ''))])), [all]);
+  const hay = useMemo(() => new Map(all.map((e) => [e, normTr(e.name + ' ' + (e.en || '') + ' ' + searchAlias(e.id) + ' ' + e.muscle + ' ' + muscleName(e.muscle) + ' ' + (EQ[e.eq] || ''))])), [all]);
   const base = toks.length ? all.filter((e) => toks.every((tok) => hay.get(e).includes(tok))) : all;
   const byKind = base.filter((e) => kind === 'all' || (e.kind || 'kuvvet') === kind);
   const list = byKind.filter((e) => (!grp || e.muscle === grp) && (!eq || e.eq === eq));
@@ -1263,7 +1266,7 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
   const weekDone = weekDoneStats(st.sessions, Date.now());
   const twp = thisWeekProgram(st.programs, Date.now());
   const twStats = planStats(twp);
-  const planSets = Object.values(twStats.muscles).reduce((a, n) => a + n, 0);
+  const planSets = twStats.sets;
   const hasWeekPlan = twp.days.length > 0;
 
   return (

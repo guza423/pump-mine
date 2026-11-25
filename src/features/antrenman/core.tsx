@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { clamp, Icon, reducedMotion } from '../lab/Cns';
-import { EX_LIB, MUS_CODE, EQ, PLYO_INT, canBodyweight, warmFirst, WARMUP_ID } from '../../lib/data/exlib';
+import { EX_LIB, MUS_CODE, EQ, PLYO_INT, addShares, canBodyweight, warmFirst, WARMUP_ID } from '../../lib/data/exlib';
 import { e1Ok, bestE1, setE1 } from '../../lib/models/training';
 import { dbMultiplier } from '../../lib/models/session';
 import { nextPlanned } from '../plan/plans';
@@ -222,7 +222,7 @@ function weeklyHard(sessions, endTs) {
   const map = {};
   sessions.filter((s) => s.status === 'done' && s.startedAt >= from && s.startedAt <= endTs + 1000).forEach((s) => s.items.forEach((it) => {
     const h = it.sets.filter((x) => !x.plyo && !x.skill && !x.warm && x.rir <= 4).length;
-    if (h) map[it.muscle] = (map[it.muscle] || 0) + h;
+    addShares(map, it, h);
   }));
   return Object.entries(map).sort((a, b) => b[1] - a[1]);
 }

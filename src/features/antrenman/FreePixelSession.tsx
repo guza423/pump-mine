@@ -7,6 +7,7 @@ import {
 } from './core';
 import { PxStair } from './PxDrag';
 import { dbMultiplier, freeEntry, isFree, sessionName } from '../../lib/models/session';
+import { searchAlias } from '../../lib/data/exlib';
 import { changeRest, restDuration } from '../../lib/models/rest';
 import { startRest, stopRest } from '../../lib/native/restTimer';
 import { fatigueAt } from '../../lib/models/fatigue';
@@ -957,7 +958,7 @@ export const FreePixelSession: React.FC<Props> = ({
     const hay = allPickerExercises.map((e) => ({
       e,
       // Arama iki dilde de eşleşir: Türkçe ve İngilizce ad, kas ve ekipman.
-      text: normTr(e.name + ' ' + (e.en || '') + ' ' + e.muscle + ' ' + muscleName(e.muscle) + ' ' + eqLabel(e.eq)),
+      text: normTr(e.name + ' ' + (e.en || '') + ' ' + searchAlias(e.id) + ' ' + e.muscle + ' ' + muscleName(e.muscle) + ' ' + eqLabel(e.eq)),
     }));
     const base = toks.length ? hay.filter((x) => toks.every((tok) => x.text.includes(tok))).map((x) => x.e) : allPickerExercises;
     const byKind = base.filter((e) => pickKind === 'all' || (e.kind || 'kuvvet') === pickKind);

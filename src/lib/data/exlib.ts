@@ -5,7 +5,12 @@
    Direnç profili (prof): a = kas uzunken en zor, u = kas kısalırken en zor, o = hareketin ortasında en zor, d = boyunca benzer.
    Ek: k = 'o' olimpik, 'p' pliometrik, 'b' beceri, 'w' antrenman öncesi ısınma (V33) · i = pliometrik yoğunluk 1–4 · r = dinlenme (sn)
    · bio = biyomekanik modeli · not = kısa not
-   Mevcut kayıtların id'leri korunur. */
+   Mevcut kayıtların id'leri korunur.
+   V35 · Kas başına set payı (haftalık set hesabı, exShare): bir zor set ana kasa 1 set, her yardımcı kasa 0,5 set sayılır
+   (Pelland ve ark. 2024: dolaylı seti 0,5 saymak kas gelişimini en iyi açıklıyor). Dengeleyiciler (karın, ön kol, boyun) 0,25;
+   trapez yalnızca hareket ettirdiğinde (çekiş, row, arka omuz, dik çekiş, olimpik) 0,5, yoksa 0,25; bel kalça menteşesinde
+   (deadlift, RDL, swing) 0,5, squat ve row'da 0,25; tek eklem hareketlerinde (ISO_IDS) yardımcılar 0,25.
+   Kurala uymayan satırda pay elle yazılır: 'H:.25' (ikincil kas listesindeki sıra ve kaslar değişmez). */
 import { byLang } from '../../i18n';
 
 const MUS_CODE = { G: 'Göğüs', OO: 'Omuz (ön)', OY: 'Omuz (yan)', OA: 'Omuz (arka)', S: 'Sırt', T: 'Trapez', B: 'Bel', BI: 'Biceps', TR: 'Triceps', OK: 'Ön kol', K: 'Karın', Q: 'Quadriceps', H: 'Hamstring', KA: 'Kalça', AD: 'Adduktor', BA: 'Baldır', TI: 'Tibialis', BO: 'Boyun', TV: 'Tüm vücut' };
@@ -184,10 +189,10 @@ const EX_ROWS: Row[] = [
   ['ciftci-yuruyusu', 'Çiftçi yürüyüşü (farmer’s walk)', "Farmer's walk", 'T', 'OK,K,Q', 'db', 2, 'd', { not: 'Tekrar = tur (ör. 20 m)' }],
 
   /* ---------- BEL / ARKA ZİNCİR ---------- */
-  ['deadlift', 'Deadlift (klasik)', 'Conventional deadlift', 'KA', 'H,B,Q,T,OK', 'bb', 3, 'a', { r: 210 }],
+  ['deadlift', 'Deadlift (klasik)', 'Conventional deadlift', 'KA', 'H,B,Q:.25,T,OK', 'bb', 3, 'a', { r: 210 }],
   ['sumo-deadlift', 'Sumo deadlift', 'Sumo deadlift', 'KA', 'Q,AD,B', 'bb', 3, 'a', { r: 210 }],
-  ['deficit-deadlift', 'Yükseltiden deadlift (deficit)', 'Deficit deadlift', 'KA', 'H,B,Q', 'bb', 3, 'a', { r: 210 }],
-  ['duraklamali-deadlift', 'Duraklamalı deadlift', 'Paused deadlift', 'KA', 'H,B,Q', 'bb', 3, 'a', { r: 210 }],
+  ['deficit-deadlift', 'Yükseltiden deadlift (deficit)', 'Deficit deadlift', 'KA', 'H,B,Q:.25', 'bb', 3, 'a', { r: 210 }],
+  ['duraklamali-deadlift', 'Duraklamalı deadlift', 'Paused deadlift', 'KA', 'H,B,Q:.25', 'bb', 3, 'a', { r: 210 }],
   ['snatch-tutus-deadlift', 'Snatch tutuş deadlift', 'Snatch-grip deadlift', 'KA', 'H,B,T,S', 'bb', 3, 'a', { r: 210 }],
   ['bantli-deadlift', 'Bantlı deadlift', 'Banded deadlift', 'KA', 'H,B', 'bb', 3, 'u', { r: 210 }],
   ['trap-bar-deadlift', 'Trap bar deadlift', 'Trap bar deadlift', 'KA', 'Q,H,B,T', 'tb', 3, 'a', { r: 180 }],
@@ -202,12 +207,12 @@ const EX_ROWS: Row[] = [
   ['bird-dog', 'Bird dog', 'Bird dog', 'B', 'K,KA', 'bw', 1, 'd'],
 
   /* ---------- KALÇA ---------- */
-  ['hip-thrust', 'Barbell hip thrust', 'Barbell hip thrust', 'KA', 'H,Q', 'bb', 2, 'u'],
-  ['hip-thrust-mk', 'Hip thrust makinesi', 'Hip thrust machine', 'KA', 'H', 'mk', 2, 'u'],
-  ['smith-hip-thrust', 'Smith makinede hip thrust', 'Smith machine hip thrust', 'KA', 'H', 'sm', 2, 'u'],
-  ['tek-bacak-hip-thrust', 'Tek bacak hip thrust', 'Single-leg hip thrust', 'KA', 'H', 'bw', 1, 'u'],
-  ['glute-bridge', 'Barbell glute bridge', 'Barbell glute bridge', 'KA', 'H', 'bb', 2, 'u'],
-  ['glute-bridge-bw', 'Glute bridge', 'Bodyweight glute bridge', 'KA', 'H', 'bw', 1, 'u'],
+  ['hip-thrust', 'Barbell hip thrust', 'Barbell hip thrust', 'KA', 'H:.25,Q:.25', 'bb', 2, 'u'],
+  ['hip-thrust-mk', 'Hip thrust makinesi', 'Hip thrust machine', 'KA', 'H:.25', 'mk', 2, 'u'],
+  ['smith-hip-thrust', 'Smith makinede hip thrust', 'Smith machine hip thrust', 'KA', 'H:.25', 'sm', 2, 'u'],
+  ['tek-bacak-hip-thrust', 'Tek bacak hip thrust', 'Single-leg hip thrust', 'KA', 'H:.25', 'bw', 1, 'u'],
+  ['glute-bridge', 'Barbell glute bridge', 'Barbell glute bridge', 'KA', 'H:.25', 'bb', 2, 'u'],
+  ['glute-bridge-bw', 'Glute bridge', 'Bodyweight glute bridge', 'KA', 'H:.25', 'bw', 1, 'u'],
   ['frog-pump', 'Frog pump', 'Frog pump', 'KA', 'AD', 'bw', 1, 'u'],
   ['kablo-pull-through', 'Kablo pull-through', 'Cable pull-through', 'KA', 'H', 'cb', 1, 'u'],
   ['kablo-glute-kickback', 'Kablo glute kickback', 'Cable glute kickback', 'KA', 'H', 'cb', 1, 'd'],
@@ -452,8 +457,8 @@ const EX_ROWS: Row[] = [
 
   /* ---------- PLİOMETRİK: ALT VÜCUT ----------
      Yoğunluk: 1 düşük (yerinde, kısa sıçramalar) · 2 orta (tek tekrar sıçramalar, kutu) · 3 yüksek (ardışık, tek bacak) · 4 şok (derinlikten reaktif) */
-  ['pogo', 'Pogo sıçrama', 'Pogo hops', 'BA', 'Q', 'bw', 1, 'd', { k: 'p', i: 1 }],
-  ['tek-bacak-pogo', 'Tek bacak pogo', 'Single-leg pogo hops', 'BA', 'Q', 'bw', 1, 'd', { k: 'p', i: 2 }],
+  ['pogo', 'Pogo sıçrama', 'Pogo hops', 'BA', 'Q:.25', 'bw', 1, 'd', { k: 'p', i: 1 }],
+  ['tek-bacak-pogo', 'Tek bacak pogo', 'Single-leg pogo hops', 'BA', 'Q:.25', 'bw', 1, 'd', { k: 'p', i: 2 }],
   ['yanal-cizgi-sicrama', 'Yanal çizgi sıçrama (iki ayak)', 'Lateral line hops', 'BA', 'Q,AD', 'bw', 1, 'd', { k: 'p', i: 1 }],
   ['squat-jump', 'Squat jump (yerinde)', 'Squat jump', 'Q', 'KA,BA', 'bw', 1, 'd', { k: 'p', i: 2 }],
   ['cmj', 'Dikey sıçrama (CMJ)', 'Countermovement jump', 'Q', 'KA,BA', 'bw', 1, 'd', { k: 'p', i: 2 }],
@@ -537,18 +542,69 @@ const EX_ROWS: Row[] = [
   ['tek-kol-sinav', 'Tek kol şınav', 'One-arm push-up', 'G', 'TR,K', 'bw', 2, 'a', { k: 'b' }],
   /* ---------- ISINMA (V33): listelerde en üstte gösterilir; yalnızca süre ve yoğunluk skalası girilir, hesaplara girmez ---------- */
   ['isinma', 'Antrenman öncesi ısınma', 'Pre-workout warm-up', 'TV', '', 'dg', 1, 'd', { k: 'w', r: 60 }],
+  /* ---------- V35 eklemeleri (sona eklenir; listelerde kas grubuyla birlikte görünür) ---------- */
+  ['bant-rotasyonel-row', 'Bantla tek kol rotasyonel row', 'Resistance band single-arm rotational row', 'S', 'K:.5,OA,BI', 'bd', 1, 'u', { r: 60 }],
+  ['capraz-pogo', 'Çapraz pogo sıçrama (criss-cross)', 'Criss-cross hops', 'BA', 'AD,KA:.25', 'bw', 1, 'd', { k: 'p', i: 1 }],
+  ['capraz-squat-jump', 'Çapraz squat sıçrama (criss-cross)', 'Criss-cross squat jumps', 'Q', 'KA,AD,BA', 'bw', 1, 'd', { k: 'p', i: 2 }],
 ];
 const EX_LIB: LibraryExercise[] = EX_ROWS.map(([id, name, en, mus, sec, eq, fat, prof, x]) => {
   const o = x || {};
   const kind = o.k === 'o' ? 'olimpik' : o.k === 'p' ? 'plyo' : o.k === 'b' ? 'beceri' : o.k === 'w' ? 'isinma' : 'kuvvet';
   const rest = o.r || (kind === 'beceri' ? 90 : kind === 'plyo' ? ((o.i || 2) >= 4 ? 180 : 120) : kind === 'olimpik' ? 150 : fat === 3 ? 180 : fat === 2 ? 120 : 75);
-  const e: LibraryExercise = { id, name, en, muscle: MUS_CODE[mus], sec: sec ? sec.split(',').map((c) => MUS_CODE[c as keyof typeof MUS_CODE]) : [], eq, kind, fat, prof, rest };
+  const e: LibraryExercise = { id, name, en, muscle: MUS_CODE[mus], sec: sec ? sec.split(',').map((c) => MUS_CODE[c.split(':')[0] as keyof typeof MUS_CODE]) : [], eq, kind, fat, prof, rest };
   if (o.i) e.int = o.i;
   if (o.h) e.h = o.h;
   if (o.bio) e.bio = o.bio;
   if (o.not) e.not = o.not;
   return e;
 });
+
+/* V35 · Kas başına set payı. Kurallar dosya başında. */
+const STAB = new Set(['K', 'OK', 'BO']);
+const ISO_IDS = new Set([
+  'db-fly', 'egimli-db-fly', 'asagi-egimli-db-fly', 'svend-press', 'pec-deck', 'kablo-crossover', 'kablo-fly', 'orta-kablo-fly', 'tek-kol-kablo-fly',
+  'sehpada-kablo-fly', 'egimli-kablo-fly', 'db-pullover', 'kablo-pullover', 'pullover-mk', 'duz-kol-pulldown',
+  'yana-acis', 'oturarak-yana-acis', 'kablo-yana-acis', 'band-yana-acis', 'leg-curl', 'slider-leg-curl', 'top-leg-curl',
+  'kablo-glute-kickback', 'glute-kickback-mk', 'dort-ayak-kickback', 'frog-pump', 'superman', 'bird-dog',
+  'ab-wheel', 'bb-rollout', 'yan-plank', 'l-sit', 'kablo-woodchop', 'landmine-rotasyon', 'toes-to-bar', 'asili-bacak-kaldirma', 'dead-hang',
+]);
+function shareOf(id: string, k: Extra['k'], mus: string, code: string): number {
+  if (STAB.has(code)) return 0.25;
+  if (ISO_IDS.has(id)) return 0.25;
+  if (code === 'T') return k === 'o' || ['OA', 'S', 'T'].includes(mus) || /dik-cekis|y-kaldiris|clean-press/.test(id) ? 0.5 : 0.25;
+  if (code === 'B') return ['KA', 'H', 'TV', 'B'].includes(mus) ? 0.5 : 0.25;
+  return 0.5;
+}
+const SHARE = new Map<string, [string, number][]>(EX_ROWS.map(([id, , , mus, sec, , , , x]) => {
+  const list: [string, number][] = [[MUS_CODE[mus], 1]];
+  (sec ? sec.split(',') : []).forEach((s) => {
+    const [code, v] = s.split(':');
+    list.push([MUS_CODE[code as keyof typeof MUS_CODE], v != null ? Number(v) : shareOf(id, x?.k, mus, code)]);
+  });
+  return [id, list];
+}));
+/** Bir zor setin kaslara payı: [[ana kas, 1], [yardımcı, 0.5 | 0.25], …] (kas adları Türkçe veri). */
+const exShare = (ex: Pick<LibraryExercise, 'id' | 'muscle'>): [string, number][] => SHARE.get(ex.id) || [[ex.muscle, 1]];
+const LIB_BY_ID = new Map(EX_LIB.map((e) => [e.id, e]));
+/** Kayıttaki hareketin kas payları. Kütüphane dışı ya da kası değiştirilmiş harekette yalnız kendi kası 1. */
+function itemShares(it: { exId?: string | null; muscle?: string }): [string, number][] {
+  const lib = it.exId ? LIB_BY_ID.get(it.exId) : undefined;
+  if (lib && (!it.muscle || it.muscle === lib.muscle)) return exShare(lib);
+  return it.muscle ? [[it.muscle, 1]] : [];
+}
+/** Kas → set sayısı tablosuna n zor set ekler (paylarla). */
+function addShares(map: Record<string, number>, it: { exId?: string | null; muscle?: string }, n: number) {
+  if (!n) return;
+  for (const [m, f] of itemShares(it)) map[m] = (map[m] || 0) + n * f;
+}
+/** Kütüphanedeki adla bulunamayan yaygın adlar (arama için). */
+const SEARCH_ALIAS: Record<string, string> = {
+  'ardisik-makas': 'jump lunge jumping lunge',
+  'makas-sicrama': 'jump lunge',
+  'dizden-sicrama': 'kneel to squat jump kneeling squat jump',
+  'bant-rotasyonel-row': 'atletik rotasyon band row',
+};
+const searchAlias = (id: string) => SEARCH_ALIAS[id] || '';
 
 /* V33 · Kilo sürgüsünde "vücut ağırlığı" seçeneği: ekipmanı vücut ağırlığı ya da plaka (ağırlıklı dips, barfiks vb.)
    olanlar ve ek yük olmadan da yapılan dumbbell hareketleri (lunge, split squat, step-up, tek bacak RDL). */
@@ -562,4 +618,4 @@ const warmFirst = <T extends { id?: string; exId?: string | null }>(list: T[]) =
   return i > 0 ? [list[i], ...list.slice(0, i), ...list.slice(i + 1)] : list;
 };
 
-export { EX_LIB, MUS_CODE, EQ, KIND, PLYO_INT, canBodyweight, WARMUP_ID, warmFirst };
+export { EX_LIB, MUS_CODE, EQ, KIND, PLYO_INT, canBodyweight, WARMUP_ID, warmFirst, exShare, itemShares, addShares, searchAlias };

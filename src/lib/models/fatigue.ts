@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { EX_LIB, PLYO_W, SKILL_W, isPlyo, isSkill, isWarmEx, skillSetTxt, sessionStats, bestE1, hasNum, nf } from "../../features/antrenman/core";
 import { weekProgram } from "../../features/plan/plans";
+import { addShares } from "../data/exlib";
 import { clamp } from "./training";
 import { muscleName, pct, t } from "../../i18n";
 import { exName } from "../../i18n/names";
@@ -101,14 +102,16 @@ const repMid = (a, b) => (hasNum(a) ? (hasNum(b) ? (Number(a) + Number(b)) / 2 :
 const zoneOf = (score) => (score < 40 ? { k: t('Yönetilebilir'), c: 'var(--ok)', cls: 'ok' } : score < 70 ? { k: t('Birikiyor'), c: 'var(--warn)', cls: 'warn' } : { k: t('Yüksek'), c: 'var(--bad)', cls: 'bad' });
 export function planStats(program) {
   const muscles = {};
+  let sets = 0; // planlanan zor set sayısı (kas paylarının toplamı değil)
   (program ? program.days : []).forEach((d) => {
     const mult = d.weekday == null && Array.isArray(d.weekdays) && d.weekdays.length ? d.weekdays.length : 1;
     d.items.forEach((it) => {
       if (isPlyo(it.exId) || isSkill(it.exId) || isWarmEx(it.exId) || 10 - rpeMid(it.rpeMin, it.rpeMax) > 4) return;
-      muscles[it.muscle] = (muscles[it.muscle] || 0) + Number(it.sets || 0) * mult;
+      addShares(muscles, it, Number(it.sets || 0) * mult);
+      sets += Number(it.sets || 0) * mult;
     });
   });
-  return { muscles };
+  return { muscles, sets };
 }
 // V32 · bu hafta (Pazartesi 00:00'dan şu ana) yapılan yük: kas başına zor set (RIR ≤ 4), temas ve deneme.
 // Süren antrenmanın setleri de sayılır ("o ana dek").
@@ -125,7 +128,7 @@ export function weekDoneStats(sessions, now = Date.now()) {
     s.items.forEach((it) => it.sets.forEach((x) => {
       if (x.plyo) contacts += Number(x.reps) || 0;
       else if (x.skill) attempts += Number(x.reps) || 0;
-      else if (!x.warm && x.rir <= 4) { muscles[it.muscle] = (muscles[it.muscle] || 0) + 1; hard += 1; }
+      else if (!x.warm && x.rir <= 4) { addShares(muscles, it, 1); hard += 1; }
     }));
   });
   return { muscles, n, hard, contacts, attempts, from };
@@ -134,7 +137,7 @@ export function logStats(sessions, endTs) {
   const from = endTs - 7 * DAY_MS;
   const muscles = {};
   sessions.filter((s) => (s.status === 'done' || s.status === 'active') && !s.ready && s.startedAt >= from && s.startedAt <= endTs + 1000).forEach((s) => s.items.forEach((it) => {
-    it.sets.forEach((x) => { if (!x.plyo && !x.skill && !x.warm && x.rir <= 4) muscles[it.muscle] = (muscles[it.muscle] || 0) + 1; });
+    it.sets.forEach((x) => { if (!x.plyo && !x.skill && !x.warm && x.rir <= 4) addShares(muscles, it, 1); });
   }));
   return { muscles };
 }
@@ -419,7 +422,7 @@ export function historyWarnings(st, list) {
     const plan = {};
     st.programs.forEach((p) => p.days.forEach((d) => d.items.forEach((i) => { plan[i.muscle] = 1; })));
     const low = MAIN_MUSCLES.filter((m) => plan[m] && (ls.muscles[m] || 0) < 10);
-    if (low.length) w.push({ lv: 'info', t: t('Az çalışan: {list}', { list: low.map((m) => muscleName(m) + ' ' + (ls.muscles[m] || 0)).join(', ') }), d: t('Son 7 gün zor set. Kas başına haftada 10–20 sık önerilir.') });
+    if (low.length) w.push({ lv: 'info', t: t('Az çalışan: {list}', { list: low.map((m) => muscleName(m) + ' ' + nf(ls.muscles[m] || 0)).join(', ') }), d: t('Son 7 gün zor set. Kas başına haftada 10–20 sık önerilir.') });
   }
   const bigPlyo = list.map((s) => sessionStats(s).contacts).filter((c) => c > 140);
   if (bigPlyo.length) w.push({ lv: 'warn', t: t('Seans başına {n} sıçrama teması', { n: Math.max(...bigPlyo) }), d: t('Pliometrikte ileri seviye için bile 120–140 temas önerilir; fazlası kaliteyi düşürür, sakatlık riskini artırır.') });

@@ -99,7 +99,8 @@ describe('bu haftanın yükü (V32)', () => {
   it('yapılan: Pazartesi 00:00’dan bu yana kas başına zor set; süren antrenman dahil, geçen hafta hariç', () => {
     const s = (id: string, startedAt: number, status = 'done', rir = 2) => ({ id, status, startedAt, items: [{ exId: 'duz-bench', name: 'Düz bench press', muscle: 'Göğüs', sets: [{ kg: 80, reps: 8, rir, at: startedAt }, { kg: 80, reps: 8, rir: 5, at: startedAt }] }] });
     const w = weekDoneStats([s('a', at(2026, 10, 17)), s('b', at(2026, 10, 19, 17), 'active'), s('c', at(2026, 10, 15))], now);
-    expect(w.muscles).toEqual({ 'Göğüs': 2 });
+    // V35: yardımcı kaslar yarım set
+    expect(w.muscles).toEqual({ 'Göğüs': 2, 'Omuz (ön)': 1, 'Triceps': 1 });
     expect(w.n).toBe(1);
     expect(new Date(w.from).getDay()).toBe(1);
   });
@@ -111,7 +112,8 @@ describe('bu haftanın yükü (V32)', () => {
     ];
     const wp = thisWeekProgram(programs as never, now);
     expect(wp.days.map((d) => d.weekday)).toEqual([4, 6]);
-    expect(planStats(wp).muscles).toEqual({ 'Göğüs': 7 });
+    expect(planStats(wp).muscles).toEqual({ 'Göğüs': 7, 'Omuz (ön)': 3.5, 'Triceps': 3.5 });
+    expect(planStats(wp).sets).toBe(7);
   });
 });
 

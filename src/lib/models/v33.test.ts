@@ -73,7 +73,7 @@ describe('antrenman öncesi ısınma', () => {
     expect(it0).toMatchObject({ sets: 1, dur: 10, z: 2, rpeMin: null });
     expect(targetTxt(it0, WARMUP_ID)).toBe('10 dk · Hafif');
     const prog = { id: 'p', name: '', createdAt: 0, updatedAt: 0, days: [{ id: 'd', name: 'A', weekday: 1, items: [it0, { ...itemFromEx(lib('duz-bench')), sets: 3, rpeMin: 8, rpeMax: 9 }] }] };
-    expect(planStats(prog).muscles).toEqual({ 'Göğüs': 3 });
+    expect(planStats(prog).muscles).toEqual({ 'Göğüs': 3, 'Omuz (ön)': 1.5, 'Triceps': 1.5 });
     const s = { id: 'w', status: 'done', startedAt: now - 3600_000, items: [{ exId: WARMUP_ID, name: 'Antrenman öncesi ısınma', muscle: 'Tüm vücut', sets: [{ kg: 0, reps: 1, dur: 10, z: 3, warm: true, rir: 9, at: now - 3500_000 }] }] };
     expect(exerciseIndex([s], now)).toEqual([]);
     expect(fatigueAt({ sessions: [s], checkins: [] }, now).train).toBe(0);

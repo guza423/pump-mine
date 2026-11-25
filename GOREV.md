@@ -6,6 +6,7 @@ Hangi AI olursa olsun: önce `git pull --rebase origin main`, sonra `AGENTS.md`'
 Şu an bekleyen kod görevi yok. Play Store hazırlığı (V27) bitti; kalan adımlar kullanıcıda (`docs/PROJE.md` › Açık işler › Play Store). Dil geçişi (V21–V25) ve çok dil hazırlığı (V26) bitti; yeni dil eklemek için `AGENTS.md` › Dil › "Yeni dil ekleme".
 
 ## Tamamlanan
+- [V35 · Kas başına set payı (kesirli haftalık set) ve yeni hareketler](docs/gorevler/V35-kas-payi-yeni-hareketler.md): 2026-11-25 · `COMMIT`
 - [V34 · Sürgüde parmakla yavaşlama, ısınma seti yalnız ISN, set özelliği dinlenmede, RIR yerine setin 1RM'si, planlı kutucuklar iki satır](docs/gorevler/V34-surgu-hizi-isinma-set-ozelligi-1rm-kutucuk.md): 2026-11-24 · `02afb43` · Claude doğrudan
 - [V33 · Isınma setleri ve ısınma seansı, bar 20 kg, set özellikleri, hedef aralık, sürgü hızı, planlı set kutucukları, basılı tutmalı plan penceresi, vücut ağırlığı, kalıcı antrenman bildirimi, plan hatırlatması, kaydırmalı takvim](docs/gorevler/V33-isinma-set-ozelligi-hatirlatma-takvim.md): 2026-11-22 · `290a6c1` · Claude doğrudan
 - [V32 · Dönem yorgunluğu (7/10/30 gün) ve gece ortalaması uyku, yapılan/planlanan haftalık yük, hareket gelişimi, unutulan antrenman](docs/gorevler/V32-donem-yorgunlugu-yuk-gelisim-unutulan-idman.md): 2026-11-22 · `f2509d8` · Claude doğrudan
