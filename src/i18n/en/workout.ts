@@ -362,6 +362,9 @@ export const workout: Record<string, Entry> = {
   "ısn": "wu",
   "Onayla": "Confirm",
   "Antrenman sürüyor · dokun: devam et": "Workout in progress · tap to continue",
+  // V36 · ekran modları: başlangıç geçişi ve süren idman şeridi
+  "BAŞLA!": "GO!",
+  "İdmana dön": "Back to workout",
   "Hedef tekrar aralığı": "Target rep range",
   "HEDEF TEKRAR ARALIĞI": "TARGET REP RANGE",
   "Setleri yine yaptığın tekrar sayısıyla kaydedersin; aralık hedef olarak görünür ve bu hareket için hatırlanır.": "You still log each set with the reps you did; the range shows as your target and is remembered for this exercise.",

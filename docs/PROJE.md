@@ -41,6 +41,8 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | **Gözlem** (`gozlem`, başlık "Antrenman plan ve gözlem") | Aylık takvim (yapılan ●, planlı ○, kaçırılan ·). Gün paneli: yapılanlar, planlar, uyku, yorgunluk, "Bu güne plan ekle" (tek gün ya da her hafta). Ay özeti, uyarılar, **Hareket gelişimi** düğmesi (yapılmış bütün hareketler; son 20 gün belirgin, eskiler soluk + son tarih; hareket penceresinde türüne göre ölçüler, V32), **Haftalık yük: Yapılan / Planlanan** (planlanan, bu hafta plan yoksa kapalı, V32). |
 | **Lab** (`lab`) | 01 Temeller: sinir sistemi dersleri, "Yorgunluk nasıl ölçülür?", yorgunluk ölçer. 02 Hareketler: 470 hareket (en üstte antrenman öncesi ısınma), arama + tür + kas + ekipman filtresi, biyomekanik kartlar. |
 
+**Ekran modları (V36):** zemin paleti, ortam efekti ve geçişler moda göre değişir; anlamı olan renkler (yeşil yapıldı, kırmızı kaçırıldı/kötü, altın vurgu/seçili, ateş ana eylem, mavi beceri) her modda aynı. **Sakin** (Dashboard, Gözlem, plan düzenleyici, bitiş özeti; mor, seyrek yıldız), **ısınma** (Antrenman sekmesi, idman yokken ya da hazır oturum; mor-kor, alttan kor ve kıvılcım, listeler kart dağıtır gibi düşer), **idman** (süren idman; kor, **sabit**: durağan çerçeve, ısı bantları, alev; SETLER kutusu koyu kuyu), **lab** (soğuk lacivert, veri pikselleri, tarama çizgileri). Geçişler: idman başlarken BAŞLA! pixel blok dalgası, bitince mor soğuma, süren idmana girip çıkarken şerit, ısınmaya girerken ısı dalgası. İdman sürerken Antrenman dışındaki ekranlarda sekme çubuğunun üstünde **süren idman şeridi** (süre, set, dokun: idmana dön). Ayrıntı `docs/gorevler/V36-ekran-modlari.md`.
+
 **Oturum ekranları:**
 - **Plansız oturum** (`dayId == null`, V13 pixel arayüz `.px`):
   - **Hazır akışı ve liste:** oturum `ready: true` (`HAZIR · başlamadı`) açılır; hareket listesi + çoklu seçimli hareket seçici (`N HAREKET EKLE`) + `İDMANI BAŞLAT` / `İDMANI BİTİR`. Set ekranı açılınca ya da ilk set kaydedilince süre kendiliğinden başlar ve altın bildirim çıkar.
@@ -202,6 +204,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | V11 | 2026-11-14 | Sade plansız antrenman, bildirimli dinlenme sayacı, Android geri tuşu | `c5c588d` |
 | V12 | 2026-11-15 | Dashboard, antrenman planları (program katmanı kalktı), Gözlem takvimi, satır içi geçmiş, öğrenme hedefleri, 28 beceri hareketi | `c2f274b` (Antigravity) |
 | V14–V20 | 2026-11-17 → 18 | Pixel tema bütün sekmelere (V14–V17), plan ayarları ve özet (V18), basılı tutma ve göreli sürükleme (V19), yasal metinler, kabul kapısı, hesap/veri silme (V20) | `docs/gorevler/V14…V20` |
+| V36 | 2026-11-25 | Ekran modları: sakin / ısınma / idman / lab paletleri (anlamı olan renkler sabit), ortam efektleri (idman set ekranı sabit), BAŞLA! · soğuma · şerit · ısı dalgası geçişleri, süren idman şeridi, idmanda koyu SETLER kutusu | `docs/gorevler/V36-ekran-modlari.md` |
 | V34 | 2026-11-24 | Sürgüde parmak aşağı iyice inince %40 hız (bütün yatay sürgüler, gösterge yok; HIZ düğmesi ve ayar kaldırıldı); ısınma seti her yerde yalnız ISN; set özelliği sete ait, dinlenme ekranında sorulur (set tipi, durum: hasta/yorgun…, nasıl geçti), set ayrıntısından düzenlenir, sağ üst yalnız hareket notu; RIR kutusu yerine setin 1RM'si (güvenilir aralık dışında ≈); planlı kutucuklar iki satır (SET n · kg / 4–8 tekrar), kaydırma çubuğu yok, sıradaki hizalanır | `docs/gorevler/V34-surgu-hizi-isinma-set-ozelligi-1rm-kutucuk.md` |
 | V33 | 2026-11-22 | Isınma seti (RPE 6'nın solunda, hesaplara girmez) ve kütüphanede antrenman öncesi ısınma (süre + nabız skalası, listenin başında); bar 20 kg altına inmez; plan düzenleyicide vücut ağırlığı ve Onayla; set özellikleri (drop set, tükenişe kadar…); plansızda hareketin hedef tekrar aralığı; sürgü hızı %40 seçeneği; planlı sette "son sefer" yok, hedef setler dolan kutucuklar; plan penceresinde günler, Başlat ve Çoğalt basılı tutmalı, Başlat hazır açar; bildirim panelinde süren antrenman sayacı; planlı günden bir gün önce 20:00 hatırlatma; takvim parmakla kaydırılır | `docs/gorevler/V33-isinma-set-ozelligi-hatirlatma-takvim.md` |
 | V32 | 2026-11-22 | Dashboard yorgunluğu seçili dönemin ortalaması (7/10/30 gün) ve uyku = dönemin gece ortalaması; Gözlem'de haftalık yük Yapılan / Planlanan; Hareket gelişimi listesi ve türüne göre gelişim penceresi (1RM + tonaj, tekrar kapasitesi, pliometrik puan, beceri); unutulan antrenman 10 dk'da sorulur, 15 dk'da son giriş saatinde kendiliğinden biter | `docs/gorevler/V32-donem-yorgunlugu-yuk-gelisim-unutulan-idman.md` |
@@ -336,6 +339,11 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | 2026-11-24 | Set özelliği sıradaki sete değil **kaydedilmiş sete** yazılır: dinlenme ekranında sorulur, set ayrıntısından düzenlenir; durum grubu (hasta, yorgun, uykusuz, stresli, ağrı) eklendi; sağ üst yalnız hareket notu | "hareketin attributesi yerine setlerin olacak"; durumlar hesapları değiştirmez (kullanıcı istemedi) |
 | 2026-11-24 | Set ekranında RIR kutusu kalktı (RPE aynı bilgi); setin 1RM'si her zaman yazılır, güvenilir aralık (RIR ≤ 4, tekrar + RIR ≤ 12, ROM ≥ %90) dışında ≈ ile ve gelişime/1RM serisine girmez | Kullanıcı 1RM'yi her sette görmek istedi; yüksek tekrarda ve belirsiz RIR'de tahmin formülleri sapar, seriyi bozmasın |
 | 2026-11-24 | Planlı hedef kutucukları iki satır × üç, fazlası dikey kayar, kaydırma çubuğu yok; sıradaki kutucuğun satırı üste hizalanır; kutucukta "SET n · kg" ve "4–8 tekrar"; kullanılabilir yükseklik ≤ 540 px'te tek satır; ≤ 820 px'te iki satıra çıkınca plaka çizimi gizlenir | Kullanıcı isteği; küçük ekranlarda BİTTİ düğmesi sekmelerin altına kaymasın |
+| 2026-11-25 | **Ekran modları**: sakin (Dashboard, Gözlem, plan, özet), ısınma (Antrenman sekmesi, hazır oturum), idman (süren idman), lab. Moda göre yalnız zemin paleti, ortam efekti ve geçiş değişir; yeşil/kırmızı/altın/ateş/mavi anlamları her modda aynı | Kullanıcı: "renk paletleri farklı olsa … ekranlar arası gezinirken idman adrenalini hemen anlaşılmıyor", "anlamı olanlar aynı kalsın … onun dışında efekt yapalım" |
+| 2026-11-25 | İdman set ekranında döngülü efekt yok: çerçeve, ısı bantları ve alev durağan; hareket yalnız SET BİTTİ geri bildiriminde | "idman set ekranındaki o flicker olmasa iyi, ora sabit kalsın" |
+| 2026-11-25 | Antrenman sekmesi ısınma modu: girerken ısı dalgası ve ikon "kaldırma", alttan kor ve kıvılcım, listeler kart dağıtır gibi düşer, İDMANI BAŞLAT halka yayar; süren idmanda sekme doğrudan idmana girer | "antrenman sekmesine tıklayınca … ona da bir şeyler yapalım" |
+| 2026-11-25 | Süren idman şeridi sekme çubuğunun **üstünde** (tasarım tuvalinde ekranın üstündeydi) | Android'de durum çubuğu şeffaf ve ekranlar üst güvenli alan payını kendisi veriyor; alt konum başparmağa yakın |
+| 2026-11-25 | Tasarım tuvalindeki mod ekranları temsilîdir; uygulamaya yalnız mod katmanı (palet, efekt, geçiş, şerit) girer, ekran düzenleri değişmez | Kullanıcı: "burdaki arayüzler temsili … bu misali olsun yeter" |
 
 ---
 
@@ -364,7 +372,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | `docs/PROJE.md` | Bu belge: ne, neden, nasıl, kararlar |
 | `docs/KONUSMA-KAYDI.md` | Tüm konuşmaların kronolojik kaydı |
 | `GOREV.md` | Bekleyen / tamamlanan görevler |
-| `docs/gorevler/` | Görev dosyaları (V08–V25), `arsiv/` eski görevler |
+| `docs/gorevler/` | Görev dosyaları (V08–V36), `arsiv/` eski görevler |
 | `src/i18n/` | Dil katmanı (`index.ts`, `names.ts`) ve İngilizce sözlük (`en/`) |
 | `docs/FIREBASE-KURULUM.md` | Firebase konsol kurulumu |
 | `reference/` | Claude prototipleri (tarihçe ve tasarım kaynağı) |

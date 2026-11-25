@@ -788,3 +788,20 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 - Zaten vardı: pogo, tek bacak pogo, jump lunge (Ardışık makas sıçrama), dizden squata sıçrama (Dizden ayağa sıçrama); İngilizce adlarıyla da aranır.
 - Pliometrik setler zor sete girmez (temas sayılır); kas payları yazılı.
 - Commit: `d4c5337`. Kontroller: `npm test` (176), lint, `tsc -b`, build, `test:layout` geçti.
+
+### 2026-11-25 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** "Bizim bu outmove app için diyomki renk paletleri ayrı mı olsa.  Diyelim hareketin içi farklı dashboard ayrı falan falan. Ekranlar arası gezinirken idman adrebalini ile hemen anlaşılmio. Renk paletleri falan fatklı olsa daha iyi gibi ne dion"
+**Yapılan / karar:** Claude'un görüşü: ekran başına ayrı palet değil, **mod başına** zemin değişsin, anlamı olan renkler (yeşil, kırmızı, altın) sabit kalsın; üç-dört mod yeter (sakin, idman, lab); asıl farkı giriş geçişi ve idman sürerken başka sekmedeki canlı şerit yaratır.
+
+**Kullanıcı:** "Anlamı olanlar aynı kalsın aynen o başka. Ama onun dışında böyle efekt mefekt bişi yapak"
+**Yapılan / karar:** Design tuvaline ("OUTMOVE · Set kayıt konsepti (pixel)") yeni sayfa **Ekran modları**: çalışan prototip (Dashboard → BAŞLAT → BAŞLA! pixel blok geçişi → kor idman modu; geri/Lab'de canlı şerit; Lab soğuk mod; 4 set sonra İYİ İŞ! ile sakine dönüş) ve modların yan yana karşılaştırması, efekt dozu ayarı (Tam / Hafif / Kapalı).
+
+**Kullanıcı:** "idman set ekranındaki o flickerin olmasas iyi . ora sabit kalsın ya . peki antrenman sekmesine tıklayınca nası yapalım onada bişler yapak"
+**Yapılan / karar:** Set ekranından kalp atışı nabzı, titreyen alev ve kıvılcımlar kalktı; çerçeve, ısı bantları ve alev durağan. Antrenman sekmesine **ısınma** modu: girerken ısı dalgası + ikon "kaldırma" + alçak ses, alttan kor ve kıvılcım, hareketler kart dağıtır gibi düşer, BAŞLAT'tan halka yayılır; süren idmanda sekme doğrudan idmana girer. Akış: sakin → ısınma → idman → sakin.
+
+**Kullanıcı:** (ekran görüntüsü: idman modunda SETLER kutusu, "70×8 · 7", "70×7 · 8", sıradaki "SET 3 · 70 / 6–8 tekrar" altın çerçeveli, "SET 4 · 70 / 6–8 tekrar") "burası bi tık darklı olsun göze batsın falan . nası? bide burdaki arayüzler temsili demi birebir böyle değil çünkü şuankilerde o yüzdne bu misali olsun yeter. tüm repoyu okuyup buraya birebir girmene gerek yok zaten"
+**Yapılan / karar:** SETLER kutusu neredeyse siyah, içe gömük kuyu; biten kutucuklar kor dolgu ve parlak kenarla öne çıkıyor. Tuvaldeki ekranların temsilî olduğu teyit edildi: uygulamaya yalnız mod katmanı girecek, ekran düzenleri değişmeyecek.
+
+**Kullanıcı:** "tamam direkt yapabiliosan okey. yap ."
+**Yapılan (V36, Claude doğrudan; ayrıntı `docs/gorevler/V36-ekran-modlari.md`):** dört mod (sakin, ısınma, idman, lab) paleti `.app2` kökünden; ortam efekti içeriğin arkasında, durağan çerçeve üstünde; geçişler (BAŞLA!, bitişte mor soğuma, süren idmana giriş/çıkış şeridi, ısınma ısı dalgası) dokunmayı engellemeyen süsleme; süren idman şeridi sekme çubuğunun üstünde (tuvalde üstteydi; Android şeffaf durum çubuğu ve güvenli alan yüzünden alta alındı); idmanda koyu SETLER kutusu; Hesap › Animasyonlar ve cihazın hareket azaltma ayarına uyar.
+**Kayıt:** KOMIT_KODU (kod + belgeler) ve bu commit (`GOREV.md`).

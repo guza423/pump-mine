@@ -1,0 +1,198 @@
+/* ================= V36 · Ekran modları =================
+   Kök: `.app2` üzerinde `px-mode px-mode-<sakin|isinma|idman|lab>` (App, `screenMode()`).
+   Anlamı olan renkler (yeşil yapıldı, kırmızı kaçırıldı/kötü, altın vurgu/bugün/seçili, ateş ana eylem, mavi beceri)
+   HER MODDA AYNI; yalnızca zemin paleti, ortam efekti ve geçişler değişir. DOM, kimlikler ve akışlar aynı kalır.
+   - sakin  : Dashboard, Gözlem, plan düzenleyici, bitiş özeti. Koyu mor (V13 paleti), seyrek yıldız.
+   - isinma : Antrenman sekmesi (idman yokken ya da hazır bekleyen oturum). Mor-kor arası; alttan kor, süzülen kıvılcım.
+   - idman  : süren idman. Kor zemin; set ekranı SABİT (kullanıcı isteği: titreşen/yanıp sönen efekt yok).
+   - lab    : Lab. Soğuk lacivert, akan veri pikselleri, durağan tarama çizgileri.
+   Efektler dokunmayı engellemez (pointer-events: none). Cihaz "animasyonları azalt" derse ve Hesap'ta
+   "Animasyonlar" kapalıysa (`.px-mode-motion` yok) hareket kalkar, palet kalır. */
+
+.px-mode-sakin { --md-bg: #100e1b; --md-grid: rgba(255, 255, 255, 0.015); }
+.px-mode-isinma { --md-bg: #140b10; --md-grid: rgba(255, 120, 80, 0.025); }
+.px-mode-idman { --md-bg: #150a08; --md-grid: rgba(255, 110, 60, 0.035); }
+.px-mode-lab { --md-bg: #08111f; --md-grid: rgba(79, 168, 255, 0.05); }
+
+/* ---------- paletler: pixel tema (.pxt ekranları, alt pencereler), set ekranı (.px.night), sekme çubuğu ---------- */
+.px-mode-isinma .pxt,
+.px-mode-isinma .tabbar { --px-bg: #140b10; --px-pn: #22131a; --px-pn2: #301a24; --px-ln: #522a38; --px-mt: #d2abba; --px-dim: #3a1f2b; --px-sh: #080305; }
+.px-mode-isinma .pxt { --void: #0c0609; --deep: #0c0609; --panel: #22131a; --raised: #301a24; --line: #522a38; --line-strong: #6a3a4c; --muted: #d2abba; --faint: #b08a9a; }
+.px-mode-isinma .px.night { --bg: #140b10; --pn: #22131a; --pn2: #301a24; --ln: #522a38; --mt: #d2abba; --dim: #3a1f2b; --grid: rgba(255, 120, 80, 0.025); --sh: #080305; }
+.px-mode-isinma .tabbar { background: #0c0609; }
+
+.px-mode-idman .pxt,
+.px-mode-idman .tabbar { --px-bg: #150a08; --px-pn: #23110d; --px-pn2: #331914; --px-ln: #5e2c1f; --px-mt: #d6ad9f; --px-dim: #42211a; --px-sh: #070302; }
+.px-mode-idman .pxt { --void: #0d0605; --deep: #0d0605; --panel: #23110d; --raised: #331914; --line: #5e2c1f; --line-strong: #7a3a26; --muted: #d6ad9f; --faint: #b58a7c; }
+.px-mode-idman .px.night { --bg: #150a08; --pn: #23110d; --pn2: #331914; --ln: #5e2c1f; --mt: #d6ad9f; --dim: #42211a; --grid: rgba(255, 110, 60, 0.035); --sh: #070302; }
+.px-mode-idman .tabbar { background: #0d0605; }
+
+.px-mode-lab .pxt,
+.px-mode-lab .tabbar { --px-bg: #08111f; --px-pn: #0f1b30; --px-pn2: #162842; --px-ln: #2b466b; --px-mt: #a1badb; --px-dim: #1b304f; --px-sh: #03070e; }
+.px-mode-lab .pxt { --void: #050b15; --deep: #050b15; --panel: #0f1b30; --raised: #162842; --line: #2b466b; --line-strong: #3c5f8c; --muted: #a1badb; --faint: #7f97b8; }
+.px-mode-lab .px.night { --bg: #08111f; --pn: #0f1b30; --pn2: #162842; --ln: #2b466b; --mt: #a1badb; --dim: #1b304f; --grid: rgba(79, 168, 255, 0.05); --sh: #03070e; }
+.px-mode-lab .tabbar { background: #050b15; }
+
+/* Zemin ana alanda çizilir, ekran kökü saydamdır: ortam efekti içeriğin arkasında görünür. */
+.px-mode .app2-main {
+  isolation: isolate;
+  background-color: var(--md-bg);
+  background-image:
+    linear-gradient(var(--md-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--md-grid) 1px, transparent 1px);
+  background-size: 12px 12px;
+}
+.px-mode .app2-main > .screen.pxt,
+.px-mode .app2-main > .screen.px { background-color: transparent; background-image: none; }
+
+/* ---------- ortam (içeriğin arkasında) ---------- */
+.px-md-amb { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.px-md-amb > i { position: absolute; display: block; }
+.px-md-star { width: 3px; height: 3px; background: #d9d2ff; opacity: 0.12; animation: pxMdTw 3.6s steps(1) infinite; }
+.px-md-star.x { box-shadow: 3px 0 0 0 #d9d2ff, -3px 0 0 0 #d9d2ff, 0 3px 0 0 #d9d2ff, 0 -3px 0 0 #d9d2ff; }
+@keyframes pxMdTw { 0% { opacity: 0.12; } 45% { opacity: 0.5; } 60% { opacity: 0.25; } 75% { opacity: 0.12; } }
+.px-md-glow {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 150px;
+  background: linear-gradient(0deg, rgba(255, 91, 58, 0.11) 0 32%, rgba(255, 91, 58, 0.06) 32% 64%, rgba(255, 91, 58, 0.025) 64% 100%);
+}
+.px-md-glow.rise { animation: pxMdRise 0.6s steps(6) both; }
+@keyframes pxMdRise { 0% { transform: translateY(150px); } 100% { transform: none; } }
+.px-md-emb { bottom: -6px; opacity: 0; animation-timing-function: steps(22); animation-iteration-count: infinite; }
+.px-md-emb.a { animation-name: pxMdEmbA; }
+.px-md-emb.b { animation-name: pxMdEmbB; }
+.px-md-emb.c { animation-name: pxMdEmbC; }
+@keyframes pxMdEmbA { 0% { opacity: 0; transform: translate(0, 0); } 8% { opacity: 1; } 60% { opacity: 0.8; } 100% { opacity: 0; transform: translate(-16px, -440px); } }
+@keyframes pxMdEmbB { 0% { opacity: 0; transform: translate(0, 0); } 8% { opacity: 1; } 60% { opacity: 0.8; } 100% { opacity: 0; transform: translate(14px, -380px); } }
+@keyframes pxMdEmbC { 0% { opacity: 0; transform: translate(0, 0); } 8% { opacity: 1; } 50% { opacity: 0.9; transform: translate(8px, -250px); } 100% { opacity: 0; transform: translate(-6px, -500px); } }
+/* İdman: durağan alev sırası (titremez). */
+.px-md-flame { position: absolute; left: 0; right: 0; bottom: 0; height: 16px; display: flex; align-items: flex-end; opacity: 0.55; }
+.px-md-flame i { display: block; flex: 1 1 0; background: linear-gradient(0deg, #a32e1a 0 30%, #ff5b3a 30% 72%, #ffc53d 72%); }
+.px-md-drop { top: -14px; width: 3px; background: #4fa8ff; opacity: 0.3; animation-name: pxMdFall; animation-timing-function: steps(36); animation-iteration-count: infinite; }
+@keyframes pxMdFall { 0% { transform: translateY(0); } 100% { transform: translateY(110vh); } }
+.px-md-roll { left: 0; right: 0; top: 0; height: 64px; background: rgba(79, 168, 255, 0.05); animation: pxMdRoll 8s steps(48) infinite; }
+@keyframes pxMdRoll { 0% { transform: translateY(-70px); } 100% { transform: translateY(110vh); } }
+
+/* ---------- çerçeve (içeriğin üstünde, durağan, dokunulmaz) ---------- */
+.px-md-heat,
+.px-md-scan { position: absolute; inset: 0; z-index: 3; display: block; pointer-events: none; }
+.px-md-heat { box-shadow: inset 0 0 0 4px rgba(255, 91, 58, 0.6), inset 0 0 0 10px rgba(255, 91, 58, 0.22), inset 0 0 0 18px rgba(255, 91, 58, 0.08); opacity: 0.45; }
+.px-md-scan { background-image: repeating-linear-gradient(0deg, rgba(0, 8, 24, 0.16) 0 2px, transparent 2px 4px); }
+
+/* ---------- ısınma: listeler kart dağıtır gibi düşer, İDMANI BAŞLAT dışa halka yayar ---------- */
+.px-mode-isinma .app2-main > .screen.pxt .start-actions > *,
+.px-mode-isinma .app2-main > .screen.pxt .plan-list > li { animation: pxMdDeal 0.32s steps(5) both; }
+.px-mode-isinma .app2-main > .screen.pxt .start-actions > :nth-child(2) { animation-delay: 0.06s; }
+.px-mode-isinma .app2-main > .screen.pxt .plan-list > li:nth-child(1) { animation-delay: 0.1s; }
+.px-mode-isinma .app2-main > .screen.pxt .plan-list > li:nth-child(2) { animation-delay: 0.16s; }
+.px-mode-isinma .app2-main > .screen.pxt .plan-list > li:nth-child(3) { animation-delay: 0.22s; }
+.px-mode-isinma .app2-main > .screen.pxt .plan-list > li:nth-child(4) { animation-delay: 0.28s; }
+.px-mode-isinma .app2-main > .screen.pxt .plan-list > li:nth-child(n + 5) { animation-delay: 0.34s; }
+@keyframes pxMdDeal { 0% { transform: translateX(-40px); opacity: 0; } 100% { transform: none; opacity: 1; } }
+.px-mode-isinma #start-ses-btn { position: relative; }
+.px-mode-isinma #start-ses-btn::before,
+.px-mode-isinma #start-ses-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 0 3px #ff5b3a;
+  opacity: 0;
+  pointer-events: none;
+  animation: pxMdRip 2s steps(8) infinite;
+}
+.px-mode-isinma #start-ses-btn::after { animation-delay: 1s; }
+@keyframes pxMdRip { 0% { opacity: 0.9; transform: scale(1); } 100% { opacity: 0; transform: scale(1.08, 1.6); } }
+
+/* Antrenman sekmesi seçilince ikon bir kez "kaldırır". */
+.px-mode .tabbar #tab-antrenman.on .px-icon { animation: pxMdLift 0.45s steps(4); }
+@keyframes pxMdLift { 0%, 100% { transform: none; } 25% { transform: translateY(-4px); } 50% { transform: none; } 75% { transform: translateY(-3px); } }
+
+/* ---------- geçişler (bütün kabuğu örter, sekme çubuğu dahil; alt pencerelerin altında) ---------- */
+.px-md-tr { position: absolute; inset: 0; z-index: 36; overflow: hidden; pointer-events: none; }
+.px-md-cell { position: absolute; width: 10.4%; height: 4.9%; transform: scale(0); animation: pxMdCell 1.1s steps(10) both; }
+@keyframes pxMdCell { 0% { transform: scale(0); } 24%, 58% { transform: scale(1.04); } 84%, 100% { transform: scale(0); } }
+.px-md-go {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 42%;
+  text-align: center;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 32px;
+  line-height: 1;
+  color: #ff5b3a;
+  text-shadow: 4px 4px 0 #07060d;
+  -webkit-font-smoothing: none;
+  opacity: 0;
+  animation: pxMdGo 1.4s steps(18) both;
+}
+@keyframes pxMdGo { 0%, 30% { opacity: 0; transform: scale(0.5); } 38% { opacity: 1; transform: scale(1.3); } 46%, 72% { opacity: 1; transform: scale(1); } 80%, 100% { opacity: 0; transform: scale(1); } }
+.px-md-bar { position: absolute; left: 0; width: 100%; height: 8.6%; transform: translateX(-101%); animation: pxMdBar 0.52s steps(9) both; }
+@keyframes pxMdBar { 0% { transform: translateX(-101%); } 34%, 64% { transform: none; } 100% { transform: translateX(101%); } }
+.px-md-wave {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -30%;
+  height: 30%;
+  background: linear-gradient(0deg, rgba(255, 91, 58, 0) 0 25%, rgba(255, 91, 58, 0.1) 25% 50%, rgba(255, 91, 58, 0.18) 50% 92%, rgba(255, 197, 61, 0.35) 92%);
+  animation: pxMdWave 0.6s steps(12) forwards;
+}
+@keyframes pxMdWave { 0% { transform: translateY(0); } 100% { transform: translateY(-450%); } }
+
+/* ---------- süren idman şeridi (sekme çubuğunun üstünde) ---------- */
+.px-md-strip {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 46px;
+  margin: 0;
+  padding: 0 16px;
+  border: 0;
+  overflow: hidden;
+  cursor: pointer;
+  font: 600 13px 'IBM Plex Sans', system-ui, sans-serif;
+  color: #f5f1e8;
+  text-align: left;
+  background: #26100c;
+  box-shadow: inset 0 3px 0 0 #ff5b3a;
+  -webkit-tap-highlight-color: transparent;
+}
+.px-md-strip:active { background: #33160f; }
+.px-md-strip:focus-visible { outline: 3px solid #ffc53d; outline-offset: -6px; }
+.px-md-strip .px-icon { flex: none; }
+.px-md-dot { display: block; flex: 0 0 auto; width: 10px; height: 10px; background: #ff5b3a; animation: pxMdBlink 1s steps(2) infinite; }
+@keyframes pxMdBlink { 50% { opacity: 0.25; } }
+.px-md-strip-l { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; letter-spacing: 0.04em; color: #ff5b3a; }
+.px-md-strip-t { flex: 0 0 auto; font-family: 'Press Start 2P', monospace; font-size: 16px; line-height: 1; -webkit-font-smoothing: none; }
+.px-md-strip-n { flex: 0 0 auto; font-weight: 700; font-size: 14px; color: #ffc53d; white-space: nowrap; }
+@media (max-width: 359px) { .px-md-strip-n { display: none; } }
+.px-md-sparks i { position: absolute; bottom: -4px; width: 3px; height: 3px; background: #ff5b3a; opacity: 0; animation: pxMdSpark 1.8s steps(9) infinite; }
+.px-md-sparks i.g { background: #ffc53d; }
+.px-md-sparks i:nth-child(1) { left: 18%; }
+.px-md-sparks i:nth-child(2) { left: 38%; animation-delay: 0.6s; }
+.px-md-sparks i:nth-child(3) { left: 55%; animation-delay: 1.1s; }
+.px-md-sparks i:nth-child(4) { left: 74%; animation-delay: 0.3s; }
+.px-md-sparks i:nth-child(5) { left: 90%; animation-delay: 1.4s; }
+@keyframes pxMdSpark { 0% { opacity: 0; transform: translateY(0); } 15% { opacity: 1; } 100% { opacity: 0; transform: translateY(-40px); } }
+
+/* ---------- hareket azaltma ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .px-mode:not(.px-mode-motion) .px-md-amb *,
+  .px-mode:not(.px-mode-motion) .px-md-strip *,
+  .px-mode:not(.px-mode-motion) .app2-main > .screen.pxt .start-actions > *,
+  .px-mode:not(.px-mode-motion) .app2-main > .screen.pxt .plan-list > li,
+  .px-mode:not(.px-mode-motion) .tabbar #tab-antrenman.on .px-icon { animation: none !important; }
+  .px-mode:not(.px-mode-motion) .px-md-emb,
+  .px-mode:not(.px-mode-motion) .px-md-drop,
+  .px-mode:not(.px-mode-motion) .px-md-roll,
+  .px-mode:not(.px-mode-motion) .px-md-sparks,
+  .px-mode:not(.px-mode-motion) #start-ses-btn::before,
+  .px-mode:not(.px-mode-motion) #start-ses-btn::after { display: none; }
+}

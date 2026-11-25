@@ -176,6 +176,26 @@ class PixelFxEngine {
     this.buzz(fx, 8);
   }
 
+  /** V36 · mod geçişleri: süren idmana giriş, idmandan çıkış, ısınmaya giriş. */
+  modeInto(fx: FxSettings) {
+    this.unlock(fx);
+    this.blip(fx, 196, 0.05, 'square', 0.04);
+    this.blip(fx, 392, 0.07, 'square', 0.04, 0.05);
+    this.buzz(fx, 8);
+  }
+
+  modeOut(fx: FxSettings) {
+    this.unlock(fx);
+    this.blip(fx, 392, 0.05, 'square', 0.035);
+    this.blip(fx, 262, 0.07, 'square', 0.035, 0.05);
+  }
+
+  modeWarm(fx: FxSettings) {
+    this.unlock(fx);
+    [110, 165, 220].forEach((f, i) => this.blip(fx, f, 0.08, 'square', 0.04, i * 0.06));
+    this.buzz(fx, 10);
+  }
+
   chime(fx: FxSettings) {
     [784, 988, 1175].forEach((f, i) => this.blip(fx, f, 0.12, 'square', 0.05, i * 0.12));
     this.buzz(fx, [30, 60, 30]);

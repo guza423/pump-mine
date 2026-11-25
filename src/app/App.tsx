@@ -44,8 +44,11 @@ import '../styles/mobile.css';
 import '../styles/v7.css';
 import '../styles/pixel.css';
 import '../styles/px-theme.css';
+import '../styles/modes.css';
 import { PxIcon } from './PxIcon';
-import { readFxSettings } from '../lib/native/fx';
+import { pixelFx, readFxSettings } from '../lib/native/fx';
+import { LiveStrip, ModeAmbient, ModeFrame, ModeTransition } from './ModeLayer';
+import { TR_MS, motionAllowed, screenMode, tabTransition } from './modes';
 import { dbMultiplier } from '../lib/models/session';
 import { PX_SPEED, PX_SPEED_COLORS } from '../features/antrenman/pixelHelpers';
 import { HoldButton } from './HoldButton';
@@ -2140,6 +2143,40 @@ function App() {
   const closeAll = () => setSheets([]);
   const active = st.sessions.find((s) => s.status === 'active');
   const exitToast = useAndroidBack(tab, () => setTab('bugun'));
+  // V36 · ekran modu (zemin paleti + ortam efekti) ve modlar arası geçişler. Anlamı olan renkler değişmez.
+  const fxNow = readFxSettings(st.settings);
+  const fxLive = useRef(fxNow);
+  fxLive.current = fxNow;
+  const live = !!(active && !active.ready);
+  const mode = screenMode({ tab, editing: !!planEd, active, summary: !!pixelSummary });
+  const [modeTr, setModeTr] = useState(null);
+  const trTimer = useRef(null);
+  const playTr = (kind) => {
+    if (!motionAllowed(fxLive.current.motion)) return;
+    if (trTimer.current) clearTimeout(trTimer.current);
+    setModeTr((p) => ({ kind, n: (p ? p.n : 0) + 1 }));
+    trTimer.current = setTimeout(() => { trTimer.current = null; setModeTr(null); }, TR_MS[kind]);
+  };
+  useEffect(() => () => { if (trTimer.current) clearTimeout(trTimer.current); }, []);
+  const prevTab = useRef(tab);
+  useEffect(() => {
+    const from = prevTab.current;
+    prevTab.current = tab;
+    const kind = tabTransition(from, tab, live);
+    if (!kind) return;
+    playTr(kind);
+    if (kind === 'into') pixelFx.modeInto(fxLive.current);
+    else if (kind === 'out') pixelFx.modeOut(fxLive.current);
+    else pixelFx.modeWarm(fxLive.current);
+  }, [tab]);
+  // İdman başladığı an (İDMANI BAŞLAT ya da ilk setle kendiliğinden): BAŞLA! dalgası. Ses oturum ekranında çalar.
+  const liveId = live ? active.id : '';
+  const prevLiveId = useRef(liveId);
+  useEffect(() => {
+    const was = prevLiveId.current;
+    prevLiveId.current = liveId;
+    if (liveId && !was && tab === 'antrenman' && !planEd) playTr('start');
+  }, [liveId]);
   // V32 · unutulan antrenman: 10 dk giriş yoksa sor, 5 dk daha cevap yoksa son giriş saatinde bitir.
   const idle = useIdleWatch(active, st, put, (ns) => { setJumpExId(null); setPixelSummary(ns); });
   // V33 · süren antrenman bildirim panelinde ileri sayan süreyle durur; bitince kalkar.
@@ -2317,7 +2354,7 @@ function App() {
             openSheet={openSheet}
             jumpExId={jumpExId}
             onJumpHandled={() => setJumpExId(null)}
-            onFinished={(ns) => setPixelSummary(ns)}
+            onFinished={(ns) => { setPixelSummary(ns); playTr('end'); }}
             onDiscarded={() => { setJumpExId(null); setPixelSummary(null); }}
           />
         );
@@ -2349,8 +2386,8 @@ function App() {
     {/* V21: dil değişince ekran ağacı yeniden kurulur; sekme, açık pencereler ve veri App'te kalır. */}
     <div className="device-wrap" key={lang}>
       <div className="device">
-        <div className="app-shell app2">
-          <main className="app2-main" inert={acct.migrating || acct.busy || !legalOk}>{screen}</main>
+        <div className={'app-shell app2 px-mode px-mode-' + mode + (fxNow.motion ? ' px-mode-motion' : '')} data-px-mode={mode}>
+          <main className="app2-main" inert={acct.migrating || acct.busy || !legalOk}><ModeAmbient mode={mode} />{screen}<ModeFrame mode={mode} /></main>
           {st.error ? <div className="store-message" role="alert">{t(st.error)}</div> : null}
           {acct.migrating ? <div className="store-message" role="status">{t('Kayıtlar hesabına taşınıyor…')}</div> : null}
           {exitToast ? <div className="back-toast" role="status">{t('Çıkmak için tekrar bas')}</div> : null}
@@ -2362,6 +2399,7 @@ function App() {
             </button>
           ) : null}
           {idle.ask ? <IdleAskModal ask={idle.ask} onStay={idle.stay} onEnd={idle.endNow} /> : null}
+          {live && (tab !== 'antrenman' || planEd) ? <LiveStrip session={active} onOpen={() => pick('antrenman')} /> : null}
           <nav className="tabbar tb4" aria-label={t('Ana gezinme')} inert={acct.migrating || acct.busy || !legalOk}>
             {TABS2.map((tb) => (
               <button key={tb.id} id={'tab-' + tb.id} type="button" className={'tab' + (tb.id === tab ? ' on' : '')} aria-label={t(tb.label)} aria-current={tb.id === tab ? 'page' : undefined} onClick={() => pick(tb.id)}>
@@ -2370,6 +2408,7 @@ function App() {
               </button>
             ))}
           </nav>
+          <ModeTransition tr={modeTr} />
           {sheets.map((sh, i) => (
             <SheetFrame key={sh.key} top={i === sheets.length - 1} title={sheetTitle(sh)} onClose={sh.type === 'consent' ? actions.rejectConsent : closeTop} size={sheetSize(sh)} z={40 + i * 2}>
               {renderSheet(sh)}
