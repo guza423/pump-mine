@@ -804,4 +804,4 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 
 **Kullanıcı:** "tamam direkt yapabiliosan okey. yap ."
 **Yapılan (V36, Claude doğrudan; ayrıntı `docs/gorevler/V36-ekran-modlari.md`):** dört mod (sakin, ısınma, idman, lab) paleti `.app2` kökünden; ortam efekti içeriğin arkasında, durağan çerçeve üstünde; geçişler (BAŞLA!, bitişte mor soğuma, süren idmana giriş/çıkış şeridi, ısınma ısı dalgası) dokunmayı engellemeyen süsleme; süren idman şeridi sekme çubuğunun üstünde (tuvalde üstteydi; Android şeffaf durum çubuğu ve güvenli alan yüzünden alta alındı); idmanda koyu SETLER kutusu; Hesap › Animasyonlar ve cihazın hareket azaltma ayarına uyar.
-**Kayıt:** KOMIT_KODU (kod + belgeler) ve bu commit (`GOREV.md`).
+**Kayıt:** `3fdc1f5` (kod + belgeler) ve bu commit (`GOREV.md`). Kontroller: `npx vitest run` (178), `tsc -b`, lint, build, `test:layout` (bütün boyutlar, TR + EN) geçti.
