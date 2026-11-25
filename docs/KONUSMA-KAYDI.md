@@ -833,3 +833,4 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 - **V38** (`docs/gorevler/V38-plan-kaydet-takvim-sembol-gecis.md`): plan ekranında Kaydet; haftalık plan eklendiği günden sayılır; her plan kendi şekil+rengiyle (plansız kare), takvim altında açıklama, Dashboard haftasında da.
 - Video incelendi: süren idmanda Antrenman sekmesinden çıkarken şerit geçişi sağa kayıyordu; artık yerinde açılıyor.
 - Sağ kenardaki beyaz tutamak Samsung Kenar paneli.
+- Commit: `8ce4fcd`. Kontroller: `npm test` (187), lint, `tsc -b`, build, `test:layout` geçti.
