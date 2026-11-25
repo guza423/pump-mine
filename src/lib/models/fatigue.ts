@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { EX_LIB, PLYO_W, SKILL_W, isPlyo, isSkill, isWarmEx, skillSetTxt, sessionStats, bestE1, hasNum, nf } from "../../features/antrenman/core";
+import { EX_LIB, PLYO_W, SKILL_W, FIGHT_RPE, isPlyo, isSkill, isWarmEx, isFight, fightSetTxt, skillSetTxt, sessionStats, bestE1, hasNum, nf } from "../../features/antrenman/core";
 import { weekProgram } from "../../features/plan/plans";
 import { addShares } from "../data/exlib";
 import { clamp } from "./training";
@@ -106,7 +106,7 @@ export function planStats(program) {
   (program ? program.days : []).forEach((d) => {
     const mult = d.weekday == null && Array.isArray(d.weekdays) && d.weekdays.length ? d.weekdays.length : 1;
     d.items.forEach((it) => {
-      if (isPlyo(it.exId) || isSkill(it.exId) || isWarmEx(it.exId) || 10 - rpeMid(it.rpeMin, it.rpeMax) > 4) return;
+      if (isPlyo(it.exId) || isSkill(it.exId) || isWarmEx(it.exId) || isFight(it.exId) || 10 - rpeMid(it.rpeMin, it.rpeMax) > 4) return;
       addShares(muscles, it, Number(it.sets || 0) * mult);
       sets += Number(it.sets || 0) * mult;
     });
@@ -150,6 +150,11 @@ export function logStats(sessions, endTs) {
    (Craven ve ark. 2022); birkaç gece üst üste daha fazla. Ağırlıklar bu çalışmalardan türetilmiş tahmindir. */
 export const TAU_H = 36, FK = 20;
 export const FRESH = -FK * Math.log(0.75); // antrenman skoru 25'in altı: toparlanmış
+/* V39 · dövüş raundu yükü (seans-RPE, Foster ve ark. 2001): dakika × CR-10 yoğunluk × FIGHT_K × hareket maliyeti.
+   FIGHT_K = 0,035: 3 dk "Sert" (RPE 8) raund ≈ 0,84 ≈ bitişe 3 tekrar kala bir orta maliyetli zor set;
+   12 sert raund sparring ≈ 10 zor set. Maliyet: fat 1 → 0,8 · 2 → 1 · 3 → 1,25 (gölge boksu < torba < canlı güreş). */
+export const FIGHT_K = 0.035;
+export const fightW = (x, lib) => (Number(x.dur) || 0) * (FIGHT_RPE[(Number(x.z) || 3) - 1] || 6) * FIGHT_K * [1, 0.8, 1, 1.25][(lib && lib.fat) || 2];
 export const proxW = (rir) => (rir <= 0.5 ? 1.6 : rir <= 1.5 ? 1.3 : rir <= 2.5 ? 1.1 : rir <= 3.5 ? 1 : 0.8);
 export const costW = (exId, name) => { const m = exMeta(exId, name); return m ? [1, 0.6, 1, 1.5][m.fat] : 1; };
 export const loadScore = (sum) => 100 * (1 - Math.exp(-sum / FK));
@@ -166,6 +171,7 @@ export function setLoads(sessions, t) {
         if (!x.at || x.at > t || t - x.at >= 7 * DAY_MS) return;
         if (x.plyo) { out.push({ at: x.at, w: x.reps * PLYO_W[(lib && lib.int) || 2], plyo: true, contacts: x.reps }); return; }
         if (x.skill) { out.push({ at: x.at, w: x.reps * SKILL_W[(lib && lib.fat) || 1], skill: true, attempts: x.reps }); return; }
+        if (x.fight) { out.push({ at: x.at, w: fightW(x, lib), fight: true, mins: Number(x.dur) || 0 }); return; }
         if (!x.warm && x.rir <= 4) out.push({ at: x.at, w: proxW(x.rir) * c, rir: x.rir, heavy: c >= 1.5 });
       });
     });
@@ -223,7 +229,7 @@ export function fatigueAt(st, t, sessions = st.sessions) {
   const score = clamp(train + sp, 0, 100);
   return {
     sum, train, sleep: sl, sleepPts: sp, score, zone: zoneOf(score), hrs: hoursToFresh(sum),
-    hard: loads.filter((x) => !x.plyo && !x.skill).length, fail: loads.filter((x) => !x.plyo && !x.skill && x.rir <= 0.5).length, contacts: loads.reduce((a, x) => a + (x.contacts || 0), 0), attempts: loads.reduce((a, x) => a + (x.attempts || 0), 0),
+    hard: loads.filter((x) => !x.plyo && !x.skill && !x.fight).length, fail: loads.filter((x) => !x.plyo && !x.skill && !x.fight && x.rir <= 0.5).length, contacts: loads.reduce((a, x) => a + (x.contacts || 0), 0), attempts: loads.reduce((a, x) => a + (x.attempts || 0), 0),
   };
 }
 /* ---------- dönem yorgunluğu (V32, Dashboard) ----------
@@ -249,6 +255,7 @@ export function periodFatigue(st, days, now = Date.now()) {
       if (!x.at || x.at > now || x.at < start - 7 * DAY_MS) return;
       if (x.plyo) loads.push({ at: x.at, w: x.reps * PLYO_W[(lib && lib.int) || 2] });
       else if (x.skill) loads.push({ at: x.at, w: x.reps * SKILL_W[(lib && lib.fat) || 1] });
+      else if (x.fight) loads.push({ at: x.at, w: fightW(x, lib) });
       else if (!x.warm && x.rir <= 4) loads.push({ at: x.at, w: proxW(x.rir) * c });
     });
   }));
@@ -283,7 +290,7 @@ export function steadyWeek(v) {
 }
 export function simFromLogs(st) {
   const now = Date.now();
-  const loads = setLoads(st.sessions, now).filter((x) => !x.plyo && !x.skill);
+  const loads = setLoads(st.sessions, now).filter((x) => !x.plyo && !x.skill && !x.fight);
   const sl = sleepInfo(st, now);
   const n = st.sessions.filter((s) => s.status === 'done' && !s.ready && now - s.startedAt < 7 * DAY_MS).length;
   const avg3 = sl.n ? (sl.avg3 * sl.n + 7.5 * (3 - sl.n)) / 3 : 7.5;
@@ -302,7 +309,7 @@ export function simFromPlan(p) {
   const days = p.days.filter((d) => d.items.length);
   days.forEach((d) => d.items.forEach((it) => {
     const r = 10 - rpeMid(it.rpeMin, it.rpeMax);
-    if (isPlyo(it.exId) || isSkill(it.exId) || isWarmEx(it.exId) || r > 4) return;
+    if (isPlyo(it.exId) || isSkill(it.exId) || isWarmEx(it.exId) || isFight(it.exId) || r > 4) return;
     const n = Number(it.sets || 0);
     sets += n; rir += r * n;
     const m = exMeta(it.exId, it.name);
@@ -318,6 +325,8 @@ export function simulatePlan(p) {
     const lib = exMeta(it.exId, it.name);
     if (lib && lib.kind === 'plyo') return a + Number(it.sets || 0) * repMid(it.repMin, it.repMax) * PLYO_W[lib.int || 2];
     if (lib && lib.kind === 'beceri') return a + Number(it.sets || 0) * repMid(it.repMin, it.repMax) * SKILL_W[lib.fat || 1];
+    if (lib && lib.kind === 'dovus') return a + Number(it.sets || 0) * fightW({ dur: Number(it.dur) || 3, z: Number(it.z) || 3 }, lib);
+    if (lib && lib.kind === 'isinma') return a;
     const r = 10 - rpeMid(it.rpeMin, it.rpeMax);
     return r > 4 ? a : a + Number(it.sets || 0) * proxW(r) * costW(it.exId, it.name);
   }, 0);
@@ -362,7 +371,7 @@ export function prevPerf(sessions, item, beforeTs) {
     .find((x) => x.items.some((it) => (item.exId && it.exId === item.exId) || it.name === item.name));
   if (!s) return null;
   const it = s.items.find((i) => (item.exId && i.exId === item.exId) || i.name === item.name);
-  return it && it.sets.length ? it.sets.map((z) => z.skill ? skillSetTxt(z) : z.plyo ? (Number(z.kg) ? '+' + nf(Number(z.kg)) + '×' : '') + z.reps : nf(Number(z.kg)) + '×' + z.reps).join(', ') : null;
+  return it && it.sets.length ? it.sets.map((z) => z.fight ? fightSetTxt(z) : z.skill ? skillSetTxt(z) : z.plyo ? (Number(z.kg) ? '+' + nf(Number(z.kg)) + '×' : '') + z.reps : nf(Number(z.kg)) + '×' + z.reps).join(', ') : null;
 }
 
 // Antrenmana başlarken ve bitirirken yorgunluk (o günün uykusu dahil)
@@ -378,7 +387,7 @@ export function periodMetrics(list, days) {
     const ss = sessionStats(s);
     dur += ss.dur; sets += ss.sets.length; hard += ss.hard.length; ton += ss.tonnage;
     rpe += ss.sets.reduce((a, x) => a + (x.plyo || x.skill ? 0 : Number(x.rpe || 0)), 0);
-    rset += ss.sets.filter((x) => !x.plyo && !x.skill).length; contacts += ss.contacts;
+    rset += ss.sets.filter((x) => !x.plyo && !x.skill && !x.fight).length; contacts += ss.contacts;
   });
   const n = list.length;
   const span = days || Math.max(7, n ? (Date.now() - list[n - 1].startedAt) / DAY_MS : 7);
@@ -396,7 +405,7 @@ export function historyWarnings(st, list) {
   const ls = logStats(st.sessions, now);
   Object.entries(ls.muscles).filter(([, n]) => n > 20).sort((a, b) => b[1] - a[1]).forEach(([m, n]) => w.push({ lv: 'bad', t: t('{m} · 7 günde {n} zor set', { m: muscleName(m), n }), d: t('20 setin üstünde toparlanma uzar. Hacmi azalt ya da 2–3 güne böl.') }));
   const sets = [];
-  list.forEach((s) => s.items.forEach((it) => it.sets.forEach((x) => { if (!x.plyo && !x.skill) sets.push(x); })));
+  list.forEach((s) => s.items.forEach((it) => it.sets.forEach((x) => { if (!x.plyo && !x.skill && !x.fight) sets.push(x); })));
   if (sets.length >= 6) {
     const avgRpe = sets.reduce((a, x) => a + Number(x.rpe || 0), 0) / sets.length;
     if (avgRpe >= 9) w.push({ lv: 'warn', t: t('Ortalama RPE {n}', { n: nf(Math.round(avgRpe * 10) / 10) }), d: t('Setlerin çoğunu 1–3 tekrar kala bitir. Kazanım benzer, yorgunluk daha az.') });

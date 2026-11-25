@@ -39,7 +39,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | **Dashboard** (`bugun`) | Hesap düğmesi (eşitleme durumu: sarı bekleyen, yeşil eşit, gri çevrimdışı). Yorgunluk halkası + kırılım: **seçili dönemin ortalaması** (SON 7 · 10 · 30 gün, V32), uyku girişi = dönemin gece ortalaması (5–9 sa), plan kartı (bugün plan var / sıradaki / plan yok; hazır plansız oturumda `başlamadı`), bu hafta şeridi. **Hedefler:** güç (1RM) ve öğrenme (beceri, 4 aşama, "Pratik et"). |
 | **Antrenman** (`antrenman`) | `Plansız antrenman` ve `Yeni plan` düğmeleri; **Planlarım**; ay başlıklı, kaydırılabilir **geçmiş**. Aktif oturum ekranı da burada. |
 | **Gözlem** (`gozlem`, başlık "Antrenman plan ve gözlem") | Aylık takvim (yapılan ●, planlı ○, kaçırılan ·). Gün paneli: yapılanlar, planlar, uyku, yorgunluk, "Bu güne plan ekle" (tek gün ya da her hafta). Ay özeti, uyarılar, **Hareket gelişimi** düğmesi (yapılmış bütün hareketler; son 20 gün belirgin, eskiler soluk + son tarih; hareket penceresinde türüne göre ölçüler, V32), **Haftalık yük: Yapılan / Planlanan** (planlanan, bu hafta plan yoksa kapalı, V32). |
-| **Lab** (`lab`) | 01 Temeller: sinir sistemi dersleri, "Yorgunluk nasıl ölçülür?", yorgunluk ölçer. 02 Hareketler: 470 hareket (en üstte antrenman öncesi ısınma), arama + tür + kas + ekipman filtresi, biyomekanik kartlar. |
+| **Lab** (`lab`) | 01 Temeller: sinir sistemi dersleri, "Yorgunluk nasıl ölçülür?", yorgunluk ölçer. 02 Hareketler: 782 hareket (en üstte antrenman öncesi ısınma; V39), arama (ayrıntılı kas adlarıyla da) + tür (Dövüş dahil) + kas + ekipman filtresi, biyomekanik kartlar, hareket bilgisinde kas payları ve ayrıntılı kaslar. |
 
 **Ekran modları (V36):** zemin paleti, ortam efekti ve geçişler moda göre değişir; anlamı olan renkler (yeşil yapıldı, kırmızı kaçırıldı/kötü, altın vurgu/seçili, ateş ana eylem, mavi beceri) her modda aynı. **Sakin** (Dashboard, Gözlem, plan düzenleyici, bitiş özeti; mor, seyrek yıldız), **ısınma** (Antrenman sekmesi, idman yokken ya da hazır oturum; mor-kor, alttan kor ve kıvılcım, listeler kart dağıtır gibi düşer), **idman** (süren idman; kor, **sabit**: durağan çerçeve, ısı bantları, alev; SETLER kutusu koyu kuyu), **lab** (soğuk lacivert, veri pikselleri, tarama çizgileri). Geçişler: idman başlarken BAŞLA! pixel blok dalgası, bitince mor soğuma, süren idmana girip çıkarken şerit, ısınmaya girerken ısı dalgası. İdman sürerken Antrenman dışındaki ekranlarda sekme çubuğunun üstünde **süren idman şeridi** (süre, set, dokun: idmana dön). Ayrıntı `docs/gorevler/V36-ekran-modlari.md`.
 
@@ -126,9 +126,10 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
   - Kuvvet: `{ kg, reps, lvl 0–4, vl, rpe, rir, rom?, at }` (`rom` yoksa 100 sayılır)
   - Pliometrik: `{ kg, reps (temas), plyo: true, q 0–2, rir: 9 }`
   - Beceri: `{ kg: 0, reps (deneme), hold?, skill: true, q 0–2, rir: 9 }`
+  - Dövüş raundu (V39): `{ kg: 0, reps: 1, dur (dk, 0,5 adım), z 1–5, fight: true, lvl: null, rpe: null, rir: 9 }`; zor sete, tonaja, 1RM'ye girmez, yorgunluğa seans-RPE ile girer.
   - Isınma seti (V33): `{ kg, reps, warm: true, lvl: null, rpe: null, rir: 9 }`; antrenman öncesi ısınma hareketi (`exId: 'isinma'`): `{ kg: 0, reps: 1, warm: true, dur (dk), z 1–5, rir: 9 }`. `warm` setler hiçbir hesaba girmez.
   - Set özellikleri `tags: string[]` içinde: set tipi (V33: Drop set, Tükenişe kadar, Rest-pause…), durum (V34: Hasta, Yorgun, Uykusuz, Stresli, Ağrı), nasıl geçti (Kolay geldi, Form bozuldu…). V34'ten beri set kaydedildikten sonra yazılır (dinlenme ekranı ya da set ayrıntısı); hesapları değiştirmez, "Tükenişe kadar" hızı Zar zor (RIR 0) yapar.
-- **Oturum hareketi (V33):** `range?: { lo, hi }` plansız antrenmanda hareketin hedef tekrar aralığı. **Plan hareketi:** ısınma hareketinde `dur`, `z`.
+- **Oturum hareketi (V33):** `range?: { lo, hi }` plansız antrenmanda hareketin hedef tekrar aralığı. **Plan hareketi:** ısınma ve dövüş hareketinde `dur`, `z` (dövüşte `sets` = raund).
 - **Ayarlar:** `goals: Goal[]` (`perf` / `skill`; eski tekil `goal` otomatik taşınır), `restPrefs: { [exId]: sn }`, `fx: { sound: boolean, haptic: boolean, motion: boolean }` (V33'teki `slow` V34'te kaldırıldı: yavaşlama parmağın konumuyla), `repRanges: { [exId]: [lo, hi] }` (V33), `reminders: { plan, back, end: boolean }` (V33 plan hatırlatması; V37 `back` 2 dk'da geri aç, `end` 40 dk sonrası titreşim; hepsi varsayılan açık).
 - **Misafir → hesap taşıma kuralları:**
   - Programlarda `updatedAt` yeni olan, oturumlarda seti fazla olan (eşitse bulut) kazanır.
@@ -160,6 +161,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
   - Set ağırlığı = yakınlık (RIR 0…4 → 1,6 / 1,3 / 1,1 / 1 / 0,8) × hareket maliyeti (fat 3/2/1 → 1,5 / 1 / 0,6).
   - Pliometrik set = temas × `[0, .03, .05, .08, .12][yoğunluk]`.
   - Beceri set = deneme × `[0, .02, .04, .06][fat]`.
+  - Dövüş raundu (V39, seans-RPE, Foster ve ark. 2001) = dk × CR-10 (Teknik 2 · Hafif 4 · Orta 6 · Sert 8 · Maç 10) × 0,035 × maliyet (fat 1/2/3 → 0,8 / 1 / 1,25). Kontrol: ağır torba 3 dk Sert = 0,84.
   - Azalma `e^(−saat/36)`. Skor = `100 × (1 − e^(−toplam/20))`.
 - **Uyku puanı:** `20 × clamp((7,5 − dün gece)/2,5) + 10 × clamp((7 − son 3 gece ort.)/2) × (bilinen gece/3)`. Gece değerleri `sleepNights()`'tan: dönem ortalaması girişi kapsadığı her gecenin değeri sayılır (V32).
 - **Dönem yorgunluğu (Dashboard, V32):** `periodFatigue(st, N)`, N = 7 / 10 / 30 gün.
@@ -171,6 +173,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
   - Ağırlıklı: seans başına en iyi e1RM ve tonaj. Ek yüksüz: tekrar kapasitesi = tekrar + RIR (RIR ≤ 4, ROM ≥ %90).
   - Pliometrik puan: set = temas × kalite (1 / 0,75 / 0,5) × (1 + ek kg / 75); seans = en iyi set. 75 kg referans vücut ağırlığı (uygulama tutmuyor); göreli ölçek.
   - Beceri: en uzun tutuş (en az kısmen çıkan), temiz oran (temiz 1, kısmen 0,5, olmadı 0).
+  - Dövüş (V39): seans yükü (AU = dk × CR-10), seansta dakika, raund.
   - "Son 20 gün" listesi; daha eskiler soluk + son tarih.
 - **Unutulan antrenman (V32, `idle.ts`):** son girişten (dinlenme sürüyorsa dinlenme bitişinden) 10 dk → sor, +5 dk → son giriş saatinde bitir (`autoEnd`). Set yoksa oturum hazıra döner.
 - **Bölgeler:** 0–39 Yönetilebilir · 40–69 Birikiyor · 70+ Yüksek.
@@ -183,7 +186,8 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
   - Seans başına temas: 80–100 (başlangıç), 100–120 (orta), 120–140 (ileri).
   - Seanslar arası 48–72 sa. 100 kg üstünde derinlik sıçramasında kutu en fazla 45 cm.
 - **Hareket kütüphanesi** (`src/lib/data/exlib.ts`):
-  - 470 hareket: 360 kuvvet, 28 olimpik, 53 pliometrik, 28 beceri, 1 ısınma (V33; süre + nabız skalası, hesaplara girmez). V35 eklemeleri sona eklenir (ilk 438 kayıt referansla aynı kalmalı).
+  - 782 hareket (V39): 575 kuvvet, 56 olimpik, 91 pliometrik, 31 beceri, 28 dövüş, 1 ısınma (V33; süre + nabız skalası, hesaplara girmez). V35 ve V39 eklemeleri sona eklenir (ilk 438 kayıt referansla aynı, ilk 470'in sırası değişmez); V39 satırları `exlib-v39.ts`.
+  - **Ayrıntılı kaslar (V39, `exdetail.ts`):** 19 grubun altında 52 ayrıntılı kas (üst/orta/alt göğüs, serratus, deltoid başları, rotator cuff, lat, romboid, trapez bölümleri, biceps/triceps başları, brachialis, brachioradialis, oblik, TVA, vastuslar, rectus femoris, iliopsoas, hamstring başları, gluteus max/med, TFL, soleus, peroneus, boyun kasları…). Pay = grup payı × bölge ağırlığı (1 / ½ / ¼), ¼ altı gösterilmez; kurallar İngilizce addan (`RULES`), istisnalar `DET_BY_ID`. Hareket bilgisinde, antrenman özetinde (Ayrıntılı kaslar) ve aramada; kayıtlar ve haftalık set grupla çalışmaya devam eder.
   - **Kas başına set payı (V35):** zor set ana kasa 1, yardımcı kasa ½, dengeleyiciye (karın, ön kol, boyun) ¼ sayılır; trapez yalnızca hareket ettirdiğinde ½, bel menteşede ½ squat/row'da ¼, tek eklem hareketlerinde yardımcılar ¼; satırda `KAS:pay` ile elle (`exShare`, `itemShares`, `addShares` · `exlib.ts`). Haftalık, son 7 gün, plan ve antrenman özeti kas tabloları payla toplar; "bu hafta n zor set" gibi toplamlar gerçek set sayısıdır. Kaynak: Pelland ve ark. 2024 (dolaylı set = 0,5).
   - Her hareket: Türkçe + İngilizce ad, 19 kas grubu, 18 ekipman, fat 1–3, direnç profili (a altta / u üstte / o ortada / d dengeli ağır).
   - İlk 17 id korunur.
@@ -204,6 +208,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | V11 | 2026-11-14 | Sade plansız antrenman, bildirimli dinlenme sayacı, Android geri tuşu | `c5c588d` |
 | V12 | 2026-11-15 | Dashboard, antrenman planları (program katmanı kalktı), Gözlem takvimi, satır içi geçmiş, öğrenme hedefleri, 28 beceri hareketi | `c2f274b` (Antigravity) |
 | V14–V20 | 2026-11-17 → 18 | Pixel tema bütün sekmelere (V14–V17), plan ayarları ve özet (V18), basılı tutma ve göreli sürükleme (V19), yasal metinler, kabul kapısı, hesap/veri silme (V20) | `docs/gorevler/V14…V20` |
+| V39 | 2026-11-26 | Kütüphane 470 → 782 (VG/fitness varyasyonları, halter drilleri, +38 pliometrik, boks ve güreş); yeni **Dövüş** türü (raund × süre + yoğunluk, yorgunluğa seans-RPE ile); iki katmanlı kaslar: 19 grup + 52 ayrıntılı kas (hareket bilgisi, özet, arama) | `docs/gorevler/V39-kutuphane-genisletme-dovus-ayrintili-kas.md` |
 | V37 | 2026-11-25 | Metinlere basılı tutunca seçim/kopyala menüsü yok; idmanda telefonu bırak: uygulamadan çıkınca ya da ekran kapanınca 2 dk'da uygulama kendiliğinden açılır (izin: diğer uygulamaların üzerinde göster; yoksa sesli bildirim); 8-bit yüksek bildirim sesi; 40 dk sonra 3 dk dokunulmazsa her 3 dk titreşim | `docs/gorevler/V37-metin-secimi-telefonu-birak-piksel-ses.md` |
 | V36 | 2026-11-25 | Ekran modları: sakin / ısınma / idman / lab paletleri (anlamı olan renkler sabit), ortam efektleri (idman set ekranı sabit), BAŞLA! · soğuma · şerit · ısı dalgası geçişleri, süren idman şeridi, idmanda koyu SETLER kutusu | `docs/gorevler/V36-ekran-modlari.md` |
 | V34 | 2026-11-24 | Sürgüde parmak aşağı iyice inince %40 hız (bütün yatay sürgüler, gösterge yok; HIZ düğmesi ve ayar kaldırıldı); ısınma seti her yerde yalnız ISN; set özelliği sete ait, dinlenme ekranında sorulur (set tipi, durum: hasta/yorgun…, nasıl geçti), set ayrıntısından düzenlenir, sağ üst yalnız hareket notu; RIR kutusu yerine setin 1RM'si (güvenilir aralık dışında ≈); planlı kutucuklar iki satır (SET n · kg / 4–8 tekrar), kaydırma çubuğu yok, sıradaki hizalanır | `docs/gorevler/V34-surgu-hizi-isinma-set-ozelligi-1rm-kutucuk.md` |
@@ -352,6 +357,9 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | 2026-11-25 | Sesli bildirimler 8-bit OUTMOVE sesiyle (kare dalga arpej, tam genlik); kanal sesi sonradan değişmediği için yeni `-px` kanallar, eskiler silinir; ses telefonun bildirim düzeyine bağlı (alarm akışı kullanılmadı: sessiz modu ezmesin) | "bildirim sesi güzel pixelli bir şey olsun, yüksek ses olsun" |
 | 2026-11-25 | İdman 40 dk'yı geçince uygulamaya 3 dk dokunulmazsa telefon titrer, dokunulmadıkça her 3 dk; ön planda yalnız titreşim, arka planda sessiz titreşimli bildirim. Ayarda kapatılabilir | "40 dk olunca … her 3 dk etkileşime girmeme süresi için titresin … sonlandırmayı hatırlatmak için" |
 
+| 2026-11-26 | Kütüphane ~750'ye büyür (782): vücut geliştirme, fitness, halter drilleri, pliometrik, boks, güreş; ilk 470 kaydın kimliği ve sırası değişmez | Kullanıcı: "kütüphaneyi büyütelim"; boyut soru kartında "~750" seçildi |
+| 2026-11-26 | **İki katmanlı kas:** 19 grup aynı kalır (kayıt, haftalık set, hedef), altına 52 ayrıntılı kas; set ayrıntıya grup payı × bölge ağırlığıyla sayılır | Kullanıcı "neredeyse çalışılan her kası yazalım" dedi ve soru kartında "iki katman"ı seçti: geçmiş kayıtlar ve haftalık hesap bozulmasın |
+| 2026-11-26 | **Dövüş türü:** boks/güreş/kondisyon raundları raund × süre (0,5 dk adım) + 5 kademeli yoğunlukla kaydedilir; zor sete ve tonaja girmez, yorgunluğa seans-RPE (dk × CR-10 × 0,035 × maliyet) ile girer | Soru kartında "yeni tür: Dövüş" seçildi; driller tekrarla değil raund ve süreyle yapılıyor; seans-RPE dövüş sporlarında yaygın iç yük ölçüsü (Foster ve ark. 2001) |
 ---
 
 ## 10) Sözlük
@@ -379,7 +387,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | `docs/PROJE.md` | Bu belge: ne, neden, nasıl, kararlar |
 | `docs/KONUSMA-KAYDI.md` | Tüm konuşmaların kronolojik kaydı |
 | `GOREV.md` | Bekleyen / tamamlanan görevler |
-| `docs/gorevler/` | Görev dosyaları (V08–V37), `arsiv/` eski görevler |
+| `docs/gorevler/` | Görev dosyaları (V08–V39), `arsiv/` eski görevler |
 | `src/i18n/` | Dil katmanı (`index.ts`, `names.ts`) ve İngilizce sözlük (`en/`) |
 | `docs/FIREBASE-KURULUM.md` | Firebase konsol kurulumu |
 | `reference/` | Claude prototipleri (tarihçe ve tasarım kaynağı) |

@@ -55,9 +55,12 @@ export interface RecordedSet {
   tags?: string[];
   /** V33 · ısınma seti: kilo, tekrar ve hız önemsiz; 1RM, yorgunluk, zor set, tonaj ve gelişime girmez (rir 9). */
   warm?: boolean;
-  /** V33 · antrenman öncesi ısınma (kardiyo) seti: süre (dk) ve yoğunluk 1–5. `warm` da true'dur. */
+  /** V33 · antrenman öncesi ısınma (kardiyo) seti: süre (dk) ve yoğunluk 1–5. `warm` da true'dur.
+   *  V39 · dövüş raundunda da süre (dk, yarımlık) ve yoğunluk 1–5 (Teknik … Maç); `fight` true'dur. */
   dur?: number;
   z?: number;
+  /** V39 · dövüş raundu (boks, güreş, kondisyon): zor sete, tonaja, 1RM'ye girmez; yorgunluğa seans-RPE ile girer (rir 9). */
+  fight?: boolean;
 }
 
 export interface FxSettings {

@@ -805,3 +805,13 @@
   .acct-chip.pending .acct-dot { animation: none; }
   .rc-ring .rr-fg, .restbig .rr-fg { transition: none; }
 }
+/* V39 · dövüş noktası ve ayrıntılı kaslar */
+.sdot.dv { background: var(--bad, #ff4d5e); border-radius: 0; }
+.fact.det { color: var(--text); border-style: dashed; }
+.mus-det { margin-top: 6px; }
+.mus-det > summary { cursor: pointer; list-style: none; }
+.mus-det > summary::-webkit-details-marker { display: none; }
+.mus-det > summary::before { content: '▸ '; }
+.mus-det[open] > summary::before { content: '▾ '; }
+.mus-det .mus-hits { margin-top: 6px; }
+.mus-hit.sm b { font-size: 13px; }

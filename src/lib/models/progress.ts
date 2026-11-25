@@ -8,9 +8,9 @@ const DAY = 864e5;
 /** "Son 20 gün" listesi (kullanıcı kararı): daha eski hareketler soluk, son yapıldığı tarihle. */
 export const RECENT_DAYS = 20;
 
-export type ProgKind = 'e1' | 'reps' | 'plyo' | 'skill';
+export type ProgKind = 'e1' | 'reps' | 'plyo' | 'skill' | 'fight';
 
-type AnySet = { kg?: number; reps: number; rir?: number; rom?: number; plyo?: boolean; skill?: boolean; warm?: boolean; q?: number; hold?: number; at?: number };
+type AnySet = { kg?: number; reps: number; rir?: number; rom?: number; plyo?: boolean; skill?: boolean; fight?: boolean; warm?: boolean; q?: number; hold?: number; dur?: number; z?: number; at?: number };
 type AnyItem = { exId?: string | null; name: string; muscle?: string; sets: AnySet[] };
 type AnySession = { id: string; status: string; ready?: boolean; startedAt: number; items: AnyItem[] };
 
@@ -27,6 +27,8 @@ export const exKey = (it: { exId?: string | null; name: string }) => it.exId || 
 export const PLYO_QF = [1, 0.75, 0.5];
 export const PLYO_REF_KG = 75;
 export const plyoSetScore = (s: AnySet) => (Number(s.reps) || 0) * (PLYO_QF[s.q ?? 0] ?? 1) * (1 + Math.max(0, Number(s.kg) || 0) / PLYO_REF_KG);
+/* Dövüş (V39): seans-RPE yükü = dakika × yoğunluğun CR-10 karşılığı (Foster ve ark. 2001), keyfi birim (AU). */
+const FIGHT_CR10 = [2, 4, 6, 8, 10];
 // Beceri: temiz deneme 1, kısmen 0,5, olmadı 0.
 const SKILL_QF = [1, 0.5, 0];
 
@@ -42,6 +44,8 @@ export interface ProgPoint {
   score?: number; contacts?: number; held?: number; maxKg?: number; bestReps?: number; bestQ?: number; bestKg?: number;
   // beceri
   hold?: number; clean?: number; attempts?: number;
+  // dövüş (V39): raund, toplam dakika, seans-RPE yükü (dk × CR-10), en sert raund yoğunluğu
+  rounds?: number; mins?: number; load?: number; maxZ?: number;
 }
 
 export interface ProgEntry {
@@ -57,6 +61,7 @@ export interface ProgEntry {
 
 export function kindOf(exId: string | null | undefined, name: string, sets: AnySet[]): ProgKind {
   const lib = libOf(exId, name);
+  if ((lib && lib.kind === 'dovus') || sets.some((s) => s.fight)) return 'fight';
   if ((lib && lib.kind === 'plyo') || sets.some((s) => s.plyo)) return 'plyo';
   if ((lib && lib.kind === 'beceri') || sets.some((s) => s.skill)) return 'skill';
   return sets.some((s) => !s.plyo && !s.skill && Number(s.kg) > 0) ? 'e1' : 'reps';
@@ -89,6 +94,12 @@ export function pointFor(kind: ProgKind, exId: string | null | undefined, name: 
     p.bestReps = best ? best.reps : 0;
     p.bestQ = best ? best.q ?? 0 : 0;
     p.bestKg = best ? Number(best.kg) || 0 : 0;
+  } else if (kind === 'fight') {
+    const fs = sets.filter((s) => s.fight);
+    p.rounds = fs.length;
+    p.mins = fs.reduce((a, s) => a + (Number(s.dur) || 0), 0);
+    p.load = Math.round(fs.reduce((a, s) => a + (Number(s.dur) || 0) * (FIGHT_CR10[(Number(s.z) || 3) - 1] || 6), 0));
+    p.maxZ = fs.reduce((a, s) => Math.max(a, Number(s.z) || 0), 0);
   } else {
     const ss = sets.filter((s) => s.skill || !s.plyo);
     p.attempts = ss.reduce((a, s) => a + (Number(s.reps) || 0), 0);
@@ -136,6 +147,7 @@ export const METRICS: Record<ProgKind, Array<keyof ProgPoint>> = {
   reps: ['cap', 'totReps'],
   plyo: ['score', 'contacts'],
   skill: ['hold', 'clean'],
+  fight: ['load', 'mins'],
 };
 export function seriesOf(entry: ProgEntry, metric: keyof ProgPoint) {
   return entry.points.map((p) => ({ t: p.t, v: Number(p[metric]) || 0 })).filter((p) => p.v > 0);

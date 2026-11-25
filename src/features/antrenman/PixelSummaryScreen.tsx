@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React from 'react';
-import { bestE1, isPlyo, isSkill, sessionStats } from './core';
+import { bestE1, isFight, isPlyo, isSkill, minTxt, sessionStats } from './core';
 import { dbMultiplier, isFree, sessionName } from '../../lib/models/session';
 import { fatigueAt, recoveryHours, sessionFatigue } from '../../lib/models/fatigue';
 import { advanceSkillStage, matchesSkillGoal, readGoals } from '../bugun/goals';
@@ -120,9 +120,12 @@ export const PixelSummaryScreen: React.FC<Props> = ({ session, st, put, del, ope
             const mult = dbMultiplier(it.exId, it.name);
             const skill = isSkill(it.exId) || it.sets.some((z: any) => z.skill);
             const plyo = isPlyo(it.exId) || it.sets.some((z: any) => z.plyo);
+            const fight = isFight(it.exId) || it.sets.some((z: any) => z.fight);
             const ton = it.sets.reduce((a: number, x: any) => a + (x.plyo || x.skill ? 0 : (Number(x.kg) || 0) * x.reps * mult), 0);
             const best = bestE1(it.sets);
-            const rightStat = skill
+            const rightStat = fight
+              ? minTxt(it.sets.reduce((a: number, z: any) => a + (Number(z.dur) || 0), 0))
+              : skill
               ? t('{n} deneme', { n: it.sets.reduce((a: number, z: any) => a + z.reps, 0) })
               : plyo
                 ? t('{n} temas', { n: it.sets.reduce((a: number, z: any) => a + z.reps, 0) })
@@ -131,10 +134,10 @@ export const PixelSummaryScreen: React.FC<Props> = ({ session, st, put, del, ope
               <div key={it.id} className="pxb" style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--tx)' }}>{exName(it)}</span>
                 <span style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 14, color: 'var(--mt)' }}>
-                  <span>{t('{n} set', { n: it.sets.length })}</span>
+                  <span>{fight ? t('{n} raund', { n: it.sets.length }) : t('{n} set', { n: it.sets.length })}</span>
                   <span>{rightStat}</span>
                 </span>
-                {!skill && !plyo ? (
+                {!skill && !plyo && !fight ? (
                   <span style={{ fontSize: 14, color: 'var(--mt)' }}>
                     {t('en iyi e1RM:')} <span className="nm" style={{ fontSize: 16, color: 'var(--gold)' }}>{best ? fk(Math.round(best * 2) / 2) + ' kg' : '—'}</span>
                   </span>

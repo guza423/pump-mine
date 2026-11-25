@@ -1,18 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import { EX_LIB, MUS_CODE, EQ, exShare, itemShares, addShares, searchAlias } from './exlib';
+import { DET, DET_BY_GROUP, exDetail, addDetail } from './exdetail';
 import referenceSource from '../../../reference/v09/exlib.js?raw';
 
 describe('hareket kütüphanesi', () => {
-  it('438 referans kaydını değiştirmeden taşır; 28 beceri, antrenman öncesi ısınma ve V35 eklemeleri (toplam 470)', () => {
+  it('438 referans kaydını değiştirmeden taşır; 28 beceri, ısınma, V35 ve V39 eklemeleri (toplam 782)', () => {
     const reference = JSON.parse(new Function(referenceSource + ';return JSON.stringify(EX_LIB)')());
     expect(EX_LIB.slice(0, 438)).toEqual(reference);
-    expect(EX_LIB).toHaveLength(470);
-    expect(['kuvvet', 'olimpik', 'plyo', 'beceri', 'isinma'].map(kind => EX_LIB.filter(ex => ex.kind === kind).length)).toEqual([360, 28, 53, 28, 1]);
+    expect(EX_LIB).toHaveLength(782);
+    // V39 öncesi 470 kaydın sırası değişmez (eski kimlikler aynı yerde)
+    expect(EX_LIB[469].id).toBe('capraz-squat-jump');
+    expect(['kuvvet', 'olimpik', 'plyo', 'beceri', 'isinma', 'dovus'].map(kind => EX_LIB.filter(ex => ex.kind === kind).length)).toEqual([575, 56, 91, 31, 1, 28]);
   });
 
   it('benzersiz kimlik, ad ve geçerli kas/ekipman kullanır', () => {
-    expect(new Set(EX_LIB.map(ex => ex.id)).size).toBe(470);
-    expect(new Set(EX_LIB.map(ex => ex.name)).size).toBe(470);
+    expect(new Set(EX_LIB.map(ex => ex.id)).size).toBe(782);
+    expect(new Set(EX_LIB.map(ex => ex.name.toLocaleLowerCase('tr'))).size).toBe(782);
+    expect(new Set(EX_LIB.map(ex => ex.en.toLowerCase())).size).toBe(782);
     const muscles = Object.values(MUS_CODE);
     expect(muscles).toHaveLength(19);
     for (const ex of EX_LIB) {
@@ -66,5 +70,44 @@ describe('hareket kütüphanesi', () => {
     expect(EX_LIB.filter(ex => ['capraz-pogo', 'capraz-squat-jump'].includes(ex.id)).every(ex => ex.kind === 'plyo')).toBe(true);
     expect(searchAlias('ardisik-makas')).toContain('jump lunge');
     expect(searchAlias('dizden-sicrama')).toContain('kneel to squat');
+  });
+
+  it('V39 · iki katman: 52 ayrıntılı kas, her biri bir gruba bağlı; grup sayısı 19 kalır', () => {
+    expect(Object.keys(DET)).toHaveLength(52);
+    const groups = Object.values(MUS_CODE);
+    for (const d of Object.values(DET)) expect(groups).toContain(d.group);
+    expect(DET_BY_GROUP['Göğüs']).toEqual(['GU', 'GO', 'GA', 'PM', 'SA']);
+  });
+
+  it('V39 · ayrıntı payı = grup payı × bölge ağırlığı; kurallar hareketin türüne göre', () => {
+    const det = (id: string) => Object.fromEntries(exDetail(EX_LIB.find(ex => ex.id === id)!));
+    // eğimli press üst göğüs, aşağı eğimli ve dips alt göğüs
+    expect(det('egimli-bench')).toMatchObject({ GU: 1, GO: 0.5, ODO: 0.5, TRY: 0.5, TRU: 0.25 });
+    expect(det('asagi-egimli-bench').GA).toBe(1);
+    expect(det('gogus-dips').GA).toBe(1);
+    // triceps: baş üstünde uzun baş, pushdown'da lateral/medial
+    expect(det('halat-bas-ustu')).toMatchObject({ TRU: 1, TRY: 0.5 });
+    expect(det('triceps-pushdown')).toMatchObject({ TRY: 1, TRU: 0.5 });
+    // hamstring: oturarak curl iç hamstring, RDL uzun baş
+    expect(det('oturarak-leg-curl')).toMatchObject({ SM: 1, BFU: 1 });
+    expect(det('rdl')).toMatchObject({ BFU: 1, SM: 1, ES: 0.5 });
+    // baldır: oturarak soleus; kalça içe rotasyonu gluteus medius/minimus + TFL; vakum TVA
+    expect(det('oturarak-calf-raise')).toEqual({ SOL: 1 });
+    expect(det('kablo-kalca-ice-rotasyon')).toEqual({ GMD: 1, TFL: 1 });
+    expect(det('karin-vakumu')).toEqual({ TVA: 1 });
+    // grubu harekette olmayan ayrıntı ana kasa göre sayılır (leg raise → kalça fleksörü ½)
+    expect(det('asili-bacak-kaldirma')).toMatchObject({ RA: 1, HF: 0.5 });
+    // her kütüphane hareketinin (tüm vücut ve ısınma hariç) en az bir ayrıntısı var
+    for (const ex of EX_LIB) if (ex.muscle !== 'Tüm vücut') expect(exDetail(ex).length, ex.id).toBeGreaterThan(0);
+    const map: Record<string, number> = {};
+    addDetail(map, EX_LIB.find(ex => ex.id === 'egimli-bench'), 3);
+    expect(map.GU).toBe(3);
+    expect(map.GO).toBe(1.5);
+  });
+
+  it('V39 · dövüş türü: raund × süre, 60 sn varsayılan dinlenme', () => {
+    const fight = EX_LIB.filter(ex => ex.kind === 'dovus');
+    expect(fight.map(ex => ex.id)).toEqual(expect.arrayContaining(['golge-boksu', 'agir-torba', 'ip-atlama', 'sparring', 'sprawl-drili', 'canli-gures', 'grappling']));
+    expect(fight.every(ex => ex.rest === 60)).toBe(true);
   });
 });

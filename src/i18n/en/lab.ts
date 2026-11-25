@@ -266,4 +266,13 @@ export const lab: Record<string, Entry> = {
   "Dumbbell'da kuvvet hep aşağı doğrudur, moment kolu da elin omuzdan yatay uzaklığıdır. Bu yüzden kol aşağıdayken tork sıfıra yakın, kol yere paralelken en yüksektir. Band ve kablo kuvveti başka yönden çektiği için zor nokta hareketin farklı bir yerine kayar.": "With a dumbbell the force always points straight down, and the moment arm is the hand's horizontal distance from the shoulder. So torque is near zero with the arm down and highest with the arm parallel to the floor. Bands and cables pull from other directions, which moves the hardest point elsewhere in the rep.",
   "Cumartesi band çalışmanda bandı aynı ayağın altına bağlarsan hareketin altı neredeyse boş, üstü çok ağır olur. Karşı ayağın altından geçirmek alt bölgeye biraz yük ekler. Salonda kablo, alt aralığı en iyi yükleyen seçenek.": "With a band anchored under the same foot, the bottom of the rep is almost unloaded and the top is very heavy. Running it under the opposite foot adds some load to the bottom range. In the gym, a cable loads the bottom range best.",
   "Uzun kas boyunda, yani hareketin alt aralığında yüklenmenin hipertrofiye katkısı birçok kasta gösterildi; yan omuz için doğrudan kanıt hâlâ sınırlı. Band kuvveti gerilmeyle doğrusal artan basit bir yay modeliyle hesaplandı; gerçek bantların kuvvet eğrisi markaya göre değişir.": "Loading at long muscle lengths, i.e. the bottom range of the movement, has been shown to aid hypertrophy in many muscles; direct evidence for the side delts is still limited. Band force is calculated with a simple spring model that rises linearly with stretch; real bands' force curves vary by brand.",
+  // V39 · dövüş türü, ayrıntılı kaslar
+  "Dövüş": "Combat",
+  "raund × süre": "rounds × time",
+  "Dövüş · raund × süre": "Combat · rounds × time",
+  "Ayağı dışa açılan, kalça içe rotasyonu zayıf olanlar için": "For feet that turn out and weak hip internal rotation",
+  "Tekrar = 3–5 sn maksimal itiş": "Rep = 3–5 s maximal pull",
+  "Kutu alçak (20–30 cm); yere değer değmez sıçra": "Low box (20–30 cm); jump the instant you land",
+  "Tekrar = koşu": "Rep = one run",
+  "Hafif yük (1RM’nin %30–50’si); her tekrarda barı fırlat": "Light load (30–50% of 1RM); throw the bar every rep",
 };

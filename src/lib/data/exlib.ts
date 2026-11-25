@@ -12,6 +12,7 @@
    (deadlift, RDL, swing) 0,5, squat ve row'da 0,25; tek eklem hareketlerinde (ISO_IDS) yardımcılar 0,25.
    Kurala uymayan satırda pay elle yazılır: 'H:.25' (ikincil kas listesindeki sıra ve kaslar değişmez). */
 import { byLang } from '../../i18n';
+import { V39_ROWS } from './exlib-v39';
 
 const MUS_CODE = { G: 'Göğüs', OO: 'Omuz (ön)', OY: 'Omuz (yan)', OA: 'Omuz (arka)', S: 'Sırt', T: 'Trapez', B: 'Bel', BI: 'Biceps', TR: 'Triceps', OK: 'Ön kol', K: 'Karın', Q: 'Quadriceps', H: 'Hamstring', KA: 'Kalça', AD: 'Adduktor', BA: 'Baldır', TI: 'Tibialis', BO: 'Boyun', TV: 'Tüm vücut' };
 // Etiketler gösterim içindir; dile göre değişir (V21). Kas adları (MUS_CODE) ise veri olarak Türkçe saklanır.
@@ -19,16 +20,16 @@ const EQ = byLang('eq', {
   tr: { bb: 'Barbell', db: 'Dumbbell', kb: 'Kettlebell', ez: 'EZ bar', tb: 'Trap bar', sm: 'Smith', cb: 'Kablo', mk: 'Makine', bw: 'Vücut ağırlığı', bd: 'Band', lm: 'Landmine', mb: 'Sağlık topu', pl: 'Plaka', sb: 'Özel bar', kz: 'Kızak', kt: 'Kutu / engel', sg: 'Strongman', dg: 'Diğer' },
   en: { bb: 'Barbell', db: 'Dumbbell', kb: 'Kettlebell', ez: 'EZ bar', tb: 'Trap bar', sm: 'Smith', cb: 'Cable', mk: 'Machine', bw: 'Bodyweight', bd: 'Band', lm: 'Landmine', mb: 'Medicine ball', pl: 'Plate', sb: 'Specialty bar', kz: 'Sled', kt: 'Box / hurdle', sg: 'Strongman', dg: 'Other' },
 });
-const KIND = byLang('kind', { tr: { k: 'Kuvvet', o: 'Olimpik', p: 'Pliometrik', b: 'Beceri', w: 'Isınma' }, en: { k: 'Strength', o: 'Olympic', p: 'Plyometric', b: 'Skill', w: 'Warm-up' } });
+const KIND = byLang('kind', { tr: { k: 'Kuvvet', o: 'Olimpik', p: 'Pliometrik', b: 'Beceri', w: 'Isınma', d: 'Dövüş' }, en: { k: 'Strength', o: 'Olympic', p: 'Plyometric', b: 'Skill', w: 'Warm-up', d: 'Combat' } });
 const PLYO_INT = byLang('plyoint', { tr: ['', 'Düşük', 'Orta', 'Yüksek', 'Şok (reaktif)'], en: ['', 'Low', 'Moderate', 'High', 'Shock (reactive)'] });
-type Extra = { k?: 'o' | 'p' | 'b' | 'w'; i?: 1 | 2 | 3 | 4; h?: 1; r?: number; bio?: 'bench' | 'rdl' | 'yanaacis'; not?: string };
+type Extra = { k?: 'o' | 'p' | 'b' | 'w' | 'd'; i?: 1 | 2 | 3 | 4; h?: 1; r?: number; bio?: 'bench' | 'rdl' | 'yanaacis'; not?: string };
 export interface LibraryExercise {
   id: string; name: string; en: string; muscle: string; sec: string[];
-  eq: keyof typeof EQ; kind: 'kuvvet' | 'olimpik' | 'plyo' | 'beceri' | 'isinma'; fat: 1 | 2 | 3;
+  eq: keyof typeof EQ; kind: 'kuvvet' | 'olimpik' | 'plyo' | 'beceri' | 'isinma' | 'dovus'; fat: 1 | 2 | 3;
   prof: 'a' | 'u' | 'o' | 'd'; rest: number; int?: 1 | 2 | 3 | 4; h?: 1;
   bio?: Extra['bio']; not?: string;
 }
-type Row = [string, string, string, keyof typeof MUS_CODE, string, keyof typeof EQ, 1 | 2 | 3, LibraryExercise['prof'], Extra?];
+export type Row = [string, string, string, keyof typeof MUS_CODE, string, keyof typeof EQ, 1 | 2 | 3, LibraryExercise['prof'], Extra?];
 const EX_ROWS: Row[] = [
   /* ---------- GÖĞÜS ---------- */
   ['duz-bench', 'Düz bench press', 'Barbell bench press', 'G', 'OO,TR', 'bb', 3, 'a', { r: 180 }],
@@ -546,11 +547,13 @@ const EX_ROWS: Row[] = [
   ['bant-rotasyonel-row', 'Bantla tek kol rotasyonel row', 'Resistance band single-arm rotational row', 'S', 'K:.5,OA,BI', 'bd', 1, 'u', { r: 60 }],
   ['capraz-pogo', 'Çapraz pogo sıçrama (criss-cross)', 'Criss-cross hops', 'BA', 'AD,KA:.25', 'bw', 1, 'd', { k: 'p', i: 1 }],
   ['capraz-squat-jump', 'Çapraz squat sıçrama (criss-cross)', 'Criss-cross squat jumps', 'Q', 'KA,AD,BA', 'bw', 1, 'd', { k: 'p', i: 2 }],
+  /* ---------- V39 eklemeleri: exlib-v39.ts ---------- */
+  ...V39_ROWS,
 ];
 const EX_LIB: LibraryExercise[] = EX_ROWS.map(([id, name, en, mus, sec, eq, fat, prof, x]) => {
   const o = x || {};
-  const kind = o.k === 'o' ? 'olimpik' : o.k === 'p' ? 'plyo' : o.k === 'b' ? 'beceri' : o.k === 'w' ? 'isinma' : 'kuvvet';
-  const rest = o.r || (kind === 'beceri' ? 90 : kind === 'plyo' ? ((o.i || 2) >= 4 ? 180 : 120) : kind === 'olimpik' ? 150 : fat === 3 ? 180 : fat === 2 ? 120 : 75);
+  const kind = o.k === 'o' ? 'olimpik' : o.k === 'p' ? 'plyo' : o.k === 'b' ? 'beceri' : o.k === 'w' ? 'isinma' : o.k === 'd' ? 'dovus' : 'kuvvet';
+  const rest = o.r || (kind === 'dovus' ? 60 : kind === 'beceri' ? 90 : kind === 'plyo' ? ((o.i || 2) >= 4 ? 180 : 120) : kind === 'olimpik' ? 150 : fat === 3 ? 180 : fat === 2 ? 120 : 75);
   const e: LibraryExercise = { id, name, en, muscle: MUS_CODE[mus], sec: sec ? sec.split(',').map((c) => MUS_CODE[c.split(':')[0] as keyof typeof MUS_CODE]) : [], eq, kind, fat, prof, rest };
   if (o.i) e.int = o.i;
   if (o.h) e.h = o.h;
@@ -567,6 +570,10 @@ const ISO_IDS = new Set([
   'yana-acis', 'oturarak-yana-acis', 'kablo-yana-acis', 'band-yana-acis', 'leg-curl', 'slider-leg-curl', 'top-leg-curl',
   'kablo-glute-kickback', 'glute-kickback-mk', 'dort-ayak-kickback', 'frog-pump', 'superman', 'bird-dog',
   'ab-wheel', 'bb-rollout', 'yan-plank', 'l-sit', 'kablo-woodchop', 'landmine-rotasyon', 'toes-to-bar', 'asili-bacak-kaldirma', 'dead-hang',
+  // V39
+  'yerde-db-fly', 'bant-fly', 'tek-kol-pec-deck', 'bb-pullover', 'tek-kol-duz-kol-pulldown', 'bant-duz-kol-pulldown', 'lu-raise', 'kablo-y-kaldiris',
+  'sehpada-yana-acis', 'tek-kol-yana-acis', 'bant-kickback', 'tek-bacak-yatarak-curl', 'tek-bacak-slider-curl', 'hamstring-walkout', 'body-saw',
+  'ayakta-ab-wheel', 'yan-plank-kalca', 'asili-capraz-diz', 'top-pike', 'plank-omuz-dokunma', 'kablo-lift', 'kablo-krose', 'havluda-asili', 'tek-el-asili',
 ]);
 function shareOf(id: string, k: Extra['k'], mus: string, code: string): number {
   if (STAB.has(code)) return 0.25;

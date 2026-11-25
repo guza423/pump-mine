@@ -298,6 +298,27 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
     await page.getByRole('button', { name: 'Geri: antrenman listesi' }).click();
     screen = 'plansiz-liste-isinma';
     await check(page, label, screen);
+    // V39 · dövüş raundu (raund süresi + yoğunluk) ve dinlenme
+    await page.locator('#fx-add').click();
+    await page.locator('#ex-search').fill('ağır torba');
+    await page.locator('.pk').filter({ hasText: 'Ağır torba' }).first().click();
+    await page.locator('#pick-add').click();
+    await page.locator('.card-main').nth(4).click();
+    await page.locator('#fz-3').waitFor();
+    screen = 'seans-dovus';
+    await check(page, label, screen, { session: true });
+    await page.locator('#fz-4').click();
+    // ısınmadan kalan dinlenme sürüyorsa kaydet düğmesinin yerinde dinlenme çubuğu durur; dokununca kaydet düğmesi açılır
+    if (await page.locator('.px-restbar').count()) {
+      await page.locator('.px-restbar').click();
+      if (await page.locator('#rest-big').count()) await page.getByRole('button', { name: 'GEÇ' }).click();
+    }
+    await page.locator('#log-set').click();
+    await page.locator('#rest-big').waitFor();
+    screen = 'seans-dovus-dinlenme';
+    await check(page, label, screen, { session: true, rest: true });
+    await page.getByRole('button', { name: 'GEÇ' }).click();
+    await page.getByRole('button', { name: 'Geri: antrenman listesi' }).click();
     // İDMANI BİTİR yarım saniye basılı tutulur (HoldButton)
     const fb = await page.locator('#finish-btn').boundingBox();
     await page.mouse.move(fb.x + fb.width / 2, fb.y + fb.height / 2);

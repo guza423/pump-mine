@@ -834,3 +834,15 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 - Video incelendi: süren idmanda Antrenman sekmesinden çıkarken şerit geçişi sağa kayıyordu; artık yerinde açılıyor.
 - Sağ kenardaki beyaz tutamak Samsung Kenar paneli.
 - Commit: `8ce4fcd`. Kontroller: `npm test` (187), lint, `tsc -b`, build, `test:layout` geçti.
+
+### 2026-11-26 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** "Outmove için burda egzersizleri ve son araştırmaları inceleyerek gideceğiz. Şimdi; 
+ Bizim kütüphane biraz boş birazdaha dolduralım burayı. Kas sayısı neredeyse çalışılan her kası yazalım. Hem vücüt geliştirme hem body building hem fitness hem halter hem boks hem güreş bunların drilleri falan. Plyometrikte daha fazla haeeketler. 
+
+Kütüphaneyi büyütelim hadi"
+**Soru kartı ve cevaplar:** kas detayı → "İki katman" (19 grup aynı, altına ayrıntılı kaslar; eski kayıtlar bozulmaz); boks/güreş drilleri → "Yeni tür: Dövüş" (raund × süre + yoğunluk); boyut → "~750".
+**Yapılan (V39, Claude doğrudan; ayrıntı `docs/gorevler/V39-kutuphane-genisletme-dovus-ayrintili-kas.md`):**
+- Kütüphane 470 → 782: +215 kuvvet (üst göğüs, ön omuz izolasyonu, rotator cuff, kalça rotasyonları, ön kol, boyun, karın vakumu, strongman…), +28 halter drili, +38 pliometrik (dikey sıçrama, sprint, balistik bench dahil), +28 dövüş (boks, kickboks, güreş, grappling, kondisyon raundları), +3 beceri (takla, Granby).
+- 52 ayrıntılı kas (grup payı × bölge ağırlığı); hareket bilgisinde, antrenman özetinde ve aramada.
+- Dövüş türü: set = raund (0,5 dk adımla süre + Teknik…Maç yoğunluk), yorgunluğa seans-RPE ile girer, zor sete/tonaja girmez; plan düzenleyici, özet ve hareket gelişimi (seans yükü AU, dakika, raund).
+**Kontroller:** `npx vitest run` (194), `tsc -b`, build, `test:layout` (yeni `seans-dovus` ekranları dahil).

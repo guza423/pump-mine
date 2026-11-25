@@ -14,11 +14,12 @@ const round1 = (v) => Math.round(v * 10) / 10;
 const halfKg = (v) => Math.round(v * 2) / 2;
 const tonTxt = (kg) => (kg >= 10000 ? nf(Math.round(kg / 100) / 10) + ' t' : nf(Math.round(kg)) + ' kg');
 
-const kindTag = (k) => ({ e1: t('1RM'), reps: t('Tekrar'), plyo: t('Pliometrik'), skill: t('Beceri') })[k];
+const kindTag = (k) => ({ e1: t('1RM'), reps: t('Tekrar'), plyo: t('Pliometrik'), skill: t('Beceri'), fight: t('Dövüş') })[k];
 // Ölçü adları ve biçimleri; ad okunduğu an etkin dilde.
 const metricLabel = (k) => ({
   e1: t('Tahmini 1RM'), ton: t('Seans tonajı'), cap: t('Tekrar kapasitesi'), totReps: t('Seansta toplam tekrar'),
   score: t('Pliometrik puan'), contacts: t('Seansta temas'), hold: t('En uzun tutuş'), clean: t('Temiz deneme'),
+  load: t('Seans yükü'), mins: t('Seansta dakika'),
 })[k];
 const METRIC_FMT = {
   e1: (v) => nf(halfKg(v)) + ' kg',
@@ -29,6 +30,8 @@ const METRIC_FMT = {
   contacts: (v) => nf(Math.round(v)),
   hold: (v) => t('{n} sn', { n: nf(Math.round(v)) }),
   clean: (v) => pct(Math.round(v)),
+  load: (v) => nf(Math.round(v)) + ' AU',
+  mins: (v) => t('{n} dk', { n: nf(v) }),
 };
 
 function agoTxt(ts, now) {
@@ -170,6 +173,16 @@ export function ProgressDetailBody({ exKey, st }) {
       </React.Fragment>
     );
     note = t('Puan, seanstaki en iyi set: temas × kalite (korundu 1 · biraz düştü 0,75 · belirgin düştü 0,5) × yük (1 + ek kg / {kg}). Vücut ağırlığı tutulmadığı için {kg} kg referans alınır; puan yalnızca kendi seanslarını karşılaştırmak içindir. Seansta 80–140 temas önerilir (NSCA).', { kg: PLYO_REF_KG });
+  } else if (entry.kind === 'fight') {
+    stats = (
+      <React.Fragment>
+        <Stat k={t('Seans yükü')} v={nf(lastP.load || 0) + ' AU'} sub={t('son seans · en çok {n}', { n: nf(bestOf(entry, 'load')) })} />
+        <Stat k={t('Raund')} v={nf(lastP.rounds || 0)} sub={t('son seans · en çok {n}', { n: nf(bestOf(entry, 'rounds')) })} />
+        <Stat k={t('Seansta dakika')} v={t('{n} dk', { n: nf(lastP.mins || 0) })} sub={t('en çok {n} dk', { n: nf(bestOf(entry, 'mins')) })} />
+        <Stat k={t('Seans')} v={entry.n} sub={dateTxt(lastP.t)} />
+      </React.Fragment>
+    );
+    note = t('Seans yükü (seans-RPE) = raund dakikası × yoğunluk (Teknik 2 · Hafif 4 · Orta 6 · Sert 8 · Maç 10). Dövüş raundları zor sete ve tonaja girmez, yorgunluğa bu yükle girer.');
   } else {
     stats = (
       <React.Fragment>

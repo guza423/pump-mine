@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BackupContext } from '../lib/store/BackupContext';
 import { AccountChip, AccountBody, ConsentBody, PrivacyBody } from '../features/hesap/Account';
 import { addShares, exShare, searchAlias } from '../lib/data/exlib';
+import { addDetail, detName, detailSearch, exDetail } from '../lib/data/exdetail';
 import { PlanSym } from '../features/plan/PlanSym';
 import { daySymbol, planOrder, sessionSymbol } from '../features/plan/planSymbols';
 import { LegalGate } from '../legal/LegalGate';
@@ -18,7 +19,7 @@ import {
   hasNum, itemFromEx, newId, nextPlanned, nf, normTr,
   repTxt, restTxt, rirTxt, rpeLabel,
   sameDay, sessionFromDay, sessionStats, targetTxt, vlColor,
-  isWarmEx, warmFirst, SET_ATTRS, SET_CONDS, SET_FEEL, warmSetTxt,
+  isWarmEx, isFight, warmFirst, SET_ATTRS, SET_CONDS, SET_FEEL, warmSetTxt,
 } from '../features/antrenman/core';
 import {
   allPlans, dateKey, parseDateKey, plansOn, newPlanDoc, upsertPlan, removePlan,
@@ -79,7 +80,7 @@ const DAY_MS = 864e5;
 const dayKey = (ts) => { const d = new Date(ts); return 'c_' + d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
 const fullDate = (ts) => { const d = new Date(ts); return t('{wd}, {d} {m}', { wd: WD_LONG[d.getDay()], d: d.getDate(), m: MONTHS_LONG[d.getMonth()] }); };
 const exMeta = (exId, name) => EX_LIB.find((e) => e.id === exId) || EX_LIB.find((e) => e.name === name) || null;
-const dayMinutes = (day) => Math.round(day.items.reduce((a, i) => a + (isWarmEx(i.exId) ? (Number(i.dur) || 10) * 60 : Number(i.sets || 0) * ((i.rest || 120) + 45)), 0) / 60);
+const dayMinutes = (day) => Math.round(day.items.reduce((a, i) => a + (isWarmEx(i.exId) ? (Number(i.dur) || 10) * 60 : isFight(i.exId) ? Number(i.sets || 0) * ((Number(i.dur) || 3) * 60 + (i.rest || 60)) : Number(i.sets || 0) * ((i.rest || 120) + 45)), 0) / 60);
 const hm = (ts) => { const d = new Date(ts); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
 const zoneOf = (score) => (score < 40 ? { k: t('Yönetilebilir'), c: 'var(--ok)', cls: 'ok' } : score < 70 ? { k: t('Birikiyor'), c: 'var(--warn)', cls: 'warn' } : { k: t('Yüksek'), c: 'var(--bad)', cls: 'bad' });
 const tonTxt = (kg) => (kg >= 10000 ? nf(Math.round(kg / 100) / 10) + ' t' : nf(Math.round(kg)) + ' kg');
@@ -183,11 +184,15 @@ function MuscleBars({ muscles, list, max = 24, compact, mark, status, plan }) {
 function SessionMuscles({ session, week }) {
   // V35: yardımcı kaslar da paylarıyla sayılır (ana 1, yardımcı ½, dengeleyici ¼)
   const here = {};
+  const det = {}; // V39 · ayrıntılı kaslar (yalnız kütüphane hareketleri, kası değiştirilmemişse)
   session.items.forEach((it) => {
     const h = it.sets.filter((x) => !x.plyo && !x.skill && !x.warm && x.rir <= 4).length;
     addShares(here, it, h);
+    const lib = it.exId ? libById(it.exId) : null;
+    if (lib && (!it.muscle || it.muscle === lib.muscle)) addDetail(det, lib, h);
   });
   const hits = Object.entries(here).sort((a, b) => b[1] - a[1]);
+  const detHits = Object.entries(det).filter(([, n]) => n >= 0.5).sort((a, b) => b[1] - a[1]);
   const names = Object.keys(week).sort((a, b) => (week[b] || 0) - (week[a] || 0));
   const low = names.filter((m) => week[m] > 0 && week[m] < 10);
   const none = MAIN_MUSCLES.filter((m) => !week[m]);
@@ -202,6 +207,14 @@ function SessionMuscles({ session, week }) {
             {hits.map(([m, n]) => <span key={m} className="mus-hit"><b>{muscleName(m)}</b><span className="mono">{t('{n} zor set', { n: nf(n) })}</span></span>)}
           </div>
           <p className="mus-help">{t('Yardımcı kaslar yarım, dengeleyiciler çeyrek set sayılır.')}</p>
+          {detHits.length ? (
+            <details className="mus-det" id="sum-mus-det">
+              <summary className="st-k">{t('Ayrıntılı kaslar')}</summary>
+              <div className="mus-hits">
+                {detHits.map(([c, n]) => <span key={c} className="mus-hit sm"><b>{detName(c)}</b><span className="mono">{t('{n} zor set', { n: nf(n) })}</span></span>)}
+              </div>
+            </details>
+          ) : null}
         </React.Fragment>
       ) : null}
       {names.length ? (
@@ -223,11 +236,13 @@ function SessionMuscles({ session, week }) {
 function exDot(e) {
   if (!e) return null;
   if (e.kind === 'beceri') return <span className="sdot" title={t('Beceri')} />;
+  if (e.kind === 'dovus') return <span className="sdot dv" title={t('Dövüş')} />;
   return e.kind === 'plyo' ? <span className={'pdot i' + (e.int || 2)} title={t('Yoğunluk: {x}', { x: PLYO_INT[e.int || 2] })} /> : e.fat ? <span className={'fatdot f' + e.fat} title={t('Yorgunluk: {x}', { x: FAT[e.fat] })} /> : null;
 }
 function exLine(e) {
   if (!e.eq) return muscleName(e.muscle);
   if (e.kind === 'beceri') return muscleName(e.muscle) + ' · ' + EQ[e.eq] + ' · ' + t('beceri') + (e.h ? ' · ' + t('süre') : '');
+  if (e.kind === 'dovus') return muscleName(e.muscle) + ' · ' + EQ[e.eq] + ' · ' + t('raund × süre');
   return muscleName(e.muscle) + ' · ' + EQ[e.eq] + ' · ' + (e.kind === 'plyo' ? t('yoğunluk {x}', { x: lower(PLYO_INT[e.int || 2].split(' ')[0]) }) : PROF[e.prof].k);
 }
 // V35: yardımcı kasların set payı (½, ¼)
@@ -241,19 +256,20 @@ function FactChips({ ex }) {
   return (
     <div className="facts">
       <span className="fact" title={t('Bir zor set kaslara bu paylarla sayılır')}><b>{muscleName(ex.muscle)}</b>{shareTxt(ex)}</span>
+      {ex.id && exDetail(ex).length ? <span className="fact det" title={t('Ayrıntılı kaslar')}>{exDetail(ex).map(([c, f]) => detName(c) + (f < 1 ? ' ' + fracTxt(f) : '')).join(', ')}</span> : null}
       {ex.eq ? <span className="fact">{EQ[ex.eq]}</span> : null}
-      {ex.kind && ex.kind !== 'kuvvet' ? <span className={'fact ' + (ex.kind === 'beceri' ? 'skill' : 'kind')}>{ex.kind === 'plyo' ? t('Pliometrik') : ex.kind === 'beceri' ? t('Beceri') : t('Olimpik')}</span> : null}
+      {ex.kind && ex.kind !== 'kuvvet' ? <span className={'fact ' + (ex.kind === 'beceri' ? 'skill' : 'kind')}>{ex.kind === 'plyo' ? t('Pliometrik') : ex.kind === 'beceri' ? t('Beceri') : ex.kind === 'dovus' ? t('Dövüş · raund × süre') : ex.kind === 'isinma' ? t('Isınma') : t('Olimpik')}</span> : null}
       {ex.kind === 'beceri' && ex.h ? <span className="fact skill">{t('Süreyle tutulur')}</span> : null}
       {ex.kind === 'plyo'
         ? <span className={'fact fat' + Math.min(3, ex.int || 2)}>{t('Yoğunluk: {x}', { x: PLYO_INT[ex.int || 2] })}</span>
         : <span className={'fact fat' + ex.fat}>{t('Yorgunluk: {x}', { x: FAT[ex.fat] })}</span>}
-      {ex.kind !== 'plyo' && ex.kind !== 'beceri' && ex.prof ? <span className="fact prof" title={PROF[ex.prof].d}>{PROF[ex.prof].k}</span> : null}
+      {ex.kind !== 'plyo' && ex.kind !== 'beceri' && ex.kind !== 'dovus' && ex.prof ? <span className="fact prof" title={PROF[ex.prof].d}>{PROF[ex.prof].k}</span> : null}
     </div>
   );
 }
 // V33 · antrenman öncesi ısınma listelerin başında
 const LIB_WARM_FIRST = warmFirst(EX_LIB);
-const EX_KINDS = [['all', 'Tümü'], ['kuvvet', 'Kuvvet'], ['olimpik', 'Olimpik'], ['plyo', 'Pliometrik'], ['beceri', 'Beceri'], ['isinma', 'Isınma']]; // etiketler gösterimde t() ile
+const EX_KINDS = [['all', 'Tümü'], ['kuvvet', 'Kuvvet'], ['olimpik', 'Olimpik'], ['plyo', 'Pliometrik'], ['beceri', 'Beceri'], ['dovus', 'Dövüş'], ['isinma', 'Isınma']]; // etiketler gösterimde t() ile
 function useExFilter(all, initGrp) {
   const [q, setQ0] = useState('');
   const [kind, setKind0] = useState('all');
@@ -263,7 +279,7 @@ function useExFilter(all, initGrp) {
   const wrap = (f) => (v) => { f(v); setLim(40); };
   const toks = normTr(q).split(/\s+/).filter(Boolean);
   // Arama iki dilde de eşleşir: Türkçe ve İngilizce ad, kas ve ekipman.
-  const hay = useMemo(() => new Map(all.map((e) => [e, normTr(e.name + ' ' + (e.en || '') + ' ' + searchAlias(e.id) + ' ' + e.muscle + ' ' + muscleName(e.muscle) + ' ' + (EQ[e.eq] || ''))])), [all]);
+  const hay = useMemo(() => new Map(all.map((e) => [e, normTr(e.name + ' ' + (e.en || '') + ' ' + searchAlias(e.id) + ' ' + e.muscle + ' ' + muscleName(e.muscle) + ' ' + (EQ[e.eq] || '') + ' ' + (e.id && e.en ? detailSearch(e) : ''))])), [all]);
   const base = toks.length ? all.filter((e) => toks.every((tok) => hay.get(e).includes(tok))) : all;
   const byKind = base.filter((e) => kind === 'all' || (e.kind || 'kuvvet') === kind);
   const list = byKind.filter((e) => (!grp || e.muscle === grp) && (!eq || e.eq === eq));
@@ -940,6 +956,11 @@ function SaveTemplateBody({ session, put, onClose, onSaved }) {
     if (isWarmEx(it.exId)) {
       const last = it.sets.at(-1) || {};
       return { id: newId('i'), exId: it.exId, name: it.name, muscle: it.muscle, sets: 1, repMin: 1, repMax: 1, kg: null, rpeMin: null, rpeMax: null, rest: 60, note: '', dur: Number(last.dur) || 10, z: Number(last.z) || 2 };
+    }
+    // V39 · dövüş: raund sayısı, son raundun süresi ve yoğunluğu
+    if (isFight(it.exId)) {
+      const last = it.sets.at(-1) || {};
+      return { id: newId('i'), exId: it.exId, name: it.name, muscle: it.muscle, sets: it.sets.length, repMin: 1, repMax: 1, kg: null, rpeMin: null, rpeMax: null, rest: it.target?.rest || 60, note: '', dur: Number(last.dur) || 3, z: Number(last.z) || 3 };
     }
     const work = it.sets.filter((z) => !z.warm);
     const reps = (work.length ? work : it.sets).map((z) => z.reps);
@@ -1820,9 +1841,9 @@ function GoalBody({ id, st, put, del, addCustom, onClose }) {
   const curPerfLib = libById(perf.exId);
   const recorded = st.sessions.filter(s => s.status === 'done').sort((a, b) => b.startedAt - a.startedAt)
     .flatMap(s => s.items.filter(it => bestE1(it.sets)).map(it => exMeta(it.exId, it.name)))
-    .filter(e => e && e.kind !== 'plyo' && e.kind !== 'beceri');
-  const suggestedPerf = [...new Map([...recorded, ...EX_LIB.filter(e => e.kind !== 'plyo' && e.kind !== 'beceri' && e.kind !== 'isinma' && e.fat >= 2)].map(e => [e.id, e])).values()];
-  const perfOpts = (toks.length ? EX_LIB.filter(e => e.kind !== 'plyo' && e.kind !== 'beceri' && e.kind !== 'isinma' && toks.every(t => normTr(e.name + ' ' + e.en).includes(t))) : suggestedPerf).slice(0, 8);
+    .filter(e => e && e.kind !== 'plyo' && e.kind !== 'beceri' && e.kind !== 'dovus');
+  const suggestedPerf = [...new Map([...recorded, ...EX_LIB.filter(e => e.kind !== 'plyo' && e.kind !== 'beceri' && e.kind !== 'isinma' && e.kind !== 'dovus' && e.fat >= 2)].map(e => [e.id, e])).values()];
+  const perfOpts = (toks.length ? EX_LIB.filter(e => e.kind !== 'plyo' && e.kind !== 'beceri' && e.kind !== 'isinma' && e.kind !== 'dovus' && toks.every(t => normTr(e.name + ' ' + e.en).includes(t))) : suggestedPerf).slice(0, 8);
   const perfValid = !!perf.exId && Number(perf.base) > 0 && Number(perf.target) > Number(perf.base);
   const selectPerf = (e) => {
     const pts = e1Series(st.sessions, e.id, e.name);
@@ -1832,7 +1853,7 @@ function GoalBody({ id, st, put, del, addCustom, onClose }) {
   // Öğrenme seçenekleri (önce beceri hareketleri, sonra diğerleri, en fazla 8)
   const allSkillCandidates = useMemo(() => {
     const skills = EX_LIB.filter((e) => e.kind === 'beceri');
-    const others = EX_LIB.filter((e) => e.kind !== 'beceri' && e.kind !== 'isinma');
+    const others = EX_LIB.filter((e) => e.kind !== 'beceri' && e.kind !== 'isinma' && e.kind !== 'dovus');
     const customs = (st.custom || []).map((c) => ({ id: c.id, name: c.name, en: '', muscle: c.muscle, kind: 'kuvvet' }));
     return [...skills, ...others, ...customs];
   }, [st.custom]);

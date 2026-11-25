@@ -57,6 +57,32 @@ const WARM_Z = byLang('warmz', {
 });
 const WARM_Z_COLORS = ['#4aa8ff', '#52e07c', '#ffc53d', '#ff8a3a', '#ff3b4e'];
 const warmSetTxt = (x) => t('{n} dk', { n: Number(x.dur) || 0 }) + ' · ' + (WARM_Z[(Number(x.z) || 1) - 1] || WARM_Z[0]).k;
+/* V39 · dövüş (boks, güreş, kondisyon raundları): set = raund; süre (dk, yarımlık) ve yoğunluk 1–5 girilir.
+   Yük seans-RPE yöntemiyle: süre × yoğunluğun CR-10 karşılığı (Foster ve ark. 2001; dövüş sporlarında yaygın).
+   Zor sete, tonaja, 1RM'ye girmez; yorgunluğa girer (fatigue.ts › FIGHT_K). */
+const isFight = (exId) => { const e = libById(exId); return !!(e && e.kind === 'dovus'); };
+const FIGHT_Z = byLang('fightz', {
+  tr: [
+    { k: 'Teknik', d: 'Yavaş, tekniğe odaklı' },
+    { k: 'Hafif', d: 'Rahat tempo, konuşabilirsin' },
+    { k: 'Orta', d: 'Düzenli tempo, nefes hızlı' },
+    { k: 'Sert', d: 'Yüksek tempo, kısa nefes' },
+    { k: 'Maç', d: 'Maç temposu, son güç' },
+  ],
+  en: [
+    { k: 'Technical', d: 'Slow, focus on technique' },
+    { k: 'Light', d: 'Easy pace, you can talk' },
+    { k: 'Medium', d: 'Steady pace, breathing hard' },
+    { k: 'Hard', d: 'High pace, short of breath' },
+    { k: 'Fight', d: 'Fight pace, all out' },
+  ],
+});
+const FIGHT_RPE = [2, 4, 6, 8, 10]; // yoğunluk 1–5 → CR-10
+const minTxt = (m) => t('{n} dk', { n: num(Number(m) || 0) });
+const fightZ = (z) => FIGHT_Z[(Number(z) || 3) - 1] || FIGHT_Z[2];
+const fightSetTxt = (x) => minTxt(x.dur) + ' · ' + fightZ(x.z).k;
+/** Raund süresi: 0,5 dk adımla 0,5–10 dk. */
+const fightDur = (v, d = 3) => clamp(Math.round((Number(v) || d) * 2) / 2, 0.5, 10);
 // V33 · set özellikleri (set kaydında sağ üstten): hazır plan notlarıyla aynı Türkçe anahtarlar, ikisi yeni.
 const SET_ATTRS = ['Drop set', 'Tükenişe kadar', 'Rest-pause', 'Kısmi tekrar', 'Yardımlı tekrar', 'Yavaş eksantrik', 'Altta beklet', 'Patlayıcı kaldır', 'Pump seti', 'Süperset'];
 // V34 · set özelliği sete aittir ve set kaydedildikten sonra (dinlenmede ya da set ayrıntısından) eklenir.
@@ -183,6 +209,7 @@ function itemFromEx(ex) {
   const lib = libById(exId);
   const base = { id: newId('i'), exId, name: ex.name, muscle: ex.muscle, kg: null, rest: ex.rest || (lib && lib.rest) || 120, note: '' };
   if (lib && lib.kind === 'isinma') return { ...base, rest: 60, sets: 1, repMin: 1, repMax: 1, rpeMin: null, rpeMax: null, dur: 10, z: 2 };
+  if (lib && lib.kind === 'dovus') return { ...base, rest: ex.rest || 60, sets: 3, repMin: 1, repMax: 1, rpeMin: null, rpeMax: null, dur: 3, z: 3 };
   if (lib && lib.kind === 'beceri') return { ...base, rest: ex.rest || 90, sets: 5, repMin: 3, repMax: 3, rpeMin: null, rpeMax: null };
   if (lib && lib.kind === 'plyo') return { ...base, sets: 3, repMin: 5, repMax: 5, rpeMin: null, rpeMax: null };
   if (lib && lib.kind === 'olimpik') return { ...base, sets: 4, repMin: 2, repMax: 3, rpeMin: 7, rpeMax: 8 };
@@ -192,6 +219,7 @@ function repTxt(a, b) { return !hasNum(b) || Number(a) === Number(b) ? String(a)
 function rpeTxt(a, b) { if (!hasNum(a)) return null; return 'RPE ' + (!hasNum(b) || Number(a) === Number(b) ? nf(Number(a)) : nf(Number(a)) + '–' + nf(Number(b))); }
 function targetTxt(tg, exId) {
   if (isWarmEx(exId)) return t('{n} dk', { n: Number(tg.dur) || 10 }) + ' · ' + (WARM_Z[(Number(tg.z) || 2) - 1] || WARM_Z[1]).k;
+  if (isFight(exId)) return t('{n} raund', { n: Number(tg.sets) || 1 }) + ' × ' + minTxt(fightDur(tg.dur)) + ' · ' + fightZ(tg.z).k;
   const plyo = isPlyo(exId);
   const skill = isSkill(exId);
   const parts = [tg.sets + ' × ' + repTxt(tg.repMin, tg.repMax) + (plyo ? ' ' + t('temas') : skill ? ' ' + t('deneme') : '')];
@@ -215,7 +243,10 @@ function sessionStats(s) {
   const hard = sets.filter((x) => !x.plyo && !x.skill && !x.warm && x.rir <= 4);
   const contacts = sets.reduce((a, x) => a + (x.plyo ? x.reps : 0), 0);
   const attempts = sets.reduce((a, x) => a + (x.skill ? x.reps : 0), 0);
-  return { sets, hard, tonnage, contacts, attempts, warm: sets.filter((x) => x.warm).length, dur: s.ready ? 0 : (s.endedAt || Date.now()) - s.startedAt };
+  // V39 · dövüş raundları: sayı ve toplam dakika
+  const rounds = sets.filter((x) => x.fight).length;
+  const fightMin = sets.reduce((a, x) => a + (x.fight ? Number(x.dur) || 0 : 0), 0);
+  return { sets, hard, tonnage, contacts, attempts, rounds, fightMin, warm: sets.filter((x) => x.warm).length, dur: s.ready ? 0 : (s.endedAt || Date.now()) - s.startedAt };
 }
 function weeklyHard(sessions, endTs) {
   const from = endTs - 7 * 864e5;
@@ -291,6 +322,35 @@ function ItemEditor({ it, idx, n, onChange, onMove, onRemove, fx = { sound: true
             {WARM_Z.map((zo, i) => <button key={i} type="button" id={'it-' + it.id + '-z' + (i + 1)} role="radio" aria-checked={z === i + 1} className={'fchip sm' + (z === i + 1 ? ' on' : '')} style={{ borderColor: WARM_Z_COLORS[i] }} onClick={() => onChange({ ...it, z: i + 1, sets: 1 })}>{zo.k}</button>)}
           </div>
           <p className="muted-p" style={{ margin: 0 }}>{WARM_Z[z - 1].d} · {t('Hesaplara girmez.')}</p>
+        </div>
+        <div className="ied-actions">
+          <button type="button" className="btn ghost sm" disabled={idx === 0} onClick={() => onMove(-1)} aria-label={t('Yukarı taşı')}>↑ {t('Yukarı')}</button>
+          <button type="button" className="btn ghost sm" disabled={idx === n - 1} onClick={() => onMove(1)} aria-label={t('Aşağı taşı')}>↓ {t('Aşağı')}</button>
+          <HoldButton className="btn ghost sm danger-t" onHold={onRemove}>{t('Hareketi sil')}</HoldButton>
+        </div>
+      </div>
+    );
+  }
+  if (isFight(it.exId)) {
+    const z = Number(it.z) || 3;
+    return (
+      <div className="item-ed">
+        <div className="ied-drag">
+          <PxStair id={pid + '-sets'} label={t('Raund')} min={1} max={15} lo={Number(it.sets) || 3} onChange={(a) => onChange({ ...it, sets: a })} fx={fx} marks={[1, 3, 6, 9, 12, 15]} />
+          <PxStair id={pid + '-dur'} label={t('Raund süresi')} unit={t('dk')} min={0.5} max={5} step={0.5} lo={fightDur(it.dur)} onChange={(a) => onChange({ ...it, dur: a })} fx={fx} marks={[0.5, 1, 2, 3, 4, 5]} />
+        </div>
+        <div className="field-pair">
+          <span className="st-k">{t('Yoğunluk')}</span>
+          <div className="chips-wrap" role="radiogroup" aria-label={t('Dövüş yoğunluğu')}>
+            {FIGHT_Z.map((zo, i) => <button key={i} type="button" id={pid + '-z' + (i + 1)} role="radio" aria-checked={z === i + 1} className={'fchip sm' + (z === i + 1 ? ' on' : '')} style={{ borderColor: WARM_Z_COLORS[i] }} onClick={() => onChange({ ...it, z: i + 1 })}>{zo.k}</button>)}
+          </div>
+          <p className="muted-p" style={{ margin: 0 }}>{fightZ(z).d}</p>
+        </div>
+        <div className="field-pair">
+          <span className="st-k">{t('Raund arası dinlenme')}</span>
+          <div className="chips-wrap">
+            {[30, 45, ...REST_OPTS].map((r) => <button key={r} type="button" className={'fchip sm' + (it.rest === r ? ' on' : '')} onClick={() => set('rest')(r)}>{restTxt(r)}</button>)}
+          </div>
         </div>
         <div className="ied-actions">
           <button type="button" className="btn ghost sm" disabled={idx === 0} onClick={() => onMove(-1)} aria-label={t('Yukarı taşı')}>↑ {t('Yukarı')}</button>
@@ -489,5 +549,5 @@ export {
   blankProgram, sessionFromDay, itemFromEx,
   repTxt, rpeTxt, targetTxt, sessionStats, weeklyHard, nextPlanned,
   Stepper, ItemEditor, Lane, RepBars, SetReplay, firstOpen, entryFor, RestBar, NOTE_PRESETS, noteLabel,
-  isWarmEx, WARM_Z, WARM_Z_COLORS, warmSetTxt, SET_ATTRS, SET_CONDS, SET_FEEL, canBodyweight, warmFirst, WARMUP_ID,
+  isWarmEx, WARM_Z, WARM_Z_COLORS, warmSetTxt, isFight, FIGHT_Z, FIGHT_RPE, fightZ, fightSetTxt, fightDur, minTxt, SET_ATTRS, SET_CONDS, SET_FEEL, canBodyweight, warmFirst, WARMUP_ID,
 };
