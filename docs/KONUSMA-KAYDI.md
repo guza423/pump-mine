@@ -787,3 +787,4 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 - Eklendi: bant rotasyonel row (Kuvvet › Sırt; Karın ½, arka omuz ½, biceps ½), çapraz pogo, çapraz squat sıçrama.
 - Zaten vardı: pogo, tek bacak pogo, jump lunge (Ardışık makas sıçrama), dizden squata sıçrama (Dizden ayağa sıçrama); İngilizce adlarıyla da aranır.
 - Pliometrik setler zor sete girmez (temas sayılır); kas payları yazılı.
+- Commit: `d4c5337`. Kontroller: `npm test` (176), lint, `tsc -b`, build, `test:layout` geçti.
