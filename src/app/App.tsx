@@ -33,9 +33,9 @@ import { PixelSummaryScreen } from '../features/antrenman/PixelSummaryScreen';
 import { planStats, logStats, proxW, costW, loadScore, hoursToFresh, decayK, setLoads, sleepInfo, sleepPts, fatigueAt, steadyWeek, simFromLogs, simFromPlan, simulatePlan, fatigueRecs, e1Series, prevPerf, sessionFatigue, periodMetrics, historyWarnings, periodFatigue, FATIGUE_SPANS, sleepNights, weekDoneStats } from '../lib/models/fatigue';
 import { exerciseIndex, RECENT_DAYS } from '../lib/models/progress';
 import { ProgressListBody, ProgressDetailBody } from '../features/gozlem/ProgressSheets';
-import { useIdleWatch } from '../features/antrenman/idleWatch';
-import { planReminders, remindersOn } from '../features/plan/reminders';
-import { hideWorkout, setReminders, showWorkout } from '../lib/native/restTimer';
+import { readLastInput, useIdleWatch } from '../features/antrenman/idleWatch';
+import { focusPrefs, planReminders, remindersOn } from '../features/plan/reminders';
+import { hideWorkout, setFocus, setReminders, showWorkout, stopFocus } from '../lib/native/restTimer';
 import { IDLE_ASK_MS, IDLE_END_MS } from '../lib/models/idle';
 import '../styles/cns.css';
 import '../styles/app.css';
@@ -2185,6 +2185,17 @@ function App() {
     if (!liveSig) { void hideWorkout(); return; }
     void showWorkout({ startedAt: active.startedAt, title: isFree(active) ? t('Plansız antrenman') : sessionName(active), body: t('Antrenman sürüyor · dokun: devam et') });
   }, [liveSig]);
+  // V37 · İdmanda telefonu bırak: çıkınca 2 dk'da geri aç; 40 dk sonra 3 dk dokunulmazsa titret (Android, yerel bekçi).
+  const focus = focusPrefs(st.settings);
+  const focusSig = liveSig && (focus.back || focus.end) ? liveSig + '|' + (focus.back ? 1 : 0) + (focus.end ? 1 : 0) : '';
+  useEffect(() => {
+    if (!focusSig) { void stopFocus(); return; }
+    void setFocus({
+      sid: active.id, startedAt: active.startedAt, lastInput: readLastInput(active.id) || 0, back: focus.back, end: focus.end,
+      backTitle: t('İdmana dön'), backBody: t('İdman sürüyor. Telefonu bırak, sete odaklan.'),
+      endTitle: t('İdman bitti mi?'), endBody: t('40 dakikayı geçtin. Bitirdiysen uygulamada İDMANI BİTİR\'e bas.'),
+    });
+  }, [focusSig]);
   // V33 · plan hatırlatmaları: planlı günden bir gün önce 20:00; plan, ayar ya da dil değişince yeniden kurulur.
   const remindOn = remindersOn(st.settings);
   const remindList = useMemo(() => (st.loaded.programs && remindOn ? planReminders(st.programs) : []), [st.programs, st.loaded.programs, remindOn, lang, new Date().toDateString()]);

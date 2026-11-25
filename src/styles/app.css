@@ -38,7 +38,11 @@ body {
   margin: 0; background: var(--void); color: var(--text);
   font-family: var(--f-body); font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased;
   overflow: hidden;
+  /* V37: uygulamada metne basılı tutunca seçim / kopyala menüsü açılmaz; yalnız yazı alanları seçilebilir. */
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
 }
+input, textarea, select, [contenteditable='true'] { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
+img, svg { -webkit-user-drag: none; }
 #root { height: 100%; }
 .mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
 .neuro { color: var(--neuro); }

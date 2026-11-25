@@ -812,3 +812,16 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 
 **Kullanıcı:** "Direkt sil yada aç var"
 **Yapılan / karar:** Neden bulundu: testçinin telefonunda GitHub'dan kurulmuş debug APK var. Debug APK versionCode'u `android.yml` çalışma sayısı (70), Play AAB'ninki `release.yml` çalışma sayısı (11); Play kurulu sürümü daha yeni sanıyor ve imza farklı, bu yüzden "Güncelle" yerine yalnız "Kaldır / Aç" çıkıyor. Çözüm: uygulamada giriş yapıp eşitle, kaldır, Play'den kur. Ders `docs/PROJE.md` Play bölümüne yazıldı.
+
+### 2026-11-25 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** "Outmove için app özellikleri ekleyelim. 
+1. Ekrandaki yazılara basılı tutunca telefonda kopyala ekranı falan açılıo.textlerle etkileşime geçilemeycek
+2. İdman seansı anında. İdman sayacı açıkken yani. Telefonj rahatsız edicez. 2 dk da bir otomatik uygulama açılıcak. Telefonla meşgul olmuyacaz. Ekranı kapayınca idman anında yada appden çıkınca hop açılıcak 2dk ya geri. İdmanı hatırlatacak. 
+3. App bildirim sesi böyle güzel pixelli bişi olsun. Yüksek ses olsun. 
+4. Süresi 40dk falan olunca yavaştan idmanın sonu geldiği için app her 3dk boyunca etkileşime girmeme süresi için titresin telefon. İdman bitince appden sonlandırmayı hatırlatmak için."
+**Yapılan (V37, Claude doğrudan; ayrıntı `docs/gorevler/V37-metin-secimi-telefonu-birak-piksel-ses.md`):**
+- Metin seçimi ve basılı tutma menüsü kapalı (yazı alanları hariç).
+- İdmanda telefonu bırak: süren idmanda uygulamadan çıkınca ya da ekran kapanınca 2 dk sonra uygulama kendiliğinden açılır (ekranı yakar, kilit ekranının üstünde) + sesli "İdmana dön"; öne gelene dek her 2 dk. Android 10+ için "Diğer uygulamaların üzerinde göster" izni gerekir (Hesap ve ayarlar › İzni aç); izin yoksa yalnız bildirim. Kendiliğinden açılış giriş sayılmaz, unutulan idman 15 dk'da yine biter.
+- 8-bit yüksek bildirim sesi (`res/raw/outmove_ping.wav`, `scripts/pixel-sound.py`); sesli kanallar yeni `-px` kimlikleriyle.
+- 40 dk sonra 3 dk dokunulmazsa titreşim, dokunulmadıkça her 3 dk (önde yalnız titreşim, arkada sessiz titreşimli "İdman bitti mi?" bildirimi).
+- Okuma kararları: 2 ve 4 Hesap ve ayarlar'da iki anahtar (varsayılan açık); ses bildirim akışında (alarm akışı sessiz modu ezerdi), yükseklik dosyanın tam genliğinden.

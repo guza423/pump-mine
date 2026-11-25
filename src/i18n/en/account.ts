@@ -122,4 +122,7 @@ export const account: Record<string, Entry> = {
   "Silmek için şifreni tekrar gir.": "Re-enter your password to delete.",
   // V33 · ayarlar
   "Plan hatırlatması (bir gün önce 20:00)": "Plan reminder (8 pm the day before)",
+  "İdmanda uygulamadan çıkarsan 2 dk sonra geri aç": "Leave the app mid-workout and it reopens after 2 min",
+  "40 dk sonra 3 dk dokunmazsan titret (bitirmeyi unutma)": "After 40 min, buzz if untouched for 3 min (don't forget to finish)",
+  "Uygulamanın kendiliğinden açılması için \"Diğer uygulamaların üzerinde göster\" iznini aç. İzin yoksa 2 dk'da bir yalnız bildirim gelir.": "To let the app reopen by itself, turn on \"Display over other apps\". Without it you only get a notification every 2 min.",
 };

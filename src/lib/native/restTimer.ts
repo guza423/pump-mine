@@ -15,6 +15,16 @@ interface RestTimerPlugin {
   workoutShow(options: { startedAt: number; title: string; body: string; channel?: string }): Promise<void>;
   workoutHide(): Promise<void>;
   remindSet(options: { items: Array<{ at: number; title: string; body: string }>; channel?: string }): Promise<void>;
+  focusSet(options: FocusOptions & { backChannel?: string; endChannel?: string }): Promise<void>;
+  focusStop(): Promise<void>;
+  focusResume(): Promise<{ auto: boolean }>;
+  overlay(): Promise<ExactAlarm>;
+  openOverlaySettings(): Promise<void>;
+}
+/** V37 · İdmanda telefonu bırak: 2 dk'da geri açma (`back`) ve 40 dk sonrası hareketsizlik titreşimi (`end`). */
+export interface FocusOptions {
+  sid: string; startedAt: number; lastInput: number; back: boolean; end: boolean;
+  backTitle: string; backBody: string; endTitle: string; endBody: string;
 }
 /** Tam zamanlı alarm izni (V27). `needed`: Android 12+; `allowed`: kullanıcı izin vermiş. */
 export interface ExactAlarm { needed: boolean; allowed: boolean }
@@ -27,6 +37,8 @@ const RestTimer = registerPlugin<RestTimerPlugin>('RestTimer', {
     exactAlarm: async () => NO_NEED, openExactAlarmSettings: async () => {},
     idleArm: async () => {}, idleStop: async () => {},
     workoutShow: async () => {}, workoutHide: async () => {}, remindSet: async () => {},
+    focusSet: async () => {}, focusStop: async () => {}, focusResume: async () => ({ auto: false }),
+    overlay: async () => NO_NEED, openOverlaySettings: async () => {},
   }),
 });
 
@@ -93,4 +105,26 @@ export function setReminders(items: Array<{ at: number; title: string; body: str
     if (items.length && !(await notifyAllowed())) return;
     await RestTimer.remindSet({ items, channel: t('Antrenman hatırlatmaları') });
   });
+}
+
+// V37 · İdmanda telefonu bırak (Android). Yerel bekçi dokunuşları kendisi sayar; JS süren idmanı ve ayarı bildirir.
+export function setFocus(o: FocusOptions) {
+  return enqueue(async () => {
+    await notifyAllowed();
+    await RestTimer.focusSet({ ...o, backChannel: t('İdmana dön'), endChannel: t('İdman sonu titreşimi') });
+  });
+}
+export const stopFocus = () => enqueue(() => RestTimer.focusStop());
+/** Uygulama az önce 2 dk kuralıyla kendiliğinden mi açıldı? (giriş sayılmaz) */
+export async function focusResumedByApp(): Promise<boolean> {
+  if (!Capacitor.isNativePlatform()) return false;
+  try { return (await RestTimer.focusResume()).auto; } catch { return false; }
+}
+/** "Diğer uygulamaların üzerinde göster" izni (Android 10+ arka plandan açmak için). */
+export async function overlayStatus(): Promise<ExactAlarm> {
+  if (!Capacitor.isNativePlatform()) return NO_NEED;
+  try { return await RestTimer.overlay(); } catch { return NO_NEED; }
+}
+export async function openOverlaySettings() {
+  try { if (Capacitor.isNativePlatform()) await RestTimer.openOverlaySettings(); } catch { /* sessiz geç */ }
 }

@@ -37,6 +37,7 @@
         <receiver android:name=".RestTimerReceiver" android:exported="false" />
         <receiver android:name=".IdleReceiver" android:exported="false" />
         <receiver android:name=".ReminderReceiver" android:exported="false" />
+        <receiver android:name=".FocusReceiver" android:exported="false" />
         <receiver android:name=".BootReceiver" android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
@@ -54,4 +55,6 @@
          Dinlenme sayacı kullanıcının açtığı SCHEDULE_EXACT_ALARM'ı kullanır; izin yoksa gecikmeli alarm yedeği çalışır. -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- V37: süren idmanda uygulamadan çıkılınca 2 dk sonra uygulamayı yeniden açmak (Android 10+ arka plandan açma). -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 </manifest>

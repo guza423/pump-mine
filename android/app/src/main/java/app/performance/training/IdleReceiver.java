@@ -30,7 +30,7 @@ public class IdleReceiver extends BroadcastReceiver {
             .setCategory(Notification.CATEGORY_REMINDER)
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setContentIntent(RestTimerPlugin.openApp(context));
-        if (Build.VERSION.SDK_INT < 26) notification.setDefaults(Notification.DEFAULT_SOUND).setVibrate(RestTimerPlugin.IDLE_VIBRATION);
+        if (Build.VERSION.SDK_INT < 26) notification.setSound(RestTimerPlugin.pixelSound(context)).setVibrate(RestTimerPlugin.IDLE_VIBRATION);
         try { manager.notify(ask ? RestTimerPlugin.IDLE_ASK_ID : RestTimerPlugin.IDLE_END_ID, notification.build()); }
         catch (SecurityException denied) { /* bildirim izni yoksa uygulama içi uyarı yeter */ }
     }

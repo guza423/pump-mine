@@ -5,8 +5,8 @@ import { Icon, Switch } from '../lab/Cns';
 import { BackupPanel, exportBackup } from '../programlar/BackupPanel';
 import { accountError } from '../../lib/cloud/errors';
 import { readFxSettings } from '../../lib/native/fx';
-import { remindersOn } from '../plan/reminders';
-import { exactAlarmStatus, openExactAlarmSettings } from '../../lib/native/restTimer';
+import { focusPrefs, remindPrefs, remindersOn } from '../plan/reminders';
+import { exactAlarmStatus, openExactAlarmSettings, openOverlaySettings, overlayStatus } from '../../lib/native/restTimer';
 import { allPlans } from '../plan/plans';
 import { HoldButton } from '../../app/HoldButton';
 import { appDocId, appDocs, appDocTitle } from '../../legal/appDocs';
@@ -25,11 +25,11 @@ function AccountChip({ acct, onClick }) {
   );
 }
 // V27: Android 12+ tam zamanlı alarm izni; ayar ekranından dönünce (görünürlük değişince) yeniden okunur.
-function useExactAlarm() {
+function useExactAlarm(read = exactAlarmStatus) {
   const [state, setState] = useState(null);
   useEffect(() => {
     let alive = true;
-    const check = () => exactAlarmStatus().then((v) => { if (alive) setState(v); });
+    const check = () => read().then((v) => { if (alive) setState(v); });
     const onVisible = () => { if (document.visibilityState === 'visible') check(); };
     check();
     document.addEventListener('visibilitychange', onVisible);
@@ -56,13 +56,24 @@ function AccountBody({ st, acct, actions, openSheet, onClose, put }) {
   const valid = /.+@.+\..+/.test(email) && pass.length >= 6;
   const fx = readFxSettings(st.settings);
   const alarm = useExactAlarm();
+  const overlay = useExactAlarm(overlayStatus); // V37: arka plandan geri açma izni
+  const focus = focusPrefs(st.settings);
+  const setRemind = (patch) => put('settings', { key: 'reminders', value: { ...remindPrefs(st.settings), ...patch } });
   const sysReduce = typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const fxSection = put ? (
     <div className="acct-fx" style={{ display: 'grid', gap: '8px' }}>
       <Switch id="fx-sound" label={t('Sesler')} on={fx.sound} onChange={(v) => put('settings', { key: 'fx', value: { ...fx, sound: v } })} />
       <Switch id="fx-haptic" label={t('Titreşim')} on={fx.haptic} onChange={(v) => put('settings', { key: 'fx', value: { ...fx, haptic: v } })} />
       <Switch id="fx-motion" label={t('Animasyonlar (cihaz azaltsa da)')} on={fx.motion} onChange={(v) => put('settings', { key: 'fx', value: { ...fx, motion: v } })} />
-      <Switch id="remind-plan" label={t('Plan hatırlatması (bir gün önce 20:00)')} on={remindersOn(st.settings)} onChange={(v) => put('settings', { key: 'reminders', value: { plan: v } })} />
+      <Switch id="remind-plan" label={t('Plan hatırlatması (bir gün önce 20:00)')} on={remindersOn(st.settings)} onChange={(v) => setRemind({ plan: v })} />
+      <Switch id="focus-back" label={t('İdmanda uygulamadan çıkarsan 2 dk sonra geri aç')} on={focus.back} onChange={(v) => setRemind({ back: v })} />
+      <Switch id="focus-end" label={t('40 dk sonra 3 dk dokunmazsan titret (bitirmeyi unutma)')} on={focus.end} onChange={(v) => setRemind({ end: v })} />
+      {focus.back && overlay && overlay.needed && !overlay.allowed ? (
+        <div className="acct-fx-note" id="overlay-perm">
+          <p>{t('Uygulamanın kendiliğinden açılması için "Diğer uygulamaların üzerinde göster" iznini aç. İzin yoksa 2 dk\'da bir yalnız bildirim gelir.')}</p>
+          <button type="button" className="btn ghost" onClick={() => openOverlaySettings()}>{t('İzni aç')}</button>
+        </div>
+      ) : null}
       {sysReduce && !fx.motion ? <p className="acct-fx-note">{t('Bu cihaz animasyonları azaltıyor. Bu yüzden set kutucuğa uçmuyor, yerinde yanıp sönüyor. Açarsan tam oynar.')}</p> : null}
       {alarm && alarm.needed && !alarm.allowed ? (
         <div className="acct-fx-note" id="exact-alarm">

@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { IDLE_ASK_MS, IDLE_END_MS, autoEnded, hasSets, idleFrom, idleState, lastActivity } from '../../lib/models/idle';
 import { fatigueAt } from '../../lib/models/fatigue';
-import { armIdle, stopIdle } from '../../lib/native/restTimer';
+import { armIdle, focusResumedByApp, stopIdle } from '../../lib/native/restTimer';
 import { pixelFx, readFxSettings } from '../../lib/native/fx';
 import { clock, t } from '../../i18n';
 
@@ -129,7 +129,8 @@ export function useIdleWatch(active: any, st: any, put: (kind: string, obj: any)
       if (resumeT) clearTimeout(resumeT);
       resumeT = setTimeout(() => {
         const state = evaluate();
-        if (state === 'ok' || state === 'ask') { touch(Date.now(), true); }
+        // V37: 2 dk kuralıyla kendiliğinden açılış cevap sayılmaz (yoksa unutulan idman hiç bitmezdi).
+        if (state === 'ok' || state === 'ask') void focusResumedByApp().then((auto) => { if (!auto) touch(Date.now(), true); });
       }, 1200);
     };
     window.addEventListener('pointerdown', onInput, true);

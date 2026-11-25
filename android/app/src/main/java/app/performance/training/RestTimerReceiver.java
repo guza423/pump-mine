@@ -27,7 +27,7 @@ public class RestTimerReceiver extends BroadcastReceiver {
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setContentIntent(RestTimerPlugin.openApp(context));
         if (Build.VERSION.SDK_INT >= 26) notification.setTimeoutAfter(5 * 60 * 1000);
-        else notification.setDefaults(Notification.DEFAULT_SOUND).setVibrate(RestTimerPlugin.VIBRATION);
+        else notification.setSound(RestTimerPlugin.pixelSound(context)).setVibrate(RestTimerPlugin.VIBRATION);
         try { manager.notify(RestTimerPlugin.DONE_ID, notification.build()); }
         catch (SecurityException denied) { /* İzin kaldırılmışsa ekrandaki sayaç çalışmaya devam eder. */ }
     }

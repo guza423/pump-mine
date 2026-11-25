@@ -129,7 +129,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
   - Isınma seti (V33): `{ kg, reps, warm: true, lvl: null, rpe: null, rir: 9 }`; antrenman öncesi ısınma hareketi (`exId: 'isinma'`): `{ kg: 0, reps: 1, warm: true, dur (dk), z 1–5, rir: 9 }`. `warm` setler hiçbir hesaba girmez.
   - Set özellikleri `tags: string[]` içinde: set tipi (V33: Drop set, Tükenişe kadar, Rest-pause…), durum (V34: Hasta, Yorgun, Uykusuz, Stresli, Ağrı), nasıl geçti (Kolay geldi, Form bozuldu…). V34'ten beri set kaydedildikten sonra yazılır (dinlenme ekranı ya da set ayrıntısı); hesapları değiştirmez, "Tükenişe kadar" hızı Zar zor (RIR 0) yapar.
 - **Oturum hareketi (V33):** `range?: { lo, hi }` plansız antrenmanda hareketin hedef tekrar aralığı. **Plan hareketi:** ısınma hareketinde `dur`, `z`.
-- **Ayarlar:** `goals: Goal[]` (`perf` / `skill`; eski tekil `goal` otomatik taşınır), `restPrefs: { [exId]: sn }`, `fx: { sound: boolean, haptic: boolean, motion: boolean }` (V33'teki `slow` V34'te kaldırıldı: yavaşlama parmağın konumuyla), `repRanges: { [exId]: [lo, hi] }` (V33), `reminders: { plan: boolean }` (V33, varsayılan açık).
+- **Ayarlar:** `goals: Goal[]` (`perf` / `skill`; eski tekil `goal` otomatik taşınır), `restPrefs: { [exId]: sn }`, `fx: { sound: boolean, haptic: boolean, motion: boolean }` (V33'teki `slow` V34'te kaldırıldı: yavaşlama parmağın konumuyla), `repRanges: { [exId]: [lo, hi] }` (V33), `reminders: { plan, back, end: boolean }` (V33 plan hatırlatması; V37 `back` 2 dk'da geri aç, `end` 40 dk sonrası titreşim; hepsi varsayılan açık).
 - **Misafir → hesap taşıma kuralları:**
   - Programlarda `updatedAt` yeni olan, oturumlarda seti fazla olan (eşitse bulut) kazanır.
   - Uyku girişlerinde `at` yeni olan kazanır. Özel hareketler birleşir, ayarlarda bulut kazanır.
@@ -204,6 +204,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | V11 | 2026-11-14 | Sade plansız antrenman, bildirimli dinlenme sayacı, Android geri tuşu | `c5c588d` |
 | V12 | 2026-11-15 | Dashboard, antrenman planları (program katmanı kalktı), Gözlem takvimi, satır içi geçmiş, öğrenme hedefleri, 28 beceri hareketi | `c2f274b` (Antigravity) |
 | V14–V20 | 2026-11-17 → 18 | Pixel tema bütün sekmelere (V14–V17), plan ayarları ve özet (V18), basılı tutma ve göreli sürükleme (V19), yasal metinler, kabul kapısı, hesap/veri silme (V20) | `docs/gorevler/V14…V20` |
+| V37 | 2026-11-25 | Metinlere basılı tutunca seçim/kopyala menüsü yok; idmanda telefonu bırak: uygulamadan çıkınca ya da ekran kapanınca 2 dk'da uygulama kendiliğinden açılır (izin: diğer uygulamaların üzerinde göster; yoksa sesli bildirim); 8-bit yüksek bildirim sesi; 40 dk sonra 3 dk dokunulmazsa her 3 dk titreşim | `docs/gorevler/V37-metin-secimi-telefonu-birak-piksel-ses.md` |
 | V36 | 2026-11-25 | Ekran modları: sakin / ısınma / idman / lab paletleri (anlamı olan renkler sabit), ortam efektleri (idman set ekranı sabit), BAŞLA! · soğuma · şerit · ısı dalgası geçişleri, süren idman şeridi, idmanda koyu SETLER kutusu | `docs/gorevler/V36-ekran-modlari.md` |
 | V34 | 2026-11-24 | Sürgüde parmak aşağı iyice inince %40 hız (bütün yatay sürgüler, gösterge yok; HIZ düğmesi ve ayar kaldırıldı); ısınma seti her yerde yalnız ISN; set özelliği sete ait, dinlenme ekranında sorulur (set tipi, durum: hasta/yorgun…, nasıl geçti), set ayrıntısından düzenlenir, sağ üst yalnız hareket notu; RIR kutusu yerine setin 1RM'si (güvenilir aralık dışında ≈); planlı kutucuklar iki satır (SET n · kg / 4–8 tekrar), kaydırma çubuğu yok, sıradaki hizalanır | `docs/gorevler/V34-surgu-hizi-isinma-set-ozelligi-1rm-kutucuk.md` |
 | V33 | 2026-11-22 | Isınma seti (RPE 6'nın solunda, hesaplara girmez) ve kütüphanede antrenman öncesi ısınma (süre + nabız skalası, listenin başında); bar 20 kg altına inmez; plan düzenleyicide vücut ağırlığı ve Onayla; set özellikleri (drop set, tükenişe kadar…); plansızda hareketin hedef tekrar aralığı; sürgü hızı %40 seçeneği; planlı sette "son sefer" yok, hedef setler dolan kutucuklar; plan penceresinde günler, Başlat ve Çoğalt basılı tutmalı, Başlat hazır açar; bildirim panelinde süren antrenman sayacı; planlı günden bir gün önce 20:00 hatırlatma; takvim parmakla kaydırılır | `docs/gorevler/V33-isinma-set-ozelligi-hatirlatma-takvim.md` |
@@ -345,6 +346,10 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | 2026-11-25 | Antrenman sekmesi ısınma modu: girerken ısı dalgası ve ikon "kaldırma", alttan kor ve kıvılcım, listeler kart dağıtır gibi düşer, İDMANI BAŞLAT halka yayar; süren idmanda sekme doğrudan idmana girer | "antrenman sekmesine tıklayınca … ona da bir şeyler yapalım" |
 | 2026-11-25 | Süren idman şeridi sekme çubuğunun **üstünde** (tasarım tuvalinde ekranın üstündeydi) | Android'de durum çubuğu şeffaf ve ekranlar üst güvenli alan payını kendisi veriyor; alt konum başparmağa yakın |
 | 2026-11-25 | Tasarım tuvalindeki mod ekranları temsilîdir; uygulamaya yalnız mod katmanı (palet, efekt, geçiş, şerit) girer, ekran düzenleri değişmez | Kullanıcı: "burdaki arayüzler temsili … bu misali olsun yeter" |
+| 2026-11-25 | Uygulamada metin seçilemez, basılı tutma menüsü açılmaz (yazı alanları hariç) | "yazılara basılı tutunca kopyala ekranı açılıyor, textlerle etkileşime geçilemeyecek" |
+| 2026-11-25 | **İdmanda telefonu bırak**: süren idmanda uygulamadan çıkınca ya da ekran kapanınca 2 dk sonra uygulama kendiliğinden açılır (ekranı yakar, kilit üstünde), öne gelene dek her 2 dk; arka plandan açmak için "Diğer uygulamaların üzerinde göster" izni, yoksa sesli bildirim. Kendiliğinden açılış giriş sayılmaz (unutulan idman 15 dk'da yine biter). Ayarda kapatılabilir, varsayılan açık | "2 dk da bir otomatik uygulama açılacak … telefonla meşgul olmayacağız"; Android 10+ arka plandan açmayı yalnız bu izinle veriyor |
+| 2026-11-25 | Sesli bildirimler 8-bit OUTMOVE sesiyle (kare dalga arpej, tam genlik); kanal sesi sonradan değişmediği için yeni `-px` kanallar, eskiler silinir; ses telefonun bildirim düzeyine bağlı (alarm akışı kullanılmadı: sessiz modu ezmesin) | "bildirim sesi güzel pixelli bir şey olsun, yüksek ses olsun" |
+| 2026-11-25 | İdman 40 dk'yı geçince uygulamaya 3 dk dokunulmazsa telefon titrer, dokunulmadıkça her 3 dk; ön planda yalnız titreşim, arka planda sessiz titreşimli bildirim. Ayarda kapatılabilir | "40 dk olunca … her 3 dk etkileşime girmeme süresi için titresin … sonlandırmayı hatırlatmak için" |
 
 ---
 
@@ -373,7 +378,7 @@ Alt menü: **Dashboard · Antrenman · Gözlem · Lab**.
 | `docs/PROJE.md` | Bu belge: ne, neden, nasıl, kararlar |
 | `docs/KONUSMA-KAYDI.md` | Tüm konuşmaların kronolojik kaydı |
 | `GOREV.md` | Bekleyen / tamamlanan görevler |
-| `docs/gorevler/` | Görev dosyaları (V08–V36), `arsiv/` eski görevler |
+| `docs/gorevler/` | Görev dosyaları (V08–V37), `arsiv/` eski görevler |
 | `src/i18n/` | Dil katmanı (`index.ts`, `names.ts`) ve İngilizce sözlük (`en/`) |
 | `docs/FIREBASE-KURULUM.md` | Firebase konsol kurulumu |
 | `reference/` | Claude prototipleri (tarihçe ve tasarım kaynağı) |

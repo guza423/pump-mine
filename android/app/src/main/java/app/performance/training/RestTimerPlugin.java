@@ -9,7 +9,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioAttributes;
-import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
@@ -30,8 +29,25 @@ public class RestTimerPlugin extends Plugin {
     static final int DONE_ID = 4102;
     static final String PREFS = "rest-timer";
     static final String RUNNING_CHANNEL = "rest-running";
-    static final String DONE_CHANNEL = "rest-done";
+    // V37: sesli kanallar 8-bit OUTMOVE sesiyle yeni kimlik aldı (Android kanal sesini sonradan değiştirmez); eskiler silinir.
+    static final String DONE_CHANNEL = "rest-done-px";
     static final long[] VIBRATION = { 0, 350, 150, 350 };
+    static final String[] OLD_CHANNELS = { "rest-done", "workout-idle", "plan-reminder" };
+
+    // V37 · OUTMOVE bildirim sesi (res/raw/outmove_ping.wav, scripts/pixel-sound.py): kare dalga, tam genlik.
+    static Uri pixelSound(Context context) {
+        return Uri.parse("android.resource://" + context.getPackageName() + "/" + R.raw.outmove_ping);
+    }
+    static AudioAttributes soundAttrs() {
+        return new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build();
+    }
+    static void dropOldChannels(NotificationManager manager) {
+        if (Build.VERSION.SDK_INT < 26) return;
+        for (String id : OLD_CHANNELS) {
+            if (manager.getNotificationChannel(id) != null) manager.deleteNotificationChannel(id);
+        }
+    }
 
     @Override
     @PluginMethod
@@ -53,6 +69,7 @@ public class RestTimerPlugin extends Plugin {
     static void createChannels(Context context, String runningName, String doneName) {
         if (Build.VERSION.SDK_INT < 26) return;
         NotificationManager manager = context.getSystemService(NotificationManager.class);
+        dropOldChannels(manager);
         NotificationChannel existingRunning = manager.getNotificationChannel(RUNNING_CHANNEL);
         if (existingRunning != null && runningName != null && !runningName.contentEquals(existingRunning.getName())) {
             existingRunning.setName(runningName);
@@ -72,8 +89,7 @@ public class RestTimerPlugin extends Plugin {
         }
         if (existingDone == null) {
             NotificationChannel done = new NotificationChannel(DONE_CHANNEL, doneName != null ? doneName : "Rest finished", NotificationManager.IMPORTANCE_HIGH);
-            done.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),
-                new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION).build());
+            done.setSound(pixelSound(context), soundAttrs());
             done.enableVibration(true);
             done.setVibrationPattern(VIBRATION);
             done.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
@@ -158,20 +174,20 @@ public class RestTimerPlugin extends Plugin {
     static final int IDLE_ASK_ID = 4105;
     static final int IDLE_END_ID = 4106;
     static final String IDLE_PREFS = "idle-watch";
-    static final String IDLE_CHANNEL = "workout-idle";
+    static final String IDLE_CHANNEL = "workout-idle-px";
     static final long[] IDLE_VIBRATION = { 0, 500, 200, 500, 200, 500 };
 
     static void createIdleChannel(Context context, String name) {
         if (Build.VERSION.SDK_INT < 26) return;
         NotificationManager manager = context.getSystemService(NotificationManager.class);
+        dropOldChannels(manager);
         NotificationChannel existing = manager.getNotificationChannel(IDLE_CHANNEL);
         if (existing != null) {
             if (name != null && !name.contentEquals(existing.getName())) { existing.setName(name); manager.createNotificationChannel(existing); }
             return;
         }
         NotificationChannel idle = new NotificationChannel(IDLE_CHANNEL, name != null ? name : "Workout check", NotificationManager.IMPORTANCE_HIGH);
-        idle.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),
-            new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION).build());
+        idle.setSound(pixelSound(context), soundAttrs());
         idle.enableVibration(true);
         idle.setVibrationPattern(IDLE_VIBRATION);
         idle.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
@@ -249,17 +265,19 @@ public class RestTimerPlugin extends Plugin {
     static final int REMIND_BASE = 4300;
     static final int REMIND_MAX = 30;
     static final String REMIND_PREFS = "plan-remind";
-    static final String REMIND_CHANNEL = "plan-reminder";
+    static final String REMIND_CHANNEL = "plan-reminder-px";
 
     static void createRemindChannel(Context context, String name) {
         if (Build.VERSION.SDK_INT < 26) return;
         NotificationManager manager = context.getSystemService(NotificationManager.class);
+        dropOldChannels(manager);
         NotificationChannel existing = manager.getNotificationChannel(REMIND_CHANNEL);
         if (existing != null) {
             if (name != null && !name.contentEquals(existing.getName())) { existing.setName(name); manager.createNotificationChannel(existing); }
             return;
         }
         NotificationChannel ch = new NotificationChannel(REMIND_CHANNEL, name != null ? name : "Workout reminders", NotificationManager.IMPORTANCE_DEFAULT);
+        ch.setSound(pixelSound(context), soundAttrs());
         ch.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
         manager.createNotificationChannel(ch);
     }
@@ -337,6 +355,56 @@ public class RestTimerPlugin extends Plugin {
             if (call.getBoolean("clearEnd", true)) manager.cancel(IDLE_END_ID);
             call.resolve();
         } catch (Exception error) { call.reject("Could not stop the workout check", error); }
+    }
+
+    // V37 · İdmanda telefonu bırak (FocusGuard).
+    @PluginMethod
+    public void focusSet(PluginCall call) {
+        String sid = call.getString("sid");
+        Long startedAt = call.getLong("startedAt");
+        if (sid == null || startedAt == null || startedAt <= 0) { call.reject("sid ve startedAt gerekli"); return; }
+        try {
+            Long lastInput = call.getLong("lastInput", 0L);
+            FocusGuard.set(getContext(), sid, startedAt, lastInput == null ? 0 : lastInput,
+                call.getBoolean("back", true), call.getBoolean("end", true),
+                call.getString("backTitle", "Back to your workout"), call.getString("backBody", ""),
+                call.getString("endTitle", "Finished your workout?"), call.getString("endBody", ""),
+                call.getString("backChannel"), call.getString("endChannel"));
+            call.resolve();
+        } catch (Exception error) { call.reject("Could not set the workout guard", error); }
+    }
+
+    @PluginMethod
+    public void focusStop(PluginCall call) {
+        try { FocusGuard.stop(getContext()); call.resolve(); }
+        catch (Exception error) { call.reject("Could not stop the workout guard", error); }
+    }
+
+    /** Son öne gelme 2 dk kuralıyla kendiliğinden mi oldu? (okununca silinir) */
+    @PluginMethod
+    public void focusResume(PluginCall call) {
+        JSObject result = new JSObject();
+        result.put("auto", FocusGuard.consumeAuto(getContext()));
+        call.resolve(result);
+    }
+
+    @PluginMethod
+    public void overlay(PluginCall call) {
+        JSObject result = new JSObject();
+        result.put("needed", FocusGuard.overlayNeeded());
+        result.put("allowed", FocusGuard.overlayAllowed(getContext()));
+        call.resolve(result);
+    }
+
+    @PluginMethod
+    public void openOverlaySettings(PluginCall call) {
+        if (Build.VERSION.SDK_INT < 23) { call.resolve(); return; }
+        try {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getContext().getPackageName()));
+            if (getActivity() != null) getActivity().startActivity(intent);
+            else getContext().startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            call.resolve();
+        } catch (Exception error) { call.reject("Could not open overlay settings", error); }
     }
 
     @PluginMethod

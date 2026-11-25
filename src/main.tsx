@@ -13,6 +13,13 @@ import App from './app/App';
 
 registerSW({ immediate: true });
 
+// V37: basılı tutma menüsü (kopyala, resmi kaydet, bağlantıyı aç) yalnız yazı alanlarında açılır.
+document.addEventListener('contextmenu', (e) => {
+  const el = e.target as HTMLElement | null;
+  if (el && el.closest && el.closest('input, textarea, select, [contenteditable="true"]')) return;
+  e.preventDefault();
+});
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />

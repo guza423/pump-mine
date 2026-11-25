@@ -31,6 +31,7 @@ public class ReminderReceiver extends BroadcastReceiver {
             .setCategory(Notification.CATEGORY_REMINDER)
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setContentIntent(RestTimerPlugin.openApp(context));
+        if (android.os.Build.VERSION.SDK_INT < 26) notification.setSound(RestTimerPlugin.pixelSound(context));
         try { manager.notify(RestTimerPlugin.REMIND_BASE + Math.max(0, slot), notification.build()); }
         catch (SecurityException denied) { /* bildirim izni yok */ }
     }
