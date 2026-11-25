@@ -110,4 +110,7 @@ export const insights: Record<string, Entry> = {
   "Temiz deneme yüzdesi: temiz deneme 1, kısmen 0,5, olmadı 0 sayılır. Tutuş süresi yalnızca en az kısmen çıkan denemelerden.": "Clean attempt share: a clean attempt counts 1, partly 0.5, missed 0. Hold time only from attempts that at least partly worked.",
   "Grafik": "Chart",
   "Grafik için yeterli kayıt yok.": "Not enough records for a chart.",
+  "Semboller": "Symbols",
+  "Kaçırıldı": "Missed",
+  "Plansız beceri antrenmanı": "Quick skill workout",
 };

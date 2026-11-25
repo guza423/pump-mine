@@ -826,3 +826,10 @@ Plansız idmanı sil gibi silme tuşları herzaman hemen basar basmaz çalışma
 - 40 dk sonra 3 dk dokunulmazsa titreşim, dokunulmadıkça her 3 dk (önde yalnız titreşim, arkada sessiz titreşimli "İdman bitti mi?" bildirimi).
 - Okuma kararları: 2 ve 4 Hesap ve ayarlar'da iki anahtar (varsayılan açık); ses bildirim akışında (alarm akışı sessiz modu ezerdi), yükseklik dosyanın tam genliğinden.
 **Kayıt:** `6acbf09` (kod + belgeler) ve bu commit (`GOREV.md`). Kontroller: `npx vitest run` (181), `tsc -b`, lint, build, `test:layout` geçti; APK ve Play AAB (dahili test) iş akışları başarılı.
+
+### 2026-11-25 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** (ekran görüntüleri: plan düzenleyici "Homie" ve START; Gözlem takviminde geçmiş günlerde kırmızı çizgiler; ekran videosu) "İlk resimde: idman kaydederken plan olarak direkt start yazio o tuş kaydetme tuşu olucak burda plan yapioz çünkü plan sayfasında plam bitince kaydet yada onayla gibi tuş olsun / İkinci resimde. Bugün bile plan oluştursam eski olan tüm günleri işaretlio yapmadı olarak. Plan yapılınca yapıldığı günden itibaren sayıcak sadece. Ve idman npktaları var ya takvimde onlarda her idmana göre başka bir sembolle göster. İdman çeşidi farklı çünkü. İşte kimi yıldız mavi kimi üçgen kimi kare mimi daire falan falan / Üçüncü resimdeki ise ekran videoda göreceğin gibi böyle sayfalar arası geçerken sağ taraftan bişiler çıkıo onuda düzeltek."
+**Yapılan:**
+- **V38** (`docs/gorevler/V38-plan-kaydet-takvim-sembol-gecis.md`): plan ekranında Kaydet; haftalık plan eklendiği günden sayılır; her plan kendi şekil+rengiyle (plansız kare), takvim altında açıklama, Dashboard haftasında da.
+- Video incelendi: süren idmanda Antrenman sekmesinden çıkarken şerit geçişi sağa kayıyordu; artık yerinde açılıyor.
+- Sağ kenardaki beyaz tutamak Samsung Kenar paneli.

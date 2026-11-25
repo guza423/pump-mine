@@ -6,6 +6,7 @@ Hangi AI olursa olsun: önce `git pull --rebase origin main`, sonra `AGENTS.md`'
 Şu an bekleyen kod görevi yok. Play Store hazırlığı (V27) bitti; kalan adımlar kullanıcıda (`docs/PROJE.md` › Açık işler › Play Store). Dil geçişi (V21–V25) ve çok dil hazırlığı (V26) bitti; yeni dil eklemek için `AGENTS.md` › Dil › "Yeni dil ekleme".
 
 ## Tamamlanan
+- [V38 · Plan ekranında Kaydet, plan tarihinden önce kaçırıldı yok, antrenman çeşidi sembolleri, yana kaymayan geçiş](docs/gorevler/V38-plan-kaydet-takvim-sembol-gecis.md): 2026-11-25 · `COMMIT` · Claude doğrudan
 - [V37 · Metin seçimi kapalı, idmanda telefonu bırak (2 dk'da geri aç), 8-bit bildirim sesi, 40 dk sonrası titreşim](docs/gorevler/V37-metin-secimi-telefonu-birak-piksel-ses.md): 2026-11-25 · `6acbf09` · Claude doğrudan
 - [V36 · Ekran modları (sakin, ısınma, idman, lab), geçişler, süren idman şeridi, idmanda koyu SETLER kutusu](docs/gorevler/V36-ekran-modlari.md): 2026-11-25 · `3fdc1f5` · Claude doğrudan
 - [V35 · Kas başına set payı (kesirli haftalık set) ve yeni hareketler](docs/gorevler/V35-kas-payi-yeni-hareketler.md): 2026-11-25 · `d4c5337`

@@ -40,15 +40,39 @@ export function normalizeDay(day: ProgramDay): ProgramDay {
   return next;
 }
 
-export function allPlans(programs: Program[] = []): { programId: string; day: ProgramDay }[] {
+export function allPlans(programs: Program[] = []): { programId: string; day: ProgramDay; createdAt: number }[] {
   const sorted = [...programs].sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
-  const out: { programId: string; day: ProgramDay }[] = [];
+  const out: { programId: string; day: ProgramDay; createdAt: number }[] = [];
   for (const p of sorted) {
     for (const d of p.days || []) {
-      out.push({ programId: p.id, day: normalizeDay(d) });
+      out.push({ programId: p.id, day: normalizeDay(d), createdAt: p.createdAt || 0 });
     }
   }
   return out;
+}
+
+/** V38: haftalık günün başladığı tarih. Eski kayıtta (wdFrom yok) planın oluşturulduğu gün. */
+export function weeklyFrom(day: ProgramDay, wd: number, createdAt = 0): string {
+  const own = day.wdFrom && day.wdFrom[String(wd)];
+  return own || (createdAt ? dateKey(createdAt) : '0000-00-00');
+}
+
+/**
+ * V38: kayıt öncesi haftalık günlere başlangıç tarihi yazar. Yeni eklenen gün bugünden, kaldırılan günün tarihi silinir.
+ * wdFrom hiç yoksa (eski kayıt) mevcut günler planın oluşturulduğu günden sayılır (geçmiş değişmez).
+ */
+export function stampProgram(p: Program, today = dateKey()): Program {
+  if (!p || !Array.isArray(p.days)) return p;
+  const np = clone(p);
+  np.days = np.days.map((d) => {
+    const wds = weekdaysOf(d);
+    const legacy = !d.wdFrom;
+    const base = legacy ? (np.createdAt ? dateKey(np.createdAt) : today) : today;
+    const from: Record<string, string> = {};
+    for (const w of wds) from[String(w)] = (d.wdFrom && d.wdFrom[String(w)]) || base;
+    return { ...d, wdFrom: from };
+  });
+  return np;
 }
 
 export function plansOn(
@@ -58,9 +82,9 @@ export function plansOn(
   const key = typeof keyOrTs === 'string' ? keyOrTs : dateKey(keyOrTs);
   const wd = parseDateKey(key).getDay();
   const out: { programId: string; day: ProgramDay; src: 'hafta' | 'tek' }[] = [];
-  for (const { programId, day } of allPlans(programs)) {
+  for (const { programId, day, createdAt } of allPlans(programs)) {
     if (!day.items || !day.items.length) continue;
-    const isWeekly = (day.weekdays || []).includes(wd) && !(day.skip || []).includes(key);
+    const isWeekly = (day.weekdays || []).includes(wd) && !(day.skip || []).includes(key) && key >= weeklyFrom(day, wd, createdAt);
     const isOnce = (day.dates || []).includes(key);
     if (isWeekly) out.push({ programId, day, src: 'hafta' });
     else if (isOnce) out.push({ programId, day, src: 'tek' });
@@ -112,6 +136,7 @@ export function newPlanDoc(name = ''): Program {
     id: newId('d'),
     name,
     weekdays: [],
+    wdFrom: {},
     dates: [],
     skip: [],
     items: [],

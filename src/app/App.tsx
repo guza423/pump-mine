@@ -3,6 +3,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BackupContext } from '../lib/store/BackupContext';
 import { AccountChip, AccountBody, ConsentBody, PrivacyBody } from '../features/hesap/Account';
 import { addShares, exShare, searchAlias } from '../lib/data/exlib';
+import { PlanSym } from '../features/plan/PlanSym';
+import { daySymbol, planOrder, sessionSymbol } from '../features/plan/planSymbols';
 import { LegalGate } from '../legal/LegalGate';
 import { LegalDoc } from '../legal/LegalDoc';
 import { appDocId, appDocTitle } from '../legal/appDocs';
@@ -20,7 +22,7 @@ import {
 } from '../features/antrenman/core';
 import {
   allPlans, dateKey, parseDateKey, plansOn, newPlanDoc, upsertPlan, removePlan,
-  addOnce, addWeekly, removeOn, weekProgram, thisWeekProgram, normalizeDay, weekdaysOf,
+  addOnce, addWeekly, removeOn, weekProgram, thisWeekProgram, normalizeDay, weekdaysOf, stampProgram,
 } from '../features/plan/plans';
 import {
   SKILL_STAGES, readGoals, upsertGoal, removeGoal, advanceSkillStage, matchesSkillGoal, skillStats,
@@ -294,12 +296,17 @@ function WeekRow({ programs, sessions }) {
   const today = new Date();
   const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - ((today.getDay() + 6) % 7));
   const done = sessions.filter((s) => s.status === 'done' && !s.ready);
+  const order = planOrder(programs);
   const cells = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
     const key = dateKey(d);
-    const n = done.filter((s) => sameDay(s.startedAt, d)).length;
-    const plan = plansOn(key, programs).length > 0;
-    return { d, wd: d.getDay(), n, plan, today: sameDay(d, today), past: d < new Date(today.getFullYear(), today.getMonth(), today.getDate()) };
+    const daySes = done.filter((s) => sameDay(s.startedAt, d));
+    const n = daySes.length;
+    const plans = plansOn(key, programs);
+    const plan = plans.length > 0;
+    // V38: günün sembolü (ilk yapılan antrenmanın ya da ilk planın)
+    const sym = n ? sessionSymbol(daySes[0], order, isSkillHeavySession(daySes[0])) : plan ? daySymbol(plans[0].day.id, order) : null;
+    return { d, wd: d.getDay(), n, plan, sym, today: sameDay(d, today), past: d < new Date(today.getFullYear(), today.getMonth(), today.getDate()) };
   });
   return (
     <div className="week-row">
@@ -307,7 +314,7 @@ function WeekRow({ programs, sessions }) {
         <div key={c.wd} className={'wd' + (c.today ? ' today' : '') + (c.n ? ' done' : c.plan ? (c.past ? ' missed' : ' plan') : '')}>
           <span className="wd-k">{WD_SHORT[c.wd]}</span>
           <span className="wd-d mono">{c.d.getDate()}</span>
-          <i className="wd-dot" />
+          {c.sym && (c.n || !c.past) ? <PlanSym sym={c.sym} hollow={!c.n} size={9} className="wd-sym" /> : <i className="wd-dot" />}
         </div>
       ))}
     </div>
@@ -1133,21 +1140,17 @@ function PlanEditor({ program, dayId, st, put, del, onBack, openSheet, startSess
             </ol>
           ) : <div className="empty sm"><strong>{t('Boş plan')}</strong><p>{t('Hareketleri tek tek ekle. Listede olmayanı adını yazarak ekleyebilirsin.')}</p></div>}
           <button type="button" id="add-item" className="add-item" onClick={addItem}>+ {t('Hareket ekle')}</button>
+          {/* V38: planlama ekranı başlatmaz, kaydeder (başlatmak: plan menüsü, Dashboard, Gözlem) */}
           <div className="ed2-foot">
-            {day.items.length ? (
-              <button
-                type="button"
-                id="ed-start"
-                className="btn primary full"
-                onClick={() => {
-                  flush();
-                  const np = buildProgram(latestDay.current);
-                  startSession(np, latestDay.current);
-                }}
-              >
-                <Icon name="play" size={13} /> {t('Başlat')}
-              </button>
-            ) : null}
+            <button
+              type="button"
+              id="ed-save"
+              className="btn primary full"
+              disabled={!day.items.length}
+              onClick={() => { flush(); onBack(); }}
+            >
+              <PxIcon name="check" size={16} /> {t('Kaydet')}
+            </button>
           </div>
         </div>
       </div>
@@ -1164,6 +1167,8 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
   const [menuDid, setMenuDid] = useState(null);
 
   const done = useMemo(() => st.sessions.filter((s) => s.status === 'done'), [st.sessions]);
+  // V38: her antrenman çeşidinin sembolü (plan başına şekil + renk, plansız kare)
+  const symOrder = useMemo(() => planOrder(st.programs), [st.programs]);
   const isCurrentMonth = viewYm.y === today.getFullYear() && viewYm.m === today.getMonth();
 
   // 42 hücrelik takvim (Pazartesi başlangıçlı, 6 satır sabit)
@@ -1180,12 +1185,13 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
       const dayPlans = plansOn(key, st.programs);
       const markers = [];
       daySessions.forEach((s) => {
-        markers.push({ type: 'done', skill: isSkillHeavySession(s) });
+        const skill = isSkillHeavySession(s);
+        markers.push({ type: 'done', sym: sessionSymbol(s, symOrder, skill), key: s.dayId || (skill ? 'free-skill' : 'free'), label: s.dayId ? sessionName(s) : null });
       });
       dayPlans.forEach(({ day: pDay }) => {
         const doneForPlan = daySessions.some((s) => s.dayId === pDay.id);
         if (!doneForPlan) {
-          markers.push({ type: isPast ? 'missed' : 'plan' });
+          markers.push({ type: isPast ? 'missed' : 'plan', sym: daySymbol(pDay.id, symOrder), key: pDay.id, label: dayLabel(pDay.name) });
         }
       });
       const labelDate = t('{d} {m} {wd}', { d: d.getDate(), m: MONTHS_LONG[d.getMonth()], wd: WD_LONG[d.getDay()] });
@@ -1195,7 +1201,22 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
       const aria = parts.length ? labelDate + ': ' + parts.join(', ') : labelDate;
       return { d, key, inMonth, isToday, isPast, daySessions, dayPlans, markers, aria };
     });
-  }, [viewYm.y, viewYm.m, todayKey, done, st.programs]);
+  }, [viewYm.y, viewYm.m, todayKey, done, st.programs, symOrder]);
+  // V38: bu ayda görünen sembollerin açıklaması
+  const legend = useMemo(() => {
+    const seen = new Map();
+    let missed = false;
+    cells.forEach((c) => {
+      if (!c.inMonth) return;
+      c.markers.forEach((mk) => {
+        if (mk.type === 'missed') missed = true;
+        if (mk.type === 'missed' || seen.has(mk.key)) return;
+        const label = mk.key === 'free' ? t('Plansız antrenman') : mk.key === 'free-skill' ? t('Plansız beceri antrenmanı') : mk.label;
+        seen.set(mk.key, { sym: mk.sym, label });
+      });
+    });
+    return { items: [...seen.entries()], missed };
+  }, [cells]);
 
   const [slide, setSlide] = useState(null); // V33 · ay değişiminde kısa kayma: { d: -1 | 1, n }
   const changeMonth = (delta) => {
@@ -1315,7 +1336,9 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
                   <span>{c.d.getDate()}</span>
                   <span className="cal-marks" aria-hidden="true">
                     {showMarkers.map((mk, idx) => (
-                      <i key={idx} className={'cal-m ' + mk.type + (mk.skill ? ' skill' : '')} />
+                      mk.type === 'missed'
+                        ? <i key={idx} className="cal-m missed" />
+                        : <PlanSym key={idx} sym={mk.sym} hollow={mk.type === 'plan'} size={10} className={'cal-m ' + mk.type} />
                     ))}
                     {extra ? <span className="cal-more">+</span> : null}
                   </span>
@@ -1323,6 +1346,12 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
               );
             })}
           </div>
+          {legend.items.length || legend.missed ? (
+            <ul className="cal-legend" aria-label={t('Semboller')}>
+              {legend.items.map(([k, x]) => <li key={k}><PlanSym sym={x.sym} size={10} /><span>{x.label}</span></li>)}
+              {legend.missed ? <li><i className="cal-m missed" aria-hidden="true" /><span>{t('Kaçırıldı')}</span></li> : null}
+            </ul>
+          ) : null}
         </section>
 
         <section id="day-panel" aria-label={t('Seçili gün ayrıntısı')}>
@@ -1334,7 +1363,7 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
             const f = sessionFatigue(s, st).post;
             return (
               <button key={s.id} type="button" className="hrow sm" onClick={() => openSheet('summary', { id: s.id })}>
-                <i className={'hrow-dot' + (isSkillHeavySession(s) ? ' skill' : '')} />
+                <PlanSym sym={sessionSymbol(s, symOrder, isSkillHeavySession(s))} size={12} className="hrow-sym" />
                 <span className="hrow-t">
                   <strong>{sessionName(s)}</strong>
                   <small className="mono">{durTxt(ss.dur)} · {t('{n} set', { n: ss.sets.length })}</small>
@@ -1351,7 +1380,7 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
             return (
               <div key={pDay.id} className="day-plan-wrap">
                 <div className={'day-plan-row' + (isDone ? ' done' : '')}>
-                  <span className="day-plan-ic">{isDone ? '✓' : '○'}</span>
+                  <span className="day-plan-ic"><PlanSym sym={daySymbol(pDay.id, symOrder)} hollow={!isDone} size={12} /></span>
                   <span className="day-plan-t">
                     <strong>{dayLabel(pDay.name)}</strong>
                     <small>· {srcTxt}</small>
@@ -2135,7 +2164,8 @@ function App() {
   const [pixelSummary, setPixelSummary] = useState(null);
   const [jumpExId, setJumpExId] = useState(null);
   const previousAccount = useRef(acct.mode + ':' + acct.uid);
-  const put = (kind, obj) => (apiRef.current ? apiRef.current.put(kind, obj) : null);
+  // V38: planın haftalık günlerine başlangıç tarihi yazılır (öncesi takvimde kaçırıldı sayılmaz)
+  const put = (kind, obj) => (apiRef.current ? apiRef.current.put(kind, kind === 'programs' ? stampProgram(obj) : obj) : null);
   const del = (kind, id) => (apiRef.current ? apiRef.current.del(kind, id) : null);
   const addCustom = (name, muscle) => { const doc = { id: newId('x'), name, muscle: muscle || 'Diğer', createdAt: Date.now(), pending: true }; put('custom', doc); return doc; };
   const openSheet = (type, props) => setSheets((a) => [...a, { key: newId('sh'), type, props: props || {} }]);

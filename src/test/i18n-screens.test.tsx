@@ -403,7 +403,7 @@ describe('İngilizce arayüz (V21)', () => {
     const { container } = render(<App />);
     const click = (selector) => fireEvent.click(container.querySelector(selector));
     const device = () => container.querySelector('.device');
-    const userData = ['.day-plan-t strong', '.day-plan-more', '.pd2-n', '.plan-pick-opt strong'];
+    const userData = ['.day-plan-t strong', '.day-plan-more', '.pd2-n', '.plan-pick-opt strong', '.cal-legend span'];
     await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
     click('#tab-gozlem');
     expect(await screen.findByRole('heading', { level: 1, name: 'Plan & insights' })).toBeTruthy();
@@ -696,7 +696,13 @@ describe('yeni dil hazırlığı (V26)', () => {
     await waitFor(() => expect(container.querySelector('.itemsheet')).toBeTruthy());
     scan('plan-hareket-ayari');
     await closeTop();
-    click('#ed-start');
+    // V38: plan ekranı kaydeder; başlatma plan menüsünden
+    click('#ed-save');
+    await waitFor(() => expect(container.querySelector('.wtype-main')).toBeTruthy());
+    scan('plan-listesi');
+    click('.wtype-main');
+    await waitFor(() => expect(container.querySelector('#wtype-start')).toBeTruthy());
+    click('#wtype-start');
     await waitFor(() => expect(container.querySelector('.px-card.cur')).toBeTruthy());
     scan('planli-liste');
     fireEvent.click(container.querySelector('.px-card.cur .card-main'));

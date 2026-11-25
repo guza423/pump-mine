@@ -315,6 +315,7 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
 
     screen = 'planli-editor';
     await page.locator('#new-plan').click();
+    await page.locator('#plan-name').fill('Layout');
     await page.locator('#add-item').click();
     await page.locator('#ex-search').fill('düz bench');
     await page.locator('.exr-main').first().click();
@@ -327,7 +328,10 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
     await page.locator('.sheet-wrap .fchip.sm[aria-pressed]').nth(4).click();
     await page.locator('.sheet-wrap .x-btn').last().click();
     await page.locator('.sheet-wrap').waitFor({ state: 'detached' });
-    await page.locator('#ed-start').click();
+    // V38: plan ekranı kaydeder; başlatma plan menüsünden (basılı tut; klavyeyle hemen)
+    await page.locator('#ed-save').click();
+    await page.locator('.wtype-main', { hasText: 'Layout' }).click();
+    await page.locator('#wtype-start').press('Enter');
     await page.locator('.px-card.cur').waitFor();
     screen = 'planli-liste';
     await check(page, label, screen);
@@ -597,6 +601,7 @@ async function flowLang(lang, viewport, scale = 1, tablet = false, safeArea = fa
     await check(page, label, screen);
     screen = 'plan-item-settings';
     await page.locator('#new-plan').click();
+    await page.locator('#plan-name').fill('Layout');
     await page.locator('#add-item').click();
     await page.locator('#ex-search').fill('barbell bench');
     await page.locator('.exr-main').first().click();
@@ -606,7 +611,10 @@ async function flowLang(lang, viewport, scale = 1, tablet = false, safeArea = fa
     await page.locator('.sheet-wrap .fchip.sm[aria-pressed]').nth(4).click();
     await page.locator('.sheet-wrap .x-btn').last().click();
     await page.locator('.sheet-wrap').waitFor({ state: 'detached' });
-    await page.locator('#ed-start').click();
+    // V38: plan ekranı kaydeder; başlatma plan menüsünden (basılı tut; klavyeyle hemen)
+    await page.locator('#ed-save').click();
+    await page.locator('.wtype-main', { hasText: 'Layout' }).click();
+    await page.locator('#wtype-start').press('Enter');
     await page.locator('.px-card.cur').waitFor();
     screen = 'planned-list';
     await check(page, label, screen);

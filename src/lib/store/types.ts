@@ -21,6 +21,8 @@ export interface ProgramDay {
   name: string;
   weekday?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | null;
   weekdays?: number[];
+  /** V38: haftalık gün hangi tarihten beri planda (gün → 'YYYY-MM-DD'). Öncesi "kaçırıldı" sayılmaz. */
+  wdFrom?: Record<string, string>;
   dates?: string[];
   skip?: string[];
   items: ProgramItem[];

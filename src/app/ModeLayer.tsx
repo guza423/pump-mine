@@ -68,7 +68,7 @@ export function ModeTransition({ tr }: { tr: { kind: ModeTr; n: number } | null 
     const col = tr.kind === 'into' ? COAL : NIGHT;
     return (
       <div key={tr.n} className="px-md-tr" aria-hidden="true">
-        {Array.from({ length: 12 }, (_, i) => <i key={i} className="px-md-bar" style={{ top: (i * 100) / 12 + '%', background: col[i % 2], animationDelay: (i * 0.008).toFixed(3) + 's' }} />)}
+        {Array.from({ length: 12 }, (_, i) => <i key={i} className="px-md-bar" style={{ top: (i * 100) / 12 + '%', background: col[i % 2], animationDelay: (i * 0.012).toFixed(3) + 's' }} />)}
       </div>
     );
   }

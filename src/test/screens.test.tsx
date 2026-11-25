@@ -287,7 +287,10 @@ describe('ana ekran akışları', () => {
     fireEvent.click(within(itemSheet).getAllByRole('button', { name: 'Kapat' }).at(-1));
     await waitFor(() => expect(container.querySelector('.ed2-list .item-t em')?.textContent).toBe('Altta beklet'));
     expect(container.querySelector('.ed2-list .item-t small').textContent).toContain((before + 1) + ' × ');
-    click('#ed-back');
+    // V38: plan ekranının ana düğmesi Kaydet (başlatmaz), plan listesine döner
+    expect(container.querySelector('#ed-start')).toBeNull();
+    expect(container.querySelector('#ed-save').textContent).toContain('Kaydet');
+    click('#ed-save');
 
     await waitFor(() => expect(container.querySelector('.plan-list')).toBeTruthy());
     expect(container.querySelector('.plan-list').textContent).toContain('Push Planı');
@@ -338,6 +341,8 @@ describe('ana ekran akışları', () => {
     const todayKey = dateKey(now);
     const todayCell = container.querySelector(`.cal-d[data-date="${todayKey}"]`);
     expect(todayCell?.classList.contains('today')).toBe(true);
+    expect(todayCell?.querySelector('.cal-m.done').getAttribute('data-shape')).toBe('square');
+    expect(container.querySelector('.cal-legend').textContent).toContain('Plansız antrenman');
     expect(todayCell?.classList.contains('sel')).toBe(true);
 
     // Gelecek Pazartesi hücresinde halka (.cal-m.plan)
@@ -351,6 +356,9 @@ describe('ana ekran akışları', () => {
     }
     const monCell = container.querySelector(`.cal-d[data-date="${nextMonKey}"]`);
     expect(monCell?.querySelector('.cal-m.plan')).toBeTruthy();
+    // V38: plan sembolü (ilk plan daire, içi boş), plansız antrenman dolu kare, alt açıklama
+    expect(monCell?.querySelector('.cal-m.plan').getAttribute('data-shape')).toBe('circle');
+    expect(monCell?.querySelector('.cal-m.plan').getAttribute('data-hollow')).toBe('1');
     if (nextMon.getMonth() !== now.getMonth()) {
       click('#cal-prev');
     }
@@ -1112,5 +1120,23 @@ describe('ana ekran akışları', () => {
     fireEvent.pointerDown(cal, { clientX: 100, clientY: 300 });
     fireEvent.pointerUp(cal, { clientX: 260, clientY: 300 });
     await waitFor(() => expect(container.querySelector('.cal-title').textContent).toBe(title));
+  });
+
+  it('V38 · bugün oluşturulan haftalık plan geçmiş günleri kaçırıldı göstermez', async () => {
+    const now = new Date();
+    await db.programs.put({
+      id: 'p-yeni', name: 'Homie', createdAt: now.getTime(), updatedAt: now.getTime(),
+      days: [{ id: 'd-yeni', name: 'Homie', weekdays: [0, 1, 2, 3, 4, 5, 6], dates: [], skip: [],
+        items: [{ id: 'i1', exId: 'squat', name: 'Squat', muscle: 'Quadriceps', sets: 3, repMin: 5, repMax: 5, kg: 100, rpeMin: 8, rpeMax: 8, rest: 180, note: '' }] }],
+    });
+    const { container } = render(<App />);
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    fireEvent.click(container.querySelector('#tab-gozlem'));
+    await screen.findByRole('heading', { level: 1, name: 'Antrenman plan ve gözlem' });
+    expect(container.querySelectorAll('.cal .cal-m.missed')).toHaveLength(0);
+    const tomorrow = dateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1));
+    const cell = container.querySelector(`.cal-d[data-date="${tomorrow}"]`);
+    if (cell) expect(cell.querySelector('.cal-m.plan')).toBeTruthy();
+    expect(container.querySelector('.cal-legend').textContent).toContain('Homie');
   });
 });
