@@ -846,3 +846,5 @@ Kütüphaneyi büyütelim hadi"
 - 52 ayrıntılı kas (grup payı × bölge ağırlığı); hareket bilgisinde, antrenman özetinde ve aramada.
 - Dövüş türü: set = raund (0,5 dk adımla süre + Teknik…Maç yoğunluk), yorgunluğa seans-RPE ile girer, zor sete/tonaja girmez; plan düzenleyici, özet ve hareket gelişimi (seans yükü AU, dakika, raund).
 **Kontroller:** `npx vitest run` (194), `tsc -b`, build, `test:layout` (yeni `seans-dovus` ekranları dahil).
+**Kullanıcı (05:48):** "Yok repoya yaz ya izin veriyorum. Build et falan yeni sürümü indiriyim"
+**Kayıt:** `958014c` (kod + belgeler) `main`'e push edildi ve bu commit (`GOREV.md`). Play AAB iş akışı başarılı, dahili teste yüklendi.
