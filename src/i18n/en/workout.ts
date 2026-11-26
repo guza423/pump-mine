@@ -442,4 +442,5 @@ export const workout: Record<string, Entry> = {
   "Raund": "Rounds",
   "Raund arası dinlenme": "Rest between rounds",
   "Ayrıntılı kaslar": "Detailed muscles",
+  "GEÇMİŞ KAYIT": "PAST LOG",
 };

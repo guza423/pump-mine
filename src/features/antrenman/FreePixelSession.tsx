@@ -77,6 +77,8 @@ export const FreePixelSession: React.FC<Props> = ({
   const [s, setS] = useState(sRef.current);
   // Planlı oturum da aynı pixel ekranı kullanır (V29): plan adı, hareket hedefleri ve notları eklenir.
   const planned = !isFree(s);
+  // V41 · geçmişe kayıt (takvimden geçmiş bir güne): dinlenme yok, set hemen kaydedilir, saatler o güne dizilir
+  const backfill = !!s.backfill;
   const [scr, setScr] = useState<'list' | 'pick' | 'log'>('list');
   const [cur, setCur] = useState(() => (isFree(session) ? 0 : firstOpen(session)));
   const [now, setNow] = useState(() => Date.now());
@@ -463,7 +465,7 @@ export const FreePixelSession: React.FC<Props> = ({
     void stopRest();
     setConfirmModal(null);
     rtD.current = null;
-    const end = Date.now();
+    const end = sRef.current.backfill ? backfillEnd(sRef.current) : Date.now();
     const draft = { ...clone(sRef.current), status: 'done', endedAt: end };
     delete draft.ready;
     delete draft.rest;
@@ -782,12 +784,24 @@ export const FreePixelSession: React.FC<Props> = ({
     adjustRest(d);
   };
 
+  // V41 · geçmişe kayıtta set saati: ilk set antrenman başlangıcı, sonrakiler son setten bir dinlenme süresi sonra
+  const backfillAt = (cur: any, it: any) => {
+    const ats = cur.items.flatMap((x: any) => x.sets.map((z: any) => z.at || 0)).filter(Boolean);
+    if (!ats.length) return cur.startedAt;
+    return Math.max(...ats) + Math.max(30, restDuration(cur, it, prefsRef.current)) * 1000;
+  };
+  const backfillEnd = (cur: any) => {
+    const ats = cur.items.flatMap((x: any) => x.sets.map((z: any) => z.at || 0)).filter(Boolean);
+    return (ats.length ? Math.max(...ats) : cur.startedAt) + 60_000;
+  };
+
   const logSet = () => {
     if (!item) return;
     if (sRef.current.ready) {
       autoStart('İlk setini kaydettin');
     }
-    const nowTs = Date.now();
+    const isBack = !!sRef.current.backfill;
+    const nowTs = isBack ? backfillAt(sRef.current, item) : Date.now();
     const set: any = isWarmupEx
       // V33 · antrenman öncesi ısınma: yalnızca süre ve yoğunluk; hesaplara girmez
       ? { kg: 0, reps: 1, dur: wDur, z: wZ, warm: true, lvl: null, vl: 0, rpe: null, rir: 9, at: nowTs }
@@ -845,11 +859,11 @@ export const FreePixelSession: React.FC<Props> = ({
       delete ns.rest;
       ns.items[cur].sets.push(set);
       delete ns.items[cur].done;
-      ns.rest = nextRest;
+      if (!isBack) ns.rest = nextRest;
     });
 
     void stopRest();
-    void startRest(nextRest, exLabel(item));
+    if (!isBack) void startRest(nextRest, exLabel(item));
 
     curVals.current.rom = 100;
     setRomState(100);
@@ -858,7 +872,7 @@ export const FreePixelSession: React.FC<Props> = ({
     setWarm(false);
     setSelIdx(null);
     setFxLog((x) => x + 1);
-    setNow(nowTs);
+    setNow(Date.now());
     pixelFx.logSet(fxRef.current);
 
     // Uçan blok kaydet düğmesinden ilk set hücresine iner; dinlenme ekranı inişten sonra açılır.
@@ -870,7 +884,7 @@ export const FreePixelSession: React.FC<Props> = ({
     const grid = setListRef.current as HTMLElement | null;
     const root = btn ? (btn.closest('.px') as HTMLElement | null) : null;
     if (noMM || !btn || !grid || !root) {
-      setRestOpen(true);
+      if (!isBack) setRestOpen(true);
       return;
     }
     // planlıda kutucuklar yerinde kalır (sıradaki zaten hizalı); plansızda yeni set en üste iner
@@ -1127,12 +1141,14 @@ export const FreePixelSession: React.FC<Props> = ({
     return (
       <div className={'screen px night' + (motionOn ? ' px-motion' : '')}>
         <div className="px-scr">
-          <div className="px-head">
+          <div className="px-head px-ses-head">
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
               <span className="px-ses-title" style={{ fontSize: 21, fontWeight: 700, letterSpacing: '0.04em', lineHeight: 1.1 }}>{planned ? upTr(sessionName(s)) : upper(t('Plansız antrenman'))}</span>
               <span className="px-ses-meta">
                 <span className="px-ses-date">{sesDate}</span>
-                {s.ready ? (
+                {backfill ? (
+                  <b className="px-backfill">{t('GEÇMİŞ KAYIT')}</b>
+                ) : s.ready ? (
                   <span>{t('HAZIR')} · <b>{t('başlamadı')}</b></span>
                 ) : (
                   <React.Fragment>
@@ -1142,7 +1158,7 @@ export const FreePixelSession: React.FC<Props> = ({
                 )}
               </span>
             </div>
-            {s.ready ? (
+            {s.ready || (backfill && !totalSets) ? (
               <HoldButton id="discard-ready-btn" className="ib px-ib-hold" aria-label={t('İdmanı iptal et (1 saniye basılı tut)')} onHold={discard} hint="basılı tut">
                 {t('İPTAL')}
               </HoldButton>

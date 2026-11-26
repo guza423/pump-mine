@@ -1139,4 +1139,79 @@ describe('ana ekran akışları', () => {
     if (cell) expect(cell.querySelector('.cal-m.plan')).toBeTruthy();
     expect(container.querySelector('.cal-legend').textContent).toContain('Homie');
   });
+  // V41 · takvimden geçmiş bir güne antrenman kaydı: dinlenme açılmaz, setler o güne dizilir
+  const openPastDay = async (container) => {
+    fireEvent.click(container.querySelector('#tab-gozlem'));
+    await waitFor(() => expect(container.querySelector('.cal')).toBeTruthy());
+    const today = dateKey(new Date());
+    const pick = () => [...container.querySelectorAll('.cal-d:not(.out)')].find((c) => c.dataset.date < today)
+      || [...container.querySelectorAll('.cal-d')].find((c) => c.dataset.date < today);
+    let cell = pick();
+    if (!cell) {
+      const cal = container.querySelector('.cal');
+      fireEvent.pointerDown(cal, { clientX: 100, clientY: 300 });
+      fireEvent.pointerUp(cal, { clientX: 260, clientY: 300 });
+      await waitFor(() => expect(pick()).toBeTruthy());
+      cell = pick();
+    }
+    const key = cell.dataset.date;
+    fireEvent.click(cell);
+    await waitFor(() => expect(container.querySelector(`.cal-d[data-date="${key}"]`).getAttribute('aria-pressed')).toBe('true'));
+    return key;
+  };
+
+  it('V41 · geçmiş güne plansız antrenman kaydı dinlenmesiz, saatler o güne dizilir', async () => {
+    const { container } = render(<App />);
+    const click = selector => fireEvent.click(container.querySelector(selector));
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    const key = await openPastDay(container);
+    expect(container.querySelector('#day-add-plan')).toBeNull();
+    click('#day-log-past');
+    await waitFor(() => expect(container.querySelector('#ses-add-first')).toBeTruthy());
+    expect(container.querySelector('.px-backfill').textContent).toContain('GEÇMİŞ KAYIT');
+    click('#ses-add-first');
+    fireEvent.change(container.querySelector('#ex-search'), { target: { value: 'düz bench' } });
+    fireEvent.click(container.querySelector('.pk'));
+    click('#pick-add');
+    await waitFor(() => expect(container.querySelector('.card-main')).toBeTruthy());
+    fireEvent.click(container.querySelector('.card-main'));
+    click('#log-set');
+    click('#log-set');
+    expect(container.querySelectorAll('.st')).toHaveLength(2);
+    await new Promise((r) => setTimeout(r, 800));
+    expect(container.querySelector('#rest-big')).toBeNull();
+    expect(native.start).not.toHaveBeenCalled();
+    let s;
+    await waitFor(async () => { s = (await db.sessions.toArray())[0]; expect(s.items[0].sets).toHaveLength(2); });
+    expect(s.backfill).toBe(true);
+    expect(s.ready).toBeUndefined();
+    expect(s.rest).toBeUndefined();
+    expect(dateKey(new Date(s.startedAt))).toBe(key);
+    expect(s.items[0].sets[0].at).toBe(s.startedAt);
+    expect(s.items[0].sets[1].at).toBe(s.startedAt + 180000);
+    fireEvent.click(screen.getByRole('button', { name: 'Geri: antrenman listesi' }));
+    click('#finish-btn');
+    expect(await screen.findByText('İDMAN BİTTİ')).toBeTruthy();
+    await waitFor(async () => {
+      const d = (await db.sessions.toArray())[0];
+      expect(d.status).toBe('done');
+      expect(d.endedAt).toBe(d.items[0].sets[1].at + 60000);
+    });
+  });
+
+  it('V41 · geçmiş günün kaçırılan planı Kaydet ile o güne planlı kayıt olarak açılır', async () => {
+    await db.programs.put({
+      id: 'p-eski', name: 'Bacak', createdAt: 0, updatedAt: 0,
+      days: [{ id: 'd-eski', name: 'Bacak', weekdays: [0, 1, 2, 3, 4, 5, 6], dates: [], skip: [],
+        items: [{ id: 'i1', exId: 'squat', name: 'Squat', muscle: 'Quadriceps', sets: 3, repMin: 5, repMax: 5, kg: 100, rpeMin: 8, rpeMax: 8, rest: 180, note: '' }] }],
+    });
+    const { container } = render(<App />);
+    await waitFor(() => expect(container.querySelector('.skeleton')).toBeNull());
+    const key = await openPastDay(container);
+    fireEvent.click(await waitFor(() => container.querySelector('.day-log-plan')));
+    await waitFor(() => expect(container.querySelector('.px-backfill')).toBeTruthy());
+    const s = (await db.sessions.toArray())[0];
+    expect(s).toMatchObject({ backfill: true, dayId: 'd-eski', programId: 'p-eski', status: 'active' });
+    expect(dateKey(new Date(s.startedAt))).toBe(key);
+  });
 });

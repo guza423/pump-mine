@@ -421,7 +421,7 @@ function TodayScreen({ st, put, openSheet, startSession, newPlan, practiceSkill,
 
         {loading ? <div className="skeleton"><span /><span /></div> : active ? (
           <section className="hero-card live">
-            <div className="hc-top"><span className="live-dot" /><span className="eyebrow fire">{active.ready ? t('Hazır') : t('Antrenman sürüyor')}</span><span className="hc-when mono">{active.ready ? t('başlamadı') : t('{n} set', { n: active.items.reduce((a, it) => a + it.sets.length, 0) })}</span></div>
+            <div className="hc-top"><span className="live-dot" /><span className="eyebrow fire">{active.backfill ? t('GEÇMİŞ KAYIT') : active.ready ? t('Hazır') : t('Antrenman sürüyor')}</span><span className="hc-when mono">{active.ready ? t('başlamadı') : t('{n} set', { n: active.items.reduce((a, it) => a + it.sets.length, 0) })}</span></div>
             <h3>{sessionName(active)}</h3>
             <button type="button" id="resume-btn" className="btn fire full" onClick={() => goTab('antrenman')}>{t('Devam et')} <PxIcon name="right" size={16} /></button>
           </section>
@@ -1181,6 +1181,7 @@ function PlanEditor({ program, dayId, st, put, del, onBack, openSheet, startSess
 
 /* ================= GÖZLEM (Antrenman plan ve gözlem) ================= */
 function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
+  const active = st.sessions.find((s) => s.status === 'active');
   const today = new Date();
   const todayKey = dateKey(today);
   const [selKey, setSelKey] = useState(() => dateKey(new Date()));
@@ -1409,6 +1410,9 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
                   {selIsToday && !isDone ? (
                     <button type="button" className="btn primary sm" onClick={() => startSession(prog, pDay)}>{t('Başlat')}</button>
                   ) : null}
+                  {selIsPast && !isDone && !active ? (
+                    <button type="button" className="btn primary sm day-log-plan" onClick={() => startSession(prog, pDay, selKey)}>{t('Kaydet')}</button>
+                  ) : null}
                   <button
                     type="button"
                     className="day-plan-more"
@@ -1436,7 +1440,13 @@ function GozlemScreen({ st, put, openSheet, startSession, editPlan }) {
             <button type="button" id="day-add-plan" className="add-item" onClick={() => openSheet('planPick', { dayKey: selKey })}>
               + {t('Bu güne plan ekle')}
             </button>
-          ) : null}
+          ) : active ? (
+            <p className="day-meta">{t('Geçmişe kayıt için önce süren antrenmanı bitir.')}</p>
+          ) : (
+            <button type="button" id="day-log-past" className="add-item" onClick={() => startSession(null, null, selKey)}>
+              + {t('Bu güne antrenman kaydet')}
+            </button>
+          )}
         </section>
 
         <section className="hsec">
@@ -2198,7 +2208,8 @@ function App() {
   const fxNow = readFxSettings(st.settings);
   const fxLive = useRef(fxNow);
   fxLive.current = fxNow;
-  const live = !!(active && !active.ready);
+  // V41: geçmişe kayıt süren idman sayılmaz (bildirim, şerit, unutulan idman bekçisi, geçiş yok)
+  const live = !!(active && !active.ready && !active.backfill);
   const mode = screenMode({ tab, editing: !!planEd, active, summary: !!pixelSummary });
   const [modeTr, setModeTr] = useState(null);
   const trTimer = useRef(null);
@@ -2229,9 +2240,9 @@ function App() {
     if (liveId && !was && tab === 'antrenman' && !planEd) playTr('start');
   }, [liveId]);
   // V32 · unutulan antrenman: 10 dk giriş yoksa sor, 5 dk daha cevap yoksa son giriş saatinde bitir.
-  const idle = useIdleWatch(active, st, put, (ns) => { setJumpExId(null); setPixelSummary(ns); });
+  const idle = useIdleWatch(active && !active.backfill ? active : null, st, put, (ns) => { setJumpExId(null); setPixelSummary(ns); });
   // V33 · süren antrenman bildirim panelinde ileri sayan süreyle durur; bitince kalkar.
-  const liveSig = active && !active.ready ? active.id + '|' + active.startedAt + '|' + active.dayName + '|' + lang : '';
+  const liveSig = live ? active.id + '|' + active.startedAt + '|' + active.dayName + '|' + lang : '';
   useEffect(() => {
     if (!liveSig) { void hideWorkout(); return; }
     void showWorkout({ startedAt: active.startedAt, title: isFree(active) ? t('Plansız antrenman') : sessionName(active), body: t('Antrenman sürüyor · dokun: devam et') });
@@ -2284,13 +2295,20 @@ function App() {
   }, [acct.mode, acct.uid]);
   useEffect(() => { if (acct.needsConsent) setSheets(a => a.some(s => s.type === 'consent') ? a : [...a, { key: newId('sh'), type: 'consent', props: {} }]); else setSheets(a => a.filter(s => s.type !== 'consent')); }, [acct.needsConsent]);
 
-  const startSession = (program, day) => {
+  // pastKey (YYYY-MM-DD, bugünden önce): V41 geçmişe kayıt. O gün 18:00'de başlar, dinlenmesiz, hemen kayda açılır.
+  const startSession = (program, day, pastKey = null) => {
     closeAll();
     setPlanEd(null);
     setPixelSummary(null);
     setJumpExId(null);
     if (active) { setTab('antrenman'); return; }
     const s = sessionFromDay(program, day);
+    if (pastKey && pastKey < dateKey()) {
+      const [y, mo, d] = pastKey.split('-').map(Number);
+      s.startedAt = new Date(y, mo - 1, d, 18, 0, 0).getTime();
+      delete s.ready;
+      s.backfill = true;
+    }
     put('sessions', s);
     setTab('antrenman');
   };

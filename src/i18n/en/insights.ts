@@ -118,4 +118,6 @@ export const insights: Record<string, Entry> = {
   "Seansta dakika": "Minutes per session",
   "en çok {n} dk": "max {n} min",
   "Seans yükü (seans-RPE) = raund dakikası × yoğunluk (Teknik 2 · Hafif 4 · Orta 6 · Sert 8 · Maç 10). Dövüş raundları zor sete ve tonaja girmez, yorgunluğa bu yükle girer.": "Session load (session RPE) = round minutes × intensity (Technical 2 · Light 4 · Medium 6 · Hard 8 · Fight 10). Combat rounds aren't counted in hard sets or tonnage; they count toward fatigue with this load.",
+  "Bu güne antrenman kaydet": "Log a workout for this day",
+  "Geçmişe kayıt için önce süren antrenmanı bitir.": "Finish the current workout before logging a past one.",
 };

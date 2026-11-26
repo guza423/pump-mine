@@ -859,3 +859,10 @@ Kütüphaneyi büyütelim hadi"
 ### 2026-11-26 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
 **Kullanıcı:** "Baktımda olmadı. Test kişileri arasında ekli ama güncelleme gelince gelmedi ona. Play store ön bellekte sildim hatta anlamadım"
 **Yapılan / karar:** Kod değişmedi; dahili test yayınları başarılı (son: V40, `release.yml` başarılı). Dünkü "debug APK" teşhisi doğrulanmamıştı, düzeltildi: iki olası neden kaldı. (1) Listede olmak yetmez, testçi katılım bağlantısını Play Store'daki **aynı** Google hesabıyla açıp "Test kullanıcısı ol / Kabul et" demeli. (2) Telefondaki uygulama GitHub APK'sıysa (Ayarlar › Uygulamalar › OUTMOVE › sürüm `0.7.x`) önbellek silmek işe yaramaz; giriş yapıp eşitle, kaldır, Play'den kur. Testçiden sürüm satırının ekran görüntüsü istendi.
+
+### 2026-11-26 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** "Tamamdır. Ya bide şey. Bu takvim varda o takvimde geçmişteki istedimiz yere tıklayıncada geçmişte yaptımız idmanı kaydedebilelim. Bu kayıttta tabi dinlenme süresi değilde hemen seti kaydetme olucak dinlenme yerine. Başka yok. Oki"
+**Yapılan:**
+- **V41** (`docs/gorevler/V41-gecmis-gune-antrenman-kaydi.md`): Gözlem'de geçmiş gün seçilince `+ Bu güne antrenman kaydet` (plansız) ve kaçırılan planda `Kaydet` (planlı; bitince o gün yapıldı görünür).
+- Kayıt ekranı aynı; dinlenme ekranı ve sayacı yok, set hemen kaydedilir. Set saatleri o güne dizilir (18:00'den başlar, aralar dinlenme süresi), bitiş son set + 1 dk. Süren idman sayılmaz (bildirim, şerit, unutulan idman bekçisi yok).
+- Commit: `COMMIT`. Kontroller: `npm test` (196), lint, `tsc -b`, build, `test:layout` geçti.

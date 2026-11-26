@@ -184,6 +184,24 @@ async function flow(viewport, scale = 1, tablet = false, safeArea = false) {
     await page.locator('#tab-gozlem').click();
     await page.locator('#day-panel').waitFor();
     await check(page, label, screen);
+    // V41 · geçmiş güne antrenman kaydı: gün paneli ve dinlenmesiz kayıt ekranı (boşken İPTAL)
+    const past = await page.evaluate(() => {
+      const today = document.querySelector('.cal-d.today')?.getAttribute('data-date');
+      const c = [...document.querySelectorAll('.cal-d:not(.out)')].find((x) => today && x.getAttribute('data-date') < today);
+      return c ? c.getAttribute('data-date') : null;
+    });
+    if (past) {
+      await page.locator(`.cal-d[data-date="${past}"]`).click();
+      await page.locator('#day-log-past').waitFor();
+      screen = 'gozlem-gecmis-gun';
+      await check(page, label, screen);
+      await page.locator('#day-log-past').click();
+      await page.locator('.px-backfill').waitFor();
+      screen = 'gecmis-kayit';
+      await check(page, label, screen);
+      await page.locator('#discard-ready-btn').press('Enter');
+      await page.locator('.px-backfill').waitFor({ state: 'detached' });
+    }
 
     screen = 'antrenman-bos';
     await page.locator('#tab-antrenman').click();

@@ -2098,6 +2098,9 @@
   color: var(--mt);
 }
 .px .px-ses-meta b { font-weight: 700; color: var(--gold); text-transform: none; }
+/* Oturum listesi başlığı: dar ekranda İPTAL varken ad iki satıra iner; sabit yükseklik üstü ve altı kesiyordu (liste alanı esnek). */
+.px .px-head.px-ses-head { height: auto; min-height: 52px; padding-top: 2px; padding-bottom: 2px; }
+@container (max-height: 605px) { .px .px-head.px-ses-head { height: auto; min-height: 44px; } }
 .px .px-ses-meta b.nm { font-size: 15px; }
 .px .ib.px-ib-hold { width: auto; height: 48px; padding: 0 12px; color: var(--bad); font: 700 14px var(--px-f-head); letter-spacing: 0.06em; }
 .px .card-del.px-hold .px-hold-hint { font-size: 9px; }
