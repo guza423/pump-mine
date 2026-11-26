@@ -854,3 +854,4 @@ Kütüphaneyi büyütelim hadi"
 **Yapılan:**
 - **V40** (`docs/gorevler/V40-gecis-cizgileri-dokunma-vurgusu.md`): video kare kare incelendi. Süren idmana girip çıkarken kapanan şeritler ekranın ortasında yatay bantlar bırakıyordu; artık tek parça perde kararıp açılıyor.
 - Android'in mavi-yeşil dokunma vurgusu (sekme düğmesi, geçmiş satırı) her yerde kapatıldı.
+- Commit: `e94080e`. Kontroller: `npm test` (194), lint, `tsc -b`, build, `test:layout` geçti.
