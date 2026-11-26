@@ -855,3 +855,7 @@ Kütüphaneyi büyütelim hadi"
 - **V40** (`docs/gorevler/V40-gecis-cizgileri-dokunma-vurgusu.md`): video kare kare incelendi. Süren idmana girip çıkarken kapanan şeritler ekranın ortasında yatay bantlar bırakıyordu; artık tek parça perde kararıp açılıyor.
 - Android'in mavi-yeşil dokunma vurgusu (sekme düğmesi, geçmiş satırı) her yerde kapatıldı.
 - Commit: `e94080e`. Kontroller: `npm test` (194), lint, `tsc -b`, build, `test:layout` geçti.
+
+### 2026-11-26 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** "Baktımda olmadı. Test kişileri arasında ekli ama güncelleme gelince gelmedi ona. Play store ön bellekte sildim hatta anlamadım"
+**Yapılan / karar:** Kod değişmedi; dahili test yayınları başarılı (son: V40, `release.yml` başarılı). Dünkü "debug APK" teşhisi doğrulanmamıştı, düzeltildi: iki olası neden kaldı. (1) Listede olmak yetmez, testçi katılım bağlantısını Play Store'daki **aynı** Google hesabıyla açıp "Test kullanıcısı ol / Kabul et" demeli. (2) Telefondaki uygulama GitHub APK'sıysa (Ayarlar › Uygulamalar › OUTMOVE › sürüm `0.7.x`) önbellek silmek işe yaramaz; giriş yapıp eşitle, kaldır, Play'den kur. Testçiden sürüm satırının ekran görüntüsü istendi.
