@@ -45,7 +45,7 @@ export function ModeFrame({ mode }: { mode: ScreenMode }) {
 const COAL = ['#1d0d0a', '#2a120d'];
 const NIGHT = ['#100e1b', '#1b1830'];
 
-/** Modlar arası geçiş: başlarken BAŞLA! ile pixel blok dalgası, bitince sakin moda soğuma, süren idmana girip çıkarken şerit, ısınmaya girerken ısı dalgası. */
+/** Modlar arası geçiş: başlarken BAŞLA! ile pixel blok dalgası, bitince sakin moda soğuma, süren idmana girip çıkarken perde, ısınmaya girerken ısı dalgası. */
 export function ModeTransition({ tr }: { tr: { kind: ModeTr; n: number } | null }) {
   const kind = tr?.kind;
   const cells = useMemo(() => {
@@ -64,13 +64,9 @@ export function ModeTransition({ tr }: { tr: { kind: ModeTr; n: number } | null 
   if (tr.kind === 'warm') {
     return <div key={tr.n} className="px-md-tr" aria-hidden="true"><i className="px-md-wave" /></div>;
   }
+  // V40: süren idmana girip çıkarken tek parça perde kararıp açılır (şeritler ekranın ortasında çizgi bırakıyordu)
   if (tr.kind === 'into' || tr.kind === 'out') {
-    const col = tr.kind === 'into' ? COAL : NIGHT;
-    return (
-      <div key={tr.n} className="px-md-tr" aria-hidden="true">
-        {Array.from({ length: 12 }, (_, i) => <i key={i} className="px-md-bar" style={{ top: (i * 100) / 12 + '%', background: col[i % 2], animationDelay: (i * 0.012).toFixed(3) + 's' }} />)}
-      </div>
-    );
+    return <div key={tr.n} className="px-md-tr" aria-hidden="true"><i className={'px-md-veil ' + tr.kind} /></div>;
   }
   return (
     <div key={tr.n} className="px-md-tr" aria-hidden="true">

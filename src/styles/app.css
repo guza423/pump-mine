@@ -34,6 +34,8 @@
 *, *::before, *::after { box-sizing: border-box; }
 html, body { height: 100%; }
 html { background: var(--void); }
+/* V40: Android WebView'in dokunma vurgusu (mavi-yeşil bant) kapalı; geri bildirim :active durumlarıyla. */
+*, *::before, *::after { -webkit-tap-highlight-color: transparent; }
 body {
   margin: 0; background: var(--void); color: var(--text);
   font-family: var(--f-body); font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased;

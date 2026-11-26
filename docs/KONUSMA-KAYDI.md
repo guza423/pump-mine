@@ -848,3 +848,9 @@ Kütüphaneyi büyütelim hadi"
 **Kontroller:** `npx vitest run` (194), `tsc -b`, build, `test:layout` (yeni `seans-dovus` ekranları dahil).
 **Kullanıcı (05:48):** "Yok repoya yaz ya izin veriyorum. Build et falan yeni sürümü indiriyim"
 **Kayıt:** `958014c` (kod + belgeler) `main`'e push edildi ve bu commit (`GOREV.md`). Play AAB iş akışı başarılı, dahili teste yüklendi.
+
+### 2026-11-26 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** (ekran videosu) "Bak busfrde böyle çizgiler var aniden çıkıo ekran ortasında"
+**Yapılan:**
+- **V40** (`docs/gorevler/V40-gecis-cizgileri-dokunma-vurgusu.md`): video kare kare incelendi. Süren idmana girip çıkarken kapanan şeritler ekranın ortasında yatay bantlar bırakıyordu; artık tek parça perde kararıp açılıyor.
+- Android'in mavi-yeşil dokunma vurgusu (sekme düğmesi, geçmiş satırı) her yerde kapatıldı.
