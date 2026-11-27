@@ -873,3 +873,6 @@ Kütüphaneyi büyütelim hadi"
 
 **Kullanıcı:** "kapalı test ne peki bizim bu app onayladılar mı"
 **Cevap:** Kapalı test: seçilen kişilere (e-posta listesi ya da Google Grubu) açılan, Google incelemesinden geçen test kanalı; dahili test ise en çok 100 kişi, incelemesiz, dakikalar içinde. Kuruluş hesabında kapalı test şartı yok (12 kişi / 14 gün yalnız kişisel hesaplar için); alpha kanalı gereksiz, duraklatılabilir (Kanalı duraklat). Onay: ekran görüntüsünde "Yayınlanmamış değişiklik yok" ve alpha'da 22 Kasım sürümü yayında; kapalı test sürümleri incelemeden geçtiği için o sürüm büyük ihtimalle onaylanmış. Mağazada herkese açık olup olmadığını üretim gösterir: Tüm uygulamalar › OUTMOVE "Uygulama durumu" ya da sol menü › Üretim; ekran görüntüsü istendi.
+
+**Kullanıcı:** (ekran görüntüsü: Play Console › İstatistikler › "Uygulamayı yükleyen kullanıcı sayısı", son 28 gün, 2 ülke/bölge; çizgi son günlerde 0'dan 1'e çıkıyor, imleç 22 Kas 2026)
+**Cevap:** İstatistikler onay ya da yayın durumunu göstermez; test kanallarından (dahili + alpha) gelen kurulumları da sayar, veri 1–2 gün geriden gelir. Hangi ülkeler olduğu ülke filtresinden görülür. Herkese açık olup olmadığı üretimden anlaşılır: Tüm uygulamalar listesinde OUTMOVE'un durum sütunu ya da sol menü › Test etme ve yayınlama › Üretim.
