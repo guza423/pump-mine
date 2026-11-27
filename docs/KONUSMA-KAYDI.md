@@ -866,3 +866,7 @@ Kütüphaneyi büyütelim hadi"
 - **V41** (`docs/gorevler/V41-gecmis-gune-antrenman-kaydi.md`): Gözlem'de geçmiş gün seçilince `+ Bu güne antrenman kaydet` (plansız) ve kaçırılan planda `Kaydet` (planlı; bitince o gün yapıldı görünür).
 - Kayıt ekranı aynı; dinlenme ekranı ve sayacı yok, set hemen kaydedilir. Set saatleri o güne dizilir (18:00'den başlar, aralar dinlenme süresi), bitiş son set + 1 dk. Süren idman sayılmaz (bildirim, şerit, unutulan idman bekçisi yok).
 - Commit: `40bfcd4`. Kontroller: `npm test` (196), lint, `tsc -b`, build, `test:layout` geçti.
+
+### 2026-11-27 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** (Play Console ekran görüntüleri: Test etme ve yayınlama › Dahili test 1.0.1 (16), 11 saat önce; Kapalı test › "alpha" 5 (1.0.1), 22 Kas 17:00. Dahili test › Test kullanıcıları: liste "ben", 4 kullanıcı, işaretli; altta "Web'de katılın") "test kullanıcılarında mail duruo"
+**Yapılan / karar:** Muhtemel neden: testçi dahili teste değil **kapalı test "alpha"** kanalına katılmış (o kanal 22 Kasım'daki 5'te duruyor, otomatik yükleme yalnız dahili teste gidiyor). Listede olmak yetmiyor; testçi Dahili test › Test kullanıcıları › **Web'de katılın** bağlantısını Play Store'daki aynı Google hesabıyla açıp kabul etmeli. Karışmaması için alpha kanalının bağlantısı paylaşılmamalı. Ders `docs/PROJE.md` Play bölümüne yazıldı.
