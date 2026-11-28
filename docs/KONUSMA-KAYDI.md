@@ -883,3 +883,6 @@ Kütüphaneyi büyütelim hadi"
 
 **Kullanıcı:** "e tamam artık uygulamayı yayınlayalım bende yayınladık onu beklioz saniom ya üff. neyse gönderek işte açılsın artık okdr doldurk" · (tarayıcı bağlı değildi, Claude'un Play Console'u kendisinin kullanması için kurulum önerildi) "yok yok bana de yapim işte ya"
 **Cevap:** Üretime gönderme adımları tarif edildi: Uygulama içeriği'nde eksik kalmadığını kontrol et; Üretim › Ülkeler/bölgeler (AB/AEA ve Birleşik Krallık seçilirse GDPR m.27 temsilcisi yükümlülüğü; Türkiye için VERBİS); Üretim › Yeni sürüm oluştur › Kitaplıktan ekle › 16 (1.0.1); sürüm notu `<en-US>First release.</en-US>` + `<tr-TR>İlk sürüm.</tr-TR>`; İleri › hatalar (uyarılar engellemez) › Kaydet › Yayınlama özeti › incelemeye gönder. Sonraki kod push'ları yine yalnız dahili teste gider; mağaza sürümü elle güncellenir. Firebase Blaze + günlük yedek başkaları veri girmeden önce önerildi.
+
+**Kullanıcı:** (ekran görüntüsü: Play Console › "Google Play ile korunanlar", OUTMOVE iyi koruma; Otomatik koruma 1/1, Play Integrity API 0/7, Play Store koruması 6/7, Faturalandırma 0/4)
+**Cevap:** Yanlış yer (Claude'un tarifi hatalıydı): kalkan simgesi uygulama koruması, burada yapılacak bir şey yok. Uygulama içeriği, kalkanın hemen üstündeki belge simgesinde (Politika ve programlar › Uygulama içeriği); bulunamazsa Kontrol paneli'nde aşağıdaki kurulum görevleri.
