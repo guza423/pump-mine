@@ -876,3 +876,7 @@ Kütüphaneyi büyütelim hadi"
 
 **Kullanıcı:** (ekran görüntüsü: Play Console › İstatistikler › "Uygulamayı yükleyen kullanıcı sayısı", son 28 gün, 2 ülke/bölge; çizgi son günlerde 0'dan 1'e çıkıyor, imleç 22 Kas 2026)
 **Cevap:** İstatistikler onay ya da yayın durumunu göstermez; test kanallarından (dahili + alpha) gelen kurulumları da sayar, veri 1–2 gün geriden gelir. Hangi ülkeler olduğu ülke filtresinden görülür. Herkese açık olup olmadığı üretimden anlaşılır: Tüm uygulamalar listesinde OUTMOVE'un durum sütunu ya da sol menü › Test etme ve yayınlama › Üretim.
+
+### 2026-11-28 · Claude (claude.ai, PERFORMANCE projesi · Claude Code)
+**Kullanıcı:** (Play Console ekran görüntüleri: Test etme ve yayınlama › Dahili test 1.0.1 (16), 36 saat önce; Kapalı test alpha 5 (1.0.1); "DEX kodu optimizasyonu, eşiğimizin altında · Kod karartma (%2) · son tarih Şub 2027". Kontrol paneli: OUTMOVE, Üretim **Etkin değil**. Üretim sayfası: Etkin değil, sürüm yok)
+**Cevap:** Uygulama mağazada herkese açık değil: üretime hiç sürüm gönderilmemiş, bu yüzden üretim incelemesi de yapılmamış. Yalnız test kanalları açık. Dahili test güncel (16 = V41, `release.yml` 26 Kasım 21:15 UTC başarılı). DEX uyarısı (yayın derlemesinde R8 küçültme/karartma kapalı) acil değil, son tarih Şubat 2027. Herkese açmak için: Üretim › Yeni sürüm oluştur › Kitaplıktan ekle (son AAB) › ülkeler › incelemeye gönder; ilk inceleme genelde birkaç gün, en fazla ~7 gün. Öncesinde PROJE.md'deki kalanlar: Firebase Blaze + bütçe uyarısı + günlük yedek, yasal adımlar.
